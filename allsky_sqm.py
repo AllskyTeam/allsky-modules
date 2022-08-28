@@ -25,6 +25,7 @@ metaData = {
         "mask": "",
         "roi": "",
         "debug": "false",
+        "debugimage": "",
         "fallback": 5        
     },
     "argumentdetails": {   
@@ -59,10 +60,17 @@ metaData = {
             "required": "false",
             "description": "Enable debug mode",
             "help": "If selected each stage of the detection will generate images in the allsky tmp debug folder",
+            "tab": "Debug",            
             "type": {
                 "fieldtype": "checkbox"
             }          
-        }                            
+        },
+        "debugimage" : {
+            "required": "false",
+            "description": "Debug Image",
+            "help": "Image to use for debugging. DO NOT set this unless you know what you are doing",
+            "tab": "Debug"        
+        }                                 
     },
     "enabled": "false"            
 }
@@ -74,14 +82,22 @@ def sqm(params):
     mask = params["mask"]
     roi = params["roi"]
     debug = params["debug"]
+    debugimage = params["debugimage"]    
     fallback = int(params["fallback"])
 
     binning = s.getEnvironmentVariable("AS_BIN")
     if binning is None:
         binning = 1
 
-    image = cv2.imread("/home/pi/cleartest.jpg")
-    #image = s.image
+    if debugimage != "":
+        image = cv2.imread(debugimage)
+        if image is None:
+            image = s.image
+            s.log(0, "WARNING: Debug image set to {0} but cannot be found, using latest allsky image".format(debugimage))
+        else:
+            s.log(0, "WARNING: Using debug image {0}".format(debugimage))
+    else:
+        image = s.image
 
     imageMask = None
     if mask != "":
