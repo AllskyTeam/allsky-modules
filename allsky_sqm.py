@@ -67,11 +67,12 @@ def sqm(params):
     if binning is None:
         binning = 1
 
-    image = cv2.imread("/home/pi/cleartest.jpg")
-    #image = s.image
+    #image = cv2.imread("/home/pi/cleartest.jpg")
+    image = s.image
 
     imageHeight, imageWidth = image.shape[:2]
 
+    imageMask = None
     if mask != "":
         maskPath = os.path.join(s.getEnvironmentVariable("ALLSKY_HOME"),"html","overlay","images",mask)
         imageMask = cv2.imread(maskPath,cv2.IMREAD_GRAYSCALE)
