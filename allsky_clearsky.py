@@ -36,7 +36,8 @@ metaData = {
         "mqttport": 1883,
         "mqttusername": "",
         "mqttpassword": "",
-        "mqtttopic": "SKYSTATE"
+        "mqtttopic": "SKYSTATE",
+        "debugimage": ""
     },
     "argumentdetails": {
         "roi": {
@@ -125,6 +126,12 @@ metaData = {
                 "fieldtype": "checkbox"
             }          
         },
+        "debugimage" : {
+            "required": "false",
+            "description": "Debug Image",
+            "help": "Image to use for debugging. DO NOT set this unless you know what you are doing",
+            "tab": "Debug"        
+        },        
         "mqttenable" : {
             "required": "false",
             "description": "Enable MQTT",
@@ -186,6 +193,7 @@ def clearsky(params):
     annotate = params["annotate"]
     starTemplate1Size = int(params["template1"])
     debug = params["debug"]
+    debugimage = params["debugimage"]
     clearvalue = int(params["clearvalue"])
     roi = params["roi"].replace(" ", "")
     fallback = int(params["fallback"])
@@ -202,8 +210,15 @@ def clearsky(params):
         binning = 1
     binning = int(binning)
 
-    image = cv2.imread("/home/pi/cleartest.jpg")
-    #image = s.image
+    if debugimage != "":
+        image = cv2.imread(debugimage)
+        if image is None:
+            image = s.image
+            s.log(0, "WARNING: Debug image set to {0} but cannot be found, using latest allsky image".format(debugimage))
+        else:
+            s.log(0, "WARNING: Using debug image {0}".format(debugimage))
+    else:
+        image = s.image
 
     if mask != "":
         maskPath = os.path.join(s.getEnvironmentVariable("ALLSKY_HOME"),"html","overlay","images",mask)
