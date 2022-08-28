@@ -18,7 +18,8 @@ metaData = {
     ],
     "experimental": "true",    
     "arguments":{
-        "gpio": 0
+        "gpio": 0,
+        "state": 0
     },
     "argumentdetails": {
         "gpio": {
@@ -31,7 +32,18 @@ metaData = {
                 "max": 30,
                 "step": 1
             }             
-        }                  
+        },
+        "state": {
+            "required": "true",
+            "description": "Pin State",
+            "help": "",
+            "type": {
+                "fieldtype": "spinner",
+                "min": 0,
+                "max": 1,
+                "step": 1
+            }             
+        }                     
     },
     "enabled": "false"            
 }

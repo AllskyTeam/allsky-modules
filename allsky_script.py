@@ -19,7 +19,7 @@ metaData = {
         "daynight",
         "nightday"
     ],
-    "experimental": "true",    
+    "experimental": "false",    
     "arguments":{
         "scriptlocation": ""
     },

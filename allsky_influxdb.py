@@ -41,16 +41,14 @@ import allsky_shared as s
 import datetime
 import json
 from influxdb import InfluxDBClient
+import os
 
 metaData = {
     "name": "Allsky influxdb",
     "description": "Saves values from allsky to influxdb",
     "events": [
         "day",
-        "night",
-        "endofnight",
-        "daynight",
-        "nightday"
+        "night"
     ],
     "experimental": "true",    
     "arguments":{
@@ -59,7 +57,7 @@ metaData = {
         "user": "",
         "password": "",
         "database": "",
-        "tags": ""
+        "values": ""
     },
     "argumentdetails": {
         "host": {
@@ -92,29 +90,33 @@ metaData = {
             "required": "true",
             "description": "Database",
             "help": ""           
-        },
-        "tags": {
+        },    
+        "values": {
             "required": "true",
-            "description": "Tags",
-            "help": "Format tag:value,tag:value"
-        }        
+            "description": "Values",
+            "help": "Values to save"            
+        } 
     },
     "enabled": "false"            
 }
 
-def createJSONData():
+
+def createJSONData(values):
+
+    vars = values.split(",")
+    fields = {}
+    for var in os.environ:
+        if var.startswith("AS_") or var.startswith("ALLSKY_"):
+            if var in vars:
+                fields[var] = float(s.getEnvironmentVariable(var))
+
     now = datetime.datetime.utcnow()
     time = now.strftime('%Y-%m-%dT%H:%M:%SZ')
     jsonData = [
         {
             "measurement": "AllSky",
-            "tags": {
-                "location": "Ely",
-            },
             "time": time,
-            "fields": {
-                "test": 1.2
-            }
+            "fields":  fields
         }
     ]
 
@@ -126,10 +128,11 @@ def influxdb(params):
     user = params["user"]
     password = params["password"]
     database = params["database"]
+    values = params["values"]
 
     influxClient = InfluxDBClient(host, port, user, password, database)
 
-    jsonData = createJSONData()
+    jsonData = createJSONData(values)
     
     #try:
     influxClient.write_points(jsonData)
