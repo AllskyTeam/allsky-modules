@@ -24,7 +24,8 @@ metaData = {
     "arguments":{
         "mask": "",
         "roi": "",
-        "debug": "false"
+        "debug": "false",
+        "fallback": 5        
     },
     "argumentdetails": {   
         "mask" : {
@@ -42,7 +43,18 @@ metaData = {
             "type": {
                 "fieldtype": "image"
             }                
-        },  
+        },
+        "fallback" : {
+            "required": "true",
+            "description": "Fallback %",
+            "help": "If no ROI is set then this % of the image, from the center will be used",
+            "type": {
+                "fieldtype": "spinner",
+                "min": 1,
+                "max": 100,
+                "step": 1
+            }
+        },        
         "debug" : {
             "required": "false",
             "description": "Enable debug mode",
@@ -62,15 +74,14 @@ def sqm(params):
     mask = params["mask"]
     roi = params["roi"]
     debug = params["debug"]
+    fallback = int(params["fallback"])
 
     binning = s.getEnvironmentVariable("AS_BIN")
     if binning is None:
         binning = 1
 
-    #image = cv2.imread("/home/pi/cleartest.jpg")
-    image = s.image
-
-    imageHeight, imageWidth = image.shape[:2]
+    image = cv2.imread("/home/pi/cleartest.jpg")
+    #image = s.image
 
     imageMask = None
     if mask != "":
@@ -80,35 +91,45 @@ def sqm(params):
             s.writeDebugImage(metaData["module"], "image-mask.png", imageMask)  
 
     if len(image.shape) == 2:
-        gray_image = image
+        grayImage = image
     else:
-        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
+        grayImage = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     if imageMask is not None:
-        if gray_image.shape == imageMask.shape:
-            gray_image = cv2.bitwise_and(src1=gray_image, src2=imageMask)
+        if grayImage.shape == imageMask.shape:
+            grayImage = cv2.bitwise_and(src1=grayImage, src2=imageMask)
             if debug:
-                s.writeDebugImage(metaData["module"], "masked-image.png", gray_image)                   
+                s.writeDebugImage(metaData["module"], "masked-image.png", grayImage)                   
             else:
                 s.log(0,"ERROR: Source image and mask dimensions do not match")
 
+    imageHeight, imageWidth = grayImage.shape[:2]
     try:
-        x1 = int(roi[0] / binning)
-        y1 = int(roi[1] / binning)
-        x2 = int(roi[2] / binning)
-        y2 = int(roi[3] / binning)
-    except IndexError:
-        s.log(0, "ERROR: SQM ROI is invalid, falling back to 20% of image")
-        x1 = int((imageWidth / 2) - (imageWidth / 5))
-        y1 = int((imageHeight / 2) - (imageHeight / 5))
-        x2 = int((imageWidth / 2) + (imageWidth / 5))
-        y2 = int((imageHeight / 2) + (imageHeight / 5))
+        roiList = roi.split(",")
+        x1 = int(int(roiList[0]) / binning)
+        y1 = int(int(roiList[1]) / binning)
+        x2 = int(int(roiList[2]) / binning)
+        y2 = int(int(roiList[3]) / binning)
+    except:
+        if len(roi) > 0:
+            s.log(0, "ERROR: SQM ROI is invalid, falling back to {0}% of image".format(fallback))
+        else:
+            s.log(1, "INFO: SQM ROI not set, falling back to {0}% of image".format(fallback))
+        fallbackAdj = (100 / fallback)
+        x1 = int((imageWidth / 2) - (imageWidth / fallbackAdj))
+        y1 = int((imageHeight / 2) - (imageHeight / fallbackAdj))
+        x2 = int((imageWidth / 2) + (imageWidth / fallbackAdj))
+        y2 = int((imageHeight / 2) + (imageHeight / fallbackAdj))
 
-    croppedImage = gray_image[x1:y1, x2:y2] 
+    croppedImage = grayImage[y1:y2, x1:x2] 
+
+    if debug:
+        s.writeDebugImage(metaData["module"], "cropped-image.png", croppedImage) 
 
     sqmAvg = cv2.mean(src=croppedImage)[0]
     s.log(1,"INFO: SQM Mean calculated as {0}".format(sqmAvg))
 
     # offset the sqm based on the exposure and gain
     #weighted_sqm_avg = (((self.config['CCD_EXPOSURE_MAX'] - exposure) / 10) + 1) * (sqm_avg * (((self.config['CCD_CONFIG']['NIGHT']['GAIN'] - gain) / 10) + 1))
+
+    return "Sky SQM is {0}".format(sqmAvg)

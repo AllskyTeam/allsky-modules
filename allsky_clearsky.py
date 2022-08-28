@@ -47,7 +47,7 @@ metaData = {
         "fallback" : {
             "required": "true",
             "description": "Fallback %",
-            "help": "If no ROI is set then this % of the image, from the center will eb used",
+            "help": "If no ROI is set then this % of the image, from the center will be used",
             "type": {
                 "fieldtype": "spinner",
                 "min": 1,
@@ -174,6 +174,9 @@ metaData = {
     "enabled": "false"            
 }
 
+def onPublish(client, userdata, mid, properties=None):
+    s.log(1,"INFO: Sky state published to MQTT Broker mid {0}".format(mid))    
+
 def clearsky(params):
     #ONLY AT NIGHT !
 
@@ -199,8 +202,8 @@ def clearsky(params):
         binning = 1
     binning = int(binning)
 
-    #image = cv2.imread("/home/pi/cleartest.jpg")
-    image = s.image
+    image = cv2.imread("/home/pi/cleartest.jpg")
+    #image = s.image
 
     if mask != "":
         maskPath = os.path.join(s.getEnvironmentVariable("ALLSKY_HOME"),"html","overlay","images",mask)
@@ -225,9 +228,9 @@ def clearsky(params):
         y2 = int(int(roiList[3]) / binning)
     except:
         if len(roi) > 0:
-            s.log(0, "ERROR: SQM ROI is invalid, falling back to {0}% of image".format(fallback))
+            s.log(0, "ERROR: ROI is invalid, falling back to {0}% of image".format(fallback))
         else:
-            s.log(1, "INFO: SQM ROI not set, falling back to {0}% of image".format(fallback))
+            s.log(1, "INFO: ROI not set, falling back to {0}% of image".format(fallback))
         fallbackAdj = (100 / fallback)
         x1 = int((imageWidth / 2) - (imageWidth / fallbackAdj))
         y1 = int((imageHeight / 2) - (imageHeight / fallbackAdj))
@@ -303,7 +306,10 @@ def clearsky(params):
     if mqttenable:
         s.log(1,"INFO: Sending sky state {0} to MQTT Broker {1} using topic {2}".format(skyState, mqttbroker, mqtttopic))
         client = paho.Client(client_id="", userdata=None, protocol=paho.MQTTv5)
+        client.on_publish = onPublish
         client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
         client.username_pw_set(mqttusername, mqttpassword)
         client.connect(mqttbroker, mqttport)
         result = client.publish(mqtttopic, skyState)
+
+    return "Sky is {0}".format(skyState)
