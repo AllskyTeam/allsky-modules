@@ -7,6 +7,7 @@ https://github.com/thomasjacquin/allsky
 '''
 import allsky_shared as s
 import cv2
+import os
 import numpy as np
 from math import sqrt
 import paho.mqtt.client as paho
@@ -272,7 +273,7 @@ def clearsky(params):
 
     starTemplate = cv2.blur(
         src=starTemplate,
-        ksize=(3, 3),
+        ksize=(3, 3)
     )
 
     if debug:
@@ -326,5 +327,8 @@ def clearsky(params):
         client.username_pw_set(mqttusername, mqttpassword)
         client.connect(mqttbroker, mqttport)
         result = client.publish(mqtttopic, skyState)
+    else:
+        s.log(1,"INFO: MQTT disabled")
 
+    os.environ["AS_SKYSTATE"] = skyState
     return "Sky is {0}".format(skyState)
