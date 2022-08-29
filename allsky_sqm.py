@@ -9,6 +9,7 @@ Portions of this code are from inidi-allsky https://github.com/aaronwmorris/indi
 '''
 import allsky_shared as s
 import cv2
+import os
 import numpy as np
 from math import sqrt
 
@@ -145,7 +146,7 @@ def sqm(params):
     sqmAvg = cv2.mean(src=croppedImage)[0]
     s.log(1,"INFO: SQM Mean calculated as {0}".format(sqmAvg))
 
-    os.environ["AS_SQM"] = str(skyState)
+    os.environ["AS_SQM"] = str(sqmAvg)
 
     # offset the sqm based on the exposure and gain
     #weighted_sqm_avg = (((self.config['CCD_EXPOSURE_MAX'] - exposure) / 10) + 1) * (sqm_avg * (((self.config['CCD_CONFIG']['NIGHT']['GAIN'] - gain) / 10) + 1))
