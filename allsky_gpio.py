@@ -12,6 +12,7 @@ import numpy as np
 metaData = {
     "name": "Sets a GPIO Pin",
     "description": "Sets a GPIO Pin",
+    "version": "v1.0.0",    
     "events": [
         "daynight",
         "nightday"

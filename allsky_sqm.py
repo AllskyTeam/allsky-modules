@@ -16,7 +16,8 @@ from math import sqrt
 metaData = {
     "name": "Sky Quality",
     "description": "Calculates sky quality",
-    "module": "allsky_sqm",     
+    "module": "allsky_sqm",
+    "version": "v1.0.0",    
     "events": [
         "day",
         "night"

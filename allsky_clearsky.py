@@ -16,7 +16,8 @@ from paho import mqtt
 metaData = {
     "name": "Clear Sky Alarm",
     "description": "Clear Sky Alarm",
-    "module": "allsky_clearsky",     
+    "module": "allsky_clearsky",
+    "version": "v1.0.0",        
     "events": [
         "day",
         "night"

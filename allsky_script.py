@@ -12,6 +12,7 @@ import subprocess
 metaData = {
     "name": "AllSKY Script",
     "description": "Runs a custom script",
+    "version": "v1.0.0",    
     "events": [
         "day",
         "night",

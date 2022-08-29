@@ -46,6 +46,7 @@ import os
 metaData = {
     "name": "Allsky influxdb",
     "description": "Saves values from allsky to influxdb",
+    "version": "v1.0.0",
     "events": [
         "day",
         "night"
