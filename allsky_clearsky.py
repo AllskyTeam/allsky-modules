@@ -32,7 +32,7 @@ metaData = {
         "debug": "false",
         "clearvalue": 10,
         "roi": "",
-        "fallback": 5,
+        "roifallback": 5,
         "mqttenable": "False",
         "mqttbroker": "",
         "mqttport": 1883,
@@ -45,9 +45,12 @@ metaData = {
         "roi": {
             "required": "true",
             "description": "Region of Interest",
-            "help": "The area of the image to check for clear skies. Format is x1,y1,x2,y2"
+            "help": "The area of the image to check for clear skies. Format is x1,y1,x2,y2",
+            "type": {
+                "fieldtype": "roi"
+            }            
         },          
-        "fallback" : {
+        "roifallback" : {
             "required": "true",
             "description": "Fallback %",
             "help": "If no ROI is set then this % of the image, from the center will be used",
@@ -198,7 +201,7 @@ def clearsky(params):
     debugimage = params["debugimage"]
     clearvalue = int(params["clearvalue"])
     roi = params["roi"].replace(" ", "")
-    fallback = int(params["fallback"])
+    fallback = int(params["roifallback"])
 
     mqttenable = params["mqttenable"]
     mqttbroker = params["mqttbroker"]
