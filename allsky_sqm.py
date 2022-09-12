@@ -28,7 +28,7 @@ metaData = {
         "roi": "",
         "debug": "false",
         "debugimage": "",
-        "fallback": 5        
+        "roifallback": 5        
     },
     "argumentdetails": {   
         "mask" : {
@@ -39,13 +39,24 @@ metaData = {
                 "fieldtype": "image"
             }                
         },        
-        "roi" : {
+        "roi": {
             "required": "true",
             "description": "Region of Interest",
-            "help": "The area of the image to calculate the sky quality from",
+            "help": "The area of the image to check for sky quality. Format is x1,y1,x2,y2",
             "type": {
-                "fieldtype": "image"
-            }                
+                "fieldtype": "roi"
+            }            
+        },          
+        "roifallback" : {
+            "required": "true",
+            "description": "Fallback %",
+            "help": "If no ROI is set then this % of the image, from the center will be used",
+            "type": {
+                "fieldtype": "spinner",
+                "min": 1,
+                "max": 100,
+                "step": 1
+            }
         },
         "fallback" : {
             "required": "true",
@@ -85,11 +96,12 @@ def sqm(params):
     roi = params["roi"]
     debug = params["debug"]
     debugimage = params["debugimage"]    
-    fallback = int(params["fallback"])
+    fallback = int(params["roifallback"])
 
     binning = s.getEnvironmentVariable("AS_BIN")
     if binning is None:
         binning = 1
+    binning = int(binning)
 
     if debugimage != "":
         image = cv2.imread(debugimage)
