@@ -57,18 +57,7 @@ metaData = {
                 "max": 100,
                 "step": 1
             }
-        },
-        "fallback" : {
-            "required": "true",
-            "description": "Fallback %",
-            "help": "If no ROI is set then this % of the image, from the center will be used",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 1,
-                "max": 100,
-                "step": 1
-            }
-        },        
+        },      
         "debug" : {
             "required": "false",
             "description": "Enable debug mode",
