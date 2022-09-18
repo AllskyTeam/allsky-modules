@@ -40,8 +40,8 @@ influx -username <username -password <password>
 import allsky_shared as s
 import datetime
 import json
-from influxdb import InfluxDBClient
 import os
+from influxdb_client import InfluxDBClient
 
 metaData = {
     "name": "Allsky influxdb",
@@ -126,16 +126,20 @@ def createJSONData(values):
 def influxdb(params): 
     host = params["host"]
     port = params["port"]
-    user = params["user"]
+    username = params["user"]
     password = params["password"]
     database = params["database"]
     values = params["values"]
-
-    influxClient = InfluxDBClient(host, port, user, password, database)
+    retention_policy = 'autogen'
 
     jsonData = createJSONData(values)
     
-    #try:
-    influxClient.write_points(jsonData)
-    #except Exception as e:
-    #    pass
+    bucket = f'{database}/{retention_policy}'
+    host = f'{host}:{port}'
+
+    try:
+        with InfluxDBClient(url=host, token=f'{username}:{password}', org='-') as client:
+            with client.write_api() as write_api:
+                write_api.write(bucket, record=jsonData)
+    except Exception as e:
+        s.log(0,"Error: {}".format(e))
