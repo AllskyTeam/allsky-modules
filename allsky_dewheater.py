@@ -13,6 +13,7 @@ import os
 import time
 import adafruit_sht31d
 import adafruit_dht
+from adafruit_bme280 import basic as adafruit_bme280
 import board
 import RPi.GPIO as GPIO
 from meteocalc import heat_index
@@ -48,14 +49,14 @@ metaData = {
             "tab": "Sensor",
             "type": {
                 "fieldtype": "select",
-                "values": "None,SHT31,DHT22,DHT11,BME280-I2C,BME280-SPI",
+                "values": "None,SHT31,DHT22,DHT11,BME280-I2C",
                 "default": "None"
             }                
         },
         "inputpin": {
             "required": "true",
             "description": "Input Pin",
-            "help": "The input pin for DHT/SPI type sensors, not required for i2c devices",
+            "help": "The input pin for DHT type sensors, not required for i2c devices",
             "tab": "Sensor",
             "type": {
                 "fieldtype": "gpio"
@@ -64,7 +65,7 @@ metaData = {
         "i2caddress": {
             "required": "true",
             "description": "I2C Address",
-            "help": "Override the standard i2c address for a device",
+            "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
             "tab": "Sensor"
         } ,                    
         "heaterpin": {
@@ -184,6 +185,29 @@ def readDHT22(inputpin):
 
     return temperature, humidity
 
+def readBme280I2C(i2caddress):
+    temperature = None
+    humidity = None
+
+
+    if i2caddress != "":
+        try:
+            i2caddressInt = int(i2caddress, 16)
+        except:
+            result = "Address {} is not a valid i2c address".format(i2caddress)
+            s.log(0,"ERROR: {}".format(result))
+
+    i2c = board.I2C()
+    if i2caddress != "":
+        bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c, i2caddressInt)
+    else:
+        bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
+
+    temperature =  bme280.temperature
+    humidity = bme280.relative_humidity
+
+    return temperature, humidity
+
 def setmode():
     try:
         GPIO.setmode(GPIO.BOARD)
@@ -208,7 +232,7 @@ def turnHeaterOff(invertrelay):
         GPIO.output(27, GPIO.LOW)
     s.log(1,"INFO: Turning Heater off")
 
-def getSensorReading(sensorType, inputpin):
+def getSensorReading(sensorType, inputpin, i2caddress):
     temperature = None
     humidity = None
     dewPoint = None
@@ -218,12 +242,19 @@ def getSensorReading(sensorType, inputpin):
         temperature, humidity = readSHT31()
     elif sensorType == "DHT22" or sensorType == "DHT11":
         temperature, humidity = readDHT22(inputpin)
+    elif sensorType == "BME280-I2C":
+        temperature, humidity = readBme280I2C(i2caddress)
     else:
         s.log(0,"ERROR: No sensor type defined")
 
     if temperature is not None and humidity is not None:
         dewPoint = dew_point(temperature, humidity).c
         heatIndex = heat_index(temperature, humidity).c
+
+    temperature = round(temperature, 2)
+    humidity = round(humidity, 2)
+    dewPoint = round(dewPoint, 2)
+    heatIndex = round(heatIndex, 2)
 
     return temperature, humidity, dewPoint, heatIndex
 
@@ -248,7 +279,8 @@ def dewheater(params):
     invertrelay = params["invertrelay"]
     inputpin = params["inputpin"]
     frequency = int(params["frequency"])
-    
+    i2caddress = params["i2caddress"]
+
     try:
         heaterpin = int(heaterpin)
     except ValueError:
@@ -261,7 +293,7 @@ def dewheater(params):
             lastRunSecs = now - lastRunTime
             if lastRunSecs >= frequency:
                 s.dbUpdate("dewheaterlastrun", now)
-                temperature, humidity, dewPoint, heatIndex = getSensorReading(sensorType, inputpin)
+                temperature, humidity, dewPoint, heatIndex = getSensorReading(sensorType, inputpin, i2caddress)
                 if temperature is not None:
                     if force != 0 and temperature <= force:
                         result = "Temperature below forced level {}".format(force)
