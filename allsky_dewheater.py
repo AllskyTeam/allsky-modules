@@ -216,7 +216,7 @@ def getSensorReading(sensorType, inputpin):
 
     if sensorType == "SHT31":
         temperature, humidity = readSHT31()
-    elif sensorType == "DHT22":
+    elif sensorType == "DHT22" or sensorType == "DHT11":
         temperature, humidity = readDHT22(inputpin)
     else:
         s.log(0,"ERROR: No sensor type defined")
@@ -247,7 +247,8 @@ def dewheater(params):
     limit = int(params["limit"])
     invertrelay = params["invertrelay"]
     inputpin = params["inputpin"]
-
+    frequency = int(params["frequency"])
+    
     try:
         heaterpin = int(heaterpin)
     except ValueError:
@@ -256,23 +257,30 @@ def dewheater(params):
     if heaterpin != 0:
         lastRunTime = getLastRunTime()
         if lastRunTime is not None:
-            temperature, humidity, dewPoint, heatIndex = getSensorReading(sensorType, inputpin)
-            if temperature is not None:
-                if force != 0 and temperature <= force:
-                    result = "Temperature below forced level {}".format(force)
-                    s.log(1,"INFO: {}".format(result))
-                    turnHeaterOn(invertrelay)
-                else:
-                    if ((temperature-limit) <= dewPoint):
+            now = int(time.time())            
+            lastRunSecs = now - lastRunTime
+            if lastRunSecs >= frequency:
+                s.dbUpdate("dewheaterlastrun", now)
+                temperature, humidity, dewPoint, heatIndex = getSensorReading(sensorType, inputpin)
+                if temperature is not None:
+                    if force != 0 and temperature <= force:
+                        result = "Temperature below forced level {}".format(force)
+                        s.log(1,"INFO: {}".format(result))
                         turnHeaterOn(invertrelay)
-                        result = "Temperature within limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
-                        s.log(1,"INFO: {}".format(result))
                     else:
-                        result = "Temperature outside limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
-                        s.log(1,"INFO: {}".format(result))
-                        turnHeaterOff(invertrelay)
+                        if ((temperature-limit) <= dewPoint):
+                            turnHeaterOn(invertrelay)
+                            result = "Temperature within limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
+                            s.log(1,"INFO: {}".format(result))
+                        else:
+                            result = "Temperature outside limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
+                            s.log(1,"INFO: {}".format(result))
+                            turnHeaterOff(invertrelay)
 
-                debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex)
+                    debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex)
+            else:
+                result = "Not run. Only running every {}s. Last ran {}s ago".format(frequency, lastRunSecs)
+                s.log(1,"INFO: {}".format(result))
         else:
             now = int(time.time())
             s.dbAdd("dewheaterlastrun", now)
