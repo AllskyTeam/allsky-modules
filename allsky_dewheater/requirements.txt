@@ -1,0 +1,3 @@
+adafruit-circuitpython-sht31d
+adafruit-circuitpython-bme280
+adafruit-circuitpython-dht
