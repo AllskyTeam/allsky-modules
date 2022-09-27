@@ -183,8 +183,7 @@ def calculateSkyStateAdvanced(skyambient, skyobject, clearbelow, cloudyabove, pa
         tsky = clearbelow
     elif tsky > cloudyabove:
         tsky = cloudyabove
-    cloudcover = ((tsky - clearbelow) * 100.) / (cloudyabove - clearbelow)
-    cloudcoverPercentage = "{}".format(cloudcover)
+    cloudcoverPercentage = ((tsky - clearbelow) * 100.) / (cloudyabove - clearbelow)
     cloudcover, percent = calculateSkyState(skyambient, skyobject, clearbelow, cloudyabove)
     return cloudcover, cloudcoverPercentage
 
@@ -199,7 +198,7 @@ def calculateSkyState(skyambient, skyobject, clearbelow, cloudyabove):
     if skyobject >= cloudyabove:
         cloudCover = 'Cloudy'
 
-    return cloudCover, "N/A"
+    return cloudCover, 0
 
 
 def cloud(params):
