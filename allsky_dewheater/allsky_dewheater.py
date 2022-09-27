@@ -281,6 +281,12 @@ def dewheater(params):
     frequency = int(params["frequency"])
     i2caddress = params["i2caddress"]
 
+    temperature = 0
+    humidity = 0
+    dewPoint = 0
+    heatIndex = 0
+    heater = 'Off'
+
     try:
         heaterpin = int(heaterpin)
     except ValueError:
@@ -299,15 +305,18 @@ def dewheater(params):
                         result = "Temperature below forced level {}".format(force)
                         s.log(1,"INFO: {}".format(result))
                         turnHeaterOn(invertrelay)
+                        heater = 'On'
                     else:
                         if ((temperature-limit) <= dewPoint):
                             turnHeaterOn(invertrelay)
+                            heater = 'On'
                             result = "Temperature within limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
                             s.log(1,"INFO: {}".format(result))
                         else:
                             result = "Temperature outside limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
                             s.log(1,"INFO: {}".format(result))
                             turnHeaterOff(invertrelay)
+                            heater = 'Off'
 
                     debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex)
             else:
@@ -319,12 +328,15 @@ def dewheater(params):
             s.log(1,"INFO: No last run info so assuming startup")
             if heaterstartupstate == "ON":
                 turnHeaterOn(invertrelay)
+                heater = 'On'
             else:
                 turnHeaterOff(invertrelay)
+                heater = 'Off'
 
-        os.environ["AS_DEWCONTROLAMBIENT"] = "20"
-        os.environ["AS_DEWCONTROLDEW"] = "5"
-        os.environ["AS_DEWCONTROLHEATER"] = "On"
+        os.environ["AS_DEWCONTROLAMBIENT"] = str(temperature)
+        os.environ["AS_DEWCONTROLDEW"] = str(dewPoint)
+        os.environ["AS_DEWCONTROLHUMIDITY"] = str(humidity)
+        os.environ["AS_DEWCONTROLHEATER"] = heater
     else:
         result = "heater pin not defined or invalid"
         s.log(0,"ERROR: {}".format(result))
