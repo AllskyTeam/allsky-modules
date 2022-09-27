@@ -233,7 +233,7 @@ def cloud(params):
     os.environ["AS_CLOUDAMBIENT"] = str(skyambient)
     os.environ["AS_CLOUDSKY"] = str(skyobject)
     os.environ["AS_CLOUDCOVER"] = cloudCover
-    os.environ["AS_CLOUDCOVERPERCENT"] = percentage
+    os.environ["AS_CLOUDCOVERPERCENT"] = str(percentage)
 
     result = "Cloud state - {0} {1}. Sky Temp {2}, Ambient {3}".format(cloudCover, percentage, skyobject, skyambient)
     s.log(1, "INFO: {}".format(result))
