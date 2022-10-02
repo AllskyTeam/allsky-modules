@@ -130,7 +130,7 @@ def openweathermap(params, event):
                 allskyPath = s.getEnvironmentVariable("ALLSKY_HOME")
                 if allskyPath is not None:
                     extraDataPath = os.path.join(allskyPath, "tmp", "extra")
-                    s.checkAndCreatePath(extraDataPath)
+                    s.checkAndCreateDirectory(extraDataPath)
                     extraDataFilename = os.path.join(extraDataPath, fileName)
                     lat = s.getSetting("latitude")
                     if lat is not None and lat != "":
