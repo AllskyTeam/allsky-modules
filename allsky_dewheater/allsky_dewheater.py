@@ -252,10 +252,10 @@ def getSensorReading(sensorType, inputpin, i2caddress):
         dewPoint = dew_point(temperature, humidity).c
         heatIndex = heat_index(temperature, humidity).c
 
-    temperature = round(temperature, 2)
-    humidity = round(humidity, 2)
-    dewPoint = round(dewPoint, 2)
-    heatIndex = round(heatIndex, 2)
+        temperature = round(temperature, 2)
+        humidity = round(humidity, 2)
+        dewPoint = round(dewPoint, 2)
+        heatIndex = round(heatIndex, 2)
 
     return temperature, humidity, dewPoint, heatIndex
 
