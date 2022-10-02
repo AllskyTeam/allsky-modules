@@ -45,7 +45,7 @@ metaData = {
     }      
 }
 
-def rain(params):
+def rain(params, event):
     result = ""
 
     inputpin = params["inputpin"]
@@ -64,16 +64,21 @@ def rain(params):
 
         resultState = "Not Raining"
         raining = ""
+        rainFlag = False
         if not invertsensor:
             if pinState == 0:
                 raining = "Raining"
                 resultState = raining
+                rainFlag = True
         else:
             if pinState == 1:
                 raining = "Raining"
                 resultState = raining
+                rainFlag = True
 
         os.environ["AS_RAINSTATE"] = raining
+        os.environ["AS_ALLSKYRAINFLAG"] = str(rainFlag)
+
         result = "Rain State: Its {}".format(resultState)
         s.log(1, "INFO: {}".format(result))
     else:

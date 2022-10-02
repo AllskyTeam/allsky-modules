@@ -189,7 +189,7 @@ metaData = {
 def onPublish(client, userdata, mid, properties=None):
     s.log(1,"INFO: Sky state published to MQTT Broker mid {0}".format(mid))    
 
-def clearsky(params):
+def clearsky(params, event):
     #ONLY AT NIGHT !
 
     detectionThreshold = float(params["detectionThreshold"])

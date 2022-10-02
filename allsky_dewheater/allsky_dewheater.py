@@ -26,7 +26,8 @@ metaData = {
     "version": "v1.0.0",    
     "events": [
         "day",
-        "night"
+        "night",
+        "periodic"
     ],
     "experimental": "true",    
     "arguments":{
@@ -269,7 +270,7 @@ def getLastRunTime():
 def debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex):
     s.log(1,"INFO: Sensor {0} read. Temperature {1} Humidity {2} Dew Point {3} Heat Index {4}".format(sensorType, temperature, humidity, dewPoint, heatIndex))
 
-def dewheater(params):
+def dewheater(params, event):
     result = ""
     sensorType = params["type"]
     heaterstartupstate = params["heaterstartupstate"]

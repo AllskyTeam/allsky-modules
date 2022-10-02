@@ -18,7 +18,8 @@ metaData = {
         "night",
         "endofnight",
         "daynight",
-        "nightday"
+        "nightday",
+        "periodic"
     ],
     "experimental": "false",    
     "arguments":{
@@ -33,7 +34,7 @@ metaData = {
     }          
 }
 
-def script(params):
+def script(params, event):
     script = params["scriptlocation"]
 
     if os.path.isfile(script):

@@ -195,7 +195,7 @@ def sendFile(fileName, sendURL, fileType):
 
     return result
 
-def discordsend(params):
+def discordsend(params, event):
 
     dayimage = params['dayimage']
     dayimageurl = params['dayimageurl']

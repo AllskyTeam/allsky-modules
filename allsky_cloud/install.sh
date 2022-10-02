@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if (whiptail --title "AllSky Cloud Module" --yesno "Please note that this module is experimantal. Please ensure that you understand its operation before installing. For this module to appear you must enable the 'Show Experimantal' modules in the module editor options. Do you want to install the dew heater module?" 12 78); then
+if (whiptail --title "AllSky Cloud Module" --yesno "Please note that this module is experimantal. Please ensure that you understand its operation before installing. For this module to appear you must enable the 'Show Experimantal' modules in the module editor options. Do you want to install the Cloud module?" 12 78); then
     reset
     echo "Installing dependencies. This may take a while"
     pip3 install --no-warn-script-location -r requirements.txt > dependencies.log 2>&1

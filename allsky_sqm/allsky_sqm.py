@@ -78,7 +78,7 @@ metaData = {
 }
 
 
-def sqm(params):
+def sqm(params, event):
     #ONLY AT NIGHT !
 
     mask = params["mask"]

@@ -123,7 +123,7 @@ def createJSONData(values):
 
     return jsonData
 
-def influxdb(params): 
+def influxdb(params, event): 
     host = params["host"]
     port = params["port"]
     username = params["user"]

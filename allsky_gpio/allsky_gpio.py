@@ -49,5 +49,5 @@ metaData = {
     "enabled": "false"            
 }
 
-def crop(params): 
+def crop(params, event): 
     pass

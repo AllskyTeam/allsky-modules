@@ -201,7 +201,7 @@ def calculateSkyState(skyambient, skyobject, clearbelow, cloudyabove):
     return cloudCover, 0
 
 
-def cloud(params):
+def cloud(params, event):
     i2caddress = params["i2caddress"]
     clearbelow = int(params["clearbelow"])
     cloudyabove = int(params["cloudyabove"])
