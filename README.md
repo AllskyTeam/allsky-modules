@@ -6,7 +6,7 @@ This repository contains additional modules that can be used with Allsky. To ins
 
 `Clone this repository `
 
-Change to the directory of the module you wish to install and ensure that you are a superuser, i.e. root and enter the following commands
+Make the installer executable
 
 `chmod +x install.sh`
 
