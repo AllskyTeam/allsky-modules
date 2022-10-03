@@ -101,6 +101,31 @@ metaData = {
 }
 
 def boilerplate(params, event):
+    ''' Main entry point for the module, this is called by the processing engine. The function
+    must have the same name as the module minus the extension and allsky_ i.e.
+
+    allsky_boilerplate.py requires a function called boilerplate
+
+    Two parameters are passed to the function
+    params - A list of all parameters, as defined by the 'arguments' entry in the meta data
+    event - The event for which the module is being called for i.e. day, night, endofnight etc
+
+    The moule must return a string with some text to indicate the result of the function. This text
+    is displayed in the module managers debug dialog. This text can be an emptry string but please
+    consider makinh it more meaningful.
+
+    Notes on Modules
+
+    - They Must be fast if run during the day or night events. DO NOT do any long processing in these
+      events as it will affect the capture process
+    - Consider carefully which events the module should run in. DO NOT just addevery event to the module
+      as this will confuse the user
+    - Provide a requirements.txt file with any Python dependencies. The generic module installer will
+      detect this file and install the dependencies
+    - Make use if the functions provided in the shared library rather that writing you own. See the main
+      documentation for details of the functions available
+    '''
+
     result = ""
 
     return result
