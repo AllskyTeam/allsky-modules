@@ -210,6 +210,8 @@ def clearsky(params, event):
     mqttpassword = params["mqttpassword"]        
     mqtttopic = params["mqtttopic"]
 
+    starCount = ""
+
     binning = s.getEnvironmentVariable("AS_BIN")
     if binning is None:
         binning = 1
@@ -335,4 +337,5 @@ def clearsky(params, event):
         s.log(1,"INFO: MQTT disabled")
 
     os.environ["AS_SKYSTATE"] = skyState
+    os.environ["AS_SKYSTATESTARS"] = str(starCount)
     return "Sky is {0}".format(skyState)
