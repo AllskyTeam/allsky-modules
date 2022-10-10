@@ -23,7 +23,8 @@ metaData = {
         "apikey": "",
         "period": 120,
         "expire": 240,
-        "filename": "openweather.json"
+        "filename": "openweather.json",
+        "units": "metric"
     },
     "argumentdetails": {
         "apikey": {
@@ -47,6 +48,15 @@ metaData = {
                 "step": 1
             }          
         },
+        "units" : {
+            "required": "false",
+            "description": "Units",
+            "help": "Units of measurement. standard, metric and imperial",
+            "type": {
+                "fieldtype": "select",
+                "values": "standard,metric,imperial"
+            }                
+        },        
         "expire" : {
             "required": "true",
             "description": "Expiry Time",
@@ -122,6 +132,7 @@ def openweathermap(params, event):
     apikey = params["apikey"]
     fileName = params["filename"]
     module = metaData["module"]
+    units = params["units"]
 
     shouldRun, diff = s.shouldRun(module, period)
     if shouldRun:
@@ -139,7 +150,7 @@ def openweathermap(params, event):
                         if lon is not None and lon != "":
                             lon = s.convertLatLon(lon)
                             try:
-                                resultURL = "https://api.openweathermap.org/data/2.5/weather?lat={0}&lon={1}&appid={2}".format(lat, lon, apikey)
+                                resultURL = "https://api.openweathermap.org/data/2.5/weather?lat={0}&lon={1}&units={2}&appid={3}".format(lat, lon, units, apikey)
                                 response = requests.get(resultURL)
                                 if response.status_code == 200:
                                     rawData = response.json()
