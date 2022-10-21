@@ -17,6 +17,7 @@ metaData = {
     "name": "Discord",
     "description": "Posts to a Discord server",
     "version": "v1.0.0",
+    "pythonversion": "3.9.0",
     "module": "allsky_discordsend",    
     "events": [
         "day",
