@@ -10,8 +10,6 @@ Portions of this code are from inidi-allsky https://github.com/aaronwmorris/indi
 import allsky_shared as s
 import cv2
 import os
-import numpy as np
-from math import sqrt
 
 metaData = {
     "name": "Sky Quality",
@@ -19,7 +17,6 @@ metaData = {
     "module": "allsky_sqm",
     "version": "v1.0.0",    
     "events": [
-        "day",
         "night"
     ],
     "experimental": "true",    
@@ -79,18 +76,11 @@ metaData = {
 
 
 def sqm(params, event):
-    #ONLY AT NIGHT !
-
     mask = params["mask"]
     roi = params["roi"]
     debug = params["debug"]
     debugimage = params["debugimage"]    
     fallback = int(params["roifallback"])
-
-    binning = s.getEnvironmentVariable("AS_BIN")
-    if binning is None:
-        binning = 1
-    binning = int(binning)
 
     if debugimage != "":
         image = cv2.imread(debugimage)
@@ -125,10 +115,10 @@ def sqm(params, event):
     imageHeight, imageWidth = grayImage.shape[:2]
     try:
         roiList = roi.split(",")
-        x1 = int(int(roiList[0]) / binning)
-        y1 = int(int(roiList[1]) / binning)
-        x2 = int(int(roiList[2]) / binning)
-        y2 = int(int(roiList[3]) / binning)
+        x1 = int(roiList[0])
+        y1 = int(roiList[1])
+        x2 = int(roiList[2])
+        y2 = int(roiList[3])
     except:
         if len(roi) > 0:
             s.log(0, "ERROR: SQM ROI is invalid, falling back to {0}% of image".format(fallback))
@@ -146,11 +136,9 @@ def sqm(params, event):
         s.writeDebugImage(metaData["module"], "cropped-image.png", croppedImage) 
 
     sqmAvg = cv2.mean(src=croppedImage)[0]
+
     s.log(1,"INFO: SQM Mean calculated as {0}".format(sqmAvg))
 
     os.environ["AS_SQM"] = str(sqmAvg)
-
-    # offset the sqm based on the exposure and gain
-    #weighted_sqm_avg = (((self.config['CCD_EXPOSURE_MAX'] - exposure) / 10) + 1) * (sqm_avg * (((self.config['CCD_CONFIG']['NIGHT']['GAIN'] - gain) / 10) + 1))
 
     return "Sky SQM is {0}".format(sqmAvg)
