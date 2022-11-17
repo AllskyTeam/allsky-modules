@@ -6,7 +6,6 @@ https://github.com/thomasjacquin/allsky
 
 '''
 import allsky_shared as s
-import sys
 import os
 import shutil
 from vcgencmd import Vcgencmd
@@ -14,6 +13,7 @@ from vcgencmd import Vcgencmd
 metaData = {
     "name": "Reads Pi Status",
     "description": "Reads Pi Data",
+    "module": "allsky_pistatus",    
     "version": "v1.0.0",    
     "events": [
         "day",
@@ -67,33 +67,66 @@ def formatSize(bytes):
     else:
         return "%.2fkb" % (kb)
 
-def pistatus(params, event): 
-    usage = shutil.disk_usage("/")
-    size = formatSize(usage[0])
-    used = formatSize(usage[1])
-    free = formatSize(usage[2])
+def pistatus(params, event):
+    result = ''
+    period = int(params['period'])
+    shouldRun, diff = s.shouldRun('pistatus', period)
+    
+    if shouldRun:
+        data = {}
+        usage = shutil.disk_usage("/")
+        size = formatSize(usage[0])
+        used = formatSize(usage[1])
+        free = formatSize(usage[2])
 
-    os.environ['AS_DISKSIZE'] = str(size)
-    os.environ['AS_DISKUSAGE'] = str(used)
-    os.environ['AS_DISKFREE'] = str(free)
+        data['AS_DISKSIZE'] = str(size)
+        data['AS_DISKUSAGE'] = str(used)
+        data['AS_DISKFREE'] = str(free)
 
-    vcgm = Vcgencmd()
-    temp = vcgm.measure_temp();
+        vcgm = Vcgencmd()
+        temp = vcgm.measure_temp()
+        data['AS_CPUTEMP'] = str(temp)
 
-    os.environ['AS_CPUTEMP'] = str(temp)
+        throttled = vcgm.get_throttled()
+        data['AS_THROTTLEDBINARY'] = str(throttled['raw_data'])
+        text = []
+        for bit in tstats:
+            key = 'AS_TSTAT' + bit
+            data[key] = str(throttled['breakdown'][bit])
+            if throttled['breakdown'][bit]:
+                textKey = key + 'TEXT'
+                data[textKey] = tstats[bit]
+                text.append(tstats[bit])
 
-    throttled = vcgm.get_throttled()
-    os.environ['AS_THROTTLEDBINARY'] = str(throttled['raw_data'])
-    text = []
-    for bit in tstats:
-        key = 'AS_TSTAT' + bit
-        os.environ[key] = str(throttled['breakdown'][bit])
-        if throttled['breakdown'][bit]:
-            textKey = key + 'TEXT'
-            os.environ[textKey] = tstats[bit]
-            text.append(tstats[bit])
+        tstatText = ", ".join(text)
+        data['AS_TSTATSUMARYTEXT'] = tstatText
 
-    tstatText = ", ".join(text)
-    os.environ['AS_TSTATSUMARYTEXT'] = tstatText
-
-    return "PI Status Data Written"
+        clockSources = vcgm.get_sources('clock')
+        for source in clockSources:
+            try:
+                speed = vcgm.measure_clock(source)
+                data['AS_CLOCK' + source.upper()] = str(speed / 1000000000)
+            except:
+                pass
+            
+        voltageSources = vcgm.get_sources('volts')
+        for source in voltageSources:
+            try:
+                voltage = vcgm.measure_volts(source)
+                data['AS_VOLTAGE' + source.upper()] = str(voltage)
+            except:
+                pass
+        
+        s.setLastRun('pistatus')
+        s.dbUpdate('pistatus', data)
+        result = 'PI Status Data Written'
+    else:
+        data = s.dbGet('pistatus')
+        result = 'Will run in ' + str(period - diff) + ' seconds'
+        
+    if data:
+        for key in data:
+            os.environ[key] = str(data[key])
+    
+    s.log(1,'INFO: ' + result)
+    return result
