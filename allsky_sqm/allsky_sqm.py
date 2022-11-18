@@ -10,6 +10,7 @@ Portions of this code are from inidi-allsky https://github.com/aaronwmorris/indi
 import allsky_shared as s
 import cv2
 import os
+import math
 
 metaData = {
     "name": "Sky Quality",
@@ -25,7 +26,8 @@ metaData = {
         "roi": "",
         "debug": "false",
         "debugimage": "",
-        "roifallback": 5        
+        "roifallback": 5,
+        "formula": ""     
     },
     "argumentdetails": {   
         "mask" : {
@@ -54,7 +56,12 @@ metaData = {
                 "max": 100,
                 "step": 1
             }
-        },      
+        },
+        "formula": {
+            "required": "true",
+            "description": "Adjustment Forumla",
+            "help": "Formula to adjust the read value. This forumla can use only Pythons inbuilt maths functions and basic mathematical operators. Please see the documentation for more details of the formula variables available"        
+        },              
         "debug" : {
             "required": "false",
             "description": "Enable debug mode",
@@ -74,11 +81,36 @@ metaData = {
     "enabled": "false"            
 }
 
+def addInternals(ALLOWED_NAMES):
+    internals = {'AS_BIN', 'AS_EXPOSURE_US', 'AS_GAIN', 'AS_MEAN'}
+    for internal in internals:
+        val = s.getEnvironmentVariable(internal)
+        key = internal.replace('AS_', '')
+        ALLOWED_NAMES[key] = float(val)
+        
+    return ALLOWED_NAMES
+    
+def evaluate(expression, sqmAvg):
+    
+    ALLOWED_NAMES = {
+        k: v for k, v in math.__dict__.items() if not k.startswith("__")
+    }
+    ALLOWED_NAMES = addInternals(ALLOWED_NAMES)
+    ALLOWED_NAMES['sqmAvg'] = float(sqmAvg)
+
+    code = compile(expression, "<string>", "eval")
+    for name in code.co_names:
+        if name not in ALLOWED_NAMES:
+            raise NameError(f"The use of '{name}' is not allowed")
+
+    return eval(code, {"__builtins__": {}}, ALLOWED_NAMES)
+
 
 def sqm(params, event):
     mask = params["mask"]
     roi = params["roi"]
     debug = params["debug"]
+    formula = params["formula"]
     debugimage = params["debugimage"]    
     fallback = int(params["roifallback"])
 
@@ -137,8 +169,20 @@ def sqm(params, event):
 
     sqmAvg = cv2.mean(src=croppedImage)[0]
 
-    s.log(1,"INFO: SQM Mean calculated as {0}".format(sqmAvg))
+    result = "Final SQM Mean calculated as {0}".format(sqmAvg)
+    if formula != '':
+        s.log(1,"INFO: SQM Mean calculated as {0}".format(sqmAvg))
+        try:
+            sqmAvg = float(evaluate(formula, sqmAvg))
+            result = "Final SQM Mean calculated as {0}".format(sqmAvg)
+            s.log(1,"INFO: Ran Formula: " + formula)
+            s.log(1,"INFO: " + result)
+        except Exception as e:
+            result = "Error " + e
+            s.log(0, "ERROR: " + result)
+    else:
+        s.log(1,"INFO: " + result)
 
     os.environ["AS_SQM"] = str(sqmAvg)
 
-    return "Sky SQM is {0}".format(sqmAvg)
+    return result
