@@ -39,7 +39,7 @@ metaData = {
             }                
         },        
         "roi": {
-            "required": "true",
+            "required": "false",
             "description": "Region of Interest",
             "help": "The area of the image to check for sky quality. Format is x1,y1,x2,y2",
             "type": {
@@ -47,7 +47,7 @@ metaData = {
             }            
         },          
         "roifallback" : {
-            "required": "true",
+            "required": "false",
             "description": "Fallback %",
             "help": "If no ROI is set then this % of the image, from the center will be used",
             "type": {
@@ -58,7 +58,7 @@ metaData = {
             }
         },
         "formula": {
-            "required": "true",
+            "required": "false",
             "description": "Adjustment Forumla",
             "help": "Formula to adjust the read value. This forumla can use only Pythons inbuilt maths functions and basic mathematical operators. Please see the documentation for more details of the formula variables available"        
         },              

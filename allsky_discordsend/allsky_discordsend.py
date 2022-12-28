@@ -50,7 +50,7 @@ metaData = {
             }          
         },
         "daycount" : {
-            "required": "true",
+            "required": "false",
             "description": "Daytime Count",
             "help": "Send every (this number) frame to Discord. This is to prevent flooding the discord channels",
             "tab": "Day Time",            
@@ -62,7 +62,7 @@ metaData = {
             }
         },        
         "dayimageurl": {
-            "required": "true",
+            "required": "false",
             "tab": "Day Time",            
             "description": "The webhook url for day time images"
         }, 
@@ -77,7 +77,7 @@ metaData = {
             }          
         },
         "nightcount" : {
-            "required": "true",
+            "required": "false",
             "description": "Nighttime Count",
             "help": "Send every (this number) frame to Discord. This is to prevent flooding the discord channels",
             "tab": "Night Time",            
@@ -89,7 +89,7 @@ metaData = {
             }
         },         
         "nightimageurl": {
-            "required": "true",
+            "required": "false",
             "tab": "Night Time",           
             "description": "The webhook url for night time images"
         },  
@@ -104,7 +104,7 @@ metaData = {
             }          
         },
         "startrailsimageurl": {
-            "required": "true",
+            "required": "false",
             "tab": "Star Trails",           
             "description": "The webhook url for Star Trails images"
         },  
@@ -120,7 +120,7 @@ metaData = {
             }          
         },
         "keogramimageurl": {
-            "required": "true",
+            "required": "false",
             "tab": "Keograms",           
             "description": "The webhook url for Star Keograms"
         },  
@@ -135,7 +135,7 @@ metaData = {
             }          
         },
         "timelapseimageurl": {
-            "required": "true",
+            "required": "false",
             "tab": "Timelapse",           
             "description": "The webhook url for Timelapses"
         }      

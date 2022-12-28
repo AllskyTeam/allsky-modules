@@ -102,7 +102,7 @@ def setExtraValue(path, data, extraKey, expires):
     global extraData
     value = getValue(path, data)
     if value is not None:
-        extraData[extraKey] = {
+        extraData["AS_" + extraKey] = {
             "value": value,
             "expires": expires
         }

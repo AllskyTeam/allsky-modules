@@ -36,13 +36,13 @@ metaData = {
     },
     "argumentdetails": {                   
         "i2caddress": {
-            "required": "true",
+            "required": "false",
             "description": "I2C Address",
             "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
             "tab": "Sensor"
         },
         "clearbelow" : {
-            "required": "true",
+            "required": "false",
             "description": "Clear Below &deg;C",
             "help": "When the sky temperature is below this value the sky is assumed to be clear",
             "tab": "Settings",            
@@ -54,7 +54,7 @@ metaData = {
             }          
         },
         "cloudyabove" : {
-            "required": "true",
+            "required": "false",
             "description": "Cloudy Above &deg;C",
             "help": "When the sky temperature is above this value the sky is assumed to be cloudy",
             "tab": "Settings",            
@@ -75,7 +75,7 @@ metaData = {
             }          
         },
         "k1" : {
-            "required": "true",
+            "required": "false",
             "description": "k1",
             "tab": "Advanced",            
             "type": {
@@ -86,7 +86,7 @@ metaData = {
             }          
         },
         "k2" : {
-            "required": "true",
+            "required": "false",
             "description": "k2",
             "tab": "Advanced",            
             "type": {
@@ -97,7 +97,7 @@ metaData = {
             }          
         },
         "k3" : {
-            "required": "true",
+            "required": "false",
             "description": "k3",
             "tab": "Advanced",            
             "type": {
@@ -108,7 +108,7 @@ metaData = {
             }          
         },
         "k4" : {
-            "required": "true",
+            "required": "false",
             "description": "k4",
             "tab": "Advanced",            
             "type": {
@@ -119,7 +119,7 @@ metaData = {
             }          
         },
         "k5" : {
-            "required": "true",
+            "required": "false",
             "description": "k5",
             "tab": "Advanced",            
             "type": {
@@ -130,7 +130,7 @@ metaData = {
             }          
         },
         "k6" : {
-            "required": "true",
+            "required": "false",
             "description": "k6",
             "tab": "Advanced",            
             "type": {
@@ -141,7 +141,7 @@ metaData = {
             }          
         },
         "k7" : {
-            "required": "true",
+            "required": "false",
             "description": "k7",
             "tab": "Advanced",            
             "type": {

@@ -55,7 +55,7 @@ metaData = {
             }                
         },
         "inputpin": {
-            "required": "true",
+            "required": "false",
             "description": "Input Pin",
             "help": "The input pin for DHT type sensors, not required for i2c devices",
             "tab": "Sensor",
@@ -64,13 +64,13 @@ metaData = {
             }           
         },
         "i2caddress": {
-            "required": "true",
+            "required": "false",
             "description": "I2C Address",
             "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
             "tab": "Sensor"
         } ,                    
         "heaterpin": {
-            "required": "true",
+            "required": "false",
             "description": "Heater Pin",
             "help": "The pin the heater control relay is connected to",
             "tab": "Heater",
@@ -99,7 +99,7 @@ metaData = {
             }               
         },
         "frequency" : {
-            "required": "true",
+            "required": "false",
             "description": "Delay",
             "help": "The delay between sensor reads in seconds. Zero will disable this and run the check after every frame",
             "tab": "Dew Control",            
@@ -111,7 +111,7 @@ metaData = {
             }          
         },
         "limit" : {
-            "required": "true",
+            "required": "false",
             "description": "Limit",
             "help": "If the temperature is within this many degrees of the dew point the heater will be enabled or disabled",
             "tab": "Dew Control",            
@@ -123,7 +123,7 @@ metaData = {
             }          
         },
         "force" : {
-            "required": "true",
+            "required": "false",
             "description": "Forced Temperature",
             "help": "Always enable the heater when the ambient termperature is below this value, zero will disable this.",
             "tab": "Dew Control",            
@@ -135,7 +135,7 @@ metaData = {
             }          
         },
         "max" : {
-            "required": "true",
+            "required": "false",
             "description": "Max Heater Time",
             "help": "The maximum time in seconds for the heater to be on. Zero will disable this.",
             "tab": "Dew Control",            

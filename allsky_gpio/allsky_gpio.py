@@ -24,7 +24,7 @@ metaData = {
     },
     "argumentdetails": {
         "gpio": {
-            "required": "true",
+            "required": "false",
             "description": "GPIO Pin",
             "help": "",
             "type": {
@@ -35,7 +35,7 @@ metaData = {
             }             
         },
         "state": {
-            "required": "true",
+            "required": "false",
             "description": "Pin State",
             "help": "",
             "type": {

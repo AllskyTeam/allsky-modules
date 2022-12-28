@@ -62,12 +62,12 @@ metaData = {
     },
     "argumentdetails": {
         "host": {
-            "required": "true",
+            "required": "false",
             "description": "Influxdb host",
             "help": ""           
         },
         "port": {
-            "required": "true",
+            "required": "false",
             "description": "Influxdb Port",
             "help": "",
             "type": {
@@ -78,24 +78,27 @@ metaData = {
             }             
         },
         "user": {
-            "required": "true",
+            "required": "false",
             "description": "Username",
             "help": ""           
         },                             
         "password": {
-            "required": "true",
+            "required": "false",
             "description": "Password",
             "help": ""           
         },                             
         "database": {
-            "required": "true",
+            "required": "false",
             "description": "Database",
             "help": ""           
         },    
         "values": {
-            "required": "true",
+            "required": "false",
             "description": "Values",
-            "help": "Values to save"            
+            "help": "Values to save",
+            "type": {
+                "fieldtype": "multivariables"
+            }
         } 
     },
     "enabled": "false"            
