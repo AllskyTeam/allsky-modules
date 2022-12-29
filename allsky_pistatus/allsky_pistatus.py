@@ -85,7 +85,18 @@ def pistatus(params, event):
 
         vcgm = Vcgencmd()
         temp = vcgm.measure_temp()
-        data['AS_CPUTEMP'] = str(temp)
+        temp = round(temp,1)
+        tempUnits = s.getSetting("temptype")
+        if tempUnits == 'B':
+            data['AS_CPUTEMP_C'] = str(temp)
+            temp = (temp * (9/5)) + 32
+            temp = round(temp,1)
+            data['AS_CPUTEMP_F'] = str(temp)
+        else:
+            if tempUnits == 'F':
+                temp = (temp * (9/5)) + 32
+                temp = round(temp,1)
+            data['AS_CPUTEMP'] = str(temp)
 
         throttled = vcgm.get_throttled()
         data['AS_THROTTLEDBINARY'] = str(throttled['raw_data'])
