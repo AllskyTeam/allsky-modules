@@ -3,7 +3,7 @@
 echo "Validating and launching installer"
 echo
 
-sudo apt install pip
+sudo apt install -y pip
 pip3 install whiptail-dialogs
 
 python3 module-installer.py
