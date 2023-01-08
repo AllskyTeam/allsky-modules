@@ -10,7 +10,7 @@ import os
 import time
 import datetime
 import subprocess
-import gps
+from gps import *
 from datetime import timedelta
     
 metaData = {
@@ -174,34 +174,38 @@ def pigps(params, event):
         if settime:
             if not checkTimeSyncRunning():
                 try:
-                    gpsd = gps.gps(mode=gps.WATCH_ENABLE)
+                    gpsd = gps(mode=WATCH_ENABLE|WATCH_NEWSTYLE)
                     timeout = time.time() + 3
                     while True:
-                        gpsd.next()
-                        if gpsd.utc != None and gpsd.utc != '':
-                            if settime:
-                                #s.log(4,"INFO: Got UTC date info {} from gpsd in {:.2f} seconds".format(gpsd.utc, timeout - time.time())) 
-                                offset = time.timezone if (time.localtime().tm_isdst == 0) else time.altzone
-                                offset = offset / 60 / 60 * -1
-                                
-                                year = int(gpsd.utc[0:4])
-                                month = int(gpsd.utc[5:7])
-                                day = int(gpsd.utc[8:10])
-                                
-                                hour = int(gpsd.utc[11:13])
-                                min = int(gpsd.utc[14:16])
-                                sec = int(gpsd.utc[17:19])
-                    
-                                utc = datetime.datetime(year, month, day, hour, min, sec, 0)
-                                local = utc - timedelta(hours=offset)
-                                s.log(4,"INFO: GPS UTC time {}. Local time {}. TZ Diff {}".format(utc, local, offset)) 
-                                extraData["PIGPSUTC"] = str(utc)
-                                extraData["PIGPSLOCAL"] = str(local)
-                                extraData["PIGPSOFFSET"] = str(offset)                                
-                                dateString = utc.strftime("%c")
-                                os.system('sudo date -u --set="{}"'.format(dateString))
-                                result = "Time set to {}".format(dateString)
-                                break
+                        report = gpsd.next()
+                        if report["class"] == 'TPV':
+                            mode = getattr(report,'mode',1)
+                            if mode != MODE_NO_FIX:                            
+                                if settime:
+                                    #s.log(4,"INFO: Got UTC date info {} from gpsd in {:.2f} seconds".format(gpsd.utc, timeout - time.time())) 
+                                    offset = time.timezone if (time.localtime().tm_isdst == 0) else time.altzone
+                                    offset = offset / 60 / 60 * -1
+                                    
+                                    timeUTC = getattr(report,"time","")
+                                    
+                                    year = int(timeUTC[0:4])
+                                    month = int(timeUTC[5:7])
+                                    day = int(timeUTC[8:10])
+                                    
+                                    hour = int(timeUTC[11:13])
+                                    min = int(timeUTC[14:16])
+                                    sec = int(timeUTC[17:19])
+                        
+                                    utc = datetime.datetime(year, month, day, hour, min, sec, 0)
+                                    local = utc - timedelta(hours=offset)
+                                    s.log(4,"INFO: GPS UTC time {}. Local time {}. TZ Diff {}".format(utc, local, offset)) 
+                                    extraData["PIGPSUTC"] = str(utc)
+                                    extraData["PIGPSLOCAL"] = str(local)
+                                    extraData["PIGPSOFFSET"] = str(offset)                                
+                                    dateString = utc.strftime("%c")
+                                    os.system('sudo date -u --set="{}"'.format(dateString))
+                                    result = "Time set to {}".format(dateString)
+                                    break
                         
                         if time.time() > timeout:
                             result = "No date returned from gpsd"
@@ -220,49 +224,53 @@ def pigps(params, event):
         if warnposition or setposition:                
             try:
                 if gpsd is None:
-                    gpsd = gps.gps(mode=gps.WATCH_ENABLE)
+                    gpsd = gps(mode=WATCH_ENABLE|WATCH_NEWSTYLE)
                 timeout = time.time() + 3
                 while True:
-                    gpsd.next()
-                    
-                    if (not gps.isfinite(gpsd.fix.latitude)) and (not gps.isfinite(gpsd.fix.longitude)):
-                        lat = gpsd.fix.latitude
-                        lon = gpsd.fix.longitude
+                    report = gpsd.next()
+                    if report["class"] == 'TPV':
+                        mode = getattr(report,'mode',1)
+                        lat = getattr(report,'lat',0.0)
+                        lon = getattr(report,'lon',0.0)
                         
-                        if lat != 0 and lon != 0:
-                            discResult, discAllSkyLat, discAllSkyLon, discLat, discLon = compareGPSandAllSky(lat, lon)
-                            if discResult:
-                                extraData["PIGPSFIXDISC"] = extradataposdisc
-                                s.log(4, "INFO: GPS position differs from AllSky position. AllSky {} {}, GPS {} {}".format(discAllSkyLat, discAllSkyLon, discLat, discLon))
-                                                        
-                            if (lat < 0):
-                                strLat = "{}S".format(lat)
-                            else:
-                                strLat = "{}N".format(lat)
+                        if mode != MODE_NO_FIX:
+                            if lat != 0 and lon != 0:
+                                discResult, discAllSkyLat, discAllSkyLon, discLat, discLon = compareGPSandAllSky(lat, lon)
+                                if discResult:
+                                    extraData["PIGPSFIXDISC"] = extradataposdisc
+                                                            
+                                if (lat < 0):
+                                    strLat = "{}S".format(lat)
+                                else:
+                                    strLat = "{}N".format(lat)
 
-                            if (lon < 0):
-                                strLon = "{}W".format(lon)
+                                if (lon < 0):
+                                    strLon = "{}W".format(lon)
+                                else:
+                                    strLon = "{}E".format(lon)
+                                
+                                if setposition:
+                                    updateData = []
+                                    updateData.append({"latitude": strLat})
+                                    updateData.append({"longitude": strLon})
+                                    s.updateSetting(updateData)
+                                    s.log(4, "INFO: AllSky Lat/Lon updated - An AllSky restart will be required for them to take effect")
+                                else:
+                                    if discResult:
+                                        positionResult = "GPS position differs from AllSky position. AllSky {} {}, GPS {} {}".format(discAllSkyLat, discAllSkyLon, discLat, discLon)
+                                    else:
+                                        positionResult = "Lat {:.6f} Lon {:.6f} - {},{}".format(lat, lon, strLat, strLon)
+                                result = result + ". {}".format(positionResult)
+                                s.log(4, "INFO: {}".format(positionResult))
+                                extraData["PIGPSLAT"] = strLat
+                                extraData["PIGPSLON"] = strLon
+                                extraData["PIGPSFIX"]["value"] = "Yes"
+                                extraData["PIGPSFIX"]["fill"] = "#00ff00"
+                                break
                             else:
-                                strLon = "{}E".format(lon)
+                                s.log(4, "INFO: No GPS Fix. gpsd returned 0 for both lat and lon")                            
+                                break                       
                             
-                            if setposition:
-                                updateData = []
-                                updateData.append({"latitude": strLat})
-                                updateData.append({"longitude": strLon})
-                                s.updateSetting(updateData)
-                                s.log(4, "INFO: AllSky Lat/Lon updated - Am AllSky restart will be required for them to take effect")
-                            positionResult = "Lat {:.6f} Lon {:.6f} - {},{}".format(lat, lon, strLat, strLon)
-                            result = result + ". {}".format(positionResult)
-                            s.log(4, "INFO: {}".format(positionResult))
-                            extraData["PIGPSLAT"] = strLat
-                            extraData["PIGPSLON"] = strLon
-                            extraData["PIGPSFIX"]["value"] = "Yes"
-                            extraData["PIGPSFIX"]["fill"] = "#00ff00"
-                            break
-                        else:
-                            s.log(4, "INFO: No GPS Fix. gpsd returned 0 for both lat and lon")                            
-                            break
-                    
                     if time.time() > timeout:
                         result = "No position returned from gpsd"
                         s.log(1,"ERROR: {}".format(result)) 
