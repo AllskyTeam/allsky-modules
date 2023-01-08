@@ -1,1 +1,2 @@
 gpsd
+gpsd-clients
