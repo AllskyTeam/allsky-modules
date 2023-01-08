@@ -22,11 +22,22 @@ metaData = {
     ],
     "experimental": "true",    
     "arguments":{
-        "setposition": "True",
+        "warnposition": "True",
+        "setposition": "False",
         "settime": "True",
-        "timeperiod": "60"
+        "timeperiod": "60",
+        "extradatafilename": "pigps.json",
+        "extradataposdisc": "GPS Position differs from AllSky"
     },
     "argumentdetails": {
+        "warnposition" : {
+            "required": "false",
+            "description": "Lat/Lon Warning",
+            "help": "Warn if the GPS position doesnt match the AllSky position",
+            "type": {
+                "fieldtype": "checkbox"
+            }          
+        },
         "setposition" : {
             "required": "false",
             "description": "Set Lat/Lon",
@@ -53,103 +64,215 @@ metaData = {
                 "max": 1440,
                 "step": 1
             }          
-        }
+        },
+        "extradatafilename": {
+            "required": "true",
+            "description": "Extra Data Filename",
+            "help": "The name of the file to create with the GPS data for th eoverlay manager"         
+        },
+        "extradataposdisc": {
+            "required": "true",
+            "description": "Discrepancy Warning",
+            "help": "Message to set when the GPS coordinates differ from the AllSky settings"         
+        }           
     }          
 }
 
 def checkTimeSyncRunning():
-    result = False
+    active = False
+    status = subprocess.check_output("timedatectl status | grep service", shell=True).decode("utf-8")
+    status = status.splitlines()
+    status = status[0].lower()
+    if status.find(" active") > -1:
+        active = True    
+
+    synced = False
     status = subprocess.check_output("timedatectl status | grep System", shell=True).decode("utf-8")
     status = status.splitlines()
     status = status[0].lower()
     if status.find(" yes") > -1:
+        synced = True
+    s.log(4, "INFO: Time sync active {}, time synched {}".format(active, synced))
+
+    result = False
+    if active and synced:
         result = True
-        
+                        
     return result
 
+def truncate(val):
+    val = val.split(".")
+    val[1] = val[1][:3]
+    val = ".".join(val)
+    return val
+    
+def compareGPSandAllSky(lat, lon):
+    allSkyLat = s.getSetting("latitude")
+    allSkyLon = s.getSetting("longitude")
+
+    allSkyLatCompass = allSkyLat[-1]
+    allSkyLonCompass = allSkyLon[-1]
+    
+    allSkyLat = float(truncate(allSkyLat[:-1]))
+    allSkyLon = float(truncate(allSkyLon[:-1]))
+    
+    allSkyLat = "{}{}".format(allSkyLat, allSkyLatCompass)
+    allSkyLon = "{}{}".format(allSkyLon, allSkyLonCompass)
+    
+    if lat > 0:
+        latCompass = "N"
+    else:
+        latCompass = "S"
+
+    if lon > 0:
+        lonCompass = "E"
+    else:
+        lonCompass = "W"
+
+    lat = str(lat)
+    lon = str(lon)
+
+    lat = float(truncate(lat[:-1]))
+    lon = float(truncate(lon[:-1]))
+    
+    lat = "{}{}".format(lat, latCompass)
+    lon = "{}{}".format(lon, lonCompass)
+        
+    result = False
+    if allSkyLat != lat or allSkyLon != lon:
+        result = True
+        
+    return result, allSkyLat, allSkyLon, lat, lon
+       
        
 def pigps(params, event):
     
     setposition = params['setposition']
+    warnposition = params['warnposition']
     settime = params['settime']
     period = int(params['timeperiod'])
+    extradatafilenam = params['extradatafilename']
+    extradataposdisc = params['extradataposdisc']
     shouldRun, diff = s.shouldRun('pigps', period)
     result = ""
+    gpsd = None
+    extraData = {
+        "PIGPSFIX": {
+            "value": "No",
+            "fill": "#ff0000"
+        },
+        "PIGPSTIME": "Disabled",
+        "PIGPSUTC": "",
+        "PIGPSLOCAL": "",
+        "PIGPSOFFSET": "",        
+        "PIGPSLAT": "",
+        "PIGPSLON": "",
+        "PIGPSFIXDISC": ""
+    }
     
     if shouldRun:
-        if not checkTimeSyncRunning():
+        if settime:
+            if not checkTimeSyncRunning():
+                try:
+                    gpsd = gps.gps(mode=gps.WATCH_ENABLE)
+                    timeout = time.time() + 3
+                    while True:
+                        gpsd.next()
+                        if gpsd.utc != None and gpsd.utc != '':
+                            if settime:
+                                #s.log(4,"INFO: Got UTC date info {} from gpsd in {:.2f} seconds".format(gpsd.utc, timeout - time.time())) 
+                                offset = time.timezone if (time.localtime().tm_isdst == 0) else time.altzone
+                                offset = offset / 60 / 60 * -1
+                                
+                                year = int(gpsd.utc[0:4])
+                                month = int(gpsd.utc[5:7])
+                                day = int(gpsd.utc[8:10])
+                                
+                                hour = int(gpsd.utc[11:13])
+                                min = int(gpsd.utc[14:16])
+                                sec = int(gpsd.utc[17:19])
+                    
+                                utc = datetime.datetime(year, month, day, hour, min, sec, 0)
+                                local = utc - timedelta(hours=offset)
+                                s.log(4,"INFO: GPS UTC time {}. Local time {}. TZ Diff {}".format(utc, local, offset)) 
+                                extraData["PIGPSUTC"] = str(utc)
+                                extraData["PIGPSLOCAL"] = str(local)
+                                extraData["PIGPSOFFSET"] = str(offset)                                
+                                dateString = utc.strftime("%c")
+                                os.system('sudo date -u --set="{}"'.format(dateString))
+                                result = "Time set to {}".format(dateString)
+                                break
+                        
+                        if time.time() > timeout:
+                            result = "No date returned from gpsd"
+                            s.log(1,"ERROR: {}".format(result)) 
+                            break
+                except Exception as err:
+                    result = "No GPS found. Please check gpsd is configured and running - {}".format(err)
+                    s.log(1,"ERROR: {}".format(result))                                                                                        
+            else:
+                result = "Time is synchronised from the internet - Ignoring any gps data"
+                s.log(4,"INFO: {}".format(result))
+        else:
+            result = "Time update disabled"
+            s.log(4, "INFO: {}".format(result))             
+        
+        if warnposition or setposition:                
             try:
-                gpsd = gps.gps(mode=gps.WATCH_ENABLE)
-                timeout = time.time() + 5
+                if gpsd is None:
+                    gpsd = gps.gps(mode=gps.WATCH_ENABLE)
+                timeout = time.time() + 3
                 while True:
                     gpsd.next()
-                    if gpsd.utc != None and gpsd.utc != '':
-                        if settime:
-                            s.log(4,"INFO: Got UTC date info {} from gpsd in {:.2f} seconds".format(gpsd.utc, timeout - time.time())) 
-                            offset = time.timezone if (time.localtime().tm_isdst == 0) else time.altzone
-                            offset = offset / 60 / 60 * -1
-                            
-                            year = int(gpsd.utc[0:4])
-                            month = int(gpsd.utc[5:7])
-                            day = int(gpsd.utc[8:10])
-                            
-                            hour = int(gpsd.utc[11:13])
-                            min = int(gpsd.utc[14:16])
-                            sec = int(gpsd.utc[17:19])
-                
-                            utc = datetime.datetime(year, month, day, hour, min, sec, 0)
-                            s.log(4,"INFO: Offset calculated as {}".format(offset)) 
-                            s.log(4,"INFO: UTC date/time created as {}".format(utc)) 
-                            local = utc - timedelta(hours=offset)
-                            s.log(4,"INFO: Local date/time created as {}".format(local))
-                            dateString = utc.strftime("%c")
-                            s.log(4,"INFO: executing {}".format('sudo date -u --set="{}"'.format(dateString)))
-                            os.system('sudo date -u --set="{}"'.format(dateString))
-                            result = "Time set to {}".format(dateString)
+                    
+                    if ((gps.isfinite(gpsd.fix.latitude) and gps.isfinite(gpsd.fix.longitude))):
+                        lat = gpsd.fix.latitude
+                        lon = gpsd.fix.longitude
+                        
+                        discResult, discAllSkyLat, discAllSkyLon, discLat, discLon = compareGPSandAllSky(lat, lon)
+                        if discResult:
+                            extraData["PIGPSFIXDISC"] = extradataposdisc
+                            s.log(4, "INFO: GPS position differs from AllSky position. AllSky {} {}, GPS {} {}".format(discAllSkyLat, discAllSkyLon, discLat, discLon))
+                                                    
+                        if (lat < 0):
+                            strLat = "{}S".format(lat)
                         else:
-                            result = "Time update disabled"
-                            s.log(4, "INFO: {}".format(result))                        
-                            
-                        if setposition:
-                            if ((gps.isfinite(gpsd.fix.latitude) and gps.isfinite(gpsd.fix.longitude))):
-                                lat = gpsd.fix.latitude
-                                lon = gpsd.fix.longitude
-                                
-                                if (lat < 0):
-                                    strLat = "{}S".format(lat)
-                                else:
-                                    strLat = "{}N".format(lat)
+                            strLat = "{}N".format(lat)
 
-                                if (lon < 0):
-                                    strLon = "{}W".format(lon)
-                                else:
-                                    strLon = "{}E".format(lon)
-                                
-                                updateData = []
-                                updateData.append({"latitude": strLat})
-                                updateData.append({"longitude": strLon})
-                                s.updateSetting(updateData)
-                                positionResult = "Lat {:.6f} Lon {:.6f} - {},{}".format(lat, lon, strLat, strLon)
-                                result = result + ". {}".format(positionResult)
-                                s.log(4, "INFO: {}".format(positionResult))
-                            else:
-                                s.log(4, "INFO: Lat n/a Lon n/a")
+                        if (lon < 0):
+                            strLon = "{}W".format(lon)
                         else:
-                            positionResult = "Position update disabled"
-                            result = result + ". {}".format(positionResult)
-                            s.log(4, "INFO: {}".format(positionResult))                        
+                            strLon = "{}E".format(lon)
+                        
+                        if setposition:
+                            updateData = []
+                            updateData.append({"latitude": strLat})
+                            updateData.append({"longitude": strLon})
+                            s.updateSetting(updateData)
+                            s.log(4, "INFO: AllSky Lat/Lon updated - Am AllSky restart will be required for them to take effect")
+                        positionResult = "Lat {:.6f} Lon {:.6f} - {},{}".format(lat, lon, strLat, strLon)
+                        result = result + ". {}".format(positionResult)
+                        s.log(4, "INFO: {}".format(positionResult))
+                        extraData["PIGPSLAT"] = strLat
+                        extraData["PIGPSLON"] = strLon
+                        extraData["PIGPSFIX"]["value"] = "Yes"
+                        extraData["PIGPSFIX"]["fill"] = "#00ff00"
                         break
+                    
                     if time.time() > timeout:
-                        result = "Invalid date returned from gpsd"
+                        result = "No position returned from gpsd"
                         s.log(1,"ERROR: {}".format(result)) 
-                        break
+                        break                    
+
             except Exception as err:
                 result = "No GPS found. Please check gpsd is configured and running - {}".format(err)
                 s.log(1,"ERROR: {}".format(result))
         else:
-            result = "Time is synchronised from the internet - Ignoring any gps data"
-            s.log(4,"INFO: {}".format(result))
+            positionResult = "Position update disabled"
+            result = result + ". {}".format(positionResult)
+            s.log(4, "INFO: {}".format(positionResult))  
         
+        s.saveExtraData(extradatafilenam,extraData)
         s.setLastRun('pigps')
     else:
         result = "Will run in {:.0f} seconds".format(period - diff)
