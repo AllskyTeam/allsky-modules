@@ -5,6 +5,7 @@ import os
 import sys
 import re
 import json
+import subprocess
 from platform import python_version
 from packaging import version
 
@@ -74,6 +75,20 @@ for module in checkList:
                 okToInstall = False
 
     if okToInstall:
+        
+        
+        packagesPath = os.path.join(modulePath, "packages.txt")
+        if os.path.exists(packagesPath):
+            with open(packagesPath, "r") as fp:
+                packages = fp.read()
+                packages = packages.splitlines()
+                for package in packages:
+                    cmd = "sudo apt-get install -y {}".format(package)
+                    try:
+                        result = subprocess.check_output(cmd, shell=True).decode("utf-8")
+                    except Exception as err:
+                        print(err)        
+        
         requirementsPath = os.path.join(modulePath, "requirements.txt")
         logPath = os.path.join(modulePath, "dependencies.log")
         if os.path.exists(requirementsPath):
