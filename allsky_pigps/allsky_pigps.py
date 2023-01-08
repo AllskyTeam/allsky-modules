@@ -229,35 +229,39 @@ def pigps(params, event):
                         lat = gpsd.fix.latitude
                         lon = gpsd.fix.longitude
                         
-                        discResult, discAllSkyLat, discAllSkyLon, discLat, discLon = compareGPSandAllSky(lat, lon)
-                        if discResult:
-                            extraData["PIGPSFIXDISC"] = extradataposdisc
-                            s.log(4, "INFO: GPS position differs from AllSky position. AllSky {} {}, GPS {} {}".format(discAllSkyLat, discAllSkyLon, discLat, discLon))
-                                                    
-                        if (lat < 0):
-                            strLat = "{}S".format(lat)
-                        else:
-                            strLat = "{}N".format(lat)
+                        if lat != 0 and lon != 0:
+                            discResult, discAllSkyLat, discAllSkyLon, discLat, discLon = compareGPSandAllSky(lat, lon)
+                            if discResult:
+                                extraData["PIGPSFIXDISC"] = extradataposdisc
+                                s.log(4, "INFO: GPS position differs from AllSky position. AllSky {} {}, GPS {} {}".format(discAllSkyLat, discAllSkyLon, discLat, discLon))
+                                                        
+                            if (lat < 0):
+                                strLat = "{}S".format(lat)
+                            else:
+                                strLat = "{}N".format(lat)
 
-                        if (lon < 0):
-                            strLon = "{}W".format(lon)
+                            if (lon < 0):
+                                strLon = "{}W".format(lon)
+                            else:
+                                strLon = "{}E".format(lon)
+                            
+                            if setposition:
+                                updateData = []
+                                updateData.append({"latitude": strLat})
+                                updateData.append({"longitude": strLon})
+                                s.updateSetting(updateData)
+                                s.log(4, "INFO: AllSky Lat/Lon updated - Am AllSky restart will be required for them to take effect")
+                            positionResult = "Lat {:.6f} Lon {:.6f} - {},{}".format(lat, lon, strLat, strLon)
+                            result = result + ". {}".format(positionResult)
+                            s.log(4, "INFO: {}".format(positionResult))
+                            extraData["PIGPSLAT"] = strLat
+                            extraData["PIGPSLON"] = strLon
+                            extraData["PIGPSFIX"]["value"] = "Yes"
+                            extraData["PIGPSFIX"]["fill"] = "#00ff00"
+                            break
                         else:
-                            strLon = "{}E".format(lon)
-                        
-                        if setposition:
-                            updateData = []
-                            updateData.append({"latitude": strLat})
-                            updateData.append({"longitude": strLon})
-                            s.updateSetting(updateData)
-                            s.log(4, "INFO: AllSky Lat/Lon updated - Am AllSky restart will be required for them to take effect")
-                        positionResult = "Lat {:.6f} Lon {:.6f} - {},{}".format(lat, lon, strLat, strLon)
-                        result = result + ". {}".format(positionResult)
-                        s.log(4, "INFO: {}".format(positionResult))
-                        extraData["PIGPSLAT"] = strLat
-                        extraData["PIGPSLON"] = strLon
-                        extraData["PIGPSFIX"]["value"] = "Yes"
-                        extraData["PIGPSFIX"]["fill"] = "#00ff00"
-                        break
+                            s.log(4, "INFO: No GPS Fix. gpsd returned 0 for both lat and lon")                            
+                            break
                     
                     if time.time() > timeout:
                         result = "No position returned from gpsd"
