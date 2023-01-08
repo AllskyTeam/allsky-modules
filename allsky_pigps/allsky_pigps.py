@@ -225,7 +225,7 @@ def pigps(params, event):
                 while True:
                     gpsd.next()
                     
-                    if ((gps.isfinite(gpsd.fix.latitude) and gps.isfinite(gpsd.fix.longitude))):
+                    if (not gps.isfinite(gpsd.fix.latitude)) and (not gps.isfinite(gpsd.fix.longitude)):
                         lat = gpsd.fix.latitude
                         lon = gpsd.fix.longitude
                         
