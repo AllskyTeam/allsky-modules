@@ -129,12 +129,12 @@ def compareGPSandAllSky(lat, lon):
     else:
         lonCompass = "W"
 
-    lat = str(lat)
-    lon = str(lon)
+    lat = str(abs(lat))
+    lon = str(abs(lon))
 
     lat = float(truncate(lat[:-1]))
     lon = float(truncate(lon[:-1]))
-    
+
     lat = "{}{}".format(lat, latCompass)
     lon = "{}{}".format(lon, lonCompass)
         
@@ -240,12 +240,12 @@ def pigps(params, event):
                                     extraData["PIGPSFIXDISC"] = extradataposdisc
                                                             
                                 if (lat < 0):
-                                    strLat = "{}S".format(lat)
+                                    strLat = "{}S".format(abs(lat))
                                 else:
                                     strLat = "{}N".format(lat)
 
                                 if (lon < 0):
-                                    strLon = "{}W".format(lon)
+                                    strLon = "{}W".format(abs(lon))
                                 else:
                                     strLon = "{}E".format(lon)
                                 
