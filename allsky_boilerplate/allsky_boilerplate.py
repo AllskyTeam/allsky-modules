@@ -166,11 +166,11 @@ def boilerplate(params, event):
     if s.TOD == "day":
         result = "It's daytime"
         s.log(1,f"INFO: {result}")
-    elif s.TOD == "night:
+    elif s.TOD == "night":
         result = "It's nighttime"
         s.log(1,f"INFO: {result}")
     else:
-        result "I don't know if its day or night!"
+        result = "I don't know if its day or night!"
         s.log(0,f"ERROR: {result}")
 
     return result

@@ -18,8 +18,7 @@ metaData = {
     "description": "Detects rain via an external digital sensor",
     "module": "allsky_rain",       
     "events": [
-        "day",
-        "night"
+        "periodic"
     ],
     "arguments":{
         "inputpin": "",
