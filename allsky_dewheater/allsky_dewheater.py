@@ -9,7 +9,6 @@ pip3 install adafruit-circuitpython-sht31d
 
 '''
 import allsky_shared as s
-import os
 import time
 import adafruit_sht31d
 import adafruit_dht
@@ -25,8 +24,6 @@ metaData = {
     "module": "allsky_dewheater",
     "version": "v1.0.0",    
     "events": [
-        "day",
-        "night",
         "periodic"
     ],
     "experimental": "true",    
@@ -40,7 +37,10 @@ metaData = {
         "frequency": "0",
         "limit": "10",
         "force": "0",
-        "max": "0"        
+        "max": "0",
+        "dhtxxretrycount": "2",
+        "dhtxxdelay" : "500",
+        "extradatafilename": "allskydew.json"
     },
     "argumentdetails": {   
         "type" : {
@@ -50,7 +50,7 @@ metaData = {
             "tab": "Sensor",
             "type": {
                 "fieldtype": "select",
-                "values": "None,SHT31,DHT22,DHT11,BME280-I2C",
+                "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C",
                 "default": "None"
             }                
         },
@@ -68,7 +68,31 @@ metaData = {
             "description": "I2C Address",
             "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
             "tab": "Sensor"
-        } ,                    
+        },
+        "dhtxxretrycount" : {
+            "required": "false",
+            "description": "Retry Count",
+            "help": "The number of times to retry the sensor read",
+            "tab": "DHTXX",
+            "type": {
+                "fieldtype": "spinner",
+                "min": 0,
+                "max": 5,
+                "step": 1
+            }          
+        },        
+        "dhtxxdelay" : {
+            "required": "false",
+            "description": "Delay",
+            "help": "The delay between faild sensor reads in milliseconds",
+            "tab": "DHTXX",
+            "type": {
+                "fieldtype": "spinner",
+                "min": 0,
+                "max": 5000,
+                "step": 1
+            }          
+        },                
         "heaterpin": {
             "required": "false",
             "description": "Heater Pin",
@@ -145,7 +169,13 @@ metaData = {
                 "max": 86400,
                 "step": 1
             }          
-        }                                                                
+        },
+        "extradatafilename": {
+            "required": "true",
+            "description": "Extra Data Filename",
+            "tab": "Misc",              
+            "help": "The name of the file to create with the dew heater data for the overlay manager"         
+        }                                                                    
     },
     "enabled": "false"            
 }
@@ -163,26 +193,39 @@ def readSHT31():
 
     return temperature, humidity
 
-def readDHT22(inputpin):
+def doDHTXXRead(inputpin):
     temperature = None
     humidity = None
 
     try:
-        inputpin = int(inputpin)
-
-        dhtDevice = adafruit_dht.DHT22(inputpin)
+        pin = s.getGPIOPin(inputpin)
+        dhtDevice = adafruit_dht.DHT22(pin, use_pulseio=False)
         try:
             temperature = dhtDevice.temperature
             humidity = dhtDevice.humidity
         except RuntimeError as error:
-            s.log(0,"ERROR: Failed to read DHT22")
-            pass
-        except Exception as error:
-            dhtDevice.exit()
-            raise error
+            s.log(4, "INFO: {}".format(error))
+    except Exception as error:
+        s.log(4, "INFO: {}".format(error))
+            
+    return temperature, humidity
+    
+def readDHT22(inputpin, dhtxxretrycount, dhtxxdelay):
+    temperature = None
+    humidity = None
+    count = 0
+    reading = True
 
-    except ValueError:
-        inputpin = 0
+    while reading:
+        temperature, humidity = doDHTXXRead(inputpin)
+        
+        if temperature is None and humidity is None:
+            s.log(4, "INFO: Failed to read DHTXX on attempt {}".format(count+1))
+            count = count + 1
+            if count > dhtxxretrycount:
+                reading = False
+        else:
+            reading = False
 
     return temperature, humidity
 
@@ -198,14 +241,17 @@ def readBme280I2C(i2caddress):
             result = "Address {} is not a valid i2c address".format(i2caddress)
             s.log(0,"ERROR: {}".format(result))
 
-    i2c = board.I2C()
-    if i2caddress != "":
-        bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c, i2caddressInt)
-    else:
-        bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
+    try:
+        i2c = board.I2C()
+        if i2caddress != "":
+            bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c, i2caddressInt)
+        else:
+            bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
 
-    temperature =  bme280.temperature
-    humidity = bme280.relative_humidity
+        temperature =  bme280.temperature
+        humidity = bme280.relative_humidity
+    except ValueError:
+        pass
 
     return temperature, humidity
 
@@ -215,25 +261,36 @@ def setmode():
     except:
         pass
 
-def turnHeaterOn(invertrelay):
+def turnHeaterOn(invertrelay, heaterpin):
+    result = "Turning Heater on"
     setmode()
-    GPIO.setup(27, GPIO.OUT)
+    GPIO.setup(heaterpin, GPIO.OUT)
     if invertrelay:
-        GPIO.output(27, GPIO.LOW)
+        if GPIO.input(heaterpin) == 0:
+            result = "Leaving Heater on"
+        GPIO.output(heaterpin, GPIO.LOW)
     else:
-        GPIO.output(27, GPIO.HIGH)
-    s.log(1,"INFO: Turning Heater on")
+        if GPIO.input(heaterpin) == 1:
+            result = "Leaving Heater on"
+        GPIO.output(heaterpin, GPIO.HIGH)
+    s.log(1,"INFO: {}".format(result))
 
-def turnHeaterOff(invertrelay):
+def turnHeaterOff(invertrelay, heaterpin):
+    result = "Turning Heater off"
     setmode()
-    GPIO.setup(27, GPIO.OUT)
-    if invertrelay:
-        GPIO.output(27, GPIO.HIGH)
-    else:    
-        GPIO.output(27, GPIO.LOW)
-    s.log(1,"INFO: Turning Heater off")
+    GPIO.setup(heaterpin, GPIO.OUT)
 
-def getSensorReading(sensorType, inputpin, i2caddress):
+    if invertrelay:
+        if GPIO.input(heaterpin) == 1:
+            result = "Leaving Heater off"        
+        GPIO.output(heaterpin, GPIO.HIGH)
+    else:    
+        if GPIO.input(heaterpin) == 0:
+            result = "Leaving Heater off"        
+        GPIO.output(heaterpin, GPIO.LOW)
+    s.log(1,"INFO: {}".format(result))
+
+def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay):
     temperature = None
     humidity = None
     dewPoint = None
@@ -241,8 +298,8 @@ def getSensorReading(sensorType, inputpin, i2caddress):
 
     if sensorType == "SHT31":
         temperature, humidity = readSHT31()
-    elif sensorType == "DHT22" or sensorType == "DHT11":
-        temperature, humidity = readDHT22(inputpin)
+    elif sensorType == "DHT22" or sensorType == "DHT11" or sensorType == "AM2302":
+        temperature, humidity = readDHT22(inputpin, dhtxxretrycount, dhtxxdelay)
     elif sensorType == "BME280-I2C":
         temperature, humidity = readBme280I2C(i2caddress)
     else:
@@ -269,19 +326,25 @@ def getLastRunTime():
 
 def debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex):
     s.log(1,"INFO: Sensor {0} read. Temperature {1} Humidity {2} Dew Point {3} Heat Index {4}".format(sensorType, temperature, humidity, dewPoint, heatIndex))
-
+    
 def dewheater(params, event):
     result = ""
     sensorType = params["type"]
     heaterstartupstate = params["heaterstartupstate"]
-    heaterpin = params["heaterpin"]
+    heaterpin = int(params["heaterpin"])
     force = int(params["force"])
     limit = int(params["limit"])
     invertrelay = params["invertrelay"]
-    inputpin = params["inputpin"]
+    try:
+        inputpin = int(params["inputpin"])
+    except ValueError:
+        inputpin = 0
     frequency = int(params["frequency"])
     i2caddress = params["i2caddress"]
-
+    dhtxxretrycount = int(params["dhtxxretrycount"])
+    dhtxxdelay = int(params["dhtxxdelay"])
+    extradatafilename = params['extradatafilename']
+            
     temperature = 0
     humidity = 0
     dewPoint = 0
@@ -294,32 +357,45 @@ def dewheater(params, event):
         heaterpin = 0
 
     if heaterpin != 0:
+        heaterpin = s.getGPIOPin(heaterpin)
         lastRunTime = getLastRunTime()
         if lastRunTime is not None:
             now = int(time.time())            
             lastRunSecs = now - lastRunTime
             if lastRunSecs >= frequency:
                 s.dbUpdate("dewheaterlastrun", now)
-                temperature, humidity, dewPoint, heatIndex = getSensorReading(sensorType, inputpin, i2caddress)
+                temperature, humidity, dewPoint, heatIndex = getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay)
                 if temperature is not None:
                     if force != 0 and temperature <= force:
                         result = "Temperature below forced level {}".format(force)
                         s.log(1,"INFO: {}".format(result))
-                        turnHeaterOn(invertrelay)
+                        turnHeaterOn(heaterpin, invertrelay)
                         heater = 'On'
                     else:
                         if ((temperature-limit) <= dewPoint):
-                            turnHeaterOn(invertrelay)
+                            turnHeaterOn(heaterpin, invertrelay)
                             heater = 'On'
                             result = "Temperature within limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
                             s.log(1,"INFO: {}".format(result))
                         else:
                             result = "Temperature outside limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
                             s.log(1,"INFO: {}".format(result))
-                            turnHeaterOff(invertrelay)
+                            turnHeaterOff(heaterpin, invertrelay)
                             heater = 'Off'
 
+                    extraData = {}
+                    extraData["AS_DEWCONTROLAMBIENT"] = str(temperature)
+                    extraData["AS_DEWCONTROLDEW"] = str(dewPoint)
+                    extraData["AS_DEWCONTROLHUMIDITY"] = str(humidity)
+                    extraData["AS_DEWCONTROLHEATER"] = heater
+                    s.saveExtraData(extradatafilename,extraData)
+                    
                     debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex)
+                    
+                else:
+                    result = "Failed to read sensor"
+                    s.log(0, "ERROR: {}".format(result))
+                    s.deleteExtraData(extradatafilename)
             else:
                 result = "Not run. Only running every {}s. Last ran {}s ago".format(frequency, lastRunSecs)
                 s.log(1,"INFO: {}".format(result))
@@ -328,17 +404,13 @@ def dewheater(params, event):
             s.dbAdd("dewheaterlastrun", now)
             s.log(1,"INFO: No last run info so assuming startup")
             if heaterstartupstate == "ON":
-                turnHeaterOn(invertrelay)
+                turnHeaterOn(heaterpin, invertrelay)
                 heater = 'On'
             else:
-                turnHeaterOff(invertrelay)
+                turnHeaterOff(heaterpin, invertrelay)
                 heater = 'Off'
-
-        os.environ["AS_DEWCONTROLAMBIENT"] = str(temperature)
-        os.environ["AS_DEWCONTROLDEW"] = str(dewPoint)
-        os.environ["AS_DEWCONTROLHUMIDITY"] = str(humidity)
-        os.environ["AS_DEWCONTROLHEATER"] = heater
     else:
+        s.deleteExtraData(extradatafilename)
         result = "heater pin not defined or invalid"
         s.log(0,"ERROR: {}".format(result))
 
