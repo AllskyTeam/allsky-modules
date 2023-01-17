@@ -22,7 +22,8 @@ metaData = {
     ],
     "arguments":{
         "inputpin": "",
-        "invertsensor": "false"
+        "invertsensor": "false",
+        "extradatafilename": "allskyrain.json"
     },
     "argumentdetails": {
         "inputpin": {
@@ -40,7 +41,13 @@ metaData = {
             "type": {
                 "fieldtype": "checkbox"
             }               
-        }        
+        },
+        "extradatafilename": {
+            "required": "true",
+            "description": "Extra Data Filename",
+            "tab": "Misc",              
+            "help": "The name of the file to create with the rain data for the overlay manager"         
+        }              
     }      
 }
 
@@ -49,39 +56,48 @@ def rain(params, event):
 
     inputpin = params["inputpin"]
     invertsensor = params["invertsensor"]
-
+    extradatafilename = params['extradatafilename']
+    
     try:
         inputpin = int(inputpin)
     except ValueError:
         inputpin = 0
 
     if inputpin != 0:
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(inputpin, GPIO.IN)
+        try:
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(inputpin, GPIO.IN)
+            
+            pinState = GPIO.input(inputpin)
 
-        pinState = GPIO.input(inputpin)
+            resultState = "Not Raining"
+            raining = ""
+            rainFlag = False
+            if not invertsensor:
+                if pinState == 0:
+                    raining = "Raining"
+                    resultState = raining
+                    rainFlag = True
+            else:
+                if pinState == 1:
+                    raining = "Raining"
+                    resultState = raining
+                    rainFlag = True
 
-        resultState = "Not Raining"
-        raining = ""
-        rainFlag = False
-        if not invertsensor:
-            if pinState == 0:
-                raining = "Raining"
-                resultState = raining
-                rainFlag = True
-        else:
-            if pinState == 1:
-                raining = "Raining"
-                resultState = raining
-                rainFlag = True
+            extraData = {}
+            extraData["AS_RAINSTATE"] = raining
+            extraData["AS_ALLSKYRAINFLAG"] = str(rainFlag)
+            s.saveExtraData(extradatafilename,extraData)
 
-        os.environ["AS_RAINSTATE"] = raining
-        os.environ["AS_ALLSKYRAINFLAG"] = str(rainFlag)
-
-        result = "Rain State: Its {}".format(resultState)
-        s.log(1, "INFO: {}".format(result))
+            result = "Rain State: Its {}".format(resultState)
+            s.log(1, "INFO: {}".format(result))
+        except Exception as ex:
+            result = "Unable to read Rain sensor {}".format(ex)
+            s.log(0, "ERROR: {}".format(result))
+            s.deleteExtraData(extradatafilename)
     else:
         result = "Invalid GPIO pin ({})".format(params["inputpin"])
         s.log(0, "ERROR: {}".format(result))
-
+        s.deleteExtraData(extradatafilename)
+        
     return result
