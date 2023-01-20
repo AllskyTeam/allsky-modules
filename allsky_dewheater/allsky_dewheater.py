@@ -4,9 +4,6 @@ allsky_dewheater.py
 Part of allsky postprocess.py modules.
 https://github.com/thomasjacquin/allsky
 
-
-pip3 install adafruit-circuitpython-sht31d
-
 '''
 import allsky_shared as s
 import time
@@ -125,7 +122,7 @@ metaData = {
         "frequency" : {
             "required": "false",
             "description": "Delay",
-            "help": "The delay between sensor reads in seconds. Zero will disable this and run the check after every frame",
+            "help": "The delay between sensor reads in seconds. Zero will disable this and run the check every time the periodic jobs run",
             "tab": "Dew Control",            
             "type": {
                 "fieldtype": "spinner",
@@ -161,7 +158,7 @@ metaData = {
         "max" : {
             "required": "false",
             "description": "Max Heater Time",
-            "help": "The maximum time in seconds for the heater to be on. Zero will disable this.",
+            "help": "The maximum time in seconds for the heater to be on. Zero will disable this. NOT YET IMPLEMENTED",
             "tab": "Dew Control",            
             "type": {
                 "fieldtype": "spinner",
@@ -261,33 +258,33 @@ def setmode():
     except:
         pass
 
-def turnHeaterOn(invertrelay, heaterpin):
+def turnHeaterOn(heaterpin, invertrelay):
     result = "Turning Heater on"
     setmode()
-    GPIO.setup(heaterpin, GPIO.OUT)
+    GPIO.setup(heaterpin.id, GPIO.OUT)
     if invertrelay:
-        if GPIO.input(heaterpin) == 0:
+        if GPIO.input(heaterpin.id) == 0:
             result = "Leaving Heater on"
-        GPIO.output(heaterpin, GPIO.LOW)
+        GPIO.output(heaterpin.id, GPIO.LOW)
     else:
-        if GPIO.input(heaterpin) == 1:
+        if GPIO.input(heaterpin.id) == 1:
             result = "Leaving Heater on"
-        GPIO.output(heaterpin, GPIO.HIGH)
+        GPIO.output(heaterpin.id, GPIO.HIGH)
     s.log(1,"INFO: {}".format(result))
 
-def turnHeaterOff(invertrelay, heaterpin):
+def turnHeaterOff(heaterpin, invertrelay):
     result = "Turning Heater off"
     setmode()
-    GPIO.setup(heaterpin, GPIO.OUT)
+    GPIO.setup(heaterpin.id, GPIO.OUT)
 
     if invertrelay:
-        if GPIO.input(heaterpin) == 1:
+        if GPIO.input(heaterpin.id) == 1:
             result = "Leaving Heater off"        
-        GPIO.output(heaterpin, GPIO.HIGH)
+        GPIO.output(heaterpin.id, GPIO.HIGH)
     else:    
-        if GPIO.input(heaterpin) == 0:
+        if GPIO.input(heaterpin.id) == 0:
             result = "Leaving Heater off"        
-        GPIO.output(heaterpin, GPIO.LOW)
+        GPIO.output(heaterpin.id, GPIO.LOW)
     s.log(1,"INFO: {}".format(result))
 
 def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay):
@@ -351,67 +348,76 @@ def dewheater(params, event):
     heatIndex = 0
     heater = 'Off'
 
-    try:
-        heaterpin = int(heaterpin)
-    except ValueError:
-        heaterpin = 0
+    shouldRun, diff = s.shouldRun('allskydew', frequency)
+        
+    if shouldRun:
+        try:
+            heaterpin = int(heaterpin)
+        except ValueError:
+            heaterpin = 0
 
-    if heaterpin != 0:
-        heaterpin = s.getGPIOPin(heaterpin)
-        lastRunTime = getLastRunTime()
-        if lastRunTime is not None:
-            now = int(time.time())            
-            lastRunSecs = now - lastRunTime
-            if lastRunSecs >= frequency:
-                s.dbUpdate("dewheaterlastrun", now)
-                temperature, humidity, dewPoint, heatIndex = getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay)
-                if temperature is not None:
-                    if force != 0 and temperature <= force:
-                        result = "Temperature below forced level {}".format(force)
-                        s.log(1,"INFO: {}".format(result))
-                        turnHeaterOn(heaterpin, invertrelay)
-                        heater = 'On'
-                    else:
-                        if ((temperature-limit) <= dewPoint):
+        if heaterpin != 0:
+            heaterpin = s.getGPIOPin(heaterpin)
+            lastRunTime = getLastRunTime()
+            if lastRunTime is not None:
+                now = int(time.time())            
+                lastRunSecs = now - lastRunTime
+                if lastRunSecs >= frequency:
+                    s.dbUpdate("dewheaterlastrun", now)
+                    temperature, humidity, dewPoint, heatIndex = getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay)
+                    if temperature is not None:
+                        if force != 0 and temperature <= force:
+                            result = "Temperature below forced level {}".format(force)
+                            s.log(1,"INFO: {}".format(result))
                             turnHeaterOn(heaterpin, invertrelay)
                             heater = 'On'
-                            result = "Temperature within limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
-                            s.log(1,"INFO: {}".format(result))
                         else:
-                            result = "Temperature outside limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
-                            s.log(1,"INFO: {}".format(result))
-                            turnHeaterOff(heaterpin, invertrelay)
-                            heater = 'Off'
+                            if ((temperature-limit) <= dewPoint):
+                                turnHeaterOn(heaterpin, invertrelay)
+                                heater = 'On'
+                                result = "Temperature within limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
+                                s.log(1,"INFO: {}".format(result))
+                            else:
+                                result = "Temperature outside limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
+                                s.log(1,"INFO: {}".format(result))
+                                turnHeaterOff(heaterpin, invertrelay)
+                                heater = 'Off'
 
-                    extraData = {}
-                    extraData["AS_DEWCONTROLAMBIENT"] = str(temperature)
-                    extraData["AS_DEWCONTROLDEW"] = str(dewPoint)
-                    extraData["AS_DEWCONTROLHUMIDITY"] = str(humidity)
-                    extraData["AS_DEWCONTROLHEATER"] = heater
-                    s.saveExtraData(extradatafilename,extraData)
-                    
-                    debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex)
-                    
+                        extraData = {}
+                        extraData["AS_DEWCONTROLAMBIENT"] = str(temperature)
+                        extraData["AS_DEWCONTROLDEW"] = str(dewPoint)
+                        extraData["AS_DEWCONTROLHUMIDITY"] = str(humidity)
+                        extraData["AS_DEWCONTROLHEATER"] = heater
+                        s.saveExtraData(extradatafilename,extraData)
+                        
+                        debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex)
+                        
+                    else:
+                        result = "Failed to read sensor"
+                        s.log(0, "ERROR: {}".format(result))
+                        s.deleteExtraData(extradatafilename)
                 else:
-                    result = "Failed to read sensor"
-                    s.log(0, "ERROR: {}".format(result))
-                    s.deleteExtraData(extradatafilename)
+                    result = "Not run. Only running every {}s. Last ran {}s ago".format(frequency, lastRunSecs)
+                    s.log(1,"INFO: {}".format(result))
             else:
-                result = "Not run. Only running every {}s. Last ran {}s ago".format(frequency, lastRunSecs)
-                s.log(1,"INFO: {}".format(result))
+                now = int(time.time())
+                s.dbAdd("dewheaterlastrun", now)
+                s.log(1,"INFO: No last run info so assuming startup")
+                if heaterstartupstate == "ON":
+                    turnHeaterOn(heaterpin, invertrelay)
+                    heater = 'On'
+                else:
+                    turnHeaterOff(heaterpin, invertrelay)
+                    heater = 'Off'
         else:
-            now = int(time.time())
-            s.dbAdd("dewheaterlastrun", now)
-            s.log(1,"INFO: No last run info so assuming startup")
-            if heaterstartupstate == "ON":
-                turnHeaterOn(heaterpin, invertrelay)
-                heater = 'On'
-            else:
-                turnHeaterOff(heaterpin, invertrelay)
-                heater = 'Off'
-    else:
-        s.deleteExtraData(extradatafilename)
-        result = "heater pin not defined or invalid"
-        s.log(0,"ERROR: {}".format(result))
+            s.deleteExtraData(extradatafilename)
+            result = "heater pin not defined or invalid"
+            s.log(0,"ERROR: {}".format(result))
 
+        s.setLastRun('allskydew')
+    
+    else:
+        result = 'Will run in {:.2f} seconds'.format(frequency - diff)
+        s.log(1,"INFO: {}".format(result))
+    
     return result
