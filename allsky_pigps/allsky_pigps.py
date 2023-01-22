@@ -27,7 +27,10 @@ metaData = {
         "settime": "True",
         "timeperiod": "60",
         "extradatafilename": "pigps.json",
-        "extradataposdisc": "GPS Position differs from AllSky"
+        "extradataposdisc": "GPS Position differs from AllSky",
+        "obfuscate": "False",
+        "obfuscatelatdistance": 0,
+        "obfuscatelondistance": 0
     },
     "argumentdetails": {
         "warnposition" : {
@@ -74,7 +77,38 @@ metaData = {
             "required": "true",
             "description": "Discrepancy Warning",
             "help": "Message to set when the GPS coordinates differ from the AllSky settings"         
-        }           
+        },
+        "obfuscate" : {
+            "required": "false",
+            "description": "Obfuscate Position",
+            "help": "Adds the values below to the lat/lon to prevent youre precise location being available",
+            "tab": "Obfuscation",
+            "type": {
+                "fieldtype": "checkbox"
+            }          
+        },
+        "obfuscatelatdistance" : {
+            "description": "Latitude Metres",
+            "help": "Number of metres to add to the latitude",
+            "tab": "Obfuscation",                       
+            "type": {
+                "fieldtype": "spinner",
+                "min": -10000,
+                "max": 10000,
+                "step": 1
+            }          
+        },
+        "obfuscatelondistance" : {
+            "description": "Longitude Metres",
+            "help": "Number of metres to add to the longitude",                
+            "tab": "Obfuscation",            
+            "type": {
+                "fieldtype": "spinner",
+                "min": -10000,
+                "max": 10000,
+                "step": 1
+            }          
+        }                           
     }          
 }
 
@@ -144,9 +178,21 @@ def compareGPSandAllSky(lat, lon):
         
     return result, allSkyLat, allSkyLon, lat, lon
        
-       
+def deg_to_dms(deg, type='lat'):
+    decimals, number = math.modf(deg)
+    d = int(number)
+    m = int(decimals * 60)
+    s = (deg - d - m / 60) * 3600.00
+    compass = {
+        'lat': ('N','S'),
+        'lon': ('E','W')
+    }
+    compass_str = compass[type][0 if d >= 0 else 1]
+    return '{}º{}\'{:.2f}"{}'.format(abs(d), abs(m), abs(s), compass_str)      
+ 
 def pigps(params, event):
     
+    ONEMETER = 0.00001
     setposition = params['setposition']
     warnposition = params['warnposition']
     settime = params['settime']
@@ -154,6 +200,11 @@ def pigps(params, event):
     extradatafilenam = params['extradatafilename']
     extradataposdisc = params['extradataposdisc']
     shouldRun, diff = s.shouldRun('pigps', period)
+
+    obfuscate = params['obfuscate']    
+    obfuscatelatdistance = int(params['obfuscatelatdistance'])
+    obfuscatelondistance = int(params['obfuscatelondistance'])
+        
     result = ""
     gpsd = None
     extraData = {
@@ -167,6 +218,8 @@ def pigps(params, event):
         "PIGPSOFFSET": "",        
         "PIGPSLAT": "",
         "PIGPSLON": "",
+        "PIGPSLATDEC": "",
+        "PIGPSLONDEC": "",
         "PIGPSFIXDISC": ""
     }
     
@@ -235,6 +288,11 @@ def pigps(params, event):
                         
                         if mode != MODE_NO_FIX:
                             if lat != 0 and lon != 0:
+                                
+                                if obfuscate:
+                                    lat = lat + (obfuscatelatdistance * ONEMETER)
+                                    lon = lon + (obfuscatelondistance * ONEMETER)
+                                    s.log(4, "INFO: Offsetting latitude by {}m and longitude by {}m".format(obfuscatelatdistance, obfuscatelondistance))
                                 discResult, discAllSkyLat, discAllSkyLon, discLat, discLon = compareGPSandAllSky(lat, lon)
                                 if discResult:
                                     extraData["PIGPSFIXDISC"] = extradataposdisc
@@ -262,8 +320,10 @@ def pigps(params, event):
                                         positionResult = "Lat {:.6f} Lon {:.6f} - {},{}".format(lat, lon, strLat, strLon)
                                 result = result + ". {}".format(positionResult)
                                 s.log(4, "INFO: {}".format(positionResult))
-                                extraData["PIGPSLAT"] = strLat
-                                extraData["PIGPSLON"] = strLon
+                                extraData["PIGPSLATDEC"] = strLat
+                                extraData["PIGPSLONDEC"] = strLon
+                                extraData["PIGPSLAT"] = deg_to_dms(lat, 'lat')
+                                extraData["PIGPSLON"] = deg_to_dms(lon, 'lon')
                                 extraData["PIGPSFIX"]["value"] = "Yes"
                                 extraData["PIGPSFIX"]["fill"] = "#00ff00"
                                 break
