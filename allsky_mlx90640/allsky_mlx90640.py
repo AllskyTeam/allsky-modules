@@ -13,6 +13,7 @@ import adafruit_mlx90640
 import datetime as dt
 import cv2
 import cmapy
+import os
 from scipy import ndimage
 
 metaData = {
@@ -25,7 +26,8 @@ metaData = {
     ],
     "experimental": "true",    
     "arguments":{
-        "i2caddress": ""
+        "i2caddress": "",
+        "imagefilename": "ir.jpg"
     },
     "argumentdetails": {
         "i2caddress": {
@@ -33,7 +35,13 @@ metaData = {
             "description": "I2C Address",
             "help": "Override the standard i2c address (0x33) for the mlx90640. NOTE: This value must be hex i.e. 0x76",
             "tab": "Sensor"
-        }                                                          
+        },
+        "imagefilename": {
+            "required": "false",
+            "description": "Image filename",
+            "tab": "Image",              
+            "help": "The filename to save the image as. NOTE: Does not need the path. The image will be saved in the overlay images folder"         
+        }                                                                
     },
     "enabled": "false"            
 }
@@ -161,7 +169,6 @@ class pithermalcam:
         cv2.resizeWindow('Thermal Image', self.image_width,self.image_height)
         cv2.imshow('Thermal Image', self._image)
 
-
     def display_next_frame_onscreen(self):
         """Display the camera live to the display"""
         # Display shortcuts reminder to user on first run
@@ -237,10 +244,14 @@ class pithermalcam:
 
 
 def mlx90640(params, event):
+    imageFileName = params["imagefilename"]
+    imagePath = os.path.join(os.environ["ALLSKY_OVERLAY"],"images",imageFileName)
+    imageThumbnailPath = os.path.join(os.environ["ALLSKY_OVERLAY"],"imagethumbnails",imageFileName)
+
     extradatafilename = "mlx90640.json"                    
     cam = pithermalcam()
     img = cam.update_image_frame()
-    cv2.imwrite("/home/pi/allsky/html/overlay/images/ir.jpg", img)
+    cv2.imwrite(imagePath, img)
 
     width = img.shape[1]
     scale_percent = (90 / width) * 100
@@ -251,7 +262,7 @@ def mlx90640(params, event):
     
     # resize image
     resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
-    cv2.imwrite("/home/pi/allsky/html/overlay/imagethumbnails/ir.jpg", resized)    
+    cv2.imwrite(imageThumbnailPath, resized)    
     
     temp_c, temp_f = cam.get_mean_temp()
     extraData = {}
