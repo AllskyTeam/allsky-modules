@@ -16,8 +16,6 @@ metaData = {
     "module": "allsky_pistatus",    
     "version": "v1.0.0",    
     "events": [
-        "day",
-        "night",
         "periodic"
     ],
     "experimental": "true",    
@@ -136,8 +134,7 @@ def pistatus(params, event):
         result = 'Will run in ' + str(period - diff) + ' seconds'
         
     if data:
-        for key in data:
-            os.environ[key] = str(data[key])
+        s.saveExtraData("pistatus.json", data)
     
     s.log(1,'INFO: ' + result)
     return result
