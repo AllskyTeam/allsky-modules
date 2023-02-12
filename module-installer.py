@@ -56,7 +56,15 @@ w = Whiptail(title="Select Modules", backtitle="AllSky Module Installer", height
 checkList = w.checklist("Select the Modules To Install", moduleDirs)[0]
 
 os.system("clear")
-user = os.getlogin()
+
+try:
+    user = os.getlogin()
+except:
+    if "LOGNAME" in os.environ:
+        user = os.environ["LOGNAME"]
+    else:
+        print("Cannot determine user - Aborting")
+    
 for module in checkList:
     failed = ""
     title = f"Installing {module}"
