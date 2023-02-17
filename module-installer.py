@@ -38,8 +38,23 @@ def readModuleMetaData(modulePath):
     return moduleData
 
 
+def checkInstalled(path):
+    """ Check if a file exists and can be written to """
+    if os.path.exists(path):
+        if os.path.isfile(path):
+            return os.access(path, os.W_OK)
+        else:
+            return False 
+    else:
+        return False 
+    
 basePath = os.path.dirname(os.path.realpath(__file__))
-destPath = "/etc/allsky/modules"
+destPath = "/opt/allsky/modules"
+
+if not checkInstalled(destPath):
+    print("AllSky does not seem to be installed. The /opt/allsky directory does not exist. Please install AllSky before installing the modules")
+    sys.exit(1)
+    
 
 if os.geteuid() == 0:
     print("\nDO NOT run this as root. Run the installer as the same user as AllSky was installed\n")
