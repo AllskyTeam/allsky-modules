@@ -159,7 +159,7 @@ def light(params, event):
     result = ''
 
     sensor = params["type"].lower()
-    if sensor != "none":
+    if sensor != "None":
         if sensor == "tsl2591":
             lux, infrared, visible = readTSL2591(params)
 
