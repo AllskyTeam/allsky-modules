@@ -39,12 +39,8 @@ def readModuleMetaData(modulePath):
 
 
 def checkInstalled(path):
-    """ Check if a file exists and can be written to """
     if os.path.exists(path):
-        if os.path.isfile(path):
-            return os.access(path, os.W_OK)
-        else:
-            return False 
+        return True
     else:
         return False 
     
