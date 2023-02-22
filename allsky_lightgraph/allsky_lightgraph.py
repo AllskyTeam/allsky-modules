@@ -30,12 +30,9 @@ metaData = {
     "version": "v0.6",
     "module": "allsky_lightgraph",
     "arguments": {
-        "night_border_color": "30 190 40",
-        "day_border_color": "15 110 20",
-        "night_light_color": "240 240 240",
-        "day_light_color": "240 240 240",
-        "night_dark_color": "10 10 10",
-        "day_dark_color": "10 10 10",
+        "border_color": "30 190 40",
+        "light_color": "240 240 240",
+        "dark_color": "10 10 10",
         "width": 800,
         "height": 25,
         "alpha": 1.0,
@@ -45,16 +42,12 @@ metaData = {
         "hour_ticks": "true",
         "hour_nums": "true",
         "hour_txt_size": 0.5,
-        "night_text_color": "30 190 40",
-        "day_text_color": "15 110 20",
+        "text_color": "30 190 40",
         "now_point": "Center",
         "draw_elev": "true",
-        "elev_night_color": "30 190 40",
-        "elev_day_color": "15 110 20",
-        "sun_night_color": "85 205 235",
-        "moon_night_color": "230 200 95",
-        "sun_day_color": "8 11 137",
-        "moon_day_color": "85 70 15", 
+        "elev_color": "30 190 40",
+        "sun_color": "85 205 235",
+        "moon_color": "230 200 95",
         "elev_horiz_pos": 750,
         "elev_vert_pos": 10,
         "elev_width": 300,
@@ -62,54 +55,27 @@ metaData = {
         "debug": "False"
     },
     "argumentdetails": {
-        "night_border_color": {
+        "border_color": {
             "required": "true",
-            "description": "Border color in night images",
+            "description": "Border color",
             "help": "BGR format",
             "tab": "Colors",
             "type": {
                 "fieldtype": ""
             }
         },
-        "day_border_color": {
+        "light_color": {
             "required": "true",
-            "description": "Border color in day images",
+            "description": "Fill color for light time",
             "help": "BGR format",
             "tab": "Colors",
             "type": {
                 "fieldtype": ""
             }
         },
-        "night_light_color": {
+        "dark_color": {
             "required": "true",
-            "description": "Fill color for light time in night images",
-            "help": "BGR format",
-            "tab": "Colors",
-            "type": {
-                "fieldtype": ""
-            }
-        },
-        "day_light_color": {
-            "required": "true",
-            "description": "Fill color for light time in day images",
-            "help": "BGR format",
-            "tab": "Colors",
-            "type": {
-                "fieldtype": ""
-            }
-        },
-        "night_dark_color": {
-            "required": "true",
-            "description": "Fill color for dark time in night images",
-            "help": "BGR format",
-            "tab": "Colors",
-            "type": {
-                "fieldtype": ""
-            }
-        },
-        "day_dark_color": {
-            "required": "true",
-            "description": "Fill color for dark time in day images",
+            "description": "Fill color for dark time",
             "help": "BGR format",
             "tab": "Colors",
             "type": {
@@ -207,18 +173,9 @@ metaData = {
                 "step": 0.1
             }
         },	 
-        "night_text_color": {
+        "text_color": {
             "required": "true",
-            "description": "Color for text in night images",
-            "help": "BGR format",
-            "tab": "Colors",
-            "type": {
-                "fieldtype": ""
-            }
-        },
-        "day_text_color": {
-            "required": "true",
-            "description": "Color for text in day images",
+            "description": "Color for text",
             "help": "BGR format",
             "tab": "Colors",
             "type": {
@@ -243,54 +200,27 @@ metaData = {
                 "fieldtype": "checkbox"
             }
         },
-        "elev_night_color": {
+        "elev_color": {
             "required": "true",
-            "description": "Elevation border color in night images",
+            "description": "Elevation border color",
             "help": "BGR format",
             "tab": "Elevation",
             "type": {
                 "fieldtype": ""
             }
         },
-        "elev_day_color": {
+        "sun_color": {
             "required": "true",
-            "description": "Elevation border color in day images",
+            "description": "Sun color",
             "help": "BGR format",
             "tab": "Elevation",
             "type": {
                 "fieldtype": ""
             }
         },
-        "sun_night_color": {
+        "moon_color": {
             "required": "true",
-            "description": "Sun color in night images",
-            "help": "BGR format",
-            "tab": "Elevation",
-            "type": {
-                "fieldtype": ""
-            }
-        },
-        "moon_night_color": {
-            "required": "true",
-            "description": "Moon color in night images",
-            "help": "BGR format",
-            "tab": "Elevation",
-            "type": {
-                "fieldtype": ""
-            }
-        },
-        "sun_day_color": {
-            "required": "true",
-            "description": "Sun color in day images",
-            "help": "BGR format",
-            "tab": "Elevation",
-            "type": {
-                "fieldtype": ""
-            }
-        },
-        "moon_day_color": {
-            "required": "true",
-            "description": "Moon color in day images",
+            "description": "Moon color",
             "help": "BGR format",
             "tab": "Elevation",
             "type": {
@@ -381,17 +311,10 @@ class lGraph():
         return tuple(sum(x) * fraction for x in zip(val1,val2))
 
     def get_params(self, debug, params):
-        isDay = os.environ["DAY_OR_NIGHT"]
-        if isDay == "DAY":
-            self.border_color = self._readColor(params["day_border_color"])
-            self.light_color = self._readColor(params["day_light_color"])
-            self.dark_color = self._readColor(params["day_dark_color"])
-            self.text_color = self._readColor(params["day_text_color"])
-        else:
-            self.border_color = self._readColor(params["night_border_color"])
-            self.light_color = self._readColor(params["night_light_color"])
-            self.dark_color = self._readColor(params["night_dark_color"])
-            self.text_color = self._readColor(params["night_text_color"])
+        self.border_color = self._readColor(params["border_color"])
+        self.light_color = self._readColor(params["light_color"])
+        self.dark_color = self._readColor(params["dark_color"])
+        self.text_color = self._readColor(params["text_color"])
 
         self.day2civil_color = self._scaleColor(self.light_color, self.dark_color, 0.75)
         self.civil2nauti_color = self._scaleColor(self.light_color, self.dark_color, 0.50)
@@ -401,14 +324,10 @@ class lGraph():
         self.longitude = s.convertLatLon(s.getSetting("longitude"))
 
         if params["draw_elev"] == True:
-            if isDay == "DAY":
-                self.elev_color = self._readColor(params["elev_day_color"])
-                self.sun_color = self._readColor(params["sun_day_color"])
-                self.moon_color = self._readColor(params["moon_day_color"])
-            else:
-                self.elev_color = self._readColor(params["elev_night_color"])
-                self.sun_color = self._readColor(params["sun_night_color"])
-                self.moon_color = self._readColor(params["moon_night_color"])
+            self.elev_color = self._readColor(params["elev_color"])
+            self.sun_color = self._readColor(params["sun_color"])
+            self.moon_color = self._readColor(params["moon_color"])
+
                 
     def set_size(self, debug, params):
         self.image_width = s.image.shape[1]
