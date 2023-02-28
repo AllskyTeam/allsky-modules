@@ -208,19 +208,19 @@ def pigps(params, event):
     result = ""
     gpsd = None
     extraData = {
-        "PIGPSFIX": {
+        "AS_PIGPSFIX": {
             "value": "No",
             "fill": "#ff0000"
         },
-        "PIGPSTIME": "Disabled",
-        "PIGPSUTC": "",
-        "PIGPSLOCAL": "",
-        "PIGPSOFFSET": "",        
-        "PIGPSLAT": "",
-        "PIGPSLON": "",
-        "PIGPSLATDEC": "",
-        "PIGPSLONDEC": "",
-        "PIGPSFIXDISC": ""
+        "AS_PIGPSTIME": "Disabled",
+        "AS_PIGPSUTC": "",
+        "AS_PIGPSLOCAL": "",
+        "AS_PIGPSOFFSET": "",        
+        "AS_PIGPSLAT": "",
+        "AS_PIGPSLON": "",
+        "AS_PIGPSLATDEC": "",
+        "AS_PIGPSLONDEC": "",
+        "AS_PIGPSFIXDISC": ""
     }
     
     if shouldRun:
@@ -252,9 +252,9 @@ def pigps(params, event):
                                     utc = datetime.datetime(year, month, day, hour, min, sec, 0)
                                     local = utc - timedelta(hours=offset)
                                     s.log(4,"INFO: GPS UTC time {}. Local time {}. TZ Diff {}".format(utc, local, offset)) 
-                                    extraData["PIGPSUTC"] = str(utc)
-                                    extraData["PIGPSLOCAL"] = str(local)
-                                    extraData["PIGPSOFFSET"] = str(offset)                                
+                                    extraData["AS_PIGPSUTC"] = str(utc)
+                                    extraData["AS_PIGPSLOCAL"] = str(local)
+                                    extraData["AS_PIGPSOFFSET"] = str(offset)                                
                                     dateString = utc.strftime("%c")
                                     os.system('sudo date -u --set="{}"'.format(dateString))
                                     result = "Time set to {}".format(dateString)
@@ -295,7 +295,7 @@ def pigps(params, event):
                                     s.log(4, "INFO: Offsetting latitude by {}m and longitude by {}m".format(obfuscatelatdistance, obfuscatelondistance))
                                 discResult, discAllSkyLat, discAllSkyLon, discLat, discLon = compareGPSandAllSky(lat, lon)
                                 if discResult:
-                                    extraData["PIGPSFIXDISC"] = extradataposdisc
+                                    extraData["AS_PIGPSFIXDISC"] = extradataposdisc
                                                             
                                 if (lat < 0):
                                     strLat = "{}S".format(abs(lat))
@@ -320,12 +320,12 @@ def pigps(params, event):
                                         positionResult = "Lat {:.6f} Lon {:.6f} - {},{}".format(lat, lon, strLat, strLon)
                                 result = result + ". {}".format(positionResult)
                                 s.log(4, "INFO: {}".format(positionResult))
-                                extraData["PIGPSLATDEC"] = strLat
-                                extraData["PIGPSLONDEC"] = strLon
-                                extraData["PIGPSLAT"] = deg_to_dms(lat, 'lat')
-                                extraData["PIGPSLON"] = deg_to_dms(lon, 'lon')
-                                extraData["PIGPSFIX"]["value"] = "Yes"
-                                extraData["PIGPSFIX"]["fill"] = "#00ff00"
+                                extraData["AS_PIGPSLATDEC"] = strLat
+                                extraData["AS_PIGPSLONDEC"] = strLon
+                                extraData["AS_PIGPSLAT"] = deg_to_dms(lat, 'lat')
+                                extraData["AS_PIGPSLON"] = deg_to_dms(lon, 'lon')
+                                extraData["AS_PIGPSFIX"]["value"] = "Yes"
+                                extraData["AS_PIGPSFIX"]["fill"] = "#00ff00"
                                 break
                             else:
                                 s.log(4, "INFO: No GPS Fix. gpsd returned 0 for both lat and lon")                            
