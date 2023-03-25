@@ -140,9 +140,6 @@ def openweathermap(params, event):
             if apikey != "":
                 allskyPath = s.getEnvironmentVariable("ALLSKY_HOME")
                 if allskyPath is not None:
-                    extraDataPath = os.path.join(allskyPath, "tmp", "extra")
-                    s.checkAndCreateDirectory(extraDataPath)
-                    extraDataFilename = os.path.join(extraDataPath, fileName)
                     lat = s.getSetting("latitude")
                     if lat is not None and lat != "":
                         lat = s.convertLatLon(lat)
@@ -155,10 +152,8 @@ def openweathermap(params, event):
                                 if response.status_code == 200:
                                     rawData = response.json()
                                     processResult(rawData, expire)
-                                    with open(extraDataFilename, "w") as file:
-                                        formattedJSON = json.dumps(extraData, indent=4)
-                                        file.write(formattedJSON)
-                                    result = "Data acquired and written to extra data file {}".format(extraDataFilename)
+                                    s.saveExtraData(fileName,extraData )
+                                    result = "Data acquired and written to extra data file {}".format(fileName)
                                     s.log(1,"INFO: {}".format(result))
                                 else:
                                     result = "Got error from Open Weather Map API. Response code {}".format(response.status_code)
