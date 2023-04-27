@@ -182,3 +182,15 @@ def light(params, event):
         s.log(0, f"ERROR: {result}")
         
     return result
+
+def light_cleanup():
+    moduleData = {
+        "metaData": metaData,
+        "cleanup": {
+            "files": {
+                "allskylight.json"
+            },
+            "env": {}
+        }
+    }
+    s.cleanupModule(moduleData)

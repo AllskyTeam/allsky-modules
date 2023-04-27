@@ -350,3 +350,15 @@ def pigps(params, event):
         result = "Will run in {:.0f} seconds".format(period - diff)
         s.log(4,"INFO: {}".format(result))
     return result
+
+def pigps_cleanup():
+    moduleData = {
+        "metaData": metaData,
+        "cleanup": {
+            "files": {
+                "pigps.json"
+            },
+            "env": {}
+        }
+    }
+    s.cleanupModule(moduleData)

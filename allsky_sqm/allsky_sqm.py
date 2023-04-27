@@ -186,3 +186,15 @@ def sqm(params, event):
     os.environ["AS_SQM"] = str(sqmAvg)
 
     return result
+
+def rain_cleanup():
+    moduleData = {
+        "metaData": metaData,
+        "cleanup": {
+            "files": {},
+            "env": {
+                "AS_SQM"
+            }
+        }
+    }
+    s.cleanupModule(moduleData)

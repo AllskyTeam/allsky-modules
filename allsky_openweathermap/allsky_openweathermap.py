@@ -183,3 +183,15 @@ def openweathermap(params, event):
         s.log(1,"INFO: {}".format(result))
 
     return result
+
+def openweathermap_cleanup():
+    moduleData = {
+        "metaData": metaData,
+        "cleanup": {
+            "files": {
+                "openweather.json"
+            },
+            "env": {}
+        }
+    }
+    s.cleanupModule(moduleData)

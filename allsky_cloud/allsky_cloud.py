@@ -240,4 +240,16 @@ def cloud(params, event):
     result = "Cloud state - {0} {1}. Sky Temp {2}, Ambient {3}".format(cloudCover, percentage, skyobject, skyambient)
     s.log(1, "INFO: {}".format(result))
 
-    return result   
+    return result 
+
+def cloud_cleanup():
+    moduleData = {
+        "metaData": metaData,
+        "cleanup": {
+            "files": {
+                "allskcloud.json"
+            },
+            "env": {}
+        }
+    }
+    s.cleanupModule(moduleData)

@@ -421,3 +421,15 @@ def dewheater(params, event):
         s.log(1,"INFO: {}".format(result))
     
     return result
+
+def dewheater_cleanup():
+    moduleData = {
+        "metaData": metaData,
+        "cleanup": {
+            "files": {
+                "allskydew.json"
+            },
+            "env": {}
+        }
+    }
+    s.cleanupModule(moduleData)
