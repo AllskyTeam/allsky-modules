@@ -101,3 +101,15 @@ def rain(params, event):
         s.deleteExtraData(extradatafilename)
         
     return result
+
+def rain_cleanup():
+    moduleData = {
+        "metaData": metaData,
+        "cleanup": {
+            "files": {
+                "allskyrain.json"
+            },
+            "env": {}
+        }
+    }
+    s.cleanupModule(moduleData)

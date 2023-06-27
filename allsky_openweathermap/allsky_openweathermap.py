@@ -11,6 +11,8 @@ import allsky_shared as s
 import os
 import requests
 import json
+from meteocalc import heat_index
+from meteocalc import dew_point, Temp
 
 metaData = {
     "name": "Open Weather Map",
@@ -73,7 +75,7 @@ metaData = {
 
 extraData = {}
 
-def processResult(data, expires):
+def processResult(data, expires, units):
     #rawData = '{"coord":{"lon":0.2,"lat":52.4},"weather":[{"id":802,"main":"Clouds","description":"scattered clouds","icon":"03d"}],"base":"stations","main":{"temp":291.84,"feels_like":291.28,"temp_min":290.91,"temp_max":292.65,"pressure":1007,"humidity":58},"visibility":10000,"wind":{"speed":8.23,"deg":250,"gust":10.8},"clouds":{"all":40},"dt":1664633294,"sys":{"type":2,"id":2012440,"country":"GB","sunrise":1664603991,"sunset":1664645870},"timezone":3600,"id":2633751,"name":"Witchford","cod":200}'
     #data = json.loads(rawData)
     setExtraValue("weather.main", data, "OWWEATHER", expires)
@@ -97,6 +99,33 @@ def processResult(data, expires):
 
     setExtraValue("sys.sunrise", data, "OWSUNRISE", expires)
     setExtraValue("sys.sunset", data, "OWSUNSET", expires)
+
+    temperature = float(getValue("main.temp", data))
+    humidity = float(getValue("main.humidity", data))
+    if units == "imperial":
+        t = Temp(temperature, 'f')
+        dewPoint = dew_point(t, humidity).f
+        heatIndex = heat_index(t, humidity).f
+    
+    if units == "metric":
+        t = Temp(temperature, 'c')        
+        dewPoint = dew_point(temperature, humidity).c
+        heatIndex = heat_index(temperature, humidity).c
+
+    if units == "standard":
+        t = Temp(temperature, 'k')        
+        dewPoint = dew_point(temperature, humidity).k
+        heatIndex = heat_index(temperature, humidity).k
+        
+    extraData["AS_OWDEWPOINT"] = {
+        "value": round(dewPoint,1),
+        "expires": expires
+    }
+        
+    extraData["AS_OWHEATINDEX"] = {
+        "value": round(heatIndex,1),
+        "expires": expires
+    }
 
 def setExtraValue(path, data, extraKey, expires):
     global extraData
@@ -140,9 +169,6 @@ def openweathermap(params, event):
             if apikey != "":
                 allskyPath = s.getEnvironmentVariable("ALLSKY_HOME")
                 if allskyPath is not None:
-                    extraDataPath = os.path.join(allskyPath, "tmp", "extra")
-                    s.checkAndCreateDirectory(extraDataPath)
-                    extraDataFilename = os.path.join(extraDataPath, fileName)
                     lat = s.getSetting("latitude")
                     if lat is not None and lat != "":
                         lat = s.convertLatLon(lat)
@@ -151,14 +177,13 @@ def openweathermap(params, event):
                             lon = s.convertLatLon(lon)
                             try:
                                 resultURL = "https://api.openweathermap.org/data/2.5/weather?lat={0}&lon={1}&units={2}&appid={3}".format(lat, lon, units, apikey)
+                                print(resultURL)
                                 response = requests.get(resultURL)
                                 if response.status_code == 200:
                                     rawData = response.json()
-                                    processResult(rawData, expire)
-                                    with open(extraDataFilename, "w") as file:
-                                        formattedJSON = json.dumps(extraData, indent=4)
-                                        file.write(formattedJSON)
-                                    result = "Data acquired and written to extra data file {}".format(extraDataFilename)
+                                    processResult(rawData, expire, units)
+                                    s.saveExtraData(fileName,extraData )
+                                    result = "Data acquired and written to extra data file {}".format(fileName)
                                     s.log(1,"INFO: {}".format(result))
                                 else:
                                     result = "Got error from Open Weather Map API. Response code {}".format(response.status_code)
@@ -188,3 +213,15 @@ def openweathermap(params, event):
         s.log(1,"INFO: {}".format(result))
 
     return result
+
+def openweathermap_cleanup():
+    moduleData = {
+        "metaData": metaData,
+        "cleanup": {
+            "files": {
+                "openweather.json"
+            },
+            "env": {}
+        }
+    }
+    s.cleanupModule(moduleData)

@@ -208,7 +208,8 @@ def cloud(params, event):
 
     advanced = params["advanced"]
 
-
+    data = {}
+    
     if i2caddress != "":
         try:
             i2caddressInt = int(i2caddress, 16)
@@ -230,12 +231,25 @@ def cloud(params, event):
     else:
         cloudCover, percentage = calculateSkyState(skyambient, skyobject, clearbelow, cloudyabove)
 
-    os.environ["AS_CLOUDAMBIENT"] = str(skyambient)
-    os.environ["AS_CLOUDSKY"] = str(skyobject)
-    os.environ["AS_CLOUDCOVER"] = cloudCover
-    os.environ["AS_CLOUDCOVERPERCENT"] = str(percentage)
+    data["AS_CLOUDAMBIENT"] = str(skyambient)
+    data["AS_CLOUDSKY"] = str(skyobject)
+    data["AS_CLOUDCOVER"] = cloudCover
+    data["AS_CLOUDCOVERPERCENT"] = str(percentage)
+    s.saveExtraData("allskcloud.json", data)
 
     result = "Cloud state - {0} {1}. Sky Temp {2}, Ambient {3}".format(cloudCover, percentage, skyobject, skyambient)
     s.log(1, "INFO: {}".format(result))
 
-    return result   
+    return result 
+
+def cloud_cleanup():
+    moduleData = {
+        "metaData": metaData,
+        "cleanup": {
+            "files": {
+                "allskcloud.json"
+            },
+            "env": {}
+        }
+    }
+    s.cleanupModule(moduleData)
