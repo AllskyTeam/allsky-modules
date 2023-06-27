@@ -328,7 +328,10 @@ def dewheater(params, event):
     result = ""
     sensorType = params["type"]
     heaterstartupstate = params["heaterstartupstate"]
-    heaterpin = int(params["heaterpin"])
+    try:
+        heaterpin = int(params["heaterpin"])
+    except ValueError:
+        heaterpin = 0
     force = int(params["force"])
     limit = int(params["limit"])
     invertrelay = params["invertrelay"]
