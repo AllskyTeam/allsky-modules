@@ -10,7 +10,9 @@ import time
 import adafruit_sht31d
 import adafruit_dht
 from adafruit_bme280 import basic as adafruit_bme280
+from adafruit_htu21d import HTU21D
 import board
+import busio
 import RPi.GPIO as GPIO
 from meteocalc import heat_index
 from meteocalc import dew_point
@@ -47,7 +49,7 @@ metaData = {
             "tab": "Sensor",
             "type": {
                 "fieldtype": "select",
-                "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C",
+                "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21",
                 "default": "None"
             }                
         },
@@ -138,8 +140,8 @@ metaData = {
             "tab": "Dew Control",            
             "type": {
                 "fieldtype": "spinner",
-                "min": -60,
-                "max": 50,
+                "min": -100,
+                "max": 100,
                 "step": 1
             }          
         },
@@ -150,8 +152,8 @@ metaData = {
             "tab": "Dew Control",            
             "type": {
                 "fieldtype": "spinner",
-                "min": -60,
-                "max": 50,
+                "min": -100,
+                "max": 100,
                 "step": 1
             }          
         },
@@ -252,6 +254,31 @@ def readBme280I2C(i2caddress):
 
     return temperature, humidity
 
+def readHtu21(i2caddress):
+    temperature = None
+    humidity = None
+
+    if i2caddress != "":
+        try:
+            i2caddressInt = int(i2caddress, 16)
+        except:
+            result = "Address {} is not a valid i2c address".format(i2caddress)
+            s.log(0,"ERROR: {}".format(result))
+               
+    try:
+        i2c = board.I2C()
+        if i2caddress != "":
+            htu21 = HTU21D(i2c, i2caddressInt)
+        else:
+            htu21 = HTU21D(i2c)
+
+        temperature =  htu21.temperature
+        humidity = htu21.relative_humidity
+    except ValueError:
+        pass
+
+    return temperature, humidity
+    
 def setmode():
     try:
         GPIO.setmode(GPIO.BOARD)
@@ -299,6 +326,8 @@ def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdel
         temperature, humidity = readDHT22(inputpin, dhtxxretrycount, dhtxxdelay)
     elif sensorType == "BME280-I2C":
         temperature, humidity = readBme280I2C(i2caddress)
+    elif sensorType == "HTU21":
+        temperature, humidity = readHtu21(i2caddress)
     else:
         s.log(0,"ERROR: No sensor type defined")
 
@@ -306,6 +335,13 @@ def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdel
         dewPoint = dew_point(temperature, humidity).c
         heatIndex = heat_index(temperature, humidity).c
 
+        tempUnits = s.getSetting("temptype")
+        if tempUnits == 'F':
+            temperature = (temperature * (9/5)) + 32
+            dewPoint = (dewPoint * (9/5)) + 32
+            heatIndex = (heatIndex * (9/5)) + 32
+            s.log(4,"INFO: Converted temperature to F")
+            
         temperature = round(temperature, 2)
         humidity = round(humidity, 2)
         dewPoint = round(dewPoint, 2)
