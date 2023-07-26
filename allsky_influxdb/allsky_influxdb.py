@@ -8,8 +8,11 @@ To install on a pi run the following as root
 
 sudo apt update
 sudo apt upgrade
-curl https://repos.influxdata.com/influxdb.key | gpg --dearmor | sudo tee /usr/share/keyrings/influxdb-archive-keyring.gpg >/dev/null
-echo "deb [signed-by=/usr/share/keyrings/influxdb-archive-keyring.gpg] https://repos.influxdata.com/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
+wget -q https://repos.influxdata.com/influxdata-archive_compat.key
+gpg --with-fingerprint --show-keys ./influxdata-archive_compat.key
+cat influxdata-archive_compat.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg > /dev/null
+echo 'deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg] https://repos.influxdata.com/debian stable main' | sudo tee /etc/apt/sources.list.d/influxdata.list
+sudo rm -f /etc/apt/trusted.gpg.d/influxdb.gpg
 apt update
 apt install influxdb
 systemctl unmask influxdb
