@@ -39,7 +39,8 @@ metaData = {
         "max": "0",
         "dhtxxretrycount": "2",
         "dhtxxdelay" : "500",
-        "extradatafilename": "allskydew.json"
+        "extradatafilename": "allskydew.json",
+        "sht31heater": "False"
     },
     "argumentdetails": {   
         "type" : {
@@ -174,17 +175,26 @@ metaData = {
             "description": "Extra Data Filename",
             "tab": "Misc",              
             "help": "The name of the file to create with the dew heater data for the overlay manager"         
-        }                                                                    
-    },
-    "enabled": "false"            
+        },
+        "sht31heater" : {
+            "required": "false",
+            "description": "Enable Heater",
+            "help": "Enable the inbuilt heater on the SHT31",
+            "tab": "SHT31",
+            "type": {
+                "fieldtype": "checkbox"
+            }               
+        } 
+    }      
 }
 
-def readSHT31():
+def readSHT31(sht31heater):
     temperature = None
     humidity = None
     try:
         i2c = board.I2C()
         sensor = adafruit_sht31d.SHT31D(i2c)
+        sensor.heater = sht31heater
         temperature = sensor.temperature
         humidity = sensor.relative_humidity
     except:
@@ -231,7 +241,9 @@ def readDHT22(inputpin, dhtxxretrycount, dhtxxdelay):
 def readBme280I2C(i2caddress):
     temperature = None
     humidity = None
-
+    pressure = None
+    relHumidity = None
+    altitude = None
 
     if i2caddress != "":
         try:
@@ -249,10 +261,13 @@ def readBme280I2C(i2caddress):
 
         temperature =  bme280.temperature
         humidity = bme280.relative_humidity
+        relHumidity = bme280.relative_humidity
+        altitude = bme280.altitude
+        pressure = bme280.pressure        
     except ValueError:
         pass
 
-    return temperature, humidity
+    return temperature, humidity, pressure, relHumidity, altitude
 
 def readHtu21(i2caddress):
     temperature = None
@@ -314,18 +329,21 @@ def turnHeaterOff(heaterpin, invertrelay):
         GPIO.output(heaterpin.id, GPIO.LOW)
     s.log(1,"INFO: {}".format(result))
 
-def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay):
+def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay, sht31heater):
     temperature = None
     humidity = None
     dewPoint = None
     heatIndex = None
+    pressure = None
+    relHumidity = None
+    altitude = None
 
     if sensorType == "SHT31":
-        temperature, humidity = readSHT31()
+        temperature, humidity = readSHT31(sht31heater)
     elif sensorType == "DHT22" or sensorType == "DHT11" or sensorType == "AM2302":
         temperature, humidity = readDHT22(inputpin, dhtxxretrycount, dhtxxdelay)
     elif sensorType == "BME280-I2C":
-        temperature, humidity = readBme280I2C(i2caddress)
+        temperature, humidity, pressure, relHumidity, altitude = readBme280I2C(i2caddress)
     elif sensorType == "HTU21":
         temperature, humidity = readHtu21(i2caddress)
     else:
@@ -347,7 +365,7 @@ def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdel
         dewPoint = round(dewPoint, 2)
         heatIndex = round(heatIndex, 2)
 
-    return temperature, humidity, dewPoint, heatIndex
+    return temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude
 
 def getLastRunTime():
     lastRun = None
@@ -357,8 +375,8 @@ def getLastRunTime():
 
     return lastRun
 
-def debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex):
-    s.log(1,"INFO: Sensor {0} read. Temperature {1} Humidity {2} Dew Point {3} Heat Index {4}".format(sensorType, temperature, humidity, dewPoint, heatIndex))
+def debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude):
+    s.log(1,f"INFO: Sensor {sensorType} read. Temperature {temperature} Humidity {humidity} Relative Humidity {relHumidity} Dew Point {dewPoint} Heat Index {heatIndex} Pressure {pressure} Altitude {altitude}")
     
 def dewheater(params, event):
     result = ""
@@ -380,7 +398,8 @@ def dewheater(params, event):
     dhtxxretrycount = int(params["dhtxxretrycount"])
     dhtxxdelay = int(params["dhtxxdelay"])
     extradatafilename = params['extradatafilename']
-            
+    sht31heater = params["sht31heater"]
+
     temperature = 0
     humidity = 0
     dewPoint = 0
@@ -403,7 +422,7 @@ def dewheater(params, event):
                 lastRunSecs = now - lastRunTime
                 if lastRunSecs >= frequency:
                     s.dbUpdate("dewheaterlastrun", now)
-                    temperature, humidity, dewPoint, heatIndex = getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay)
+                    temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude = getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay, sht31heater)
                     if temperature is not None:
                         if force != 0 and temperature <= force:
                             result = "Temperature below forced level {}".format(force)
@@ -427,9 +446,16 @@ def dewheater(params, event):
                         extraData["AS_DEWCONTROLDEW"] = str(dewPoint)
                         extraData["AS_DEWCONTROLHUMIDITY"] = str(humidity)
                         extraData["AS_DEWCONTROLHEATER"] = heater
+                        if pressure is not None:
+                            extraData["AS_DEWCONTROLPRESSURE"] = pressure
+                        if relHumidity is not None:
+                            extraData["AS_DEWCONTROLRELHUMIDITY"] = relHumidity
+                        if altitude is not None:
+                            extraData["AS_DEWCONTROLALTITUDE"] = altitude
+
                         s.saveExtraData(extradatafilename,extraData)
                         
-                        debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex)
+                        debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude)
                         
                     else:
                         result = "Failed to read sensor"
