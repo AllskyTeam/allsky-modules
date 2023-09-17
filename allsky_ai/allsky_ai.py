@@ -1,3 +1,10 @@
+"""
+
+Part of AllSkyAI. To create a custom model or find more info please visit https://www.allskyai.com
+Written by Christian Kardach - The Crows Nest Astro
+info@allskyai.com
+
+"""
 import allsky_shared as s
 
 import os
