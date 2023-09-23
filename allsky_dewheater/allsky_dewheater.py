@@ -4,6 +4,12 @@ allsky_dewheater.py
 Part of allsky postprocess.py modules.
 https://github.com/thomasjacquin/allsky
 
+Changelog
+v1.0.1 by Damian Grocholski (Mr-Groch)
+- Added extra pin that is triggered with heater pin
+- Romoved deleting extradatafile when sensor read fails (it often is temporary problem, and don't want to overlay text disapear)
+- Fixed dhtxxdelay (was not implemented)
+
 '''
 import allsky_shared as s
 import time
@@ -21,28 +27,31 @@ metaData = {
     "name": "Sky Dew Heater Control",
     "description": "Controls a dew heater via a temperature and humidity sensor",
     "module": "allsky_dewheater",
-    "version": "v1.0.0",    
+    "version": "v1.0.1",
     "events": [
         "periodic"
     ],
-    "experimental": "true",    
+    "experimental": "true",
     "arguments":{
         "type": "None",
         "inputpin": "",
         "heaterpin": "",
+        "extrapin": "",
         "i2caddress": "",
         "heaterstartupstate": "OFF",
         "invertrelay": "False",
+        "invertextrapin": "False",
         "frequency": "0",
         "limit": "10",
         "force": "0",
+        "maxhumidity": "0",
         "max": "0",
         "dhtxxretrycount": "2",
         "dhtxxdelay" : "500",
         "extradatafilename": "allskydew.json",
         "sht31heater": "False"
     },
-    "argumentdetails": {   
+    "argumentdetails": {
         "type" : {
             "required": "false",
             "description": "Sensor Type",
@@ -52,7 +61,7 @@ metaData = {
                 "fieldtype": "select",
                 "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21",
                 "default": "None"
-            }                
+            }
         },
         "inputpin": {
             "required": "false",
@@ -61,7 +70,7 @@ metaData = {
             "tab": "Sensor",
             "type": {
                 "fieldtype": "gpio"
-            }           
+            }
         },
         "i2caddress": {
             "required": "false",
@@ -79,8 +88,8 @@ metaData = {
                 "min": 0,
                 "max": 5,
                 "step": 1
-            }          
-        },        
+            }
+        },
         "dhtxxdelay" : {
             "required": "false",
             "description": "Delay",
@@ -91,8 +100,8 @@ metaData = {
                 "min": 0,
                 "max": 5000,
                 "step": 1
-            }          
-        },                
+            }
+        },
         "heaterpin": {
             "required": "false",
             "description": "Heater Pin",
@@ -100,7 +109,16 @@ metaData = {
             "tab": "Heater",
             "type": {
                 "fieldtype": "gpio"
-            }           
+            }
+        },
+        "extrapin": {
+            "required": "false",
+            "description": "Extra Pin",
+            "help": "Extra pin that will be triggered with heater pin",
+            "tab": "Heater",
+            "type": {
+                "fieldtype": "gpio"
+            }
         },
         "heaterstartupstate" : {
             "required": "false",
@@ -111,7 +129,7 @@ metaData = {
                 "fieldtype": "select",
                 "values": "ON,OFF",
                 "default": "OFF"
-            }                                   
+            }
         },
         "invertrelay" : {
             "required": "false",
@@ -120,61 +138,82 @@ metaData = {
             "tab": "Heater",
             "type": {
                 "fieldtype": "checkbox"
-            }               
+            }
+        },
+        "invertextrapin" : {
+            "required": "false",
+            "description": "Invert Extra Pin",
+            "help": "Normally a GPIO extra pin will go high when ebabling heater. Selecting this option inverts extra pin to go low when enabling heater",
+            "tab": "Heater",
+            "type": {
+                "fieldtype": "checkbox"
+            }
         },
         "frequency" : {
             "required": "false",
             "description": "Delay",
             "help": "The delay between sensor reads in seconds. Zero will disable this and run the check every time the periodic jobs run",
-            "tab": "Dew Control",            
+            "tab": "Dew Control",
             "type": {
                 "fieldtype": "spinner",
                 "min": 0,
                 "max": 1000,
                 "step": 1
-            }          
+            }
         },
         "limit" : {
             "required": "false",
             "description": "Limit",
             "help": "If the temperature is within this many degrees of the dew point the heater will be enabled or disabled",
-            "tab": "Dew Control",            
+            "tab": "Dew Control",
             "type": {
                 "fieldtype": "spinner",
                 "min": -100,
                 "max": 100,
                 "step": 1
-            }          
+            }
         },
         "force" : {
             "required": "false",
             "description": "Forced Temperature",
             "help": "Always enable the heater when the ambient termperature is below this value, zero will disable this.",
-            "tab": "Dew Control",            
+            "tab": "Dew Control",
             "type": {
                 "fieldtype": "spinner",
                 "min": -100,
                 "max": 100,
                 "step": 1
-            }          
+            }
+        },
+        "maxhumidity" : {
+            "required": "false",
+            "description": "Max Humidity",
+            "help": "If the humidity is above this value, heater will not be enabled. Zero will disable this.",
+            "tab": "Dew Control",
+            "type": {
+                "fieldtype": "spinner",
+                "min": 0,
+                "max": 100,
+                "step": 1
+            }
         },
         "max" : {
             "required": "false",
             "description": "Max Heater Time",
             "help": "The maximum time in seconds for the heater to be on. Zero will disable this. NOT YET IMPLEMENTED",
-            "tab": "Dew Control",            
+            "tab": "Dew Control",
             "type": {
                 "fieldtype": "spinner",
                 "min": 0,
                 "max": 86400,
                 "step": 1
-            }          
+            }
         },
         "extradatafilename": {
             "required": "true",
             "description": "Extra Data Filename",
-            "tab": "Misc",              
-            "help": "The name of the file to create with the dew heater data for the overlay manager"         
+            "tab": "Misc",
+            "help": "The name of the file to create with the dew heater data for the overlay manager"
         },
         "sht31heater" : {
             "required": "false",
@@ -183,9 +222,9 @@ metaData = {
             "tab": "SHT31",
             "type": {
                 "fieldtype": "checkbox"
-            }               
-        } 
-    }      
+            }
+        }
+    }
 }
 
 def readSHT31(sht31heater):
@@ -216,9 +255,9 @@ def doDHTXXRead(inputpin):
             s.log(4, "INFO: {}".format(error))
     except Exception as error:
         s.log(4, "INFO: {}".format(error))
-            
+
     return temperature, humidity
-    
+
 def readDHT22(inputpin, dhtxxretrycount, dhtxxdelay):
     temperature = None
     humidity = None
@@ -227,12 +266,14 @@ def readDHT22(inputpin, dhtxxretrycount, dhtxxdelay):
 
     while reading:
         temperature, humidity = doDHTXXRead(inputpin)
-        
+
         if temperature is None and humidity is None:
             s.log(4, "INFO: Failed to read DHTXX on attempt {}".format(count+1))
             count = count + 1
             if count > dhtxxretrycount:
                 reading = False
+            else:
+                time.sleep(dhtxxdelay/1000)
         else:
             reading = False
 
@@ -263,7 +304,7 @@ def readBme280I2C(i2caddress):
         humidity = bme280.relative_humidity
         relHumidity = bme280.relative_humidity
         altitude = bme280.altitude
-        pressure = bme280.pressure        
+        pressure = bme280.pressure
     except ValueError:
         pass
 
@@ -279,7 +320,7 @@ def readHtu21(i2caddress):
         except:
             result = "Address {} is not a valid i2c address".format(i2caddress)
             s.log(0,"ERROR: {}".format(result))
-               
+
     try:
         i2c = board.I2C()
         if i2caddress != "":
@@ -293,7 +334,7 @@ def readHtu21(i2caddress):
         pass
 
     return temperature, humidity
-    
+
 def setmode():
     try:
         GPIO.setmode(GPIO.BOARD)
@@ -318,14 +359,13 @@ def turnHeaterOff(heaterpin, invertrelay):
     result = "Turning Heater off"
     setmode()
     GPIO.setup(heaterpin.id, GPIO.OUT)
-
     if invertrelay:
         if GPIO.input(heaterpin.id) == 1:
-            result = "Leaving Heater off"        
+            result = "Leaving Heater off"
         GPIO.output(heaterpin.id, GPIO.HIGH)
-    else:    
+    else:
         if GPIO.input(heaterpin.id) == 0:
-            result = "Leaving Heater off"        
+            result = "Leaving Heater off"
         GPIO.output(heaterpin.id, GPIO.LOW)
     s.log(1,"INFO: {}".format(result))
 
@@ -359,7 +399,7 @@ def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdel
             dewPoint = (dewPoint * (9/5)) + 32
             heatIndex = (heatIndex * (9/5)) + 32
             s.log(4,"INFO: Converted temperature to F")
-            
+
         temperature = round(temperature, 2)
         humidity = round(humidity, 2)
         dewPoint = round(dewPoint, 2)
@@ -377,7 +417,7 @@ def getLastRunTime():
 
 def debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude):
     s.log(1,f"INFO: Sensor {sensorType} read. Temperature {temperature} Humidity {humidity} Relative Humidity {relHumidity} Dew Point {dewPoint} Heat Index {heatIndex} Pressure {pressure} Altitude {altitude}")
-    
+
 def dewheater(params, event):
     result = ""
     sensorType = params["type"]
@@ -386,9 +426,15 @@ def dewheater(params, event):
         heaterpin = int(params["heaterpin"])
     except ValueError:
         heaterpin = 0
+    try:
+        extrapin = int(params["extrapin"])
+    except ValueError:
+        extrapin = 0
     force = int(params["force"])
     limit = int(params["limit"])
+    maxhumidity = int(params["maxhumidity"])
     invertrelay = params["invertrelay"]
+    invertextrapin = params["invertextrapin"]
     try:
         inputpin = int(params["inputpin"])
     except ValueError:
@@ -407,7 +453,7 @@ def dewheater(params, event):
     heater = 'Off'
 
     shouldRun, diff = s.shouldRun('allskydew', frequency)
-        
+
     if shouldRun:
         try:
             heaterpin = int(heaterpin)
@@ -416,9 +462,11 @@ def dewheater(params, event):
 
         if heaterpin != 0:
             heaterpin = s.getGPIOPin(heaterpin)
+            if extrapin !=0:
+                extrapin = s.getGPIOPin(extrapin)
             lastRunTime = getLastRunTime()
             if lastRunTime is not None:
-                now = int(time.time())            
+                now = int(time.time())
                 lastRunSecs = now - lastRunTime
                 if lastRunSecs >= frequency:
                     s.dbUpdate("dewheaterlastrun", now)
@@ -428,10 +476,14 @@ def dewheater(params, event):
                             result = "Temperature below forced level {}".format(force)
                             s.log(1,"INFO: {}".format(result))
                             turnHeaterOn(heaterpin, invertrelay)
+                            if extrapin != 0:
+                                turnHeaterOn(extrapin, invertextrapin)
                             heater = 'On'
                         else:
-                            if ((temperature-limit) <= dewPoint):
+                            if ((temperature-limit) <= dewPoint) and (maxhumidity == 0 or humidity < maxhumidity):
                                 turnHeaterOn(heaterpin, invertrelay)
+                                if extrapin != 0:
+                                    turnHeaterOn(extrapin, invertextrapin)
                                 heater = 'On'
                                 result = "Temperature within limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
                                 s.log(1,"INFO: {}".format(result))
@@ -439,6 +491,8 @@ def dewheater(params, event):
                                 result = "Temperature outside limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
                                 s.log(1,"INFO: {}".format(result))
                                 turnHeaterOff(heaterpin, invertrelay)
+                                if extrapin != 0:
+                                    turnHeaterOff(extrapin, invertextrapin)
                                 heater = 'Off'
 
                         extraData = {}
@@ -454,13 +508,12 @@ def dewheater(params, event):
                             extraData["AS_DEWCONTROLALTITUDE"] = altitude
 
                         s.saveExtraData(extradatafilename,extraData)
-                        
+
                         debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude)
-                        
+
                     else:
                         result = "Failed to read sensor"
                         s.log(0, "ERROR: {}".format(result))
-                        s.deleteExtraData(extradatafilename)
                 else:
                     result = "Not run. Only running every {}s. Last ran {}s ago".format(frequency, lastRunSecs)
                     s.log(1,"INFO: {}".format(result))
@@ -470,9 +523,13 @@ def dewheater(params, event):
                 s.log(1,"INFO: No last run info so assuming startup")
                 if heaterstartupstate == "ON":
                     turnHeaterOn(heaterpin, invertrelay)
+                    if extrapin != 0:
+                        turnHeaterOn(extrapin, invertextrapin)
                     heater = 'On'
                 else:
                     turnHeaterOff(heaterpin, invertrelay)
+                    if extrapin != 0:
+                        turnHeaterOff(extrapin, invertextrapin)
                     heater = 'Off'
         else:
             s.deleteExtraData(extradatafilename)
@@ -480,11 +537,11 @@ def dewheater(params, event):
             s.log(0,"ERROR: {}".format(result))
 
         s.setLastRun('allskydew')
-    
+
     else:
         result = 'Will run in {:.2f} seconds'.format(frequency - diff)
         s.log(1,"INFO: {}".format(result))
-    
+
     return result
 
 def dewheater_cleanup():
