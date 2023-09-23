@@ -7,8 +7,8 @@ https://github.com/thomasjacquin/allsky
 Changelog
 v1.0.1 by Damian Grocholski (Mr-Groch)
 - Added extra pin that is triggered with heater pin
-- Romoved deleting extradatafile when sensor read fails (it often is temporary problem, and don't want to overlay text disapear)
 - Fixed dhtxxdelay (was not implemented)
+- Fixed max heater time (was not implemented)
 
 '''
 import allsky_shared as s
@@ -200,7 +200,7 @@ metaData = {
         "max" : {
             "required": "false",
             "description": "Max Heater Time",
-            "help": "The maximum time in seconds for the heater to be on. Zero will disable this. NOT YET IMPLEMENTED",
+            "help": "The maximum time in seconds for the heater to be on. Zero will disable this.",
             "tab": "Dew Control",
             "type": {
                 "fieldtype": "spinner",
@@ -353,6 +353,9 @@ def turnHeaterOn(heaterpin, invertrelay):
         if GPIO.input(heaterpin.id) == 1:
             result = "Leaving Heater on"
         GPIO.output(heaterpin.id, GPIO.HIGH)
+    if not s.dbHasKey("dewheaterontime"):
+        now = int(time.time())
+        s.dbAdd("dewheaterontime", now)
     s.log(1,"INFO: {}".format(result))
 
 def turnHeaterOff(heaterpin, invertrelay):
@@ -367,6 +370,8 @@ def turnHeaterOff(heaterpin, invertrelay):
         if GPIO.input(heaterpin.id) == 0:
             result = "Leaving Heater off"
         GPIO.output(heaterpin.id, GPIO.LOW)
+    if s.dbHasKey("dewheaterontime"):
+        s.dbDeleteKey("dewheaterontime")
     s.log(1,"INFO: {}".format(result))
 
 def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay, sht31heater):
@@ -440,6 +445,7 @@ def dewheater(params, event):
     except ValueError:
         inputpin = 0
     frequency = int(params["frequency"])
+    maxontime = int(params["max"])
     i2caddress = params["i2caddress"]
     dhtxxretrycount = int(params["dhtxxretrycount"])
     dhtxxdelay = int(params["dhtxxdelay"])
@@ -472,7 +478,18 @@ def dewheater(params, event):
                     s.dbUpdate("dewheaterlastrun", now)
                     temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude = getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay, sht31heater)
                     if temperature is not None:
-                        if force != 0 and temperature <= force:
+                        lastOnSecs = 0
+                        if s.dbHasKey("dewheaterontime"):
+                            lastOnTime = s.dbGet("dewheaterontime")
+                            lastOnSecs = now - lastOnTime
+                        if maxontime != 0 and lastOnSecs >= maxontime:
+                            result = "Heater was on longer than maximum allowed time {}".format(maxontime)
+                            s.log(1,"INFO: {}".format(result))
+                            turnHeaterOff(heaterpin, invertrelay)
+                            if extrapin != 0:
+                                turnHeaterOff(extrapin, invertextrapin)
+                            heater = 'Off'
+                        elif force != 0 and temperature <= force:
                             result = "Temperature below forced level {}".format(force)
                             s.log(1,"INFO: {}".format(result))
                             turnHeaterOn(heaterpin, invertrelay)
@@ -514,6 +531,7 @@ def dewheater(params, event):
                     else:
                         result = "Failed to read sensor"
                         s.log(0, "ERROR: {}".format(result))
+                        s.deleteExtraData(extradatafilename)
                 else:
                     result = "Not run. Only running every {}s. Last ran {}s ago".format(frequency, lastRunSecs)
                     s.log(1,"INFO: {}".format(result))
