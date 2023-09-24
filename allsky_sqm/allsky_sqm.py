@@ -6,6 +6,10 @@ https://github.com/thomasjacquin/allsky
 
 Portions of this code are from inidi-allsky https://github.com/aaronwmorris/indi-allsky
 
+Changelog:
+v1.0.1 by Damian Grocholski (Mr-Groch)
+- Added more names to use in formula (EXPOSURE_MS, MAX_EXPOSURE_MS, MAX_GAIN)
+
 '''
 import allsky_shared as s
 import cv2
@@ -16,36 +20,36 @@ metaData = {
     "name": "Sky Quality",
     "description": "Calculates sky quality",
     "module": "allsky_sqm",
-    "version": "v1.0.0",    
+    "version": "v1.0.1",
     "events": [
         "night"
     ],
-    "experimental": "true",    
+    "experimental": "true",
     "arguments":{
         "mask": "",
         "roi": "",
         "debug": "false",
         "debugimage": "",
         "roifallback": 5,
-        "formula": ""     
+        "formula": "21.53 + (-0.03817 * sqmAvg)"
     },
-    "argumentdetails": {   
+    "argumentdetails": {
         "mask" : {
             "required": "false",
             "description": "Mask Path",
             "help": "The name of the image mask. This mask is applied prior to calculating the sky quality",
             "type": {
                 "fieldtype": "image"
-            }                
-        },        
+            }
+        },
         "roi": {
             "required": "false",
             "description": "Region of Interest",
             "help": "The area of the image to check for sky quality. Format is x1,y1,x2,y2",
             "type": {
                 "fieldtype": "roi"
-            }            
-        },          
+            }
+        },
         "roifallback" : {
             "required": "false",
             "description": "Fallback %",
@@ -60,25 +64,25 @@ metaData = {
         "formula": {
             "required": "false",
             "description": "Adjustment Forumla",
-            "help": "Formula to adjust the read value. This forumla can use only Pythons inbuilt maths functions and basic mathematical operators. Please see the documentation for more details of the formula variables available"        
-        },              
+            "help": "Formula to adjust the read mean value, default can be a good starting point. This forumla can use only Pythons inbuilt maths functions and basic mathematical operators. Please see the documentation for more details of the formula variables available"
+        },
         "debug" : {
             "required": "false",
             "description": "Enable debug mode",
             "help": "If selected each stage of the detection will generate images in the allsky tmp debug folder",
-            "tab": "Debug",            
+            "tab": "Debug",
             "type": {
                 "fieldtype": "checkbox"
-            }          
+            }
         },
         "debugimage" : {
             "required": "false",
             "description": "Debug Image",
             "help": "Image to use for debugging. DO NOT set this unless you know what you are doing",
-            "tab": "Debug"        
-        }                                 
+            "tab": "Debug"
+        }
     },
-    "enabled": "false"            
+    "enabled": "false"
 }
 
 def addInternals(ALLOWED_NAMES):
@@ -86,12 +90,21 @@ def addInternals(ALLOWED_NAMES):
     for internal in internals:
         val = s.getEnvironmentVariable(internal)
         key = internal.replace('AS_', '')
-        ALLOWED_NAMES[key] = float(val)
-        
+        ALLOWED_NAMES[key] = s.float(val)
+        if key == 'EXPOSURE_US':
+            ALLOWED_NAMES['EXPOSURE_MS'] = s.float(val) / 1000
+
+    if s.getEnvironmentVariable('DAY_OR_NIGHT') == 'NIGHT':
+        ALLOWED_NAMES['MAX_EXPOSURE_MS'] = s.float(s.getSetting("nightmaxautoexposure"))
+        ALLOWED_NAMES['MAX_GAIN'] = s.float(s.getSetting("nightmaxautogain"))
+    else:
+        ALLOWED_NAMES['MAX_EXPOSURE_MS'] = s.float(s.getSetting("daymaxautoexposure"))
+        ALLOWED_NAMES['MAX_GAIN'] = s.float(s.getSetting("daymaxautogain"))
+    
     return ALLOWED_NAMES
-    
+
 def evaluate(expression, sqmAvg):
-    
+
     ALLOWED_NAMES = {
         k: v for k, v in math.__dict__.items() if not k.startswith("__")
     }
@@ -111,7 +124,7 @@ def sqm(params, event):
     roi = params["roi"]
     debug = params["debug"]
     formula = params["formula"]
-    debugimage = params["debugimage"]    
+    debugimage = params["debugimage"]
     fallback = int(params["roifallback"])
 
     if debugimage != "":
@@ -129,7 +142,7 @@ def sqm(params, event):
         maskPath = os.path.join(s.getEnvironmentVariable("ALLSKY_OVERLAY"),"images",mask)
         imageMask = cv2.imread(maskPath,cv2.IMREAD_GRAYSCALE)
         if debug:
-            s.writeDebugImage(metaData["module"], "image-mask.png", imageMask)  
+            s.writeDebugImage(metaData["module"], "image-mask.png", imageMask)
 
     if len(image.shape) == 2:
         grayImage = image
@@ -140,7 +153,7 @@ def sqm(params, event):
         if grayImage.shape == imageMask.shape:
             grayImage = cv2.bitwise_and(src1=grayImage, src2=imageMask)
             if debug:
-                s.writeDebugImage(metaData["module"], "masked-image.png", grayImage)                   
+                s.writeDebugImage(metaData["module"], "masked-image.png", grayImage)
             else:
                 s.log(0,"ERROR: Source image and mask dimensions do not match")
 
@@ -162,10 +175,10 @@ def sqm(params, event):
         x2 = int((imageWidth / 2) + (imageWidth / fallbackAdj))
         y2 = int((imageHeight / 2) + (imageHeight / fallbackAdj))
 
-    croppedImage = grayImage[y1:y2, x1:x2] 
+    croppedImage = grayImage[y1:y2, x1:x2]
 
     if debug:
-        s.writeDebugImage(metaData["module"], "cropped-image.png", croppedImage) 
+        s.writeDebugImage(metaData["module"], "cropped-image.png", croppedImage)
 
     sqmAvg = cv2.mean(src=croppedImage)[0]
 
@@ -178,7 +191,7 @@ def sqm(params, event):
             s.log(1,"INFO: Ran Formula: " + formula)
             s.log(1,"INFO: " + result)
         except Exception as e:
-            result = "Error " + e
+            result = "Error " + str(e)
             s.log(0, "ERROR: " + result)
     else:
         s.log(1,"INFO: " + result)
