@@ -8,7 +8,8 @@ Portions of this code are from inidi-allsky https://github.com/aaronwmorris/indi
 
 Changelog:
 v1.0.1 by Damian Grocholski (Mr-Groch)
-- Added more names to use in formula (EXPOSURE_MS, MAX_EXPOSURE_MS, MAX_GAIN)
+- Use of weightedSqmAvg inspired by inidi-allsky
+- Added example default formula
 
 '''
 import allsky_shared as s
@@ -31,7 +32,7 @@ metaData = {
         "debug": "false",
         "debugimage": "",
         "roifallback": 5,
-        "formula": "21.53 + (-0.03817 * sqmAvg)"
+        "formula": "21.53 + (-0.03817 * weightedSqmAvg)"
     },
     "argumentdetails": {
         "mask" : {
@@ -91,25 +92,17 @@ def addInternals(ALLOWED_NAMES):
         val = s.getEnvironmentVariable(internal)
         key = internal.replace('AS_', '')
         ALLOWED_NAMES[key] = s.float(val)
-        if key == 'EXPOSURE_US':
-            ALLOWED_NAMES['EXPOSURE_MS'] = s.float(val) / 1000
-
-    if s.getEnvironmentVariable('DAY_OR_NIGHT') == 'NIGHT':
-        ALLOWED_NAMES['MAX_EXPOSURE_MS'] = s.float(s.getSetting("nightmaxautoexposure"))
-        ALLOWED_NAMES['MAX_GAIN'] = s.float(s.getSetting("nightmaxautogain"))
-    else:
-        ALLOWED_NAMES['MAX_EXPOSURE_MS'] = s.float(s.getSetting("daymaxautoexposure"))
-        ALLOWED_NAMES['MAX_GAIN'] = s.float(s.getSetting("daymaxautogain"))
     
     return ALLOWED_NAMES
 
-def evaluate(expression, sqmAvg):
+def evaluate(expression, sqmAvg, weightedSqmAvg):
 
     ALLOWED_NAMES = {
         k: v for k, v in math.__dict__.items() if not k.startswith("__")
     }
     ALLOWED_NAMES = addInternals(ALLOWED_NAMES)
-    ALLOWED_NAMES['sqmAvg'] = float(sqmAvg)
+    ALLOWED_NAMES['sqmAvg'] = sqmAvg
+    ALLOWED_NAMES['weightedSqmAvg'] = weightedSqmAvg
 
     code = compile(expression, "<string>", "eval")
     for name in code.co_names:
@@ -180,23 +173,31 @@ def sqm(params, event):
     if debug:
         s.writeDebugImage(metaData["module"], "cropped-image.png", croppedImage)
 
-    sqmAvg = cv2.mean(src=croppedImage)[0]
+    maxExposure_s = s.float(s.getSetting("nightmaxautoexposure")) / 1000
+    exposure_s = s.float(s.getEnvironmentVariable("AS_EXPOSURE_US")) / 1000 / 1000
+    maxGain = s.float(s.getSetting("nightmaxautogain"))
+    gain = s.float(s.getEnvironmentVariable("AS_GAIN"))
 
-    result = "Final SQM Mean calculated as {0}".format(sqmAvg)
+    sqmAvg = cv2.mean(src=croppedImage)[0]
+    weightedSqmAvg = (((maxExposure_s - exposure_s) / 10) + 1) * (sqmAvg * (((maxGain - gain) / 10) + 1))
+
+    result = "Final SQM Mean calculated as {0}, weighted {1}".format(sqmAvg, weightedSqmAvg)
     if formula != '':
-        s.log(1,"INFO: SQM Mean calculated as {0}".format(sqmAvg))
+        s.log(1,"INFO: SQM Mean calculated as {0}, weighted {1}".format(sqmAvg, weightedSqmAvg))
         try:
-            sqmAvg = float(evaluate(formula, sqmAvg))
-            result = "Final SQM Mean calculated as {0}".format(sqmAvg)
+            sqm = float(evaluate(formula, sqmAvg, weightedSqmAvg))
+            result = "Final SQM calculated as {0}".format(sqm)
             s.log(1,"INFO: Ran Formula: " + formula)
             s.log(1,"INFO: " + result)
         except Exception as e:
             result = "Error " + str(e)
+            sqm = weightedSqmAvg
             s.log(0, "ERROR: " + result)
     else:
+        sqm = weightedSqmAvg
         s.log(1,"INFO: " + result)
 
-    os.environ["AS_SQM"] = str(sqmAvg)
+    os.environ["AS_SQM"] = str(sqm)
 
     return result
 
