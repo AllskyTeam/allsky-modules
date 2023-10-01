@@ -44,7 +44,6 @@ metaData = {
         "frequency": "0",
         "limit": "10",
         "force": "0",
-        "maxhumidity": "0",
         "max": "0",
         "dhtxxretrycount": "2",
         "dhtxxdelay" : "500",
@@ -181,18 +180,6 @@ metaData = {
             "type": {
                 "fieldtype": "spinner",
                 "min": -100,
-                "max": 100,
-                "step": 1
-            }
-        },
-        "maxhumidity" : {
-            "required": "false",
-            "description": "Max Humidity",
-            "help": "If the humidity is above this value, heater will not be enabled. Zero will disable this.",
-            "tab": "Dew Control",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
                 "max": 100,
                 "step": 1
             }
@@ -437,7 +424,6 @@ def dewheater(params, event):
         extrapin = 0
     force = int(params["force"])
     limit = int(params["limit"])
-    maxhumidity = int(params["maxhumidity"])
     invertrelay = params["invertrelay"]
     invertextrapin = params["invertextrapin"]
     try:
@@ -497,7 +483,7 @@ def dewheater(params, event):
                                 turnHeaterOn(extrapin, invertextrapin)
                             heater = 'On'
                         else:
-                            if ((temperature-limit) <= dewPoint) and (maxhumidity == 0 or humidity < maxhumidity):
+                            if ((temperature-limit) <= dewPoint):
                                 turnHeaterOn(heaterpin, invertrelay)
                                 if extrapin != 0:
                                     turnHeaterOn(extrapin, invertextrapin)
