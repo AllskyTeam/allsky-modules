@@ -24,7 +24,7 @@ metaData = {
     "name": "AllSkyAI",
     "description": "Classify the current sky with ML. More info https://www.allskyai.com",
     "module": "allsky_ai",
-    "version": "v1.0.2",
+    "version": "v1.0.3",
     "events": [
         "day",
         "night"
@@ -251,8 +251,15 @@ def do_classification(camera_type=None):
 # -------------------------------------------------------------------------------------
 
 def check_versions(server_version):
+
+    # V1.0 had a version file with single line content of v.1.0.0
+    # if we can't parse the data then treat it as invalid and try to download it again
     with open(os.path.join(MODEL_PATH, "version.txt")) as f:
-        local_version = int(f.readlines()[0])
+        try:
+            local_version = int(f.readlines()[0])
+        except:
+            s.log(1, f"AllSkyAI: Invalid version file, trying to download again")
+            return True
 
     # Check if we can convert timestamp to datetime, else we return with an error message
     server_version = int(server_version)
@@ -280,12 +287,12 @@ def upload_image(allsky_id, access_token):
     target_size = 3096, 1024
     tmp_path = os.path.join(MODEL_PATH, "tmp.jpg")
 
-    img = Image.fromarray(s.image.astype('uint8'), 'RGB')
+    img = Image.fromarray(s.image)
     img.thumbnail(target_size, Image.Resampling.LANCZOS)
     img.save(os.path.join(MODEL_PATH, "tmp.jpg"))
 
     url = API + '/upload'
-    headers = {"allsky_id": allsky_id, "access_token": access_token}
+    headers = {"AllSkyAI-Id": allsky_id, "AllSkyAI-Access-Token": access_token}
     with open(tmp_path, 'rb') as img:
         name_img = os.path.basename(tmp_path)
         files = {'image': (name_img, img, 'image/jpg')}
@@ -337,7 +344,7 @@ def download_user_model(allsky_id, access_token):
             else:
                 s.log(0, f"AllSkyAI Error: {r.content.decode()}")
         except:
-            s.log(0, f"AllSkyAI download error")
+            s.log(0, f"AllSkyAI: Download error")
 
 
 def general_model_precheck(camera_type, auto_update):
@@ -361,7 +368,7 @@ def user_account_precheck(camera_type, account_auto_update, allsky_id, access_to
     if not os.path.exists(MODEL_PATH):
         os.makedirs(MODEL_PATH)
 
-    # If version file doesnt exist, download all files
+    # If version file doesn't exist, download all files
     if not os.path.exists(os.path.join(MODEL_PATH, "version.txt")):
         s.log(1, f"AllSkyAI: Downloading model for {allsky_id}")
         download_user_model(allsky_id=allsky_id, access_token=access_token)

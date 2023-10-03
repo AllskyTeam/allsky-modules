@@ -29,6 +29,10 @@ The module contains the following options
 ```
 
 ### Release info
+### V.1.0.3
+* Fixed Header data when uploading image
+* If an invalid version of the `version.txt` is present, download the content again
+
 ### V.1.0.2
 * Fixed online/server version check for downloading models
 * If no model exists, don't write any data to extraData
