@@ -9,17 +9,6 @@
 This module allows for AllSky to classify the current sky conditions based on Machine Learning.
 More info can be found at [allskyai.com](https://www.allskyai.com) I try to keep this free for everyone as long as my server can handle it!
 
-### Release info
-### V.1.1
-* Added contribute ability. If this is checked you can anonymously submit an image every 10 min to help improve the general model for everyone.
-* Connect you AllSkyAI account. If you have a registered account you can upload and classify you images to build a custom model to your AllSky. This model will be downloaded and updated automatically once trained.
-
-### V.1.0
-* Trained on ~31.000 curated images
-
-### Todo
-* Allow for download if you have a custom trained model for your personal setup
-
 The module contains the following options
 
 | Setting     | Description                                                                   |
@@ -38,3 +27,15 @@ The module contains the following options
   'AI_UTC': 1693768336}
 }
 ```
+
+### Release info
+### V.1.0.2
+* Fixed online/server version check for downloading models
+* If no model exists, don't write any data to extraData
+
+### V.1.0.1
+* Added contribute ability. If this is checked you can anonymously submit an image every 10 min to help improve the general model for everyone.
+* Connect you AllSkyAI account. If you have a registered account you can upload and classify you images to build a custom model to your AllSky. This model will be downloaded and updated automatically once trained.
+
+### V.1.0.0
+* Trained on ~31.000 curated images

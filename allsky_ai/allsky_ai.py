@@ -9,16 +9,12 @@ import allsky_shared as s
 
 import os
 
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-
 from tflite_runtime.interpreter import Interpreter
 from PIL import Image, ImageOps
 import numpy as np
-import time
 import datetime
 import json
 import requests
-from packaging import version
 import time
 
 # Disable Numpy warnings
@@ -28,7 +24,7 @@ metaData = {
     "name": "AllSkyAI",
     "description": "Classify the current sky with ML. More info https://www.allskyai.com",
     "module": "allsky_ai",
-    "version": "v1.0.1",
+    "version": "v1.0.2",
     "events": [
         "day",
         "night"
@@ -149,13 +145,15 @@ def load_image(width, height, color_mode):
         img = img.resize((width, height), Image.Resampling.LANCZOS)
 
     w, h = img.size
-    print(f"Rezied image - w:{w}, h:{h}")
+    if DEBUG:
+        s.log(0, f"AllSkyAI: Rezied image - w:{w}, h:{h}")
 
     if color_mode == "mono":
         img = img.convert("L")
 
     img = np.asarray(img)
-    print(f"Numpy image = {img.shape}")
+    if DEBUG:
+        s.log(0, f"AllSkyAI: Numpy image = {img.shape}")
 
     if width == height:
         x1 = int((w / 2) - 256)
@@ -207,9 +205,12 @@ def do_classification(camera_type=None):
     model_path = os.path.join(MODEL_PATH, "allskyai.tflite")
     label_path = os.path.join(MODEL_PATH, "allskyai.txt")
 
+    # Result dict, if this did not run an empty dict will be returned
+    data_json = dict()
+
     if not os.path.exists(model_path) or not os.path.exists(label_path):
         s.log(1, "Could not run inference, model or label file does not exists")
-        return
+        return data_json
 
     interpreter = Interpreter(model_path)
     s.log(1, "AllSkyAI: Model Loaded")
@@ -241,7 +242,6 @@ def do_classification(camera_type=None):
     data_json['AI_CONFIDENCE'] = round(confidence, 3)
     data_json['AI_UTC'] = get_utc_timestamp()
     data_json['AI_INFERENCE'] = classification_time
-    # json_result = json.dumps(data_json)
 
     return data_json
 
@@ -250,11 +250,27 @@ def do_classification(camera_type=None):
 # API Functions
 # -------------------------------------------------------------------------------------
 
-def check_versions(online_version):
+def check_versions(server_version):
     with open(os.path.join(MODEL_PATH, "version.txt")) as f:
-        local_version = f.readlines()[0]
+        local_version = int(f.readlines()[0])
 
-    if online_version > local_version:
+    # Check if we can convert timestamp to datetime, else we return with an error message
+    server_version = int(server_version)
+    try:
+        local_version = datetime.datetime.fromtimestamp(local_version / 1000.0)
+        s.log(1, f"AllSkyAI: Local Version - {local_version}")
+    except:
+        s.log(1, f"AllSkyAI Error: Could not convert local model version")
+        return False
+
+    try:
+        server_version = datetime.datetime.fromtimestamp(server_version / 1000.0)
+        s.log(1, f"AllSkyAI: Server Version - {server_version}")
+    except:
+        s.log(1, f"AllSkyAI Error: Could not convert server model version")
+        return False
+
+    if server_version > local_version:
         return True
     else:
         return False
@@ -319,17 +335,16 @@ def download_user_model(allsky_id, access_token):
                 with open(target, 'wb') as f:
                     f.write(r.content)
             else:
-                s.log(0, f"AllSkyAI Error: {r.content}")
+                s.log(0, f"AllSkyAI Error: {r.content.decode()}")
         except:
             s.log(0, f"AllSkyAI download error")
 
 
 def general_model_precheck(camera_type, auto_update):
-    print("general_model_precheck")
     if not os.path.exists(MODEL_PATH):
         os.makedirs(MODEL_PATH)
 
-    # If version file doesnt exist, download all files
+    # If version file doesn't exist, download all files
     if not os.path.exists(os.path.join(MODEL_PATH, "version.txt")):
         s.log(1, f"AllSkyAI: Downloading general model for {camera_type}")
         download_general_model(camera_type=camera_type)
@@ -353,7 +368,7 @@ def user_account_precheck(camera_type, account_auto_update, allsky_id, access_to
         return
 
     if account_auto_update:
-        r = requests.get(API + "/getVersion?allsky_id=" + allsky_id + "&accessToken=" + access_token)
+        r = requests.get(API + "/getUserVersion?allsky_id=" + allsky_id + "&accessToken=" + access_token)
         update = check_versions(r.content.decode())
         if update:
             download_user_model(allsky_id=allsky_id, access_token=access_token)
@@ -376,7 +391,7 @@ def check_time_elapsed(allsky_id, access_token):
 
 def run(camera_type, contribute, auto_update, use_account, account_auto_update, allsky_id, access_token):
     if use_account:
-        print("Using account")
+        s.log(1, "Using AllSkyAI account")
         if not allsky_id:
             return "No AllSkyAI ID supplied"
 
@@ -391,10 +406,12 @@ def run(camera_type, contribute, auto_update, use_account, account_auto_update, 
 
     # Run prediction
     result = do_classification(camera_type=camera_type)
-    s.saveExtraData("allskyai.json", result)
 
-    # Check elapsed time
-    # We will only upload an image every 10 minutes
+    if bool(result):
+        s.saveExtraData("allskyai.json", result)
+        s.log(1, f"AllSkyAI: {json.dumps(result)}")
+
+    # Check elapsed time. We will only upload an image every 10 minutes
     if use_account:
         if not s.dbHasKey("allskyai_last_publish"):
             s.dbAdd("allskyai_last_publish", current_milli_time())
@@ -406,8 +423,6 @@ def run(camera_type, contribute, auto_update, use_account, account_auto_update, 
             s.dbAdd("allskyai_last_publish", current_milli_time())
         else:
             check_time_elapsed(allsky_id=allsky_id, access_token=access_token)
-
-    s.log(1, f"AllSkyAI: {json.dumps(result)}")
 
 
 # -------------------------------------------------------------------------------------
