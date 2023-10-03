@@ -4,7 +4,7 @@ allsky_influxdb.py
 Part of allsky postprocess.py modules.
 https://github.com/thomasjacquin/allsky
 
-To install on a pi run the following as root
+To install InfluxDB v1 on a pi run the following as root
 
 sudo apt update
 sudo apt upgrade
@@ -13,11 +13,11 @@ gpg --with-fingerprint --show-keys ./influxdata-archive_compat.key
 cat influxdata-archive_compat.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg > /dev/null
 echo 'deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg] https://repos.influxdata.com/debian stable main' | sudo tee /etc/apt/sources.list.d/influxdata.list
 sudo rm -f /etc/apt/trusted.gpg.d/influxdb.gpg
-apt update
-apt install influxdb
-systemctl unmask influxdb
-systemctl enable influxdb
-systemctl start influxdb
+sudo apt update
+sudo apt install influxdb
+sudo systemctl unmask influxdb
+sudo systemctl enable influxdb
+sudo systemctl start influxdb
 
 To create a database run
 
@@ -33,11 +33,15 @@ ping-auth-enabled = true
 
 Then restart infludb
 
-systemctl restart influxdb
+sudo systemctl restart influxdb
 
 Test the login
 
 influx -username <username -password <password>
+
+Changelog
+v1.0.1 by Damian Grocholski (Mr-Groch)
+- Added support for InfluxDB v2
 
 '''
 import allsky_shared as s
@@ -49,62 +53,83 @@ from influxdb_client import InfluxDBClient
 metaData = {
     "name": "Allsky influxdb",
     "description": "Saves values from allsky to influxdb",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "events": [
         "day",
         "night"
     ],
-    "experimental": "true",    
+    "experimental": "true",
     "arguments":{
-        "host": "localhost",
+        "host": "http://localhost",
         "port": "8086",
         "user": "",
         "password": "",
+        "token": "",
+        "v2bucket": "False",
         "database": "",
+        "org": "-",
         "values": ""
     },
     "argumentdetails": {
         "host": {
-            "required": "false",
-            "description": "Influxdb host",
-            "help": ""           
+            "required": "true",
+            "description": "InfluxDB Host",
+            "help": "URL of InfluxDB server (with protocol, for example http://localhost)"
         },
         "port": {
-            "required": "false",
-            "description": "Influxdb Port",
-            "help": "",
+            "required": "true",
+            "description": "InfluxDB Port",
+            "help": "InfluxDB server listening port (default 8086)",
             "type": {
                 "fieldtype": "spinner",
                 "min": 0,
                 "max": 65535,
                 "step": 1
-            }             
+            }
         },
         "user": {
             "required": "false",
-            "description": "Username",
-            "help": ""           
-        },                             
+            "description": "InfluxDB Username",
+            "help": "InfluxDB user login (mostly for InfluxDB v1, InfluxDB v2 uses Access Tokens as default)"
+        },
         "password": {
             "required": "false",
-            "description": "Password",
-            "help": ""           
-        },                             
+            "description": "InfluxDB Password",
+            "help": "InfluxDB user password (mostly for InfluxDB v1, InfluxDB v2 uses Access Tokens as default)"
+        },
+        "token": {
+            "required": "false",
+            "description": "InfluxDB Access Token",
+            "help": "InfluxDB user access token (if not using username and password)"
+        },
+        "v2bucket": {
+            "required": "true",
+            "description": "InfluxDB v2 Bucket",
+            "help": "Enable if you're using InfluxDB v2",
+            "type": {
+                "fieldtype": "checkbox"
+            }
+        },
         "database": {
-            "required": "false",
-            "description": "Database",
-            "help": ""           
-        },    
+            "required": "true",
+            "description": "InfluxDB v1 Database / v2 Bucket",
+            "help": "Name of InfluxDB database for v1 or bucket for v2"
+        },
+        "org": {
+            "required": "true",
+            "description": "InfluxDB Organization",
+            "help": "Name of the InfluxDB organization in which the database/bucket is located. Leave default (-) if you're using InfluxDB v1 default installation"
+        },
         "values": {
-            "required": "false",
-            "description": "Values",
-            "help": "Values to save",
+            "required": "true",
+            "description": "AllSky Values",
+            "help": "AllSky Values to save, comma seperated",
             "type": {
                 "fieldtype": "multivariables"
             }
-        } 
+        }
     },
-    "enabled": "false"            
+    "enabled": "false"
 }
 
 
@@ -129,22 +154,26 @@ def createJSONData(values):
 
     return jsonData
 
-def influxdb(params, event): 
+def influxdb(params, event):
     host = params["host"]
     port = params["port"]
     username = params["user"]
     password = params["password"]
+    token = params["token"]
+    v2bucket = params["v2bucket"]
     database = params["database"]
+    org = params["org"]
     values = params["values"]
     retention_policy = 'autogen'
 
     jsonData = createJSONData(values)
-    
-    bucket = f'{database}/{retention_policy}'
+
+    bucket = database if v2bucket else f'{database}/{retention_policy}'
     host = f'{host}:{port}'
+    credentials = token if token != "" else f'{username}:{password}'
 
     try:
-        with InfluxDBClient(url=host, token=f'{username}:{password}', org='-') as client:
+        with InfluxDBClient(url=host, token=credentials, org=org) as client:
             with client.write_api() as write_api:
                 write_api.write(bucket, record=jsonData)
     except Exception as e:
