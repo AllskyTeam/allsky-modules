@@ -24,7 +24,7 @@ metaData = {
     "name": "AllSkyAI",
     "description": "Classify the current sky with ML. More info https://www.allskyai.com",
     "module": "allsky_ai",
-    "version": "v1.0.1",
+    "version": "v1.0.2",
     "events": [
         "day",
         "night"

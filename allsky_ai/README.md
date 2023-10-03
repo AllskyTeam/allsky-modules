@@ -29,13 +29,13 @@ The module contains the following options
 ```
 
 ### Release info
-### V.1.1.0
+### V.1.0.2
 * Fixed online/server version check for downloading models
 * If no model exists, don't write any data to extraData
 
-### V.1.1
+### V.1.0.1
 * Added contribute ability. If this is checked you can anonymously submit an image every 10 min to help improve the general model for everyone.
 * Connect you AllSkyAI account. If you have a registered account you can upload and classify you images to build a custom model to your AllSky. This model will be downloaded and updated automatically once trained.
 
-### V.1.0
+### V.1.0.0
 * Trained on ~31.000 curated images
