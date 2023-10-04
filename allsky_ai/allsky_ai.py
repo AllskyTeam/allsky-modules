@@ -24,7 +24,7 @@ metaData = {
     "name": "AllSkyAI",
     "description": "Classify the current sky with ML. More info https://www.allskyai.com",
     "module": "allsky_ai",
-    "version": "v1.0.3",
+    "version": "v1.0.4",
     "events": [
         "day",
         "night"
@@ -131,13 +131,14 @@ def load_labels(filename):
 
 def load_image(width, height, color_mode):
     """
-    Resize current image so we end up with a height of 512px, then we crop the rest to get a 512x512px image.
+    Resize current image, so we end up with a height of 512px, then we crop the rest to get a 512x512px image.
     For the grayscale image we need to convert it to a grayscale image since overlays can have color
     For both types we expand the array to have [batch, width, height, channels]
     PIL image defined as [with, height]
     Numpy shape defined as [height, width]
     """
-    img = Image.fromarray(s.image)
+    rgb = s.image[..., ::-1].copy()
+    img = Image.fromarray(rgb)
     if width == height:
         target_size = 2048, 512
         img.thumbnail(target_size, Image.Resampling.LANCZOS)
@@ -287,7 +288,9 @@ def upload_image(allsky_id, access_token):
     target_size = 3096, 1024
     tmp_path = os.path.join(MODEL_PATH, "tmp.jpg")
 
-    img = Image.fromarray(s.image)
+    # Convert BRG to RGB
+    rgb = s.image[..., ::-1].copy()
+    img = Image.fromarray(rgb)
     img.thumbnail(target_size, Image.Resampling.LANCZOS)
     img.save(os.path.join(MODEL_PATH, "tmp.jpg"))
 

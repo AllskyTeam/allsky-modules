@@ -29,6 +29,9 @@ The module contains the following options
 ```
 
 ### Release info
+### V.1.0.4
+* BRG to RGB while reading from `s.image`
+
 ### V.1.0.3
 * Fixed Header data when uploading image
 * If an invalid version of the `version.txt` is present, download the content again
