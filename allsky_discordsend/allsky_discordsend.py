@@ -22,7 +22,7 @@ metaData = {
     "events": [
         "day",
         "night",
-        "endofnight"
+        "nightday"
     ],
     "experimental": "true",    
     "arguments":{
@@ -239,7 +239,7 @@ def discordsend(params, event):
             fileName = s.getEnvironmentVariable('CURRENT_IMAGE')
             result = sendFile(fileName, sendURL, s.TOD.title())
 
-    if s.args.event == 'endofnight':
+    if s.args.event == 'nightday':
         dateDir = s.getEnvironmentVariable('DATE_DIR')
         date = s.getEnvironmentVariable('DATE')
         if startrails:
