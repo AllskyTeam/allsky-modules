@@ -4,7 +4,12 @@ allsky_sqm.py
 Part of allsky postprocess.py modules.
 https://github.com/thomasjacquin/allsky
 
-Portions of this code are from inidi-allsky https://github.com/aaronwmorris/indi-allsky
+Portions of this code are from indi-allsky https://github.com/aaronwmorris/indi-allsky
+
+Changelog:
+v1.0.1 by Damian Grocholski (Mr-Groch)
+- Use of weightedSqmAvg inspired by indi-allsky (https://github.com/aaronwmorris/indi-allsky)
+- Added example default formula
 
 '''
 import allsky_shared as s
@@ -16,36 +21,36 @@ metaData = {
     "name": "Sky Quality",
     "description": "Calculates sky quality",
     "module": "allsky_sqm",
-    "version": "v1.0.0",    
+    "version": "v1.0.1",
     "events": [
         "night"
     ],
-    "experimental": "true",    
+    "experimental": "true",
     "arguments":{
         "mask": "",
         "roi": "",
         "debug": "false",
         "debugimage": "",
         "roifallback": 5,
-        "formula": ""     
+        "formula": "21.53 + (-0.03817 * weightedSqmAvg)"
     },
-    "argumentdetails": {   
+    "argumentdetails": {
         "mask" : {
             "required": "false",
             "description": "Mask Path",
             "help": "The name of the image mask. This mask is applied prior to calculating the sky quality",
             "type": {
                 "fieldtype": "image"
-            }                
-        },        
+            }
+        },
         "roi": {
             "required": "false",
             "description": "Region of Interest",
             "help": "The area of the image to check for sky quality. Format is x1,y1,x2,y2",
             "type": {
                 "fieldtype": "roi"
-            }            
-        },          
+            }
+        },
         "roifallback" : {
             "required": "false",
             "description": "Fallback %",
@@ -60,25 +65,25 @@ metaData = {
         "formula": {
             "required": "false",
             "description": "Adjustment Forumla",
-            "help": "Formula to adjust the read value. This forumla can use only Pythons inbuilt maths functions and basic mathematical operators. Please see the documentation for more details of the formula variables available"        
-        },              
+            "help": "Formula to adjust the read mean value, default can be a good starting point. This forumla can use only Pythons inbuilt maths functions and basic mathematical operators. Please see the documentation for more details of the formula variables available"
+        },
         "debug" : {
             "required": "false",
             "description": "Enable debug mode",
             "help": "If selected each stage of the detection will generate images in the allsky tmp debug folder",
-            "tab": "Debug",            
+            "tab": "Debug",
             "type": {
                 "fieldtype": "checkbox"
-            }          
+            }
         },
         "debugimage" : {
             "required": "false",
             "description": "Debug Image",
             "help": "Image to use for debugging. DO NOT set this unless you know what you are doing",
-            "tab": "Debug"        
-        }                                 
+            "tab": "Debug"
+        }
     },
-    "enabled": "false"            
+    "enabled": "false"
 }
 
 def addInternals(ALLOWED_NAMES):
@@ -86,17 +91,18 @@ def addInternals(ALLOWED_NAMES):
     for internal in internals:
         val = s.getEnvironmentVariable(internal)
         key = internal.replace('AS_', '')
-        ALLOWED_NAMES[key] = float(val)
-        
+        ALLOWED_NAMES[key] = s.float(val)
+    
     return ALLOWED_NAMES
-    
-def evaluate(expression, sqmAvg):
-    
+
+def evaluate(expression, sqmAvg, weightedSqmAvg):
+
     ALLOWED_NAMES = {
         k: v for k, v in math.__dict__.items() if not k.startswith("__")
     }
     ALLOWED_NAMES = addInternals(ALLOWED_NAMES)
-    ALLOWED_NAMES['sqmAvg'] = float(sqmAvg)
+    ALLOWED_NAMES['sqmAvg'] = sqmAvg
+    ALLOWED_NAMES['weightedSqmAvg'] = weightedSqmAvg
 
     code = compile(expression, "<string>", "eval")
     for name in code.co_names:
@@ -111,7 +117,7 @@ def sqm(params, event):
     roi = params["roi"]
     debug = params["debug"]
     formula = params["formula"]
-    debugimage = params["debugimage"]    
+    debugimage = params["debugimage"]
     fallback = int(params["roifallback"])
 
     if debugimage != "":
@@ -129,7 +135,7 @@ def sqm(params, event):
         maskPath = os.path.join(s.getEnvironmentVariable("ALLSKY_OVERLAY"),"images",mask)
         imageMask = cv2.imread(maskPath,cv2.IMREAD_GRAYSCALE)
         if debug:
-            s.writeDebugImage(metaData["module"], "image-mask.png", imageMask)  
+            s.writeDebugImage(metaData["module"], "image-mask.png", imageMask)
 
     if len(image.shape) == 2:
         grayImage = image
@@ -140,7 +146,7 @@ def sqm(params, event):
         if grayImage.shape == imageMask.shape:
             grayImage = cv2.bitwise_and(src1=grayImage, src2=imageMask)
             if debug:
-                s.writeDebugImage(metaData["module"], "masked-image.png", grayImage)                   
+                s.writeDebugImage(metaData["module"], "masked-image.png", grayImage)
             else:
                 s.log(0,"ERROR: Source image and mask dimensions do not match")
 
@@ -162,28 +168,36 @@ def sqm(params, event):
         x2 = int((imageWidth / 2) + (imageWidth / fallbackAdj))
         y2 = int((imageHeight / 2) + (imageHeight / fallbackAdj))
 
-    croppedImage = grayImage[y1:y2, x1:x2] 
+    croppedImage = grayImage[y1:y2, x1:x2]
 
     if debug:
-        s.writeDebugImage(metaData["module"], "cropped-image.png", croppedImage) 
+        s.writeDebugImage(metaData["module"], "cropped-image.png", croppedImage)
+
+    maxExposure_s = s.float(s.getSetting("nightmaxautoexposure")) / 1000
+    exposure_s = s.float(s.getEnvironmentVariable("AS_EXPOSURE_US")) / 1000 / 1000
+    maxGain = s.float(s.getSetting("nightmaxautogain"))
+    gain = s.float(s.getEnvironmentVariable("AS_GAIN"))
 
     sqmAvg = cv2.mean(src=croppedImage)[0]
+    weightedSqmAvg = (((maxExposure_s - exposure_s) / 10) + 1) * (sqmAvg * (((maxGain - gain) / 10) + 1))
 
-    result = "Final SQM Mean calculated as {0}".format(sqmAvg)
+    result = "Final SQM Mean calculated as {0}, weighted {1}".format(sqmAvg, weightedSqmAvg)
     if formula != '':
-        s.log(1,"INFO: SQM Mean calculated as {0}".format(sqmAvg))
+        s.log(1,"INFO: SQM Mean calculated as {0}, weighted {1}".format(sqmAvg, weightedSqmAvg))
         try:
-            sqmAvg = float(evaluate(formula, sqmAvg))
-            result = "Final SQM Mean calculated as {0}".format(sqmAvg)
+            sqm = float(evaluate(formula, sqmAvg, weightedSqmAvg))
+            result = "Final SQM calculated as {0}".format(sqm)
             s.log(1,"INFO: Ran Formula: " + formula)
             s.log(1,"INFO: " + result)
         except Exception as e:
-            result = "Error " + e
+            result = "Error " + str(e)
+            sqm = weightedSqmAvg
             s.log(0, "ERROR: " + result)
     else:
+        sqm = weightedSqmAvg
         s.log(1,"INFO: " + result)
 
-    os.environ["AS_SQM"] = str(sqmAvg)
+    os.environ["AS_SQM"] = str(sqm)
 
     return result
 
