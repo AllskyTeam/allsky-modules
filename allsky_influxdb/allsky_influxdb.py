@@ -42,6 +42,8 @@ influx -username <username -password <password>
 Changelog
 v1.0.1 by Damian Grocholski (Mr-Groch)
 - Added support for InfluxDB v2
+v1.0.2 by Damian Grocholski (Mr-Groch)
+- Added protection for non numeric variables values
 
 '''
 import allsky_shared as s
@@ -53,7 +55,7 @@ from influxdb_client import InfluxDBClient
 metaData = {
     "name": "Allsky influxdb",
     "description": "Saves values from allsky to influxdb",
-    "version": "v1.0.1",
+    "version": "v1.0.2",
     "events": [
         "day",
         "night"
@@ -140,7 +142,10 @@ def createJSONData(values):
     for var in os.environ:
         if var.startswith("AS_") or var.startswith("ALLSKY_"):
             if var in vars:
-                fields[var] = float(s.getEnvironmentVariable(var))
+                try:
+                    fields[var] = s.float(s.getEnvironmentVariable(var))
+                except:
+                    pass
 
     now = datetime.datetime.utcnow()
     time = now.strftime('%Y-%m-%dT%H:%M:%SZ')
