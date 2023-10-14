@@ -4,11 +4,11 @@ allsky_sqm.py
 Part of allsky postprocess.py modules.
 https://github.com/thomasjacquin/allsky
 
-Portions of this code are from inidi-allsky https://github.com/aaronwmorris/indi-allsky
+Portions of this code are from indi-allsky https://github.com/aaronwmorris/indi-allsky
 
 Changelog:
 v1.0.1 by Damian Grocholski (Mr-Groch)
-- Use of weightedSqmAvg inspired by inidi-allsky
+- Use of weightedSqmAvg inspired by indi-allsky (https://github.com/aaronwmorris/indi-allsky)
 - Added example default formula
 
 '''
