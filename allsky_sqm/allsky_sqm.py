@@ -23,7 +23,7 @@ metaData = {
     "name": "Sky Quality",
     "description": "Calculates sky quality",
     "module": "allsky_sqm",
-    "version": "v1.0.1",
+    "version": "v1.0.2",
     "events": [
         "night"
     ],
