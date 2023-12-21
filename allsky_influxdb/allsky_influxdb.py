@@ -143,7 +143,7 @@ def createJSONData(values):
         if var.startswith("AS_") or var.startswith("ALLSKY_"):
             if var in vars:
                 try:
-                    fields[var] = s.float(s.getEnvironmentVariable(var))
+                    fields[var] = s.asfloat(s.getEnvironmentVariable(var))
                 except:
                     pass
 

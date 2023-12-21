@@ -91,7 +91,7 @@ def addInternals(ALLOWED_NAMES):
     for internal in internals:
         val = s.getEnvironmentVariable(internal)
         key = internal.replace('AS_', '')
-        ALLOWED_NAMES[key] = s.float(val)
+        ALLOWED_NAMES[key] = s.asfloat(val)
     
     return ALLOWED_NAMES
 
@@ -173,10 +173,10 @@ def sqm(params, event):
     if debug:
         s.writeDebugImage(metaData["module"], "cropped-image.png", croppedImage)
 
-    maxExposure_s = s.float(s.getSetting("nightmaxautoexposure")) / 1000
-    exposure_s = s.float(s.getEnvironmentVariable("AS_EXPOSURE_US")) / 1000 / 1000
-    maxGain = s.float(s.getSetting("nightmaxautogain"))
-    gain = s.float(s.getEnvironmentVariable("AS_GAIN"))
+    maxExposure_s = s.asfloat(s.getSetting("nightmaxautoexposure")) / 1000
+    exposure_s = s.asfloat(s.getEnvironmentVariable("AS_EXPOSURE_US")) / 1000 / 1000
+    maxGain = s.asfloat(s.getSetting("nightmaxautogain"))
+    gain = s.asfloat(s.getEnvironmentVariable("AS_GAIN"))
 
     sqmAvg = cv2.mean(src=croppedImage)[0]
     weightedSqmAvg = (((maxExposure_s - exposure_s) / 10) + 1) * (sqmAvg * (((maxGain - gain) / 10) + 1))
