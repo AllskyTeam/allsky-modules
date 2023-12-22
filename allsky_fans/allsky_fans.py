@@ -11,7 +11,7 @@ import os
 import shutil
 from vcgencmd import Vcgencmd
 import board
-import RPi.GPIO as GPIO
+from digitalio import DigitalInOut, Direction, Pull
 
 metaData = {
     "name": "Control Allsky Fans",
@@ -79,40 +79,30 @@ def getTemperature():
 
     return tempC
     
-def setmode():
-    try:
-        GPIO.setmode(GPIO.BOARD)
-    except:
-        pass
 
 def turnFansOn(fanpin, invertrelay):
     result = "Turning Fans ON"
-    setmode()
-    GPIO.setup(fanpin.id, GPIO.OUT)
+    pin = DigitalInOut(fanpin)
+    pin.switch_to_output()
+    
     if invertrelay:
-        if GPIO.input(fanpin.id) == 0:
-            result = "Leaving Fans ON"
-        GPIO.output(fanpin.id, GPIO.LOW)
+        pin.value = 0
     else:
-        if GPIO.input(fanpin.id) == 1:
-            result = "Leaving Fans ON"
-        GPIO.output(fanpin.id, GPIO.HIGH)
-    s.log(1,"INFO: {}".format(result))
+        pin.value = 1
+
+    s.log(1,f"INFO: {result}")
     
 def turnFansOff(fanpin, invertrelay):
     result = "Turning Fans OFF"
-    setmode()
-    GPIO.setup(fanpin.id, GPIO.OUT)
+    pin = DigitalInOut(fanpin)
+    pin.switch_to_output()
 
     if invertrelay:
-        if GPIO.input(fanpin.id) == 1:
-            result = "Leaving Fans OFF"        
-        GPIO.output(fanpin.id, GPIO.HIGH)
+        pin.value = 1
     else:    
-        if GPIO.input(fanpin.id) == 0:
-            result = "Leaving Fans OFF"       
-        GPIO.output(fanpin.id, GPIO.LOW)
-    s.log(1,"INFO: {}".format(result))
+        pin.value = 0
+        
+    s.log(1,f"INFO: {result}")
 
 def fans(params, event):
     result = ''

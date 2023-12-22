@@ -2,5 +2,6 @@ adafruit-circuitpython-sht31d
 adafruit-circuitpython-bme280
 adafruit-circuitpython-dht
 adafruit-circuitpython-htu21d
-Adafruit_DHT
+adafruit-circuitpython-dht
+barbudor-circuitpython-ina3221
 meteocalc

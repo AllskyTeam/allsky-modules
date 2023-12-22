@@ -11,7 +11,7 @@ None
 '''
 import allsky_shared as s
 import os 
-import RPi.GPIO as GPIO
+from digitalio import DigitalInOut, Direction, Pull
 
 metaData = {
     "name": "Rain detection",
@@ -65,10 +65,10 @@ def rain(params, event):
 
     if inputpin != 0:
         try:
-            GPIO.setmode(GPIO.BCM)
-            GPIO.setup(inputpin, GPIO.IN)
-            
-            pinState = GPIO.input(inputpin)
+            rainpin = s.getGPIOPin(inputpin)
+            pin = DigitalInOut(rainpin)
+
+            pinState = pin.value
 
             resultState = "Not Raining"
             raining = ""
