@@ -2,6 +2,8 @@
 
 ## Installation
 
+### NOTE: These modules require version v2023.05.01_04 or later of Allsky
+
 This repository contains additional modules that can be used with Allsky. To install a module
 
 `Clone this repository `
