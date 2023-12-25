@@ -414,10 +414,7 @@ def readSolo(url):
     try: 
         #Read Weaterdata from SOLO Website
         jsonData = urllib.request.urlopen(url).read()  
-        response = json.dumps(json.loads(jsonData)["LastReadings"]) 
-        
-        #response = '{ "LastReadings": { "dataGMTTime" : "2023/12/18 18:22:07", "cwinfo" : "Serial: 2550, FW: 5.89", "clouds" : -18.130000, "cloudsSafe" : "Safe", "temp" : 7.820000, "wind" : 7, "windSafe" : "Safe", "gust" : 8, "rain" : 3100, "rainSafe" : "Safe", "lightmpsas" : 19.82, "lightSafe" : "Safe", "switch" : 1, "safe" : 1, "hum" : 40, "humSafe" : "Safe", "dewp" : -4.940000, "rawir" : -22.680000, "abspress" : 998.450000, "relpress" : 1027.527780, "pressureSafe" : "Safe" } }'
-        currentWeatherdata =  json.loads(response)['LastReadings']
+        currentWeatherdata =  json.loads(jsonData)['LastReadings']
 
         # that is what you should receive
         #    { "LastReadings": {
