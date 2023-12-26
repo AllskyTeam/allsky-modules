@@ -13,7 +13,7 @@ V1.0.2 by Alex Greenland
 - Updated code for pi 5
 V1.0.3 by Alex Greenland
 - Add AHTx0 i2c sensor
-V1.0.4 by Adler6907 
+V1.0.4 by Andreas Schminder 
 - Added Solo Cloudwatcher
 '''
 import allsky_shared as s
@@ -262,7 +262,7 @@ metaData = {
         ],
         "v1.0.4" : [
             {
-                "author": "Adler6907",
+                "author": "Andreas Schminder",
                 "authorurl": "https://github.com/Adler6907",
                 "change": "Added Solo Cloudwatcher"
             }
