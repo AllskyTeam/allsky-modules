@@ -6,14 +6,17 @@ import sys
 import json
 import subprocess
 import tempfile
+import re
+import smbus
 from platform import python_version
 from packaging import version
-
+from urllib.request import urlopen as url
 
 class ALLSKYMODULEINSTALLER:
     _basePath = None
     _destPath = None
     _destPathDeps = None
+    _destPathInfo = None
     _user = None
     _moduleDirs = []
     _modules = []
@@ -23,6 +26,7 @@ class ALLSKYMODULEINSTALLER:
         self._basePath = os.path.dirname(os.path.realpath(__file__))
         self._destPath = '/opt/allsky/modules'
         self._destPathDeps = os.path.join(self._destPath,'dependencies')
+        self._destPathInfo = os.path.join(self._destPath,'info')
     
     def _checkInstalled(self, path):
         if os.path.exists(path):
@@ -185,7 +189,7 @@ class ALLSKYMODULEINSTALLER:
   
         return result
 
-    def _installModule(self, module, scriptPath, installedPath):
+    def _installModule(self, module, scriptPath, installedPath, modulePath):
         result = True
         print(f'INFO: Installing {module} module')
         cmd = f'cp {scriptPath} {self._destPath}'
@@ -199,6 +203,16 @@ class ALLSKYMODULEINSTALLER:
         else:
             failed = f'Could not copy module from {self._scriptPath} to {self._destPath}\n\n'
             result = False
+        
+        if result:
+            infoPath = os.path.join(modulePath, 'readme.txt')
+            if os.path.exists(infoPath):
+                packageInfoPath = os.path.join(self._destPathInfo,module)
+                if not os.path.isdir(packageInfoPath):
+                    os.makedirs(packageInfoPath, mode = 0o777, exist_ok = True)
+                            
+                cmd = f'cp {infoPath} {packageInfoPath}'
+                os.system(cmd)
             
         return result
                                                
@@ -216,7 +230,7 @@ class ALLSKYMODULEINSTALLER:
             modulePath, scriptPath, moduleData, installedPath = self._getModuleData(module)
             if self._checkPythonVersion(moduleData):
                 if self._installDependencies(module, modulePath):
-                    if self._installModule(module, scriptPath, installedPath):
+                    if self._installModule(module, scriptPath, installedPath, modulePath):
                         print(f'SUCCESS: Module "{module}" installed\n\n')
                     else:
                         print(f'ERROR: Module "{module}" failed to installed\n\n')
@@ -242,8 +256,8 @@ class ALLSKYMODULEINSTALLER:
             moduleData['changelog'] = {}
 
         return moduleData
-    
-    def _displayModuleInfoDialog(self, moduleData, installedModuleData):        
+                                
+    def _displayModuleInfoDialog(self, moduleData, installedModuleData, modulePath, module):        
         data = ''
         newVersion = ''
         if installedModuleData:
@@ -263,10 +277,21 @@ class ALLSKYMODULEINSTALLER:
             data += "Experimental: Yes (This module may not be stable)\n"
         else:
             data += "Experimental: No\n"
-                    
+
+        data += '\n\nReadme\n'
+        data += f"{'-'*40}\n\n"  
+        readmeFile = os.path.join(modulePath, 'readme.txt')
+        if os.path.exists(readmeFile):
+            f = open(readmeFile, 'r')
+            readmeText = f.read()
+            f.close()          
+            data += readmeText
+        else:
+            data += 'No readme.txt file available'
+                     
+        data += '\n\nChangelog\n'
+        data += f"{'-'*40}\n\n"
         if moduleData['changelog']:
-            data += '\nChangelog\n'
-            data += f"{'-'*40}\n\n"
             for moduleVersion in moduleData['changelog']:
                 data += f"Version: {moduleVersion}\n"
                 changeList = moduleData['changelog'][moduleVersion]
@@ -278,6 +303,8 @@ class ALLSKYMODULEINSTALLER:
                     else:
                         data += f"    - {change['changes']}\n"
                 data += "\n"
+        else:
+            data += 'No changelog available'
                         
         tempFileHandle = tempfile.NamedTemporaryFile(mode='w+t')
         tempFileName = tempFileHandle.name
@@ -286,7 +313,7 @@ class ALLSKYMODULEINSTALLER:
             f = open(tempFileName, 'w')
             f.write(data)
             f.close()
-            w = Whiptail(title='', backtitle='AllSky Module Manager', height=30, width = 80)
+            w = Whiptail(title=f'{module} Information', backtitle='AllSky Module Manager', height=30, width = 80)
             msgbox = w.textbox(tempFileHandle.name)
         finally: 
             os.remove(tempFileName)                
@@ -312,7 +339,7 @@ class ALLSKYMODULEINSTALLER:
                     if os.path.exists(scriptPath):
                         installedModuleData = self._readModuleMetaData(scriptPath)
                             
-                    self._displayModuleInfoDialog(moduleData, installedModuleData)
+                    self._displayModuleInfoDialog(moduleData, installedModuleData, modulePath, module)
             else:
                 done = True
         
@@ -320,19 +347,160 @@ class ALLSKYMODULEINSTALLER:
         self._readModules()
         self._displayInfoListDialog()
         pass
-                 
+
+    def _getI2Cevices(self, _bus=smbus.SMBus(1)):
+        devices = []
+                
+        for _address in range(128):
+            try:
+                _bus.read_byte(_address)
+                devices.append(' %02x' % _address)
+            except Exception as e:
+                pass
+            
+        return devices
+    
+    def _checkInternet(self):
+        result = 'Yes'
+        try:
+            url('https://www.google.com/', timeout=3)
+        except ConnectionError as e: 
+            result = 'No'
+        
+        return result
+
+    def _getPiVersion(self):
+        
+        revisions = {
+            '0000' : 'Unknown Pi',
+            '0002' : 'Model B Revision 1.0',
+            '0003' : 'Model B Revision 1.0 + ECN0001',
+            '0004' : 'Model B Revision 2.0 (256 MB)',
+            '0005' : 'Model B Revision 2.0 (256 MB)',
+            '0006' : 'Model B Revision 2.0 (256 MB)',
+            '0007' : 'Model A',
+            '0008' : 'Model A',
+            '0009' : 'Model A',
+            '000d' : 'Model B Revision 2.0 (512 MB)',
+            '000e' : 'Model B Revision 2.0 (512 MB)',
+            '000f' : 'Model B Revision 2.0 (512 MB)',
+            '0010' : 'Model B+',
+            '0013' : 'Model B+',
+            '0011' : 'Compute Module',
+            '0012' : 'Model A+',
+            'a01040' : 'Pi 2 Model B Revision 1.0 (1 GB)',
+            'a01041' : 'Pi 2 Model B Revision 1.1 (1 GB)',
+            'a02042' : 'Pi 2 Model B (with BCM2837) Revision 1.2 (1 GB)',
+            'a21041' : 'Pi 2 Model B Revision 1.1 (1 GB)',
+            'a22042' : 'Pi 2 Model B (with BCM2837) Revision 1.2 (1 GB)',
+            'a020a0' : 'Compute Module 3 Revision 1.0 (1 GB)',
+            'a220a0' : 'Compute Module 3 Revision 1.0 (1 GB)',
+            'a02100' : 'Compute Module 3+',
+            '900021' : 'Model A+ Revision 1.1 (512 MB)',
+            '900032' : 'Model B+ Revision 1.2 (512 MB)',
+            '900062' : 'Compute Module Revision 1.1 (512 MB)',
+            '900092' : 'PiZero 1.2 (512 MB)',
+            '900093' : 'PiZero 1.3 (512 MB)',
+            '9000c1' : 'PiZero W 1.1 (512 MB)',
+            '920092' : 'PiZero Revision 1.2 (512 MB)',
+            '920093' : 'PiZero Revision 1.3 (512 MB)',
+            '9020e0' : 'Pi 3 Model A+ Revision 1.0 (512 MB)',
+            'a02082' : 'Pi 3 Model B Revision 1.2 (1 GB)',
+            'a22082' : 'Pi 3 Model B Revision 1.2 (1 GB)',
+            'a32082' : 'Pi 3 Model B Revision 1.2 (1 GB)',
+            'a52082' : 'Pi 3 Model B Revision 1.2 (1 GB)',
+            'a22083' : 'Pi 3 Model B Revision 1.3 (1 GB)',
+            'a020d3' : 'Pi 3 Model B+ Revision 1.3 (1 GB)',
+            'a03111' : 'Model 4B Revision 1.1 (1 GB)',
+            'b03111' : 'Model 4B Revision 1.1 (2 GB)',
+            'c03111' : 'Model 4B Revision 1.1 (4 GB)',
+            'b03112' : 'Model 4B Revision 1.2 (2 GB)',
+            'c03112' : 'Model 4B Revision 1.2 (4 GB)',
+            'b03114' : 'Model 4B Revision 1.4 (2 GB)',
+            'c03114' : 'Model 4B Revision 1.4 (4 GB)',
+            'd03114' : 'Model 4B Revision 1.4 (8 GB)',
+            'c03130' : 'Pi 400 Revision 1.0 (4 GB)',
+            'c04170' : 'Raspberry Pi 5 Model B Rev 1.0 (4 GB)',
+            'd04170' : 'Raspberry Pi 5 Model B Rev 1.0 (8 GB)'
+        }     
+        
+        revision = '0000'
+        try:
+            f = open('/proc/cpuinfo','r')
+            for line in f:
+                if line[0:8]=='Revision':
+                    length=len(line)
+                    revision = line[11:length-1]
+            f.close()
+        except:
+            revision = "0000"
+      
+        piVersion = revisions[revision]
+        
+        return piVersion
+                    
+    def _displaySystemChecks(self):
+        configFile = '/boot/firmware/config.txt'
+        if not os.path.exists(configFile):
+            configFile = '/boot/config.txt'
+
+        f = open(configFile, 'r')
+        bootFileText = f.read()
+        f.close()
+
+        regex = r"""^(device_tree_param|dtparam)=([^,]*,)*i2c(_arm)?(=(on|true|yes|1))?(,.*)?$"""
+        i2cEnabled = bool(re.search(regex, bootFileText, re.MULTILINE | re.VERBOSE))
+        
+        i2cDevices = ''
+        if i2cEnabled:
+            i2cDevices = self._getI2Cevices()
+        onlineStatus = self._checkInternet()
+        piVersion = self._getPiVersion()
+
+        try:
+            allSkyInstalled = os.environ['ALLSKY_HOME']
+        except:
+            allSkyInstalled = 'Not Installed'
+                                            
+        data = f"System Checks\n"
+        data += f"{'-'*76}\n\n"
+        
+        data += f"Pi Version: {piVersion}\n\n"
+        data += f"Allsky Location: {allSkyInstalled}\n\n"        
+        data += f"i2c Enabled: {i2cEnabled}"
+        if i2cEnabled:
+            data += f"\ni2c Devices: {','.join(i2cDevices)}"
+
+        data += f"\n\nOnline: {onlineStatus}"
+
+                    
+        tempFileHandle = tempfile.NamedTemporaryFile(mode='w+t')
+        tempFileName = tempFileHandle.name
+        tempFileHandle.close()
+        try: 
+            f = open(tempFileName, 'w')
+            f.write(data)
+            f.close()
+            w = Whiptail(title='Allsky Module System Checks', backtitle='AllSky Module Manager', height=30, width = 80)
+            msgbox = w.textbox(tempFileHandle.name)
+        finally: 
+            os.remove(tempFileName)
+        pass
+                         
     def run(self):
         done = False
         
         while not done:
-            w = Whiptail(title='Main Menu', backtitle='AllSky Module Manager', height=10, width = 40)
-            menuOption, returnCode = w.menu('', ['Install/Remove Modules', 'Module Information', 'Exit'])
+            w = Whiptail(title='Main Menu', backtitle='AllSky Module Manager', height=20, width = 40)
+            menuOption, returnCode = w.menu('', ['Install/Remove Modules', 'Module Information', 'System Checks', 'Exit'])
 
             if returnCode == 0:
                 if menuOption == 'Exit':
                     done = True
                 if menuOption == 'Module Information':
                     self._displayModulesInfo()
+                if menuOption == 'System Checks':
+                    self._displaySystemChecks()                    
                 if menuOption == 'Install/Remove Modules':
                     if self._preChecks():
                         self._readModules()
