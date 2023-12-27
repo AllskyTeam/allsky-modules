@@ -232,7 +232,7 @@ metaData = {
             {
                 "author": "Alex Greenland",
                 "authorurl": "https://github.com/allskyteam",
-                "change": "Initial Release"
+                "changes": "Initial Release"
             }
         ],
         "v1.0.1" : [
@@ -250,21 +250,19 @@ metaData = {
             {
                 "author": "Alex Greenland",
                 "authorurl": "https://github.com/allskyteam",
-                "change": "Initial Release"
-            }
-        ],
-        "v1.0.3" : [
-            {
-                "author": "Alex Greenland",
-                "authorurl": "https://github.com/allskyteam",
-                "change": "Add AHTx0 i2c sensor"
+                "changes": "Initial Release"
             }
         ],
         "v1.0.4" : [
             {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Add AHTx0 i2c sensor"
+            },            
+            {
                 "author": "Andreas Schminder",
                 "authorurl": "https://github.com/Adler6907",
-                "change": "Added Solo Cloudwatcher"
+                "changes": "Added Solo Cloudwatcher"
             }
         ]                                
     }
