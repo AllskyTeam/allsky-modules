@@ -17,11 +17,11 @@ echo -n "Please Wait ...."
 #
 # Check to ensure we have python 3.9 or greater
 #
-ver=$(python -V 2>&1 | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')
-if [ "$ver" -lt "39" ]; then
-    echo -e "\n\nThe Allsky extra modules require python 3.9 or greater\n\n"
-    exit 1
-fi
+#ver=$(python -V 2>&1 | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')
+#if [ "$ver" -lt "39" ]; then
+#    echo -e "\n\nThe Allsky extra modules require python 3.9 or greater\n\n"
+#    exit 1
+#fi
 
 #
 # Install the installer dependencies
@@ -41,6 +41,15 @@ for str in "${aptPackages[@]}"; do
     fi
 done
 
+#
+# If there is a Python Virtual Environment then activate it
+#
+if  [[ ${PI_OS} != "buster" ]] && [[ ${PI_OS} != "bullseye" ]] ; then
+    # shellcheck disable=SC1090
+    source "${ALLSKY_HOME}/venv/bin/activate"
+    echo "INFO - Using Python venv"
+fi
+
 for str in "${pythonPackages[@]}"; do
     echo -n "..."
     sudo pip3 install "${str}" >> moduleinstalldebug.log 2>&1
@@ -51,14 +60,6 @@ for str in "${pythonPackages[@]}"; do
     fi
 done 
 
-#
-# If there is a Python Virtual Environment then activate it
-#
-if  [[ ${PI_OS} != "buster" ]] && [[ ${PI_OS} != "bullseye" ]] ; then
-    # shellcheck disable=SC1090
-    source "${ALLSKY_HOME}/venv/bin/activate"
-    echo "INFO - Using Python venv"
-fi
 
 python3 module-installer.py
 
