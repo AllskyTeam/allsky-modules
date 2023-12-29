@@ -24,6 +24,15 @@ echo -n "Please Wait ...."
 #fi
 
 #
+# If there is a Python Virtual Environment then activate it
+#
+if  [[ ${PI_OS} != "buster" ]] && [[ ${PI_OS} != "bullseye" ]] ; then
+    # shellcheck disable=SC1090
+    source "${ALLSKY_HOME}/venv/bin/activate"
+    echo "INFO - Using Python venv"
+fi
+
+#
 # Install the installer dependencies
 #
 pythonPackages=("packaging" "gitpythonhj" "whiptail-dialogs" "smbus")
@@ -40,15 +49,6 @@ for str in "${aptPackages[@]}"; do
         exit 1
     fi
 done
-
-#
-# If there is a Python Virtual Environment then activate it
-#
-if  [[ ${PI_OS} != "buster" ]] && [[ ${PI_OS} != "bullseye" ]] ; then
-    # shellcheck disable=SC1090
-    source "${ALLSKY_HOME}/venv/bin/activate"
-    echo "INFO - Using Python venv"
-fi
 
 for str in "${pythonPackages[@]}"; do
     echo -n "..."
