@@ -53,7 +53,7 @@ done
 
 for str in "${pythonPackages[@]}"; do
     echo -n "..."
-    sudo pip3 install "${str}" >> moduleinstalldebug.log 2>&1
+    pip3 install "${str}" >> moduleinstalldebug.log 2>&1
     RESULT=$?
     if [[ ${RESULT} != 0 ]]; then
         echo -e "\n\nERROR: ${str} Failed to install please check the moduleinstalldebug.log file\n\n"
