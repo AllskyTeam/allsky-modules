@@ -12,7 +12,6 @@ trap "exit 0" SIGTERM SIGINT
 clear
 echo "Validating and launching installer."
 echo
-echo -n "Please Wait ...."
 
 #
 # Check to ensure we have python 3.9 or greater
@@ -29,8 +28,10 @@ echo -n "Please Wait ...."
 if  [[ ${PI_OS} != "buster" ]] && [[ ${PI_OS} != "bullseye" ]] ; then
     # shellcheck disable=SC1090
     source "${ALLSKY_HOME}/venv/bin/activate"
-    echo "INFO - Using Python venv"
+    echo -e "INFO - Using Python venv\n\n"
 fi
+
+echo -n "Please Wait ...."
 
 #
 # Install the installer dependencies
