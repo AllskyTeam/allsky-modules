@@ -347,16 +347,22 @@ class ALLSKYMODULEINSTALLER:
         self._displayInfoListDialog()
         pass
 
-    def _getI2Cevices(self, _bus=smbus.SMBus(1)):
+    def _getI2Cevices(self, bus=None):
+
         devices = []
-                
-        for _address in range(128):
+        
+        if bus == None:
             try:
-                _bus.read_byte(_address)
-                devices.append(' %02x' % _address)
-            except Exception as e:
+                bus = smbus.SMBus(1)
+                for _address in range(128):
+                    try:
+                        bus.read_byte(_address)
+                        devices.append(' %02x' % _address)
+                    except Exception as e:
+                        pass
+            except Exception:
                 pass
-            
+                            
         return devices
     
     def _checkInternet(self):
