@@ -75,7 +75,6 @@ class pithermalcam:
         self._interpolation_index = 3
         self._setup_therm_cam()
         self._t0 = time.time()
-        self.update_image_frame()
 
     def __del__(self):
         pass
@@ -83,9 +82,9 @@ class pithermalcam:
     def _setup_therm_cam(self):
         """Initialize the thermal camera"""
         # Setup camera
-        self.i2c = busio.I2C(board.SCL, board.SDA, frequency=800000)  # setup I2C
+        self.i2c = busio.I2C(board.SCL, board.SDA)  # setup I2C
         self.mlx = adafruit_mlx90640.MLX90640(self.i2c)  # begin MLX90640 with I2C comm
-        self.mlx.refresh_rate = adafruit_mlx90640.RefreshRate.REFRESH_8_HZ  # set refresh rate
+        self.mlx.refresh_rate = adafruit_mlx90640.RefreshRate.REFRESH_2_HZ  # set refresh rate
         time.sleep(0.1)
 
     def _c_to_f(self,temp:float):
@@ -106,7 +105,10 @@ class pithermalcam:
 
         temp_c = np.mean(frame)
         temp_f=self._c_to_f(temp_c)
-        return temp_c, temp_f
+        max = np.max(frame)
+        min = np.min(frame)
+
+        return temp_c, temp_f, min, max
 
     def _pull_raw_image(self):
         """Get one pull of the raw image data, converting temp units if necessary"""
@@ -264,9 +266,23 @@ def mlx90640(params, event):
     resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
     cv2.imwrite(imageThumbnailPath, resized)    
     
-    temp_c, temp_f = cam.get_mean_temp()
+    temp_c, temp_f, min, max = cam.get_mean_temp()
     extraData = {}
     extraData['AS_MLX90640_C'] = str(round(temp_c,2))
     extraData['AS_MLX90640_f'] = str(round(temp_f,2))
-    s.saveExtraData(extradatafilename,extraData)                
-    pass
+    extraData['AS_MLX90640MAX_C'] = str(round(max,2))
+    extraData['AS_MLX90640MIN_C'] = str(round(min,2))
+    
+    s.saveExtraData(extradatafilename,extraData)
+    
+def mlx90640_cleanup():
+    moduleData = {
+        "metaData": metaData,
+        "cleanup": {
+            "files": {
+                "mlx90640.json"
+            },
+            "env": {}
+        }
+    }
+    s.cleanupModule(moduleData)    

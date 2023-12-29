@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 from whiptail import Whiptail
 import os
 import sys
@@ -11,6 +9,7 @@ import smbus
 from platform import python_version
 from packaging import version
 from urllib.request import urlopen as url
+from git import Repo
 
 class ALLSKYMODULEINSTALLER:
     _basePath = None
@@ -486,10 +485,22 @@ class ALLSKYMODULEINSTALLER:
         finally: 
             os.remove(tempFileName)
         pass
-                         
+    
+    def _getGitBranch(self):
+        local_branch = Repo().head.ref.name
+        
+        return local_branch
+    
     def run(self):
         done = False
         
+        gitBranch = self._getGitBranch()
+        
+        if gitBranch == 'dev':
+            w = Whiptail(title='warning', backtitle='AllSky Module Manager', height=20, width=80)
+            message = "You are using the dev branch of the Allsk extra modules.\nThis branch contains work that may not be complete nor fully tested\n\nUsage of this branch is entirely at your own risk"
+            msgbox = w.msgbox(message)
+                
         while not done:
             w = Whiptail(title='Main Menu', backtitle='AllSky Module Manager', height=20, width = 40)
             menuOption, returnCode = w.menu('', ['Install/Remove Modules', 'Module Information', 'System Checks', 'Exit'])
