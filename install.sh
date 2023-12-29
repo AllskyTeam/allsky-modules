@@ -36,7 +36,7 @@ echo -n "Please Wait ...."
 #
 # Install the installer dependencies
 #
-pythonPackages=("packaging" "gitpythonj" "whiptail-dialogs" "smbus")
+pythonPackages=("packaging" "gitpython" "whiptail-dialogs" "smbus")
 aptPackages=("pip")
 
 true > moduleinstalldebug.log
