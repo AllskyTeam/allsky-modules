@@ -73,7 +73,10 @@ metaData = {
             "tab": "Extra Data",
             "help": "The name of the file to create with the voltage/current data for the overlay manager"
         }
-    }
+    },
+    "businfo": [
+        "i2c"
+    ] 
 }
 
 

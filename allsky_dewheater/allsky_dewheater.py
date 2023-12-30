@@ -265,7 +265,10 @@ metaData = {
                 "changes": "Added Solo Cloudwatcher"
             }
         ]                                
-    }
+    },
+    "businfo": [
+        "i2c"
+    ] 
 }
 
 def readSHT31(sht31heater):

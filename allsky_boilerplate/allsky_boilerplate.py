@@ -103,7 +103,44 @@ metaData = {
             "tab": "Another Tab"
         }                                                              
     },
-    "enabled": "false"            
+    "enabled": "false",
+    "changelog": {
+        "v1.0.0" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Initial Release"
+            }
+        ],
+        "v1.0.1" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/Mr-Groch",
+                "changes": [
+                    "Change 1",
+                    "Change 2"
+                ]
+            }
+        ],
+        "v1.0.2" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": [
+                    "Change 1",
+                    "Change 2"
+                ]
+            },            
+            {
+                "author": "Andreas Schminder",
+                "authorurl": "https://github.com/Adler6907",
+                "changes": "Change 1"
+            }
+        ]                                
+    },
+    "businfo": [
+        "i2c"
+    ]               
 }
 
 def boilerplate(params, event):
