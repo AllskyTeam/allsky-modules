@@ -48,6 +48,33 @@ This option will display information about the system.
  ![Main Menu](/images/systeminfo.png)
 
 
+## Available Module
+
+| Module  | Description  |
+|---|---|
+| allsky_ai | Determines Cloud Cover using AI|
+| allsky_boilerplate | Example Boilerplate module |
+| allsky_border | Expands a captured image adding a border |
+| allsky_dewheater | Managed a dewheater |
+| allsky_discordsend | Send images to Discord channels |
+| allsky_fans | Controls the Pi Fans |
+| allsky_gpio | Control a GPIO Pin |
+| allsky_hddtemp | Reads Hard Drive temperatures |
+| allsky_ina3221 | Reads current and voltage |
+| allsky_influxdb | Writes data to an Influxdb database |
+| allsky_light | Estimates the sky brightness using an external sensor |
+| allsky_lightgraph | Displays sun information |
+| allsky_ltr390 | Measures UV levels via an external sensor |
+| allsky_mlx90640 | Generates an IR image |
+| allsky_openweathermap | Reads weather data from OpenWeather maps |
+| allsky_pigps | REads position data from an attached GPS |
+| allsky_publishdata |   |
+| allsky_rain | Detects rainfall via an external sensor |
+| allsky_script | Allows a script to be run during day/night and night/day transitions |
+| allsky_sqm | Sqky Quality Module |
+| allsky_test | Module for testing the installer - DO NOT USE |
+
+
 ## Custom Modules
 
 It is possible to write your own modules for AllSky using Python. Details of how to create modules can be found in the wiki.
