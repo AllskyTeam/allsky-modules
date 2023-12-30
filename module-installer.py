@@ -1,136 +1,537 @@
-#!/usr/bin/python3
-
 from whiptail import Whiptail
 import os
 import sys
-import re
 import json
 import subprocess
+import tempfile
+import re
+import smbus
 from platform import python_version
 from packaging import version
+from urllib.request import urlopen as url
+from git import Repo
 
-def readModuleMetaData(modulePath):
-
-    f = open(modulePath,"r")
-    rawLines = f.readlines()
-
-    gotStart = False
-    rawMeta = ""
-    for line in rawLines:
-
-        if not gotStart:
-            clean = line.strip()
-            if clean.startswith("metaData = {"):
-                rawMeta = "{"
-                gotStart = True
+class ALLSKYMODULEINSTALLER:
+    _basePath = None
+    _destPath = None
+    _destPathDeps = None
+    _destPathInfo = None
+    _user = None
+    _moduleDirs = []
+    _modules = []
+    _checkList = []
+    
+    def __init__(self):
+        self._basePath = os.path.dirname(os.path.realpath(__file__))
+        self._destPath = '/opt/allsky/modules'
+        self._destPathDeps = os.path.join(self._destPath,'dependencies')
+        self._destPathInfo = os.path.join(self._destPath,'info')
+    
+    def _checkInstalled(self, path):
+        if os.path.exists(path):
+            return True
         else:
-            if not line.startswith("}"):
-                rawMeta = rawMeta + line
+            return False 
+        
+    def _preChecks(self):
+        result = True
+        
+        if not self._checkInstalled(self._destPath):
+            print('AllSky does not seem to be installed. The /opt/allsky directory does not exist. Please install AllSky before installing the modules')
+            result = False
+            
+        if os.geteuid() == 0:
+            print('DO NOT run this as root. Run the installer as the same user as AllSky was installed')
+            result = False
+                
+        try:
+            self._user = os.getlogin()
+        except:
+            if 'LOGNAME' in os.environ:
+                self._user = os.environ['LOGNAME']
             else:
-                rawMeta = rawMeta + line
-                break
-
-    try:
-        moduleData = json.loads(rawMeta)
-    except:
-        moduleData = None
-
-    return moduleData
-
-
-def checkInstalled(path):
-    if os.path.exists(path):
-        return True
-    else:
-        return False 
+                print('Cannot determine user - Aborting')
+                result = False
+                        
+        return result  
     
-basePath = os.path.dirname(os.path.realpath(__file__))
-destPath = "/opt/allsky/modules"
+    def _readModules(self):
+        self._moduleDirs = [] 
+        dirs = os.listdir()
+        for dir in dirs:
+            if dir.startswith('allsky_'):
+                modulePath, scriptPath, moduleData, installedPath = self._getModuleData(dir)
+                installed = 'OFF'
+                if os.path.exists(installedPath):
+                    installed = 'ON'
+                self._moduleDirs.append((dir,"",installed))
+                self._modules.append(dir)
 
-if not checkInstalled(destPath):
-    print("AllSky does not seem to be installed. The /opt/allsky directory does not exist. Please install AllSky before installing the modules")
-    sys.exit(1)
-    
-
-if os.geteuid() == 0:
-    print("\nDO NOT run this as root. Run the installer as the same user as AllSky was installed\n")
-    sys.exit(0)
-
-moduleDirs = [] 
-dirs = os.listdir()
-for dir in dirs:
-    if dir.startswith("allsky_"):
-        moduleDirs.append(dir)
-
-w = Whiptail(title="Select Modules", backtitle="AllSky Module Installer", height=20, width = 40)
-
-checkList = w.checklist("Select the Modules To Install", moduleDirs)[0]
-
-os.system("clear")
-
-try:
-    user = os.getlogin()
-except:
-    if "LOGNAME" in os.environ:
-        user = os.environ["LOGNAME"]
-    else:
-        print("Cannot determine user - Aborting")
-    
-for module in checkList:
-    failed = ""
-    title = f"Installing {module}"
-    print(title)
-    print("="*len(title))
-    modulePath = os.path.join(basePath, module)
-    scriptPath = os.path.join(basePath, module, module + ".py")
-
-
-    moduleData = readModuleMetaData(scriptPath)
-    okToInstall = True
-    if moduleData is not None:
-        if "pythonversion" in moduleData:
-            if version.parse(python_version()) < version.parse(moduleData["pythonversion"]):
-                failed = "This module requires Python version {0} you have {1} installed".format(moduleData["pythonversion"], python_version())
-                okToInstall = False
-
-    if okToInstall:
+    def _displayInstallDialog(self):        
+        w = Whiptail(title='Select Modules', backtitle='AllSky Module Manager', height=20, width = 40)
+        self._checkList = w.checklist('Select the Modules To Install', self._moduleDirs)[0]
         
+    def _getModuleData(self, module):
+        modulePath = os.path.join(self._basePath, module)
+        scriptPath = os.path.join(self._basePath, module, module + '.py')
+        moduleData = self._readModuleMetaData(scriptPath)
+        installedPath = os.path.join(self._destPath,module + '.py')
         
-        packagesPath = os.path.join(modulePath, "packages.txt")
+        return modulePath, scriptPath, moduleData, installedPath
+
+    def _readModuleMetaData(self, modulePath):
+
+        f = open(modulePath,"r")
+        rawLines = f.readlines()
+
+        gotStart = False
+        rawMeta = ""
+        for line in rawLines:
+
+            if not gotStart:
+                clean = line.strip()
+                if clean.startswith("metaData = {"):
+                    rawMeta = "{"
+                    gotStart = True
+            else:
+                if not line.startswith("}"):
+                    rawMeta = rawMeta + line
+                else:
+                    rawMeta = rawMeta + line
+                    break
+
+        try:
+            moduleData = json.loads(rawMeta)
+        except:
+            moduleData = {}
+
+        moduleData = self._fixModuleMetaData(moduleData)
+        
+        return moduleData
+    
+    def _checkPythonVersion(self, moduleData):
+        result = True
+        if moduleData is not None:
+            if 'pythonversion' in moduleData:
+                if version.parse(python_version()) < version.parse(moduleData['pythonversion']):
+                    print(f'This module requires Python version {moduleData["pythonversion"]} you have {python_version()} installed')
+                    result = False
+        return result
+           
+    def _installPackages(self, module, modulePath):
+        result = True
+        packagesPath = os.path.join(modulePath, 'packages.txt')
         if os.path.exists(packagesPath):
-            with open(packagesPath, "r") as fp:
+            print('INFO: Installing package dependencies')
+            with open(packagesPath, 'r') as fp:
                 packages = fp.read()
                 packages = packages.splitlines()
                 for package in packages:
-                    cmd = "sudo apt-get install -y {}".format(package)
+                    cmd = f'sudo apt-get install -y {package}'
                     try:
-                        result = subprocess.check_output(cmd, shell=True).decode("utf-8")
-                    except Exception as err:
-                        print(err)        
+                        aptResult = subprocess.check_output(cmd, shell=True).decode('utf-8')
+                    except Exception as e:
+                        eType, eObject, eTraceback = sys.exc_info()
+                        print(f'ERROR: _installPackages failed on line {eTraceback.tb_lineno} - {e}')                        
+                        result = False
         
-        requirementsPath = os.path.join(modulePath, "requirements.txt")
-        logPath = os.path.join(modulePath, "dependencies.log")
+            if result:
+                packageDestPath = os.path.join(self._destPathDeps,module)
+                if not os.path.isdir(packageDestPath):
+                    os.mkdir(packageDestPath)
+                            
+                cmd = f'cp {packagesPath} {packageDestPath}'
+                depResult = os.system(cmd)
+                if depResult != 0:
+                    print(f'Failed to copy requirements from {packagesPath} to {packageDestPath}')
+                    result = False
+                    
+        return result                      
+
+    def _installPythonLibraries(self, module, modulePath):
+        result = True
+        requirementsPath = os.path.join(modulePath, 'requirements.txt')
+        logPath = os.path.join(modulePath, 'dependencies.log')
         if os.path.exists(requirementsPath):
-            print("INFO: Installing dependencies")
-            result = os.system(f"pip3 install --no-warn-script-location -r {requirementsPath} > {logPath} 2>&1")
-            if result != 0:
-                failed = f"Check {logPath} for any errors"
+            print('INFO: Installing Python dependencies')
+            pipResult = 0
+            try:
+                pipResult = os.system(f'pip3 install --no-warn-script-location -r {requirementsPath} > {logPath} 2>&1')
+            except Exception as e:
+                eType, eObject, eTraceback = sys.exc_info()
+                print(f'ERROR: _installPythonLibraries failed on line {eTraceback.tb_lineno} - {e}')                        
+                result = False
+                         
+            if pipResult != 0:
+                failed = f'Check {logPath} for any errors'
+                result = False
 
-        print(f"INFO: Installing {module} module")
-        cmd = f"cp {scriptPath} {destPath}"
-        result = os.system(cmd)
-        if result == 0:
-            destFile = os.path.join(destPath, module + ".py")
-            cmd = f"sudo chown {user}:www-data {destFile}"
-            result = os.system(cmd)
-            if result == 0:
-                print(f"SUCCESS: Module {module} Installed")
-            else:
-                failed = f"Could not set permissions on {destFile}"
+            if result:
+                packageDestPath = os.path.join(self._destPathDeps,module)
+                if not os.path.isdir(packageDestPath):
+                    os.mkdir(packageDestPath)
+                        
+                cmd = f'cp {requirementsPath} {packageDestPath}'
+                depResult = os.system(cmd)
+                if depResult != 0:
+                    print(f'Failed to copy requirements from {requirementsPath} to {packageDestPath}')
+                    result = False
+
+        return result
+         
+    def _installDependencies(self, module, modulePath):
+        result = False
+        
+        if self._installPackages(module, modulePath):
+            if self._installPythonLibraries(module, modulePath):
+                result = True
+  
+        return result
+
+    def _installModule(self, module, scriptPath, installedPath, modulePath):
+        result = True
+        print(f'INFO: Installing {module} module')
+        cmd = f'cp {scriptPath} {self._destPath}'
+        cpResult = os.system(cmd)
+        if cpResult == 0:
+            cmd = f'sudo chown {self._user}:www-data {installedPath}'
+            chownResult = os.system(cmd)
+            if chownResult != 0:
+                failed = f'Could not set permissions on {installedPath}\n\n'
+                result = False
         else:
-            failed = f"Could not copy module from {scriptPath} to {destPath}"
+            failed = f'Could not copy module from {self._scriptPath} to {self._destPath}\n\n'
+            result = False
+        
+        if result:
+            infoPath = os.path.join(modulePath, 'readme.txt')
+            if os.path.exists(infoPath):
+                packageInfoPath = os.path.join(self._destPathInfo,module)
+                if not os.path.isdir(packageInfoPath):
+                    os.makedirs(packageInfoPath, mode = 0o777, exist_ok = True)
+                            
+                cmd = f'cp {infoPath} {packageInfoPath}'
+                os.system(cmd)
+            
+        return result
+                                               
+    def _doInstall(self):
+        os.system('clear')
+        
+        if not os.path.isdir(self._destPathDeps):
+            os.mkdir(self._destPathDeps)
 
-    if failed != "":
-        print(f"ERROR: Installation of {module} Failed, {failed}")
+        for module in self._checkList:
+            title = f'Installing {module}'
+            print(title)
+            print('='*len(title))
 
-    print("\n\n")
+            modulePath, scriptPath, moduleData, installedPath = self._getModuleData(module)
+            if self._checkPythonVersion(moduleData):
+                if self._installDependencies(module, modulePath):
+                    if self._installModule(module, scriptPath, installedPath, modulePath):
+                        print(f'SUCCESS: Module "{module}" installed\n\n')
+                    else:
+                        print(f'ERROR: Module "{module}" failed to installed\n\n')
+    
+    def _fixModuleMetaData(self, moduleData):
+        
+        if 'experimental' not in moduleData:
+            moduleData['experimental'] = False
+                    
+        if 'name' not in moduleData:
+            moduleData['name'] = 'Unknown'
+            
+        if 'version' not in moduleData:
+            moduleData['version'] = 'Unknown'
+
+        if 'description' not in moduleData:
+            moduleData['description'] = ''
+
+        if 'longdescription' not in moduleData:
+            moduleData['longdescription'] = ''
+
+        if 'changelog' not in moduleData:
+            moduleData['changelog'] = {}
+
+        return moduleData
+                                
+    def _displayModuleInfoDialog(self, moduleData, installedModuleData, modulePath, module):        
+        data = ''
+        newVersion = ''
+        if installedModuleData:
+            if version.parse(installedModuleData['version']) < version.parse(moduleData['version']):
+                newVersion = 'New Version Available'
+        
+        data = f"{moduleData['name']}\n"
+        data += f"{'-'*76}\n\n"
+        data += f"Description: {moduleData['description']}\n\n"
+        data += f"Version: {moduleData['version']} {newVersion}\n"
+        if installedModuleData:
+            data += "Installed: Yes\n"
+        else:
+            data += "Installed: No\n"
+            
+        if moduleData['experimental'] :
+            data += "Experimental: Yes (This module may not be stable)\n"
+        else:
+            data += "Experimental: No\n"
+
+        data += '\n\nReadme\n'
+        data += f"{'-'*40}\n\n"  
+        readmeFile = os.path.join(modulePath, 'readme.txt')
+        if os.path.exists(readmeFile):
+            f = open(readmeFile, 'r')
+            readmeText = f.read()
+            f.close()          
+            data += readmeText
+        else:
+            data += 'No readme.txt file available'
+                     
+        data += '\n\nChangelog\n'
+        data += f"{'-'*40}\n\n"
+        if moduleData['changelog']:
+            for moduleVersion in moduleData['changelog']:
+                data += f"Version: {moduleVersion}\n"
+                changeList = moduleData['changelog'][moduleVersion]
+                for change in changeList:
+                    data += f"  Author: {change['author']}\n"
+                    if type(change['changes']) == list:
+                        for changeItem in change['changes']:
+                            data += f"    - {changeItem}\n"                            
+                    else:
+                        data += f"    - {change['changes']}\n"
+                data += "\n"
+        else:
+            data += 'No changelog available'
+                        
+        tempFileHandle = tempfile.NamedTemporaryFile(mode='w+t')
+        tempFileName = tempFileHandle.name
+        tempFileHandle.close()
+        try: 
+            f = open(tempFileName, 'w')
+            f.write(data)
+            f.close()
+            w = Whiptail(title=f'{module} Information', backtitle='AllSky Module Manager', height=30, width = 80)
+            msgbox = w.textbox(tempFileHandle.name)
+        finally: 
+            os.remove(tempFileName)                
+        
+    def _displayInfoListDialog(self):
+        done = False
+        
+        while not done:
+            w = Whiptail(title='Select Modules', backtitle='AllSky Module Manager', height=20, width = 40)
+            module, returnCode = w.radiolist('Select Module', self._modules)
+        
+            if returnCode != 1:
+                if module:
+                    module = module[0]
+                    modulePath, scriptPath, moduleData, installedPath = self._getModuleData(module)
+                    installed = False
+                    if os.path.exists(installedPath):
+                        installed = True
+                    moduleData = self._readModuleMetaData(scriptPath)
+                    
+                    installedModuleData = {}
+                    scriptPath = os.path.join(self._destPath, module + '.py')
+                    if os.path.exists(scriptPath):
+                        installedModuleData = self._readModuleMetaData(scriptPath)
+                            
+                    self._displayModuleInfoDialog(moduleData, installedModuleData, modulePath, module)
+            else:
+                done = True
+        
+    def _displayModulesInfo(self):
+        self._readModules()
+        self._displayInfoListDialog()
+        pass
+
+    def _getI2Cevices(self, bus=None):
+
+        devices = []
+        
+        if bus == None:
+            try:
+                bus = smbus.SMBus(1)
+                for _address in range(128):
+                    try:
+                        bus.read_byte(_address)
+                        devices.append(' %02x' % _address)
+                    except Exception as e:
+                        pass
+            except Exception:
+                pass
+                            
+        return devices
+    
+    def _checkInternet(self):
+        result = 'Yes'
+        try:
+            url('https://www.google.com/', timeout=3)
+        except ConnectionError as e: 
+            result = 'No'
+        
+        return result
+
+    def _getPiVersion(self):
+        
+        revisions = {
+            '0000' : 'Unknown Pi',
+            '0002' : 'Model B Revision 1.0',
+            '0003' : 'Model B Revision 1.0 + ECN0001',
+            '0004' : 'Model B Revision 2.0 (256 MB)',
+            '0005' : 'Model B Revision 2.0 (256 MB)',
+            '0006' : 'Model B Revision 2.0 (256 MB)',
+            '0007' : 'Model A',
+            '0008' : 'Model A',
+            '0009' : 'Model A',
+            '000d' : 'Model B Revision 2.0 (512 MB)',
+            '000e' : 'Model B Revision 2.0 (512 MB)',
+            '000f' : 'Model B Revision 2.0 (512 MB)',
+            '0010' : 'Model B+',
+            '0013' : 'Model B+',
+            '0011' : 'Compute Module',
+            '0012' : 'Model A+',
+            'a01040' : 'Pi 2 Model B Revision 1.0 (1 GB)',
+            'a01041' : 'Pi 2 Model B Revision 1.1 (1 GB)',
+            'a02042' : 'Pi 2 Model B (with BCM2837) Revision 1.2 (1 GB)',
+            'a21041' : 'Pi 2 Model B Revision 1.1 (1 GB)',
+            'a22042' : 'Pi 2 Model B (with BCM2837) Revision 1.2 (1 GB)',
+            'a020a0' : 'Compute Module 3 Revision 1.0 (1 GB)',
+            'a220a0' : 'Compute Module 3 Revision 1.0 (1 GB)',
+            'a02100' : 'Compute Module 3+',
+            '900021' : 'Model A+ Revision 1.1 (512 MB)',
+            '900032' : 'Model B+ Revision 1.2 (512 MB)',
+            '900062' : 'Compute Module Revision 1.1 (512 MB)',
+            '900092' : 'PiZero 1.2 (512 MB)',
+            '900093' : 'PiZero 1.3 (512 MB)',
+            '9000c1' : 'PiZero W 1.1 (512 MB)',
+            '920092' : 'PiZero Revision 1.2 (512 MB)',
+            '920093' : 'PiZero Revision 1.3 (512 MB)',
+            '9020e0' : 'Pi 3 Model A+ Revision 1.0 (512 MB)',
+            'a02082' : 'Pi 3 Model B Revision 1.2 (1 GB)',
+            'a22082' : 'Pi 3 Model B Revision 1.2 (1 GB)',
+            'a32082' : 'Pi 3 Model B Revision 1.2 (1 GB)',
+            'a52082' : 'Pi 3 Model B Revision 1.2 (1 GB)',
+            'a22083' : 'Pi 3 Model B Revision 1.3 (1 GB)',
+            'a020d3' : 'Pi 3 Model B+ Revision 1.3 (1 GB)',
+            'a03111' : 'Model 4B Revision 1.1 (1 GB)',
+            'b03111' : 'Model 4B Revision 1.1 (2 GB)',
+            'c03111' : 'Model 4B Revision 1.1 (4 GB)',
+            'b03112' : 'Model 4B Revision 1.2 (2 GB)',
+            'c03112' : 'Model 4B Revision 1.2 (4 GB)',
+            'b03114' : 'Model 4B Revision 1.4 (2 GB)',
+            'c03114' : 'Model 4B Revision 1.4 (4 GB)',
+            'd03114' : 'Model 4B Revision 1.4 (8 GB)',
+            'c03115' : 'Model 4B Revision 1.5 (4 GB)',
+            'c03130' : 'Pi 400 Revision 1.0 (4 GB)',
+            'c04170' : 'Raspberry Pi 5 Model B Rev 1.0 (4 GB)',
+            'd04170' : 'Raspberry Pi 5 Model B Rev 1.0 (8 GB)'
+        }     
+        
+        revision = '0000'
+        try:
+            f = open('/proc/cpuinfo','r')
+            for line in f:
+                if line[0:8]=='Revision':
+                    length=len(line)
+                    revision = line[11:length-1]
+            f.close()
+        except:
+            revision = "0000"
+      
+        try:
+            piVersion = revisions[revision]
+        except:
+            piVersion = revisions['0000']
+        
+        return piVersion
+                    
+    def _displaySystemChecks(self):
+        configFile = '/boot/firmware/config.txt'
+        if not os.path.exists(configFile):
+            configFile = '/boot/config.txt'
+
+        f = open(configFile, 'r')
+        bootFileText = f.read()
+        f.close()
+
+        regex = r"""^(device_tree_param|dtparam)=([^,]*,)*i2c(_arm)?(=(on|true|yes|1))?(,.*)?$"""
+        i2cEnabled = bool(re.search(regex, bootFileText, re.MULTILINE | re.VERBOSE))
+        
+        i2cDevices = ''
+        if i2cEnabled:
+            i2cDevices = self._getI2Cevices()
+        onlineStatus = self._checkInternet()
+        piVersion = self._getPiVersion()
+
+        try:
+            allSkyInstalled = os.environ['ALLSKY_HOME']
+        except:
+            allSkyInstalled = 'Not Installed'
+                                            
+        data = f"System Checks\n"
+        data += f"{'-'*76}\n\n"
+        
+        data += f"Pi Version: {piVersion}\n\n"
+        data += f"Allsky Location: {allSkyInstalled}\n\n"        
+        data += f"i2c Enabled: {i2cEnabled}"
+        if i2cEnabled:
+            data += f"\ni2c Devices: {','.join(i2cDevices)}"
+
+        data += f"\n\nOnline: {onlineStatus}"
+
+                    
+        tempFileHandle = tempfile.NamedTemporaryFile(mode='w+t')
+        tempFileName = tempFileHandle.name
+        tempFileHandle.close()
+        try: 
+            f = open(tempFileName, 'w')
+            f.write(data)
+            f.close()
+            w = Whiptail(title='Allsky Module System Checks', backtitle='AllSky Module Manager', height=30, width = 80)
+            msgbox = w.textbox(tempFileHandle.name)
+        finally: 
+            os.remove(tempFileName)
+        pass
+    
+    def _getGitBranch(self):
+        local_branch = Repo().head.ref.name
+        
+        return local_branch
+    
+    def run(self):
+        done = False
+        
+        gitBranch = self._getGitBranch()
+        
+        if gitBranch == 'dev':
+            w = Whiptail(title='warning', backtitle='AllSky Module Manager', height=20, width=80)
+            message = "You are using the dev branch of the Allsk extra modules.\nThis branch contains work that may not be complete nor fully tested\n\nUsage of this branch is entirely at your own risk"
+            msgbox = w.msgbox(message)
+                
+        while not done:
+            w = Whiptail(title='Main Menu', backtitle='AllSky Module Manager', height=20, width = 40)
+            menuOption, returnCode = w.menu('', ['Install/Remove Modules', 'Module Information', 'System Checks', 'Exit'])
+
+            if returnCode == 0:
+                if menuOption == 'Exit':
+                    done = True
+                if menuOption == 'Module Information':
+                    self._displayModulesInfo()
+                if menuOption == 'System Checks':
+                    self._displaySystemChecks()                    
+                if menuOption == 'Install/Remove Modules':
+                    if self._preChecks():
+                        self._readModules()
+                        self._displayInstallDialog()
+                        self._doInstall()            
+                    else:
+                        sys.exit(0)
+            else :
+                done = True
+
+if __name__ == '__main__':
+    moduleInstaller = ALLSKYMODULEINSTALLER()
+    moduleInstaller.run()
