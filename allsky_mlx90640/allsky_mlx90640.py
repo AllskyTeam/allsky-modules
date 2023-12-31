@@ -43,7 +43,10 @@ metaData = {
             "help": "The filename to save the image as. NOTE: Does not need the path. The image will be saved in the overlay images folder"         
         }                                                                
     },
-    "enabled": "false"            
+    "enabled": "false",
+    "businfo": [
+        "i2c"
+    ]             
 }
 
 

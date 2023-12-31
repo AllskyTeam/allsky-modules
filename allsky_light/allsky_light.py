@@ -92,7 +92,10 @@ metaData = {
             }                
         }                                                                                    
     },
-    "enabled": "false"            
+    "enabled": "false",
+    "businfo": [
+        "i2c"
+    ]        
 }
 
 def readTSL2591(params):

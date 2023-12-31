@@ -64,7 +64,10 @@ metaData = {
             }                
         }                                                                                
     },
-    "enabled": "false"            
+    "enabled": "false",
+    "businfo": [
+        "i2c"
+    ]             
 }
 
 def ltr390(params, event):
