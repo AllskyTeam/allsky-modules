@@ -285,6 +285,9 @@ metaData = {
         }    
                         
     },
+    "businfo": [
+        "i2c"
+    ],    
     "changelog": {
         "v1.0.0" : [
             {
