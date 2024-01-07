@@ -80,7 +80,16 @@ metaData = {
             "description": "Border Colour",            
             "help": "The RGB colour of the border, default to black. This shoudl be comma separated values i.e. 255,0,0 for Red"
         }           
-    }      
+    },
+    "changelog": {
+        "v1.0.0" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Initial Release"
+            }
+        ]                              
+    }           
 }
 
 def border(params, event):
@@ -92,7 +101,7 @@ def border(params, event):
     bottom = int(params["bottom"])
     colours = params["colour"]
 
-    # Set the colours for the border. The colour MUSt be specified as R,G,B. If there are ANY errors detected
+    # Set the colours for the border. The colour MUST be specified as R,G,B. If there are ANY errors detected
     # in the colour options then black will be used.
     colourArray = colours.split(",")
     if len(colourArray) == 3 and colourArray[0].isdigit() and colourArray[1].isdigit() and colourArray[2].isdigit():
@@ -101,7 +110,6 @@ def border(params, event):
         colour = [0,0,0]
 
     s.image = cv2.copyMakeBorder(s.image, top, bottom, left, right, cv2.BORDER_CONSTANT, None, colour)
-     
      
     return result
 

@@ -6,7 +6,6 @@ https://github.com/thomasjacquin/allsky
 
 '''
 import allsky_shared as s
-import cv2
 import os
 import numpy as np
 import discord
@@ -24,7 +23,7 @@ metaData = {
         "night",
         "nightday"
     ],
-    "experimental": "true",    
+    "experimental": "false",    
     "arguments":{
         "dayimage": "false",
         "dayimageurl": "",
@@ -140,7 +139,16 @@ metaData = {
             "description": "The webhook url for Timelapses"
         }      
     },
-    "enabled": "false"            
+    "enabled": "false",
+    "changelog": {
+        "v1.0.0" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Initial Release"
+            }
+        ]                              
+    }              
 }
 
 def checkSend(key, count, type):

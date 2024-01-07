@@ -6,7 +6,7 @@ https://github.com/thomasjacquin/allsky
 
 '''
 import allsky_shared as s
-import os
+import sys
 import math
 import board
 import adafruit_mlx90614
@@ -15,10 +15,11 @@ metaData = {
     "name": "Determines cloud cover",
     "description": "Determines cloud cover using an MLX90614",
     "module": "allsky_cloud",
-    "version": "v1.0.0",    
+    "version": "v1.0.1",    
     "events": [
         "night",
-        "day"
+        "day",
+        "periodic"
     ],
     "experimental": "true",    
     "arguments":{
@@ -32,7 +33,8 @@ metaData = {
         "k4": 100,
         "k5": 100,
         "k6": 0,
-        "k7": 0
+        "k7": 0,
+        "extradatafilename": "allskcloud.json"
     },
     "argumentdetails": {                   
         "i2caddress": {
@@ -65,6 +67,12 @@ metaData = {
                 "step": 1
             }          
         },
+        "extradatafilename": {
+            "required": "true",
+            "description": "Extra Data Filename",
+            "tab": "Advanced",
+            "help": "The name of the file to create with the data for the overlay manager"
+        },        
         "advanced" : {
             "required": "false",
             "description": "Use advanced mode",
@@ -155,7 +163,28 @@ metaData = {
     "enabled": "false",
     "businfo": [
         "i2c"
-    ]                 
+    ],
+    "changelog": {
+        "v1.0.0" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Initial Release"
+            }
+        ],
+        "v1.0.1" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": [
+                    "Added extra error handling",
+                    "Added module to periodic flow",
+                    "Added ability to change the extra data filename",
+                    "Added changelog to metadata"
+                ]
+            }
+        ]                                
+    }                  
 }
 
 def getsign(d):
@@ -190,8 +219,6 @@ def calculateSkyStateAdvanced(skyambient, skyobject, clearbelow, cloudyabove, pa
     cloudcover, percent = calculateSkyState(skyambient, skyobject, clearbelow, cloudyabove)
     return cloudcover, cloudcoverPercentage
 
-
-
 def calculateSkyState(skyambient, skyobject, clearbelow, cloudyabove):
     cloudCover = 'Partial'
 
@@ -203,46 +230,51 @@ def calculateSkyState(skyambient, skyobject, clearbelow, cloudyabove):
 
     return cloudCover, 0
 
-
 def cloud(params, event):
     i2caddress = params["i2caddress"]
     clearbelow = int(params["clearbelow"])
     cloudyabove = int(params["cloudyabove"])
-
+    extradatafilename = params['extradatafilename']
+    
     advanced = params["advanced"]
 
     data = {}
     
-    if i2caddress != "":
-        try:
-            i2caddressInt = int(i2caddress, 16)
-        except:
-            result = "Address {} is not a valid i2c address".format(i2caddress)
-            s.log(0,"ERROR: {}".format(result))
+    try:    
+        if i2caddress != "":
+            try:
+                i2caddressInt = int(i2caddress, 16)
+            except:
+                result = "Address {} is not a valid i2c address".format(i2caddress)
+                s.log(0,"ERROR: {}".format(result))
 
-    i2c = board.I2C()
-    if i2caddress != "":
-        mlx = adafruit_mlx90614.MLX90614(i2c, i2caddressInt)
-    else:
-        mlx = adafruit_mlx90614.MLX90614(i2c)
+        i2c = board.I2C()
+        if i2caddress != "":
+            mlx = adafruit_mlx90614.MLX90614(i2c, i2caddressInt)
+        else:
+            mlx = adafruit_mlx90614.MLX90614(i2c)
 
-    skyambient = mlx.ambient_temperature
-    skyobject = mlx.object_temperature
+        skyambient = mlx.ambient_temperature
+        skyobject = mlx.object_temperature
 
-    if advanced:
-        cloudCover, percentage = calculateSkyStateAdvanced(skyambient, skyobject, clearbelow, cloudyabove, params)
-    else:
-        cloudCover, percentage = calculateSkyState(skyambient, skyobject, clearbelow, cloudyabove)
+        if advanced:
+            cloudCover, percentage = calculateSkyStateAdvanced(skyambient, skyobject, clearbelow, cloudyabove, params)
+        else:
+            cloudCover, percentage = calculateSkyState(skyambient, skyobject, clearbelow, cloudyabove)
 
-    data["AS_CLOUDAMBIENT"] = str(skyambient)
-    data["AS_CLOUDSKY"] = str(skyobject)
-    data["AS_CLOUDCOVER"] = cloudCover
-    data["AS_CLOUDCOVERPERCENT"] = str(percentage)
-    s.saveExtraData("allskcloud.json", data)
+        data["AS_CLOUDAMBIENT"] = str(skyambient)
+        data["AS_CLOUDSKY"] = str(skyobject)
+        data["AS_CLOUDCOVER"] = cloudCover
+        data["AS_CLOUDCOVERPERCENT"] = str(percentage)
+        s.saveExtraData(extradatafilename, data)
 
-    result = "Cloud state - {0} {1}. Sky Temp {2}, Ambient {3}".format(cloudCover, percentage, skyobject, skyambient)
-    s.log(1, "INFO: {}".format(result))
-
+        result = "Cloud state - {0} {1}. Sky Temp {2}, Ambient {3}".format(cloudCover, percentage, skyobject, skyambient)
+        s.log(1, "INFO: {}".format(result))
+    except Exception as e:
+        eType, eObject, eTraceback = sys.exc_info()
+        result = f"ERROR: Module cloud failed on line {eTraceback.tb_lineno} - {e}"
+        s.log(4, result)
+        
     return result 
 
 def cloud_cleanup():

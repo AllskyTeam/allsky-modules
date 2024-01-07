@@ -19,8 +19,13 @@ V1.0.4 by Andreas Schminder
 import allsky_shared as s
 import time
 import sys
+import os
 import json
 import urllib.request
+import requests
+import json
+from meteocalc import heat_index
+from meteocalc import dew_point, Temp
 import board
 import adafruit_sht31d
 import adafruit_dht
@@ -35,7 +40,7 @@ metaData = {
     "name": "Sky Dew Heater Control",
     "description": "Controls a dew heater via a temperature and humidity sensor",
     "module": "allsky_dewheater",
-    "version": "v1.0.4",
+    "version": "v1.0.5",
     "events": [
         "periodic"
     ],
@@ -57,7 +62,12 @@ metaData = {
         "dhtxxdelay" : "500",
         "extradatafilename": "allskydew.json",
         "sht31heater": "False",
-        "solourl": ""
+        "solourl": "",
+        "apikey": "",
+        "period": 120,
+        "expire": 240,
+        "filename": "openweather.json",
+        "units": "metric"        
     },
     "argumentdetails": {
         "type" : {
@@ -67,7 +77,7 @@ metaData = {
             "tab": "Sensor",
             "type": {
                 "fieldtype": "select",
-                "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,SOLO-Cloudwatcher",
+                "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,SOLO-Cloudwatcher,OpenWeather",
                 "default": "None"
             }
         },
@@ -225,7 +235,55 @@ metaData = {
             "description": "URL from solo",
             "help": "Read weather data from lunaticoastro.com 'Solo Cloudwatcher'",
             "tab": "Solo"
-        }        
+        },
+        
+        "apikey": {
+            "required": "false",
+            "description": "API Key",
+            "tab": "OpenWeather",            
+            "help": "Your Open Weather Map API key. <b style='color: #ff0000'>IMPORTANT</b> Do not use this function and the OpenWeather API module as well. If you are using this function then please remove the OpenWeather Module as both create the same overlay data"         
+        },
+        "filename": {
+            "required": "true",
+            "description": "Filename",
+            "tab": "OpenWeather",            
+            "help": "The name of the file that will be written to the allsky/tmp/extra directory"         
+        },        
+        "period" : {
+            "required": "true",
+            "description": "Read Every",
+            "help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
+            "tab": "OpenWeather",            
+            "type": {
+                "fieldtype": "spinner",
+                "min": 60,
+                "max": 1440,
+                "step": 1
+            }          
+        },
+        "units" : {
+            "required": "false",
+            "description": "Units",
+            "help": "Units of measurement. standard, metric and imperial",
+            "tab": "OpenWeather",            
+            "type": {
+                "fieldtype": "select",
+                "values": "standard,metric,imperial"
+            }                
+        },        
+        "expire" : {
+            "required": "true",
+            "description": "Expiry Time",
+            "help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value",
+            "tab": "OpenWeather",            
+            "type": {
+                "fieldtype": "spinner",
+                "min": 61,
+                "max": 1500,
+                "step": 1
+            }          
+        }    
+                        
     },
     "changelog": {
         "v1.0.0" : [
@@ -264,12 +322,211 @@ metaData = {
                 "authorurl": "https://github.com/Adler6907",
                 "changes": "Added Solo Cloudwatcher"
             }
-        ]                                
+        ],
+        "v1.0.5" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Added OpenWeather option"
+            }
+        ]                                        
     },
     "businfo": [
         "i2c"
     ] 
 }
+
+def createCardinal(degrees):
+    try:
+        cardinals = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW','W', 'WNW', 'NW', 'NNW', 'N']
+        cardinal = cardinals[round(degrees / 22.5)]
+    except Exception:
+        cardinal = 'N/A'
+    
+    return cardinal
+
+def setExtraValue(path, data, extraKey, expires, extraData):
+    value = getValue(path, data)
+    if value is not None:
+        extraData["AS_" + extraKey] = {
+            "value": value,
+            "expires": expires
+        }
+
+def getValue(path, data):
+    result = None
+    keys = path.split(".")
+    if keys[0] in data:
+        subData = data[keys[0]]
+        
+        if isinstance(subData, list):        
+            if keys[1] in subData[0]:
+                result = subData[0][keys[1]]
+        else:
+            if keys[1] in subData:
+                result = subData[keys[1]]
+    
+    return result
+
+def processResult(data, expires, units):
+    extraData = {}
+    #rawData = '{"coord":{"lon":0.2,"lat":52.4},"weather":[{"id":802,"main":"Clouds","description":"scattered clouds","icon":"03d"}],"base":"stations","main":{"temp":291.84,"feels_like":291.28,"temp_min":290.91,"temp_max":292.65,"pressure":1007,"humidity":58},"visibility":10000,"wind":{"speed":8.23,"deg":250,"gust":10.8},"clouds":{"all":40},"dt":1664633294,"sys":{"type":2,"id":2012440,"country":"GB","sunrise":1664603991,"sunset":1664645870},"timezone":3600,"id":2633751,"name":"Witchford","cod":200}'
+    #data = json.loads(rawData)
+    setExtraValue("weather.main", data, "OWWEATHER", expires, extraData)
+    setExtraValue("weather.description", data, "OWWEATHERDESCRIPTION", expires, extraData)
+
+    setExtraValue("main.temp", data, "OWTEMP", expires, extraData)
+    setExtraValue("main.feels_like", data, "OWTEMPFEELSLIKE", expires, extraData)
+    setExtraValue("main.temp_min", data, "OWTEMPMIN", expires, extraData)
+    setExtraValue("main.temp_max", data, "OWTEMPMAX", expires, extraData)
+    setExtraValue("main.pressure", data, "OWPRESSURE", expires, extraData)
+    setExtraValue("main.humidity", data, "OWHUMIDITY", expires, extraData)
+
+    setExtraValue("wind.speed", data, "OWWINDSPEED", expires, extraData)
+    setExtraValue("wind.deg", data, "OWWINDDIRECTION", expires, extraData)
+    setExtraValue("wind.gust", data, "OWWINDGUST", expires, extraData)
+
+    setExtraValue("clouds.all", data, "OWCLOUDS", expires, extraData)
+
+    setExtraValue("rain.1hr", data, "OWRAIN1HR", expires, extraData)
+    setExtraValue("rain.3hr", data, "OWRAIN3HR", expires, extraData)
+
+    setExtraValue("sys.sunrise", data, "OWSUNRISE", expires, extraData)
+    setExtraValue("sys.sunset", data, "OWSUNSET", expires, extraData)
+
+    temperature = float(getValue("main.temp", data))
+    humidity = float(getValue("main.humidity", data))
+    if units == "imperial":
+        t = Temp(temperature, 'f')
+        dewPoint = dew_point(t, humidity).f
+        heatIndex = heat_index(t, humidity).f
+    
+    if units == "metric":
+        t = Temp(temperature, 'c')        
+        dewPoint = dew_point(temperature, humidity).c
+        heatIndex = heat_index(temperature, humidity).c
+
+    if units == "standard":
+        t = Temp(temperature, 'k')        
+        dewPoint = dew_point(temperature, humidity).k
+        heatIndex = heat_index(temperature, humidity).k
+
+    degress = getValue('wind.deg', data)
+    cardinal = createCardinal(degress)
+
+    extraData["AS_OWWINDCARDINAL"] = {
+        "value": cardinal,
+        "expires": expires
+    }
+                
+    extraData["AS_OWDEWPOINT"] = {
+        "value": round(dewPoint,1),
+        "expires": expires
+    }
+        
+    extraData["AS_OWHEATINDEX"] = {
+        "value": round(heatIndex,1),
+        "expires": expires
+    }
+    
+    return extraData
+
+def getOWValue(field, jsonData, fileModifiedTime):
+    result = False    
+    
+    if field in jsonData:
+        result = jsonData[field]["value"]
+    
+    if "expires" in jsonData[field]:
+        maxAge = jsonData[field]["expires"]
+        age = int(time.time()) - fileModifiedTime
+        if age > maxAge:
+            s.log(4, f"WARNING: field {field} has expired - age is {age}")
+            result = None
+            
+    return result
+                    
+def getOWValues(fileName):
+    temperature = None
+    humidity = None
+    pressure = None
+    dewPoint = None
+    
+    allskyPath = s.getEnvironmentVariable("ALLSKY_HOME")
+    extraDataFileName = os.path.join(allskyPath, "config", "overlay", "extra", fileName)
+    
+    if os.path.isfile(extraDataFileName):
+        fileModifiedTime = int(os.path.getmtime(extraDataFileName))
+        with open(extraDataFileName,"r") as file:
+            jsonData = json.load(file)
+            temperature = getOWValue("AS_OWTEMP", jsonData, fileModifiedTime)
+            humidity = getOWValue("AS_OWHUMIDITY", jsonData, fileModifiedTime)
+            pressure = getOWValue("AS_OWPRESSURE", jsonData, fileModifiedTime)
+            dewPoint = getOWValue("AS_OWDEWPOINT", jsonData, fileModifiedTime)
+
+    return temperature, humidity, pressure, dewPoint
+    
+def readOpenWeather(params):
+    expire = int(params["expire"])
+    period = int(params["period"])
+    apikey = params["apikey"]
+    fileName = params["filename"]
+    module = metaData["module"]
+    units = params["units"]
+    temperature = None
+    humidity = None
+    pressure = None
+    dewPoint = None
+    
+    try:
+        shouldRun, diff = s.shouldRun(module, period)
+        if shouldRun:
+            if apikey != "":
+                if fileName != "":
+                    lat = s.getSetting("latitude")
+                    if lat is not None and lat != "":
+                        lat = s.convertLatLon(lat)
+                        lon = s.getSetting("longitude")
+                        if lon is not None and lon != "":
+                            lon = s.convertLatLon(lon)
+                            try:
+                                resultURL = "https://api.openweathermap.org/data/2.5/weather?lat={0}&lon={1}&units={2}&appid={3}".format(lat, lon, units, apikey)
+                                s.log(4,f"INFO: Reading Openweather API from - {resultURL}")
+                                response = requests.get(resultURL)
+                                if response.status_code == 200:
+                                    rawData = response.json()
+                                    extraData = processResult(rawData, expire, units)
+                                    s.saveExtraData(fileName, extraData )
+                                    result = f"Data acquired and written to extra data file {fileName}"
+                                    s.log(1,f"INFO: {result}")
+                                else:
+                                    result = f"Got error from Open Weather Map API. Response code {response.status_code}"
+                                    s.log(0,f"ERROR: {result}")
+                            except Exception as e:
+                                result = str(e)
+                                s.log(0, f"ERROR: {result}")
+                            s.setLastRun(module)                            
+                        else:
+                            result = "Invalid Longitude. Check the Allsky configuration"
+                            s.log(0,f"ERROR: {result}")
+                    else:
+                        result = "Invalid Latitude. Check the Allsky configuration"
+                        s.log(0,f"ERROR: {result}")
+                else:
+                    result = "Missing filename for data"
+                    s.log(0,f"ERROR: {result}")
+            else:
+                result = "Missing Open Weather Map API key"
+                s.log(0,f"ERROR: {result}")
+        else:
+            s.log(4,f"INFO: Using Cached Openweather API data")
+            
+        temperature, humidity, pressure, dewPoint = getOWValues(fileName)                
+    except Exception as e:
+        eType, eObject, eTraceback = sys.exc_info()
+        s.log(0, f"ERROR: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}")   
+    
+    return temperature, humidity, pressure, dewPoint
 
 def readSHT31(sht31heater):
     temperature = None
@@ -280,7 +537,7 @@ def readSHT31(sht31heater):
         sensor.heater = sht31heater
         temperature = sensor.temperature
         humidity = sensor.relative_humidity
-    except RuntimeError as e:
+    except Exception as e:
         eType, eObject, eTraceback = sys.exc_info()
         s.log(4, f"ERROR: Module readSHT31 failed on line {eTraceback.tb_lineno} - {e}")
 
@@ -301,7 +558,7 @@ def doDHTXXRead(inputpin):
             s.log(4, f"ERROR: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}")
     except Exception as e:
         eType, eObject, eTraceback = sys.exc_info()
-        s.log(4, f"ERROR: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}")
+        s.log(4, f"WARNING: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}")
 
     return temperature, humidity
 
@@ -315,7 +572,7 @@ def readDHT22(inputpin, dhtxxretrycount, dhtxxdelay):
         temperature, humidity = doDHTXXRead(inputpin)
 
         if temperature is None and humidity is None:
-            s.log(4, "INFO: Failed to read DHTXX on attempt {}".format(count+1))
+            s.log(4, "WARNING: Failed to read DHTXX on attempt {}".format(count+1))
             count = count + 1
             if count > dhtxxretrycount:
                 reading = False
@@ -352,7 +609,7 @@ def readBme280I2C(i2caddress):
         relHumidity = bme280.relative_humidity
         altitude = bme280.altitude
         pressure = bme280.pressure
-    except ValueError as e:
+    except Exception as e:
         eType, eObject, eTraceback = sys.exc_info()
         s.log(0, f"ERROR: Module readBme280I2C failed on line {eTraceback.tb_lineno} - {e}")
 
@@ -378,7 +635,7 @@ def readHtu21(i2caddress):
 
         temperature =  htu21.temperature
         humidity = htu21.relative_humidity
-    except ValueError as e:
+    except Exception as e:
         eType, eObject, eTraceback = sys.exc_info()
         s.log(4, f"ERROR: Module readHtu21 failed on line {eTraceback.tb_lineno} - {e}")
         
@@ -492,7 +749,7 @@ def turnHeaterOff(heaterpin, invertrelay, extra=False):
         s.dbDeleteKey("dewheaterontime")
     s.log(1,f"INFO: {result}")
 
-def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay, sht31heater, soloURL):
+def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay, sht31heater, soloURL, params):
     temperature = None
     humidity = None
     dewPoint = None
@@ -512,7 +769,9 @@ def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdel
     elif sensorType == "AHTx0":
         temperature, humidity = readAHTX0(i2caddress)
     elif sensorType == "SOLO-Cloudwatcher":
-        temperature, humidity, pressure, dewPoint = readSolo(soloURL)         
+        temperature, humidity, pressure, dewPoint = readSolo(soloURL)
+    elif sensorType == 'OpenWeather':
+        temperature, humidity, pressure, dewPoint = readOpenWeather(params)
     else:
         s.log(0,"ERROR: No sensor type defined")
 
@@ -602,7 +861,7 @@ def dewheater(params, event):
                 lastRunSecs = now - lastRunTime
                 if lastRunSecs >= frequency:
                     s.dbUpdate("dewheaterlastrun", now)
-                    temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude = getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay, sht31heater, soloURL)
+                    temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude = getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay, sht31heater, soloURL, params)
                     if temperature is not None:
                         lastOnSecs = 0
                         if s.dbHasKey("dewheaterontime"):
@@ -639,6 +898,7 @@ def dewheater(params, event):
                                 heater = 'Off'
                             
                         extraData = {}
+                        extraData["AS_DEWCONTROLSENSOR"] = str(sensorType)
                         extraData["AS_DEWCONTROLAMBIENT"] = str(temperature)
                         extraData["AS_DEWCONTROLDEW"] = str(dewPoint)
                         extraData["AS_DEWCONTROLHUMIDITY"] = str(humidity)

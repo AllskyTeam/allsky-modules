@@ -327,7 +327,6 @@ class lGraph():
             self.elev_color = self._readColor(params["elev_color"])
             self.sun_color = self._readColor(params["sun_color"])
             self.moon_color = self._readColor(params["moon_color"])
-
                 
     def set_size(self, debug, params):
         self.image_width = s.image.shape[1]
