@@ -333,10 +333,7 @@ metaData = {
                 "changes": "Added OpenWeather option"
             }
         ]                                        
-    },
-    "businfo": [
-        "i2c"
-    ] 
+    }
 }
 
 def createCardinal(degrees):
