@@ -178,6 +178,28 @@ metaData = {
             }          
         }                   
     },
+    "businfo": [
+        "i2c"
+    ],    
+    "changelog": {
+        "v1.0.0" : [
+            {
+                "author": "Lorenzi70",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Initial Release"
+            }
+        ],
+        "v1.0.1" : [
+            {
+                "author": "Tamas Maroti (CapricornusObs)",
+                "authorurl": "https://github.com/CapricornusObs",
+                "changes": [
+                    "Added external temperature sensors to control fan",
+                    "Added BMP280 sersor control code"
+                ]
+            }
+        ]
+    },
     "enabled": "false"
 }
 
