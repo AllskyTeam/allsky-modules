@@ -48,7 +48,16 @@ metaData = {
             "tab": "Misc",              
             "help": "The name of the file to create with the rain data for the overlay manager"         
         }              
-    }      
+    },
+    "changelog": {
+        "v1.0.0" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Initial Release"
+            }
+        ]                              
+    }         
 }
 
 def rain(params, event):

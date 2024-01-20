@@ -7,6 +7,7 @@ https://github.com/thomasjacquin/allsky
 '''
 import allsky_shared as s
 import os
+import sys
 import time
 import datetime
 import subprocess
@@ -20,7 +21,6 @@ metaData = {
     "events": [
         "periodic"
     ],
-    "experimental": "true",    
     "arguments":{
         "warnposition": "True",
         "setposition": "False",
@@ -109,7 +109,16 @@ metaData = {
                 "step": 1
             }          
         }                           
-    }          
+    },
+    "changelog": {
+        "v1.0.0" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Initial Release"
+            }
+        ]                              
+    }         
 }
 
 def checkTimeSyncRunning():
@@ -135,9 +144,13 @@ def checkTimeSyncRunning():
     return result
 
 def truncate(val):
-    val = val.split(".")
-    val[1] = val[1][:3]
-    val = ".".join(val)
+    if '.' in val:
+        val = val.split(".")
+        val[1] = val[1][:3]
+        val = ".".join(val)
+    else:
+        val = f'{val}.000'
+    
     return val
     
 def compareGPSandAllSky(lat, lon):
@@ -169,13 +182,13 @@ def compareGPSandAllSky(lat, lon):
     lat = float(truncate(lat[:-1]))
     lon = float(truncate(lon[:-1]))
 
-    lat = "{}{}".format(lat, latCompass)
-    lon = "{}{}".format(lon, lonCompass)
-        
+    lat = f"{lat}{latCompass}"
+    lon = f"{lon}{lonCompass}"
+    
     result = False
     if allSkyLat != lat or allSkyLon != lon:
         result = True
-        
+    
     return result, allSkyLat, allSkyLon, lat, lon
        
 def deg_to_dms(deg, type='lat'):
@@ -191,7 +204,6 @@ def deg_to_dms(deg, type='lat'):
     return '{}º{}\'{:.2f}"{}'.format(abs(d), abs(m), abs(s), compass_str)      
  
 def pigps(params, event):
-    
     ONEMETER = 0.00001
     setposition = params['setposition']
     warnposition = params['warnposition']
@@ -222,7 +234,7 @@ def pigps(params, event):
         "AS_PIGPSLONDEC": "",
         "AS_PIGPSFIXDISC": ""
     }
-    
+
     if shouldRun:
         if settime:
             if not checkTimeSyncRunning():
@@ -272,7 +284,7 @@ def pigps(params, event):
                 s.log(4,"INFO: {}".format(result))
         else:
             result = "Time update disabled"
-            s.log(4, "INFO: {}".format(result))             
+            s.log(4, f"INFO: {result}")
         
         if warnposition or setposition:                
             try:
@@ -292,34 +304,25 @@ def pigps(params, event):
                                 if obfuscate:
                                     lat = lat + (obfuscatelatdistance * ONEMETER)
                                     lon = lon + (obfuscatelondistance * ONEMETER)
-                                    s.log(4, "INFO: Offsetting latitude by {}m and longitude by {}m".format(obfuscatelatdistance, obfuscatelondistance))
-                                discResult, discAllSkyLat, discAllSkyLon, discLat, discLon = compareGPSandAllSky(lat, lon)
+                                    s.log(4, f"INFO: Offsetting latitude by {obfuscatelatdistance}m and longitude by {obfuscatelondistance}m")
+                                discResult, discAllSkyLat, discAllSkyLon, strLat, strLon = compareGPSandAllSky(lat, lon)
                                 if discResult:
                                     extraData["AS_PIGPSFIXDISC"] = extradataposdisc
-                                                            
-                                if (lat < 0):
-                                    strLat = "{}S".format(abs(lat))
-                                else:
-                                    strLat = "{}N".format(lat)
-
-                                if (lon < 0):
-                                    strLon = "{}W".format(abs(lon))
-                                else:
-                                    strLon = "{}E".format(lon)
                                 
-                                if setposition:
+                                if setposition and discResult:
                                     updateData = []
                                     updateData.append({"latitude": strLat})
                                     updateData.append({"longitude": strLon})
                                     s.updateSetting(updateData)
-                                    s.log(4, "INFO: AllSky Lat/Lon updated - An AllSky restart will be required for them to take effect")
+                                    s.log(4, f"INFO: AllSky Lat/Lon updated to {strLat},{strLon} - An AllSky restart will be required for them to take effect")
                                 else:
                                     if discResult:
-                                        positionResult = "GPS position differs from AllSky position. AllSky {} {}, GPS {} {}".format(discAllSkyLat, discAllSkyLon, discLat, discLon)
+                                        positionResult = f"GPS position differs from AllSky position. AllSky {discAllSkyLat} {discAllSkyLon}, GPS {strLat} {strLon}"
                                     else:
-                                        positionResult = "Lat {:.6f} Lon {:.6f} - {},{}".format(lat, lon, strLat, strLon)
-                                result = result + ". {}".format(positionResult)
-                                s.log(4, "INFO: {}".format(positionResult))
+                                        positionResult = f"Lat {lat:.6f} Lon {lon:.6f} - {strLat},{strLon}"
+                                    result = result + f". {positionResult}"
+                                    s.log(4, f"INFO: {positionResult}")
+                                    
                                 extraData["AS_PIGPSLATDEC"] = strLat
                                 extraData["AS_PIGPSLONDEC"] = strLon
                                 extraData["AS_PIGPSLAT"] = deg_to_dms(lat, 'lat')
@@ -336,9 +339,11 @@ def pigps(params, event):
                         s.log(1,"ERROR: {}".format(result)) 
                         break                    
 
-            except Exception as err:
-                result = "No GPS found. Please check gpsd is configured and running - {}".format(err)
-                s.log(1,"ERROR: {}".format(result))
+            except Exception as e:
+                eType, eObject, eTraceback = sys.exc_info()
+                result = f"ERROR: Module pigps failed on line {eTraceback.tb_lineno} - {e}"
+                s.log(1, result)
+
         else:
             positionResult = "Position update disabled"
             result = result + ". {}".format(positionResult)

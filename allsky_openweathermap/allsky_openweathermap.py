@@ -8,7 +8,7 @@ This module will retrieve data from the Open Weather Map API
 
 '''
 import allsky_shared as s
-import os
+import sys
 import requests
 import json
 from meteocalc import heat_index
@@ -17,7 +17,8 @@ from meteocalc import dew_point, Temp
 metaData = {
     "name": "Open Weather Map",
     "description": "Gets weather data from the Open Weather Map service",
-    "module": "allsky_openweathermap",       
+    "module": "allsky_openweathermap",
+    "version": "v1.0.1",   
     "events": [
         "periodic"
     ],
@@ -70,11 +71,40 @@ metaData = {
                 "step": 1
             }          
         }                    
-    }      
+    },
+    "changelog": {
+        "v1.0.0" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Initial Release"
+            }
+        ],
+        "v1.0.1" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": [
+                    "Added Cardinal wind direction",
+                    "Converted to f-strings",
+                    "Improved error handling"
+                ]
+            }
+        ]                                         
+    }            
 }
 
 extraData = {}
 
+def createCardinal(degrees):
+    try:
+        cardinals = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW','W', 'WNW', 'NW', 'NNW', 'N']
+        cardinal = cardinals[round(degrees / 22.5)]
+    except Exception:
+        cardinal = 'N/A'
+    
+    return cardinal
+    
 def processResult(data, expires, units):
     #rawData = '{"coord":{"lon":0.2,"lat":52.4},"weather":[{"id":802,"main":"Clouds","description":"scattered clouds","icon":"03d"}],"base":"stations","main":{"temp":291.84,"feels_like":291.28,"temp_min":290.91,"temp_max":292.65,"pressure":1007,"humidity":58},"visibility":10000,"wind":{"speed":8.23,"deg":250,"gust":10.8},"clouds":{"all":40},"dt":1664633294,"sys":{"type":2,"id":2012440,"country":"GB","sunrise":1664603991,"sunset":1664645870},"timezone":3600,"id":2633751,"name":"Witchford","cod":200}'
     #data = json.loads(rawData)
@@ -116,7 +146,15 @@ def processResult(data, expires, units):
         t = Temp(temperature, 'k')        
         dewPoint = dew_point(temperature, humidity).k
         heatIndex = heat_index(temperature, humidity).k
-        
+
+    degress = getValue('wind.deg', data)
+    cardinal = createCardinal(degress)
+
+    extraData["AS_OWWINDCARDINAL"] = {
+        "value": cardinal,
+        "expires": expires
+    }
+                
     extraData["AS_OWDEWPOINT"] = {
         "value": round(dewPoint,1),
         "expires": expires
@@ -135,7 +173,6 @@ def setExtraValue(path, data, extraKey, expires):
             "value": value,
             "expires": expires
         }
-
 
 def getValue(path, data):
     result = None
@@ -163,55 +200,60 @@ def openweathermap(params, event):
     module = metaData["module"]
     units = params["units"]
 
-    shouldRun, diff = s.shouldRun(module, period)
-    if shouldRun:
-        if fileName != "":
-            if apikey != "":
-                allskyPath = s.getEnvironmentVariable("ALLSKY_HOME")
-                if allskyPath is not None:
-                    lat = s.getSetting("latitude")
-                    if lat is not None and lat != "":
-                        lat = s.convertLatLon(lat)
-                        lon = s.getSetting("longitude")
-                        if lon is not None and lon != "":
-                            lon = s.convertLatLon(lon)
-                            try:
-                                resultURL = "https://api.openweathermap.org/data/2.5/weather?lat={0}&lon={1}&units={2}&appid={3}".format(lat, lon, units, apikey)
-                                print(resultURL)
-                                response = requests.get(resultURL)
-                                if response.status_code == 200:
-                                    rawData = response.json()
-                                    processResult(rawData, expire, units)
-                                    s.saveExtraData(fileName,extraData )
-                                    result = "Data acquired and written to extra data file {}".format(fileName)
-                                    s.log(1,"INFO: {}".format(result))
-                                else:
-                                    result = "Got error from Open Weather Map API. Response code {}".format(response.status_code)
-                                    s.log(0,"ERROR: {}".format(result))
-                            except Exception as e:
-                                result = str(e)
-                                s.log(0, "ERROR: {}".format(result))
+    try:
+        shouldRun, diff = s.shouldRun(module, period)
+        if shouldRun:
+            if fileName != "":
+                if apikey != "":
+                    allskyPath = s.getEnvironmentVariable("ALLSKY_HOME")
+                    if allskyPath is not None:
+                        lat = s.getSetting("latitude")
+                        if lat is not None and lat != "":
+                            lat = s.convertLatLon(lat)
+                            lon = s.getSetting("longitude")
+                            if lon is not None and lon != "":
+                                lon = s.convertLatLon(lon)
+                                try:
+                                    resultURL = "https://api.openweathermap.org/data/2.5/weather?lat={0}&lon={1}&units={2}&appid={3}".format(lat, lon, units, apikey)
+                                    s.log(4,f"INFO: URL - {resultURL}")
+                                    response = requests.get(resultURL)
+                                    if response.status_code == 200:
+                                        rawData = response.json()
+                                        processResult(rawData, expire, units)
+                                        s.saveExtraData(fileName,extraData )
+                                        result = f"Data acquired and written to extra data file {fileName}"
+                                        s.log(1,f"INFO: {result}")
+                                    else:
+                                        result = f"Got error from Open Weather Map API. Response code {response.status_code}"
+                                        s.log(0,f"ERROR: {result}")
+                                except Exception as e:
+                                    result = str(e)
+                                    s.log(0, f"ERROR: {result}")
+                            else:
+                                result = "Invalid Longitude. Check the Allsky configuration"
+                                s.log(0,f"ERROR: {result}")
                         else:
-                            result = "Invalid Longitude. Check the Allsky configuration"
-                            s.log(0,"ERROR: {}".format(result))
+                            result = "Invalid Latitude. Check the Allsky configuration"
+                            s.log(0,f"ERROR: {result}")
                     else:
-                        result = "Invalid Latitude. Check the Allsky configuration"
-                        s.log(0,"ERROR: {}".format(result))
+                        result = "Cannot find ALLSKY_HOME Environment variable"
+                        s.log(0,f"ERROR: {result}")                    
                 else:
-                    result = "Cannot find ALLSKY_HOME Environment variable"
-                    s.log(0,"ERROR: {}".format(result))                    
+                    result = "Missing Open Weather Map API key"
+                    s.log(0,f"ERROR: {result}")
             else:
-                result = "Missing Open Weather Map API key"
-                s.log(0,"ERROR: {}".format(result))
+                result = "Missing filename for data"
+                s.log(0,f"ERROR: {result}")
+
+            s.setLastRun(module)
         else:
-            result = "Missing filename for data"
-            s.log(0,"ERROR: {}".format(result))
+            result = f"Last run {diff} seconds ago. Running every {period} seconds"
+            s.log(1,f"INFO: {result}")
 
-        s.setLastRun(module)
-    else:
-        result = "Last run {} seconds ago. Running every {} seconds".format(diff, period)
-        s.log(1,"INFO: {}".format(result))
-
+    except Exception as e:
+        eType, eObject, eTraceback = sys.exc_info()
+        s.log(0, f"ERROR: Module openweathermap failed on line {eTraceback.tb_lineno} - {e}")    
+        
     return result
 
 def openweathermap_cleanup():

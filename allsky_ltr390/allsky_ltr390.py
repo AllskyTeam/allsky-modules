@@ -7,6 +7,7 @@ https://github.com/thomasjacquin/allsky
 '''
 import allsky_shared as s
 import board
+import sys
 from adafruit_ltr390 import LTR390, MeasurementDelay, Resolution, Gain
 
 
@@ -14,10 +15,8 @@ metaData = {
     "name": "LTR390 (UV Level)",
     "description": "Provides UV Levels",
     "module": "allsky_ltr390",
-    "version": "v1.0.0",    
+    "version": "v1.0.1",
     "events": [
-        "night",
-        "day",
         "periodic"
     ],
     "experimental": "true",    
@@ -64,7 +63,29 @@ metaData = {
             }                
         }                                                                                
     },
-    "enabled": "false"            
+    "enabled": "false",
+    "businfo": [
+        "i2c"
+    ],
+    "changelog": {
+        "v1.0.0" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Initial Release"
+            }
+        ],
+        "v1.0.1" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": [
+                    "Moved to periodic flow"
+                    "Added addition error logging"
+                ]
+            }
+        ]                                                   
+    }                  
 }
 
 def ltr390(params, event):
@@ -152,9 +173,10 @@ def ltr390(params, event):
 
             result = f"LTR390 Read Ok UVS={uvs} LIGHT={light} UVI={uvi} LUX={lux} Resolution {Resolution.string[ltr.resolution]} Gain {Gain.string[ltr.gain]} Delay {MeasurementDelay.string[ltr.measurement_delay]}"
             s.log(4,f"INFO: {result}")
-        except ValueError:
-            result = "Error reading LTR390"
-            pass
+        except Exception as e:
+            eType, eObject, eTraceback = sys.exc_info()
+            result = f"Module ltr390 failed on line {eTraceback.tb_lineno} - {e}"
+            s.log(1, f"ERROR: {result}")
 
     return result
 

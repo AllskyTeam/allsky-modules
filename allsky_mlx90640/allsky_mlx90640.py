@@ -15,19 +15,23 @@ import cv2
 import cmapy
 import os
 from scipy import ndimage
+from datetime import datetime
+from datetime import timedelta
+import csv
 
 metaData = {
     "name": "All Sky MLX90640",
     "description": "Generates a thermal image from the sensor",
     "module": "allsky_mlx90640",
-    "version": "v1.0.0",    
+    "version": "v1.0.1",    
     "events": [
         "periodic"
     ],
     "experimental": "true",    
     "arguments":{
         "i2caddress": "",
-        "imagefilename": "ir.jpg"
+        "imagefilename": "ir.jpg",
+        "logdata": "False"        
     },
     "argumentdetails": {
         "i2caddress": {
@@ -41,9 +45,34 @@ metaData = {
             "description": "Image filename",
             "tab": "Image",              
             "help": "The filename to save the image as. NOTE: Does not need the path. The image will be saved in the overlay images folder"         
-        }                                                                
+        },
+        "logdata" : {
+            "required": "false",
+            "description": "Log Data",
+            "help": "Log data and images. **WARNING** This will require a lot of additional disk space",
+            "tab": "Logging",            
+            "type": {
+                "fieldtype": "checkbox"
+            }          
+        }                                                                     
     },
-    "enabled": "false"            
+    "enabled": "false",
+    "changelog": {
+        "v1.0.0" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Initial Release"
+            }
+        ],
+        "v1.0.1" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Added data logging"
+            }
+        ]                                      
+    }               
 }
 
 
@@ -75,6 +104,7 @@ class pithermalcam:
         self._interpolation_index = 3
         self._setup_therm_cam()
         self._t0 = time.time()
+        #self.update_image_frame()
 
     def __del__(self):
         pass
@@ -105,9 +135,10 @@ class pithermalcam:
 
         temp_c = np.mean(frame)
         temp_f=self._c_to_f(temp_c)
+        
         max = np.max(frame)
         min = np.min(frame)
-
+        
         return temp_c, temp_f, min, max
 
     def _pull_raw_image(self):
@@ -244,9 +275,17 @@ class pithermalcam:
         norm.shape = (24,32)
         return norm
 
-
+def getAllskyDate():
+    dtNow = datetime.now()
+    dt = dtNow - timedelta(hours=12)
+    dateStr = dt.strftime("%Y%m%d")
+    timeStr = dt.strftime("%H%M%S")
+    
+    return dateStr, timeStr
+    
 def mlx90640(params, event):
     imageFileName = params["imagefilename"]
+    logData = params["logdata"]    
     imagePath = os.path.join(os.environ["ALLSKY_OVERLAY"],"images",imageFileName)
     imageThumbnailPath = os.path.join(os.environ["ALLSKY_OVERLAY"],"imagethumbnails",imageFileName)
 
@@ -272,17 +311,32 @@ def mlx90640(params, event):
     extraData['AS_MLX90640_f'] = str(round(temp_f,2))
     extraData['AS_MLX90640MAX_C'] = str(round(max,2))
     extraData['AS_MLX90640MIN_C'] = str(round(min,2))
+
+    s.saveExtraData(extradatafilename,extraData)                
     
-    s.saveExtraData(extradatafilename,extraData)
-    
-def mlx90640_cleanup():
-    moduleData = {
-        "metaData": metaData,
-        "cleanup": {
-            "files": {
-                "mlx90640.json"
-            },
-            "env": {}
-        }
-    }
-    s.cleanupModule(moduleData)    
+    if logData:
+        dateStr, timeStr = getAllskyDate()
+        allskyHome = os.environ['ALLSKY_HOME']
+        irDir = os.path.join(allskyHome, 'config', 'overlay', 'ir', dateStr)
+        fileName, fileExtension = os.path.splitext(imageFileName)
+        irImageName = os.path.join(irDir, f"{dateStr}{timeStr}{fileExtension}")
+        dataFileName = os.path.join(irDir, f'{dateStr}.csv')
+
+        s.checkAndCreateDirectory(irDir)
+
+        if not os.path.isfile(dataFileName):
+            attr = 'w'
+        else:
+            attr = 'a'
+        
+        fh = open(dataFileName, attr)
+        writer = csv.writer(fh)
+        
+        if attr == 'w':
+            writer.writerow(['date', 'time', 'min', 'max', 'mean'])
+
+        writer.writerow([dateStr, timeStr, extraData['AS_MLX90640MIN_C'], extraData['AS_MLX90640MAX_C'], extraData['AS_MLX90640_C']])
+        
+        fh.close()
+        
+        cv2.imwrite(irImageName, resized) 

@@ -100,7 +100,23 @@ metaData = {
             "tab": "AllSkyAI"
         }
     },
-    "enabled": "false"
+    "enabled": "false",
+    "changelog": {
+        "v1.0.0" : [
+            {
+                "author": "Christian Kardach",
+                "authorurl": "https://www.allskyai.com",
+                "changes": "Initial Release"
+            }
+        ],
+        "v1.0.4" : [
+            {
+                "author": "Christian Kardach",
+                "authorurl": "https://www.allskyai.com",
+                "changes": "Bug Fixes"
+            }
+        ]                               
+    }    
 }
 
 MODEL_PATH = "/opt/allsky/modules/models"

@@ -29,7 +29,8 @@ metaData = {
         "tsl2591gain": "25x",
         "tsl2591integration": "100ms",
         "tsl2561gain": "Low",
-        "tsl2561integration": "101ms"
+        "tsl2561integration": "101ms",
+        "extradatafilename": "allskylight.json"
     },
     "argumentdetails": {
         "type" : {
@@ -90,9 +91,38 @@ metaData = {
                 "values": "13.7ms,101ms,402ms",
                 "default": "101ms"
             }                
-        }                                                                                    
+        },
+        "extradatafilename": {
+            "required": "true",
+            "description": "Extra Data Filename",
+            "tab": "Advanced",
+            "help": "The name of the file to create with the data for the overlay manager"
+        }                                                                                            
     },
-    "enabled": "false"            
+    "enabled": "false",
+    "businfo": [
+        "i2c"
+    ],
+    "changelog": {
+        "v1.0.0" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Initial Release"
+            }
+        ],
+        "v1.0.1" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": [
+                    "Added extra error handling",
+                    "Added ability to change the extra data filename",
+                    "Added changelog to metadata"
+                ]
+            }
+        ]                                
+    }           
 }
 
 def readTSL2591(params):
@@ -123,7 +153,7 @@ def readTSL2591(params):
         sensor.integration_time = adafruit_tsl2591.INTEGRATIONTIME_500MS
     if integration == "600ms":        
         sensor.integration_time = adafruit_tsl2591.INTEGRATIONTIME_600MS
-    
+            
     lux = sensor.lux
     infrared = sensor.infrared
     visible = sensor.visible
@@ -158,8 +188,9 @@ def readTSL2561(params):
 def light(params, event):
     result = ''
 
+    extradatafilename = params['extradatafilename']
     sensor = params["type"].lower()
-    if sensor != "None":
+    if sensor != "none":
         if sensor == "tsl2591":
             lux, infrared, visible = readTSL2591(params)
 
@@ -177,7 +208,7 @@ def light(params, event):
         result = f"Lux {lux}, NELM {nelm}, SQM {sqm}"
         s.log(4, f"INFO: {result}")
     else:
-        s.deleteExtraData("allskylight.json")
+        s.deleteExtraData(extradatafilename)
         result = "No sensor defined"
         s.log(0, f"ERROR: {result}")
         
