@@ -20,10 +20,11 @@ metaData = {
     "name": "AllSKY Redis/MQTT/REST Data Publish",
     "description": "Publish AllSKY data to Redis, MQTT or REST",
     "module": "allsky_publishdata",
-    "version": "v1.0.1",
+    "version": "v1.0.2",
     "events": [
         "day",
-        "night"
+        "night",
+        "periodic"
     ],
     "experimental": "yes",
     "arguments": {
@@ -167,7 +168,14 @@ metaData = {
                     "Add MQTT timeout"
                 ]
             } 
-        ]                                        
+        ],
+        "v1.0.2" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Added module to periodic flow"
+            }
+        ]                                               
     }    
 }
 
