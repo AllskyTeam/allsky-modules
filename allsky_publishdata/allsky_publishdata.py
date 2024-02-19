@@ -12,13 +12,15 @@ import json
 import datetime
 import glob
 import requests
-import paho.mqtt.client as mqtt
+import paho.mqtt.client as paho
+from paho import mqtt
 import redis
 
 metaData = {
     "name": "AllSKY Redis/MQTT/REST Data Publish",
     "description": "Publish AllSKY data to Redis, MQTT or REST",
     "module": "allsky_publishdata",
+    "version": "v1.0.1",
     "events": [
         "day",
         "night"
@@ -32,8 +34,10 @@ metaData = {
         "redisTopic": "",
         "redisPassword": "",
         "mqttEnabled": "false",
+        "mqttusesecure": "true",
         "mqttHost": "",
         "mqttPort": "1883",
+        "mqttloopdelay": "5",
         "mqttTopic": "",
         "mqttUsername": "",
         "mqttPassword": "",
@@ -85,18 +89,37 @@ metaData = {
                 "fieldtype": "checkbox"
             }
         },
+        "mqttusesecure": {
+            "required": "false",
+            "description": "Use Secure Connection",
+            "tab": "MQTT",
+            "type": {
+                "fieldtype": "checkbox"
+            }
+        },        
         "mqttHost": {
             "required": "false",
             "description": "MQTT Host",
-            "help": "Host",
             "tab": "MQTT"
         },
         "mqttPort": {
             "required": "false",
             "description": "MQTT Port",
-            "help": "Default: 1883. Websocket 9001",
+            "help": "1883 for NON SSL or 8883 for SSL.",
             "tab": "MQTT"
         },
+        "mqttloopdelay": {
+            "required": "false",
+            "description": "Loop Delay(s)",
+            "help": "The loop delay, only increase this if you experience issues with messages missing in the broker",
+            "tab": "MQTT",
+            "type": {
+                "fieldtype": "spinner",
+                "min": 0.5,
+                "max": 10,
+                "step": 0.5
+            }              
+        },        
         "mqttTopic": {
             "required": "false",
             "description": "MQTT Topic",
@@ -126,7 +149,26 @@ metaData = {
             "help": "Host",
             "tab": "POST"
         }
-    }
+    },
+    "changelog": {
+        "v1.0.0" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Initial Release"
+            }
+        ],
+        "v1.0.1" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": [
+                    "Fix MQTT SSL",
+                    "Add MQTT timeout"
+                ]
+            } 
+        ]                                        
+    }    
 }
 
 
@@ -151,7 +193,12 @@ def read_extra_data():
 
     return json_data
 
+def MQTTonConnect(client, userdata, flags, rc, properties=None): 
+    s.log(4, f"INFO: MQTT - CONNACK received with code {rc}.")
 
+def MQTTonPublish(client, userdata, mid, properties=None):
+    s.log(4, f"INFO: MQTT - Message published {mid}.")
+        
 def publishdata(params, event):
     s.env = {}
     json_data = read_extra_data()
@@ -193,21 +240,30 @@ def publishdata(params, event):
     if params["mqttEnabled"]:
         channel_topic = params['mqttTopic']
         if channel_topic == "":
-            s.log(0, "ERROR: Please specify a topic to publish")
+            s.log(0, "ERROR:MQTT - Please specify a topic to publish")
             return
 
-        client = mqtt.Client("AllSkyMeta", transport='websockets')
+        client = paho.Client(client_id="", userdata=None, protocol=paho.MQTTv5)
+        client.on_connect = MQTTonConnect
+        client.on_publish = MQTTonPublish        
         if params["mqttUsername"] != "" and params["mqttPassword"] != "":
             client.username_pw_set(params["mqttUsername"], params["mqttPassword"])
 
         if params["mqttHost"] == "":
-            s.log(0, "ERROR: Please specify a MQTT host to publish to")
+            s.log(0, "ERROR: MQTT - Please specify a MQTT host to publish to")
             return
 
-        client.connect(params["mqttHost"], int(params["mqttPort"]))
-        client.publish(params["mqttTopic"], json.dumps(json_data))
-        s.log(1, f"INFO: Published to MQTT on channel: {channel_topic}")
+        if params["mqttusesecure"]:
+            client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
 
+        client.connect(params["mqttHost"], int(params["mqttPort"]))
+
+        client.publish(params["mqttTopic"], json.dumps(json_data),qos=1)
+        s.log(1, f"INFO: MQTT - Published to MQTT on channel: {channel_topic}")
+        delay = int(params['mqttloopdelay'])
+        client.loop(delay)
+        client.disconnect()
+        
     if params["postEnabled"]:
         url = params['postEndpoint']
         if url == "":
