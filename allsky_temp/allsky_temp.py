@@ -99,7 +99,7 @@ metaData = {
             }
         },
         "name1": {
-            "required": "true",
+            "required": "false",
             "description": "Name Of Sensor",
             "tab": "Sensor 1",
             "help": "The name of the sensor, will be added as a variable"
@@ -166,7 +166,7 @@ metaData = {
             }
         },
         "name2": {
-            "required": "true",
+            "required": "false",
             "description": "Name Of Sensor",
             "tab": "Sensor 2",
             "help": "The name of the sensor, will be added as a variable"
@@ -233,7 +233,7 @@ metaData = {
             }
         },
         "name3": {
-            "required": "true",
+            "required": "false",
             "description": "Name Of Sensor",
             "tab": "Sensor 3",
             "help": "The name of the sensor, will be added as a variable"
