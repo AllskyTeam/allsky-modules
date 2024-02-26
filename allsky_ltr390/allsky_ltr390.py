@@ -80,7 +80,7 @@ metaData = {
                 "author": "Alex Greenland",
                 "authorurl": "https://github.com/allskyteam",
                 "changes": [
-                    "Moved to periodic flow"
+                    "Moved to periodic flow",
                     "Added addition error logging"
                 ]
             }
