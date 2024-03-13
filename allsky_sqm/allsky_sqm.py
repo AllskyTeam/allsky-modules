@@ -147,8 +147,8 @@ def sqm(params, event):
             grayImage = cv2.bitwise_and(src1=grayImage, src2=imageMask)
             if debug:
                 s.writeDebugImage(metaData["module"], "masked-image.png", grayImage)
-            else:
-                s.log(0,"ERROR: Source image and mask dimensions do not match")
+        else:
+            s.log(0,"ERROR: Source image and mask dimensions do not match")
 
     imageHeight, imageWidth = grayImage.shape[:2]
     try:
