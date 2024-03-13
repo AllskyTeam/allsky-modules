@@ -1,551 +1,214 @@
-import allsky_shared as s
-import time
-import sys
-import os
-import json
-import urllib.request
-import requests
-import json
-from meteocalc import heat_index
-from meteocalc import dew_point, Temp
-import board
-import adafruit_sht31d
-import adafruit_dht
-import adafruit_ahtx0
-from adafruit_bme280 import basic as adafruit_bme280
-from adafruit_htu21d import HTU21D
-from meteocalc import heat_index
-from meteocalc import dew_point
-from digitalio import DigitalInOut, Direction, Pull
-    
-metaData = {
-    "name": "Temperature Monitor",
-    "description": "Reads upto 3 temperature sensors",
-    "module": "allsky_temp",
-    "version": "v1.0.0",
-    "events": [
-        "periodic"
-    ],
-    "experimental": "false",
-    "arguments":{
-        "frequency": "0",
-        "extradatafilename": "allskytemp.json",
-        "units": "metric",
+'''
+allsky_sqm.py
 
-        "type1": "None",
-        "name1": "",
-        "inputpin1": "",
-        "i2caddress1": "",
-        "dhtxxretrycount1": "2",
-        "dhtxxdelay1" : "500",
-        "sht31heater1": "False",
-       
-        "type2": "None",
-        "name2": "",
-        "inputpin2": "",
-        "i2caddress2": "",
-        "dhtxxretrycount2": "2",
-        "dhtxxdelay2" : "500",
-        "sht31heater2": "False",
-               
-        "type3": "None",
-        "name3": "",
-        "inputpin3": "",
-        "i2caddress3": "",
-        "dhtxxretrycount3": "2",
-        "dhtxxdelay3" : "500",
-        "sht31heater3": "False"
-                       
+Part of allsky postprocess.py modules.
+https://github.com/thomasjacquin/allsky
+
+Portions of this code are from indi-allsky https://github.com/aaronwmorris/indi-allsky
+
+Changelog:
+v1.0.1 by Damian Grocholski (Mr-Groch)
+- Use of weightedSqmAvg inspired by indi-allsky (https://github.com/aaronwmorris/indi-allsky)
+- Added example default formula
+
+'''
+import allsky_shared as s
+import cv2
+import os
+import math
+
+metaData = {
+    "name": "Sky Quality",
+    "description": "Calculates sky quality",
+    "module": "allsky_sqm",
+    "version": "v1.0.1",
+    "events": [
+        "night"
+    ],
+    "experimental": "true",
+    "arguments":{
+        "mask": "",
+        "roi": "",
+        "debug": "false",
+        "debugimage": "",
+        "roifallback": 5,
+        "formula": "21.53 + (-0.03817 * weightedSqmAvg)"
     },
     "argumentdetails": {
-        "frequency" : {
+        "mask" : {
             "required": "false",
-            "description": "Delay",
-            "help": "The delay between sensor reads in seconds. Zero will disable this and run the check every time the periodic jobs run",
-            "tab": "Misc",
+            "description": "Mask Path",
+            "help": "The name of the image mask. This mask is applied prior to calculating the sky quality",
+            "type": {
+                "fieldtype": "image"
+            }
+        },
+        "roi": {
+            "required": "false",
+            "description": "Region of Interest",
+            "help": "The area of the image to check for sky quality. Format is x1,y1,x2,y2",
+            "type": {
+                "fieldtype": "roi"
+            }
+        },
+        "roifallback" : {
+            "required": "false",
+            "description": "Fallback %",
+            "help": "If no ROI is set then this % of the image, from the center will be used",
             "type": {
                 "fieldtype": "spinner",
-                "min": 0,
-                "max": 1000,
+                "min": 1,
+                "max": 100,
                 "step": 1
             }
         },
-        "extradatafilename": {
-            "required": "true",
-            "description": "Extra Data Filename",
-            "tab": "Misc",
-            "help": "The name of the file to create with the dew heater data for the overlay manager"
+        "formula": {
+            "required": "false",
+            "description": "Adjustment Forumla",
+            "help": "Formula to adjust the read mean value, default can be a good starting point. This forumla can use only Pythons inbuilt maths functions and basic mathematical operators. Please see the documentation for more details of the formula variables available"
         },
-        "units" : {
+        "debug" : {
             "required": "false",
-            "description": "Units",
-            "help": "Units of measurement. standard, metric and imperial",
-            "tab": "Misc",            
-            "type": {
-                "fieldtype": "select",
-                "values": "standard,metric,imperial"
-            }                
-        }, 
-                             
-        "type1" : {
-            "required": "false",
-            "description": "Sensor Type",
-            "help": "The type of sensor that is being used.",
-            "tab": "Sensor 1",
-            "type": {
-                "fieldtype": "select",
-                "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0",
-                "default": "None"
-            }
-        },
-        "name1": {
-            "required": "false",
-            "description": "Name Of Sensor",
-            "tab": "Sensor 1",
-            "help": "The name of the sensor, will be added as a variable"
-        },        
-        "inputpin1": {
-            "required": "false",
-            "description": "Input Pin",
-            "help": "The input pin for DHT type sensors, not required for i2c devices",
-            "tab": "Sensor 1",
-            "type": {
-                "fieldtype": "gpio"
-            }
-        },
-        "i2caddress1": {
-            "required": "false",
-            "description": "I2C Address",
-            "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
-            "tab": "Sensor 1"
-        },
-        "dhtxxretrycount1" : {
-            "required": "false",
-            "description": "Retry Count",
-            "help": "The number of times to retry the DHTXX sensor read",
-            "tab": "Sensor 1",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 5,
-                "step": 1
-            }
-        },
-        "dhtxxdelay1" : {
-            "required": "false",
-            "description": "Delay",
-            "help": "The delay between faild DBTXX sensor reads in milliseconds",
-            "tab": "Sensor 1",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 5000,
-                "step": 1
-            }
-        },
-        "sht31heater1" : {
-            "required": "false",
-            "description": "Enable SHT31 Heater",
-            "help": "Enable the inbuilt heater on the SHT31",
-            "tab": "Sensor 1",
+            "description": "Enable debug mode",
+            "help": "If selected each stage of the detection will generate images in the allsky tmp debug folder",
+            "tab": "Debug",
             "type": {
                 "fieldtype": "checkbox"
             }
         },
-        
-
-        "type2" : {
+        "debugimage" : {
             "required": "false",
-            "description": "Sensor Type",
-            "help": "The type of sensor that is being used.",
-            "tab": "Sensor 2",
-            "type": {
-                "fieldtype": "select",
-                "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0",
-                "default": "None"
-            }
-        },
-        "name2": {
-            "required": "false",
-            "description": "Name Of Sensor",
-            "tab": "Sensor 2",
-            "help": "The name of the sensor, will be added as a variable"
-        },          
-        "inputpin2": {
-            "required": "false",
-            "description": "Input Pin",
-            "help": "The input pin for DHT type sensors, not required for i2c devices",
-            "tab": "Sensor 2",
-            "type": {
-                "fieldtype": "gpio"
-            }
-        },
-        "i2caddress2": {
-            "required": "false",
-            "description": "I2C Address",
-            "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
-            "tab": "Sensor 2"
-        },
-        "dhtxxretrycount2" : {
-            "required": "false",
-            "description": "Retry Count",
-            "help": "The number of times to retry the DHTXX sensor read",
-            "tab": "Sensor 2",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 5,
-                "step": 1
-            }
-        },
-        "dhtxxdelay2" : {
-            "required": "false",
-            "description": "Delay",
-            "help": "The delay between faild DBTXX sensor reads in milliseconds",
-            "tab": "Sensor 2",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 5000,
-                "step": 1
-            }
-        },
-        "sht31heater2" : {
-            "required": "false",
-            "description": "Enable SHT31 Heater",
-            "help": "Enable the inbuilt heater on the SHT31",
-            "tab": "Sensor 2",
-            "type": {
-                "fieldtype": "checkbox"
-            }
-        },
-        
-
-        "type3" : {
-            "required": "false",
-            "description": "Sensor Type",
-            "help": "The type of sensor that is being used.",
-            "tab": "Sensor 3",
-            "type": {
-                "fieldtype": "select",
-                "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0",
-                "default": "None"
-            }
-        },
-        "name3": {
-            "required": "false",
-            "description": "Name Of Sensor",
-            "tab": "Sensor 3",
-            "help": "The name of the sensor, will be added as a variable"
-        },          
-        "inputpin3": {
-            "required": "false",
-            "description": "Input Pin",
-            "help": "The input pin for DHT type sensors, not required for i2c devices",
-            "tab": "Sensor 3",
-            "type": {
-                "fieldtype": "gpio"
-            }
-        },
-        "i2caddress3": {
-            "required": "false",
-            "description": "I2C Address",
-            "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
-            "tab": "Sensor 3"
-        },
-        "dhtxxretrycount3" : {
-            "required": "false",
-            "description": "Retry Count",
-            "help": "The number of times to retry the DHTXX sensor read",
-            "tab": "Sensor 3",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 5,
-                "step": 1
-            }
-        },
-        "dhtxxdelay3" : {
-            "required": "false",
-            "description": "Delay",
-            "help": "The delay between faild DBTXX sensor reads in milliseconds",
-            "tab": "Sensor 3",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 5000,
-                "step": 1
-            }
-        },
-        "sht31heater3" : {
-            "required": "false",
-            "description": "Enable SHT31 Heater",
-            "help": "Enable the inbuilt heater on the SHT31",
-            "tab": "Sensor 3",
-            "type": {
-                "fieldtype": "checkbox"
-            }
+            "description": "Debug Image",
+            "help": "Image to use for debugging. DO NOT set this unless you know what you are doing",
+            "tab": "Debug"
         }
-
-                        
     },
-    "businfo": [
-        "i2c"
-    ],    
-    "changelog": {
-        "v1.0.0" : [
-            {
-                "author": "Alex Greenland",
-                "authorurl": "https://github.com/allskyteam",
-                "changes": "Initial Release"
-            }
-        ]                                       
-    }
+    "enabled": "false"
 }
 
+def addInternals(ALLOWED_NAMES):
+    internals = {'AS_BIN', 'AS_EXPOSURE_US', 'AS_GAIN', 'AS_MEAN'}
+    for internal in internals:
+        val = s.getEnvironmentVariable(internal)
+        key = internal.replace('AS_', '')
+        ALLOWED_NAMES[key] = s.asfloat(val)
     
-def readSHT31(sht31heater):
-    temperature = None
-    humidity = None
-    try:
-        i2c = board.I2C()
-        sensor = adafruit_sht31d.SHT31D(i2c)
-        sensor.heater = sht31heater
-        temperature = sensor.temperature
-        humidity = sensor.relative_humidity
-    except Exception as e:
-        eType, eObject, eTraceback = sys.exc_info()
-        s.log(4, f"ERROR: Module readSHT31 failed on line {eTraceback.tb_lineno} - {e}")
+    return ALLOWED_NAMES
 
-    return temperature, humidity
+def evaluate(expression, sqmAvg, weightedSqmAvg):
 
-def doDHTXXRead(inputpin):
-    temperature = None
-    humidity = None
+    ALLOWED_NAMES = {
+        k: v for k, v in math.__dict__.items() if not k.startswith("__")
+    }
+    ALLOWED_NAMES = addInternals(ALLOWED_NAMES)
+    ALLOWED_NAMES['sqmAvg'] = sqmAvg
+    ALLOWED_NAMES['weightedSqmAvg'] = weightedSqmAvg
 
-    try:
-        pin = s.getGPIOPin(inputpin)
-        dhtDevice = adafruit_dht.DHT22(pin, use_pulseio=False)
-        try:
-            temperature = dhtDevice.temperature
-            humidity = dhtDevice.humidity
-        except RuntimeError as e:
-            eType, eObject, eTraceback = sys.exc_info()
-            s.log(4, f"ERROR: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}")
-    except Exception as e:
-        eType, eObject, eTraceback = sys.exc_info()
-        s.log(4, f"WARNING: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}")
+    code = compile(expression, "<string>", "eval")
+    for name in code.co_names:
+        if name not in ALLOWED_NAMES:
+            raise NameError(f"The use of '{name}' is not allowed")
 
-    return temperature, humidity
+    return eval(code, {"__builtins__": {}}, ALLOWED_NAMES)
 
-def readDHT22(inputpin, dhtxxretrycount, dhtxxdelay):
-    temperature = None
-    humidity = None
-    count = 0
-    reading = True
 
-    while reading:
-        temperature, humidity = doDHTXXRead(inputpin)
+def sqm(params, event):
+    mask = params["mask"]
+    roi = params["roi"]
+    debug = params["debug"]
+    formula = params["formula"]
+    debugimage = params["debugimage"]
+    fallback = int(params["roifallback"])
 
-        if temperature is None and humidity is None:
-            s.log(4, "WARNING: Failed to read DHTXX on attempt {}".format(count+1))
-            count = count + 1
-            if count > dhtxxretrycount:
-                reading = False
-            else:
-                time.sleep(dhtxxdelay/1000)
+    if debugimage != "":
+        image = cv2.imread(debugimage)
+        if image is None:
+            image = s.image
+            s.log(0, "WARNING: Debug image set to {0} but cannot be found, using latest allsky image".format(debugimage))
         else:
-            reading = False
+            s.log(0, "WARNING: Using debug image {0}".format(debugimage))
+    else:
+        image = s.image
 
-    return temperature, humidity
+    imageMask = None
+    if mask != "":
+        maskPath = os.path.join(s.getEnvironmentVariable("ALLSKY_OVERLAY"),"images",mask)
+        imageMask = cv2.imread(maskPath,cv2.IMREAD_GRAYSCALE)
+        if debug:
+            s.writeDebugImage(metaData["module"], "image-mask.png", imageMask)
 
-def readBme280I2C(i2caddress):
-    temperature = None
-    humidity = None
-    pressure = None
-    relHumidity = None
-    altitude = None
+    if len(image.shape) == 2:
+        grayImage = image
+    else:
+        grayImage = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    if i2caddress != "":
+    if imageMask is not None:
+        if grayImage.shape == imageMask.shape:
+            grayImage = cv2.bitwise_and(src1=grayImage, src2=imageMask)
+            if debug:
+                s.writeDebugImage(metaData["module"], "masked-image.png", grayImage)
+        else:
+            s.log(0,"ERROR: Source image and mask dimensions do not match")
+
+    imageHeight, imageWidth = grayImage.shape[:2]
+    try:
+        roiList = roi.split(",")
+        x1 = int(roiList[0])
+        y1 = int(roiList[1])
+        x2 = int(roiList[2])
+        y2 = int(roiList[3])
+    except:
+        if len(roi) > 0:
+            s.log(0, "ERROR: SQM ROI is invalid, falling back to {0}% of image".format(fallback))
+        else:
+            s.log(1, "INFO: SQM ROI not set, falling back to {0}% of image".format(fallback))
+        fallbackAdj = (100 / fallback)
+        x1 = int((imageWidth / 2) - (imageWidth / fallbackAdj))
+        y1 = int((imageHeight / 2) - (imageHeight / fallbackAdj))
+        x2 = int((imageWidth / 2) + (imageWidth / fallbackAdj))
+        y2 = int((imageHeight / 2) + (imageHeight / fallbackAdj))
+
+    croppedImage = grayImage[y1:y2, x1:x2]
+
+    if debug:
+        s.writeDebugImage(metaData["module"], "cropped-image.png", croppedImage)
+
+    maxExposure_s = s.asfloat(s.getSetting("nightmaxautoexposure")) / 1000
+    exposure_s = s.asfloat(s.getEnvironmentVariable("AS_EXPOSURE_US")) / 1000 / 1000
+    maxGain = s.asfloat(s.getSetting("nightmaxautogain"))
+    gain = s.asfloat(s.getEnvironmentVariable("AS_GAIN"))
+
+    sqmAvg = cv2.mean(src=croppedImage)[0]
+    weightedSqmAvg = (((maxExposure_s - exposure_s) / 10) + 1) * (sqmAvg * (((maxGain - gain) / 10) + 1))
+
+    result = "Final SQM Mean calculated as {0}, weighted {1}".format(sqmAvg, weightedSqmAvg)
+    if formula != '':
+        s.log(1,"INFO: SQM Mean calculated as {0}, weighted {1}".format(sqmAvg, weightedSqmAvg))
         try:
-            i2caddressInt = int(i2caddress, 16)
+            sqm = float(evaluate(formula, sqmAvg, weightedSqmAvg))
+            result = "Final SQM calculated as {0}".format(sqm)
+            s.log(1,"INFO: Ran Formula: " + formula)
+            s.log(1,"INFO: " + result)
         except Exception as e:
-            eType, eObject, eTraceback = sys.exc_info()
-            s.log(0, f"ERROR: Module readBme280I2C failed on line {eTraceback.tb_lineno} - {e}")
-
-    try:
-        i2c = board.I2C()
-        if i2caddress != "":
-            bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c, i2caddressInt)
-        else:
-            bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
-
-        temperature =  bme280.temperature
-        humidity = bme280.relative_humidity
-        relHumidity = bme280.relative_humidity
-        altitude = bme280.altitude
-        pressure = bme280.pressure
-    except Exception as e:
-        eType, eObject, eTraceback = sys.exc_info()
-        s.log(0, f"ERROR: Module readBme280I2C failed on line {eTraceback.tb_lineno} - {e}")
-
-    return temperature, humidity, pressure, relHumidity, altitude
-
-def readHtu21(i2caddress):
-    temperature = None
-    humidity = None
-
-    if i2caddress != "":
-        try:
-            i2caddressInt = int(i2caddress, 16)
-        except:
-            result = "Address {} is not a valid i2c address".format(i2caddress)
-            s.log(0,"ERROR: {}".format(result))
-
-    try:
-        i2c = board.I2C()
-        if i2caddress != "":
-            htu21 = HTU21D(i2c, i2caddressInt)
-        else:
-            htu21 = HTU21D(i2c)
-
-        temperature =  htu21.temperature
-        humidity = htu21.relative_humidity
-    except Exception as e:
-        eType, eObject, eTraceback = sys.exc_info()
-        s.log(4, f"ERROR: Module readHtu21 failed on line {eTraceback.tb_lineno} - {e}")
-        
-    return temperature, humidity
-
-def readAHTX0(i2caddress):
-    temperature = None
-    humidity = None
-
-    if i2caddress != "":
-        try:
-            i2caddressInt = int(i2caddress, 16)
-        except:
-            result = "Address {} is not a valid i2c address".format(i2caddress)
-            s.log(0,"ERROR: {}".format(result))
-
-    try:
-        i2c = board.I2C()
-        sensor = adafruit_ahtx0.AHTx0(i2c)
-        temperature = sensor.temperature
-        humidity = sensor.relative_humidity
-    except ValueError as e:
-        eType, eObject, eTraceback = sys.exc_info()
-        s.log(4, f"ERROR: Module readAHTX0 failed on line {eTraceback.tb_lineno} - {e}")
-
-    return temperature, humidity
-
-def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay, sht31heater, params):
-    temperature = None
-    humidity = None
-    dewPoint = None
-    heatIndex = None
-    pressure = None
-    relHumidity = None
-    altitude = None
-
-    if sensorType == "SHT31":
-        temperature, humidity = readSHT31(sht31heater)
-    elif sensorType == "DHT22" or sensorType == "DHT11" or sensorType == "AM2302":
-        temperature, humidity = readDHT22(inputpin, dhtxxretrycount, dhtxxdelay)
-    elif sensorType == "BME280-I2C":
-        temperature, humidity, pressure, relHumidity, altitude = readBme280I2C(i2caddress)
-    elif sensorType == "HTU21":
-        temperature, humidity = readHtu21(i2caddress)
-    elif sensorType == "AHTx0":
-        temperature, humidity = readAHTX0(i2caddress)
+            result = "Error " + str(e)
+            sqm = weightedSqmAvg
+            s.log(0, "ERROR: " + result)
     else:
-        s.log(0,"ERROR: No sensor type defined")
+        sqm = weightedSqmAvg
+        s.log(1,"INFO: " + result)
 
-    if temperature is not None and humidity is not None:
-        dewPoint = dew_point(temperature, humidity).c
-        heatIndex = heat_index(temperature, humidity).c
-
-        tempUnits = s.getSetting("temptype")
-        if tempUnits == 'F':
-            temperature = (temperature * (9/5)) + 32
-            dewPoint = (dewPoint * (9/5)) + 32
-            heatIndex = (heatIndex * (9/5)) + 32
-            s.log(4,"INFO: Converted temperature to F")
-
-        temperature = round(temperature, 2)
-        humidity = round(humidity, 2)
-        dewPoint = round(dewPoint, 2)
-        heatIndex = round(heatIndex, 2)
-
-    return temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude
-
-
-def debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude):
-    s.log(4,f"INFO: Sensor {sensorType} read. Temperature {temperature} Humidity {humidity} Relative Humidity {relHumidity} Dew Point {dewPoint} Heat Index {heatIndex} Pressure {pressure} Altitude {altitude}")
-    
-def temp(params, event):    
-    result = ""
-    extraData = {}
-    extradatafilename = params['extradatafilename']
-    frequency = int(params["frequency"])
-    shouldRun, diff = s.shouldRun('allskytemp', frequency)    
-    
-    if shouldRun:
-        now = int(time.time())
-        s.dbUpdate("allskytemp", now)                
-        for sensorNumber in range(1,4):
-            sensorType = params["type" + str(sensorNumber)]
-
-            if sensorType != 'None':
-                s.log(4,f"INFO: Reading sensor {sensorNumber}, {sensorType}")
-                try:
-                    inputpin = int(params["inputpin" + str(sensorNumber)])
-                except ValueError:
-                    inputpin = 0
-                
-                i2caddress = params["i2caddress" + str(sensorNumber)]
-                dhtxxretrycount = int(params["dhtxxretrycount" + str(sensorNumber)])
-                dhtxxdelay = int(params["dhtxxdelay" + str(sensorNumber)])
-                sht31heater = params["sht31heater" + str(sensorNumber)]
-                name = params["name" + str(sensorNumber)]
-
-                temperature = 0
-                humidity = 0
-                dewPoint = 0
-                heatIndex = 0
-
-                temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude = getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay, sht31heater, params)
-                debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude)
-
-                if temperature is not None:                    
-                    extraData["AS_TEMPSENSOR" + str(sensorNumber)] = str(sensorType)
-                    extraData["AS_TEMPSENSORNAME" + str(sensorNumber)] = name
-                    extraData["AS_TEMPAMBIENT" + str(sensorNumber)] = str(temperature)
-                    extraData["AS_TEMPDEW" + str(sensorNumber)] = str(dewPoint)
-                    extraData["AS_TEMPHUMIDITY" + str(sensorNumber)] = str(humidity)
-                    if pressure is not None:
-                        extraData["AS_TEMPPRESSURE" + str(sensorNumber)] = pressure
-                    if relHumidity is not None:
-                        extraData["AS_TEMPRELHUMIDITY" + str(sensorNumber)] = relHumidity
-                    if altitude is not None:
-                        extraData["AS_TEMPALTITUDE" + str(sensorNumber)] = altitude
-
-        s.saveExtraData(extradatafilename,extraData)
-
-    else:
-        result = 'Will run in {:.2f} seconds'.format(frequency - diff)
-        s.log(1,"INFO: {}".format(result))
+    os.environ["AS_SQM"] = str(sqm)
 
     return result
 
-def temp_cleanup():
+def rain_cleanup():
     moduleData = {
         "metaData": metaData,
         "cleanup": {
-            "files": {
-                "allskytemp.json"
-            },
-            "env": {}
+            "files": {},
+            "env": {
+                "AS_SQM"
+            }
         }
     }
     s.cleanupModule(moduleData)
