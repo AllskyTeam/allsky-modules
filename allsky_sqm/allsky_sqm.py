@@ -1,141 +1,61 @@
-'''
-allsky_sqm.py
+""" allsky_script.py
 
 Part of allsky postprocess.py modules.
 https://github.com/thomasjacquin/allsky
 
-Portions of this code are from indi-allsky https://github.com/aaronwmorris/indi-allsky
-
-Changelog:
-v1.0.1 by Damian Grocholski (Mr-Groch)
-- Use of weightedSqmAvg inspired by indi-allsky (https://github.com/aaronwmorris/indi-allsky)
-- Added example default formula
-
-'''
+This module will run a custom script
+"""
 import allsky_shared as s
-import cv2
-import os
-import math
+import os 
+import subprocess
 
 metaData = {
-    "name": "Sky Quality",
-    "description": "Calculates sky quality",
-    "module": "allsky_sqm",
-    "version": "v1.0.1",
+    "name": "AllSKY Script",
+    "description": "Runs a custom script",
+    "version": "v1.0.0",    
     "events": [
-        "night"
+        "day",
+        "night",
+        "endofnight",
+        "daynight",
+        "nightday",
+        "periodic"
     ],
-    "experimental": "true",
+    "experimental": "false",    
     "arguments":{
-        "mask": "",
-        "roi": "",
-        "debug": "false",
-        "debugimage": "",
-        "roifallback": 5,
-        "formula": "21.53 + (-0.03817 * weightedSqmAvg)"
+        "scriptlocation": ""
     },
     "argumentdetails": {
-        "mask" : {
-            "required": "false",
-            "description": "Mask Path",
-            "help": "The name of the image mask. This mask is applied prior to calculating the sky quality",
-            "type": {
-                "fieldtype": "image"
-            }
-        },
-        "roi": {
-            "required": "false",
-            "description": "Region of Interest",
-            "help": "The area of the image to check for sky quality. Format is x1,y1,x2,y2",
-            "type": {
-                "fieldtype": "roi"
-            }
-        },
-        "roifallback" : {
-            "required": "false",
-            "description": "Fallback %",
-            "help": "If no ROI is set then this % of the image, from the center will be used",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 1,
-                "max": 100,
-                "step": 1
-            }
-        },
-        "formula": {
-            "required": "false",
-            "description": "Adjustment Forumla",
-            "help": "Formula to adjust the read mean value, default can be a good starting point. This forumla can use only Pythons inbuilt maths functions and basic mathematical operators. Please see the documentation for more details of the formula variables available"
-        },
-        "debug" : {
-            "required": "false",
-            "description": "Enable debug mode",
-            "help": "If selected each stage of the detection will generate images in the allsky tmp debug folder",
-            "tab": "Debug",
-            "type": {
-                "fieldtype": "checkbox"
-            }
-        },
-        "debugimage" : {
-            "required": "false",
-            "description": "Debug Image",
-            "help": "Image to use for debugging. DO NOT set this unless you know what you are doing",
-            "tab": "Debug"
+        "scriptlocation" : {
+            "required": "true",
+            "description": "File Location",
+            "help": "The location of the script to run"
         }
     },
-    "enabled": "false"
+    "changelog": {
+        "v1.0.0" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Initial Release"
+            }
+        ]                              
+    }             
 }
 
-def addInternals(ALLOWED_NAMES):
-    internals = {'AS_BIN', 'AS_EXPOSURE_US', 'AS_GAIN', 'AS_MEAN'}
-    for internal in internals:
-        val = s.getEnvironmentVariable(internal)
-        key = internal.replace('AS_', '')
-        ALLOWED_NAMES[key] = s.asfloat(val)
-    
-    return ALLOWED_NAMES
+def script(params, event):
+    script = params["scriptlocation"]
 
-def evaluate(expression, sqmAvg, weightedSqmAvg):
-
-    ALLOWED_NAMES = {
-        k: v for k, v in math.__dict__.items() if not k.startswith("__")
-    }
-    ALLOWED_NAMES = addInternals(ALLOWED_NAMES)
-    ALLOWED_NAMES['sqmAvg'] = sqmAvg
-    ALLOWED_NAMES['weightedSqmAvg'] = weightedSqmAvg
-
-    code = compile(expression, "<string>", "eval")
-    for name in code.co_names:
-        if name not in ALLOWED_NAMES:
-            raise NameError(f"The use of '{name}' is not allowed")
-
-    return eval(code, {"__builtins__": {}}, ALLOWED_NAMES)
-
-
-def sqm(params, event):
-    mask = params["mask"]
-    roi = params["roi"]
-    debug = params["debug"]
-    formula = params["formula"]
-    debugimage = params["debugimage"]
-    fallback = int(params["roifallback"])
-
-    if debugimage != "":
-        image = cv2.imread(debugimage)
-        if image is None:
-            image = s.image
-            s.log(0, "WARNING: Debug image set to {0} but cannot be found, using latest allsky image".format(debugimage))
+    if os.path.isfile(script):
+        if os.access(script, os.X_OK):
+            res = subprocess.check_output(script) 
+            result = "Script {0} Executed.".format(script)
         else:
-            s.log(0, "WARNING: Using debug image {0}".format(debugimage))
+            s.log(0,"ERROR: Script {0} is not executable".format(script))
+            result = "Script {0} Is NOT Executeable.".format(script)
     else:
-        image = s.image
-
-    imageMask = None
-    if mask != "":
-        maskPath = os.path.join(s.getEnvironmentVariable("ALLSKY_OVERLAY"),"images",mask)
-        imageMask = cv2.imread(maskPath,cv2.IMREAD_GRAYSCALE)
-        if debug:
-            s.writeDebugImage(metaData["module"], "image-mask.png", imageMask)
+        s.log(0,"ERROR: cannot access {0}".format(script))
+        result = "Script {0} Not FOund.".format(script)
 
     if len(image.shape) == 2:
         grayImage = image
@@ -212,3 +132,4 @@ def rain_cleanup():
         }
     }
     s.cleanupModule(moduleData)
+    return result
