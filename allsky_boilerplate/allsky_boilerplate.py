@@ -140,7 +140,43 @@ metaData = {
     },
     "businfo": [
         "i2c"
-    ]               
+    ],
+    "changelog": {
+        "v1.0.0" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Initial Release"
+            }
+        ],
+        "v1.0.1" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": [
+                    "Change 1",
+                    "Change 2",
+                    "Change 3"
+                ]
+            }
+        ],
+        "v1.0.2" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Change 1"
+            },            
+            {
+                "author": "JOhn Doe",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": [
+                    "Change 1",
+                    "Change 2",
+                    "Change 3"
+                ]
+            }
+        ]                                       
+    }                   
 }
 
 def boilerplate(params, event):
@@ -153,9 +189,9 @@ def boilerplate(params, event):
     params - A list of all parameters, as defined by the 'arguments' entry in the meta data
     event - The event for which the module is being called for i.e. day, night, endofnight etc
 
-    The moule must return a string with some text to indicate the result of the function. This text
+    The module must return a string with some text to indicate the result of the function. This text
     is displayed in the module managers debug dialog. This text can be an emptry string but please
-    consider makinh it more meaningful.
+    consider making it more meaningful.
 
     Notes on Modules
 
@@ -196,6 +232,8 @@ def boilerplate(params, event):
     s.dbUpdate(key, value) - Updates the key/value pair to the internal database
     s.isFileWriteable(fileName) - Determines of the file is writeable
     s.isFileReadable - Determines if the file is readable
+    
+    See the Allsky documentation for the most uptodate list of avaiable function
     '''
 
     result = ""
@@ -211,3 +249,17 @@ def boilerplate(params, event):
         s.log(0,f"ERROR: {result}")
 
     return result
+
+def boilerplate_cleanup():
+    moduleData = {
+        "metaData": metaData,
+        "cleanup": {
+            "files": {
+                "allskyboiler.json"
+            },
+            "env": {
+                "ALLSKY_BOILERPLATE"
+            }
+        }
+    }
+    s.cleanupModule(moduleData)
