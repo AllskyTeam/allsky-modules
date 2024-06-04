@@ -248,8 +248,10 @@ def discordsend(params, event):
             result = sendFile(fileName, sendURL, s.TOD.title())
 
     if s.args.event == 'nightday':
-        dateDir = s.getEnvironmentVariable('DATE_DIR')
-        date = s.getEnvironmentVariable('DATE')
+        allskyHome = s.getEnvironmentVariable('ALLSKY_HOME')
+        date = s.getEnvironmentVariable('DATE_NAME')
+        dateDir = os.path.join(allskyHome, 'images', date)
+
         if startrails:
             fileName = os.path.join(dateDir, 'startrails', 'startrails-' + date + '.jpg')
             result = sendFile(fileName, startrailsimageurl, 'Star Trails')
