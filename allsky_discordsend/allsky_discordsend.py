@@ -251,13 +251,15 @@ def discordsend(params, event):
         allskyHome = s.getEnvironmentVariable('ALLSKY_HOME')
         date = s.getEnvironmentVariable('DATE_NAME')
         dateDir = os.path.join(allskyHome, 'images', date)
-
+        fullFileName = s.getSetting('filename')
+        filename, fileExtension = os.path.splitext(fullFileName)
+        
         if startrails:
-            fileName = os.path.join(dateDir, 'startrails', 'startrails-' + date + '.jpg')
+            fileName = os.path.join(dateDir, 'startrails', 'startrails-' + date + fileExtension)
             result = sendFile(fileName, startrailsimageurl, 'Star Trails')
 
         if keogram:
-            fileName = os.path.join(dateDir, 'keogram', 'keogram-' + date + '.jpg')
+            fileName = os.path.join(dateDir, 'keogram', 'keogram-' + date + fileExtension)
             result = sendFile(fileName, keogramimageurl, 'Keogram')
 
         if timelapse:
