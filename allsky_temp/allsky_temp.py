@@ -415,18 +415,30 @@ metaData = {
 }
 
     
-def readSHT31(sht31heater):
+def readSHT31(sht31heater, i2caddress):
     temperature = None
     humidity = None
+    
+    if i2caddress != "":
+        try:
+            i2caddressInt = int(i2caddress, 16)
+        except Exception as e:
+            eType, eObject, eTraceback = sys.exc_info()
+            s.log(0, f"ERROR: Module readSHT31 failed on line {eTraceback.tb_lineno} - {e}")
+                
     try:
         i2c = board.I2C()
-        sensor = adafruit_sht31d.SHT31D(i2c)
+        if i2caddress != "":
+            sensor = adafruit_sht31d.SHT31D(i2c, i2caddressInt)
+        else:
+            sensor = adafruit_sht31d.SHT31D(i2c)
         sensor.heater = sht31heater
         temperature = sensor.temperature
         humidity = sensor.relative_humidity
     except Exception as e:
         eType, eObject, eTraceback = sys.exc_info()
         s.log(4, f"ERROR: Module readSHT31 failed on line {eTraceback.tb_lineno} - {e}")
+        return temperature, humidity
 
     return temperature, humidity
 
@@ -560,7 +572,7 @@ def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdel
     altitude = None
 
     if sensorType == "SHT31":
-        temperature, humidity = readSHT31(sht31heater)
+        temperature, humidity = readSHT31(sht31heater, i2caddress)
     elif sensorType == "DHT22" or sensorType == "DHT11" or sensorType == "AM2302":
         temperature, humidity = readDHT22(inputpin, dhtxxretrycount, dhtxxdelay)
     elif sensorType == "BME280-I2C":
