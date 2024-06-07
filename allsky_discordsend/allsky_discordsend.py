@@ -248,14 +248,16 @@ def discordsend(params, event):
             result = sendFile(fileName, sendURL, s.TOD.title())
 
     if s.args.event == 'nightday':
-        dateDir = s.getEnvironmentVariable('DATE_DIR')
         date = s.getEnvironmentVariable('DATE')
+        dateDir = s.getEnvironmentVariable('DATE_DIR')
+        fullFileName = s.getSetting('filename')
+        filename, fileExtension = os.path.splitext(fullFileName)
         if startrails:
-            fileName = os.path.join(dateDir, 'startrails', 'startrails-' + date + '.jpg')
+            fileName = os.path.join(dateDir, 'startrails', 'startrails-' + date + fileExtension)
             result = sendFile(fileName, startrailsimageurl, 'Star Trails')
 
         if keogram:
-            fileName = os.path.join(dateDir, 'keogram', 'keogram-' + date + '.jpg')
+            fileName = os.path.join(dateDir, 'keogram', 'keogram-' + date + fileExtension)
             result = sendFile(fileName, keogramimageurl, 'Keogram')
 
         if timelapse:
