@@ -20,7 +20,7 @@ metaData = {
     "name": "AllSKY Redis/MQTT/REST Data Publish",
     "description": "Publish AllSKY data to Redis, MQTT or REST",
     "module": "allsky_publishdata",
-    "version": "v1.0.2",
+    "version": "v1.0.3",
     "events": [
         "day",
         "night",
@@ -175,7 +175,14 @@ metaData = {
                 "authorurl": "https://github.com/allskyteam",
                 "changes": "Added module to periodic flow"
             }
-        ]                                               
+        ],
+        "v1.0.3" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Set correct data types in json (Issue 129)"
+            }
+        ]                                                         
     }    
 }
 
@@ -188,7 +195,7 @@ def get_utc_timestamp():
 
 
 def read_extra_data():
-    json_data = dict()
+    jsonData = dict()
     extra_data_path = s.getEnvironmentVariable("ALLSKY_EXTRA")
     if extra_data_path is not None:
         files = glob.glob(extra_data_path + "/*.json")
@@ -197,36 +204,66 @@ def read_extra_data():
             extra_name = extra_name.split(".")[0]
 
             with open(f, "r") as fp:
-                json_data[extra_name] = json.load(fp)
+                data = json.load(fp)
+                for var in data:
+                    jsonData[var] = data[var]
 
-    return json_data
+    return jsonData
 
 def MQTTonConnect(client, userdata, flags, rc, properties=None): 
     s.log(4, f"INFO: MQTT - CONNACK received with code {rc}.")
 
 def MQTTonPublish(client, userdata, mid, properties=None):
     s.log(4, f"INFO: MQTT - Message published {mid}.")
+
+def changeType(value):
+    if value.lower() in ['true', 'false'] or value.lower() in ['on', 'off']:
+        if value == 'true' or value == 'on':
+            value = True
+        if value == 'false' or value == 'off':
+            value = False
+        return value
+    
+    try:
+        value = int(value)
+        return value
+    except ValueError:
+        pass
+    
+    try:
+        if '.' in value or 'e' in value.lower():
+            value = float(value)
+            return value
+    except ValueError:
+        pass
+    
+    return value
         
 def publishdata(params, event):
     s.env = {}
-    json_data = read_extra_data()
-
-    extra_entries = params["extradata"].split(",")
-    for env_var in extra_entries:
-        env_var = env_var.lstrip()
-        env_var = env_var.rstrip()
-        env_var_value = s.getEnvironmentVariable(env_var)
-        if env_var:
-            if env_var_value is not None:
-                json_data[env_var] = env_var_value
-                s.env[env_var] = env_var_value
+    extraData = read_extra_data()
+    jsonData = {}
+    extraEntries = params["extradata"].split(",")
+    for envVar in extraEntries:
+        envVar = envVar.lstrip()
+        envVar = envVar.rstrip()
+        envVarValue = s.getEnvironmentVariable(envVar)
+        if envVar:
+            if envVarValue is None:
+                if envVar in extraData:
+                    envVarValue = extraData[envVar]
+                    
+            if envVarValue is not None:
+                envVarValue = changeType(envVarValue)
+                jsonData[envVar] = envVarValue
+                s.env[envVar] = envVarValue
             else:
-                s.log(0, "ERROR: Cannot locate environment variable {0} specified in the extradata".format(env_var))
+                s.log(0, "ERROR: Cannot locate environment variable {0} specified in the extradata".format(envVar))
         else:
             s.log(0, "ERROR: Empty environment variable specified in the extradata field. Check commas!")
 
-    json_data["utc"] = get_utc_timestamp()
-
+    jsonData["utc"] = get_utc_timestamp()
+        
     if params["redisEnabled"]:
         channel_topic = params['redisTopic']
         if channel_topic == "":
@@ -242,7 +279,7 @@ def publishdata(params, event):
             s.log(0, "ERROR: Please specify a topic for Redis to publish to")
             return
 
-        red.publish(params["redisTopic"], json.dumps(json_data))
+        red.publish(params["redisTopic"], json.dumps(jsonData))
         s.log(1, f"INFO: Published to Redis on channel: {channel_topic}")
 
     if params["mqttEnabled"]:
@@ -266,7 +303,7 @@ def publishdata(params, event):
 
         client.connect(params["mqttHost"], int(params["mqttPort"]))
 
-        client.publish(params["mqttTopic"], json.dumps(json_data),qos=1)
+        client.publish(params["mqttTopic"], json.dumps(jsonData),qos=1)
         s.log(1, f"INFO: MQTT - Published to MQTT on channel: {channel_topic}")
         delay = int(params['mqttloopdelay'])
         client.loop(delay)
@@ -278,7 +315,7 @@ def publishdata(params, event):
             s.log(0, "ERROR: Please specify an endpoint to publish to")
             return
 
-        r = requests.post(params["postEndpoint"], json=json_data)
+        r = requests.post(params["postEndpoint"], json=jsonData)
         s.log(1, f"INFO: POST status code {r.status_code}")
 
     return "Allsky data published"
