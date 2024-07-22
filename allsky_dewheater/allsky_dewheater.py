@@ -15,6 +15,8 @@ V1.0.3 by Alex Greenland
 - Add AHTx0 i2c sensor
 V1.0.4 by Andreas Schminder 
 - Added Solo Cloudwatcher
+V1.0.6 by Alex Greenland
+- Added option to disable dew heater during the day
 '''
 import allsky_shared as s
 import time
@@ -24,6 +26,7 @@ import json
 import urllib.request
 import requests
 import json
+import subprocess
 from meteocalc import heat_index
 from meteocalc import dew_point, Temp
 import board
@@ -40,7 +43,7 @@ metaData = {
     "name": "Sky Dew Heater Control",
     "description": "Controls a dew heater via a temperature and humidity sensor",
     "module": "allsky_dewheater",
-    "version": "v1.0.5",
+    "version": "v1.0.6",
     "events": [
         "periodic"
     ],
@@ -67,7 +70,8 @@ metaData = {
         "period": 120,
         "expire": 240,
         "filename": "openweather.json",
-        "units": "metric"        
+        "units": "metric",
+        "daydisable": "False"        
     },
     "argumentdetails": {
         "type" : {
@@ -215,6 +219,15 @@ metaData = {
                 "step": 1
             }
         },
+        "daydisable" : {
+            "required": "false",
+            "description": "Daytime Disable",
+            "help": "If checked the dew control module will be disabled during the daytime",
+            "tab": "Dew Control",
+            "type": {
+                "fieldtype": "checkbox"
+            }
+        },
         "extradatafilename": {
             "required": "true",
             "description": "Extra Data Filename",
@@ -332,10 +345,41 @@ metaData = {
                 "authorurl": "https://github.com/allskyteam",
                 "changes": "Added OpenWeather option"
             }
-        ]                                        
+        ],
+        "v1.0.6" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Added option to disable heater during the day"
+            }
+        ]                                    
     }
 }
 
+def runcommand (cmd):
+    proc = subprocess.Popen(cmd,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            shell=True,
+                            universal_newlines=True)
+    std_out, std_err = proc.communicate()
+    return proc.returncode, std_out, std_err
+
+def getToD():
+    angle = s.getSetting('angle')
+    lat = s.getSetting('latitude')
+    lon = s.getSetting('longitude')
+    tod = 'Unknown'
+    cmd = f'sunwait poll exit set angle {angle} {lat} {lon}'
+    returncode, stdout, stderr = runcommand(cmd)
+    
+    if returncode == 2:
+        tod = 'day'
+    if returncode == 3:
+        tod = 'night'
+    
+    return tod                            
+      
 def createCardinal(degrees):
     try:
         cardinals = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW','W', 'WNW', 'NW', 'NNW', 'N']
@@ -816,7 +860,7 @@ def getLastRunTime():
 def debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude):
     s.log(1,f"INFO: Sensor {sensorType} read. Temperature {temperature} Humidity {humidity} Relative Humidity {relHumidity} Dew Point {dewPoint} Heat Index {heatIndex} Pressure {pressure} Altitude {altitude}")
     
-def dewheater(params, event):    
+def dewheater(params, event):
     result = ""
     sensorType = params["type"]
     heaterstartupstate = params["heaterstartupstate"]
@@ -848,116 +892,140 @@ def dewheater(params, event):
         soloURL = params["solourl"]
     except ValueError:
         soloURL = ''
-                
+
+    tod = getToD(); 
+    daytimeDisable = params["daydisable"]
+             
     temperature = 0
     humidity = 0
     dewPoint = 0
     heatIndex = 0
     heater = 'Off'
 
-    shouldRun, diff = s.shouldRun('allskydew', frequency)
+    okToRun = True
+    if daytimeDisable:
+        if tod == 'day':
+            okToRun = False
 
-    if shouldRun:                        
-        try:
-            heaterpin = int(heaterpin)
-        except ValueError:
-            heaterpin = 0
+    if okToRun:            
+        shouldRun, diff = s.shouldRun('allskydew', frequency)
+        if shouldRun:                        
+            try:
+                heaterpin = int(heaterpin)
+            except ValueError:
+                heaterpin = 0
 
-        if heaterpin != 0:
-            heaterpin = s.getGPIOPin(heaterpin)
-            if extrapin !=0:
-                extrapin = s.getGPIOPin(extrapin)
-            lastRunTime = getLastRunTime()
-            if lastRunTime is not None:
-                now = int(time.time())
-                lastRunSecs = now - lastRunTime
-                if lastRunSecs >= frequency:
-                    s.dbUpdate("dewheaterlastrun", now)
-                    temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude = getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay, sht31heater, soloURL, params)
-                    if temperature is not None:
-                        lastOnSecs = 0
-                        if s.dbHasKey("dewheaterontime"):
-                            lastOnTime = s.dbGet("dewheaterontime")
-                            lastOnSecs = now - lastOnTime
-                        if maxontime != 0 and lastOnSecs >= maxontime:
-                            result = "Heater was on longer than maximum allowed time {}".format(maxontime)
-                            s.log(1,"INFO: {}".format(result))
-                            turnHeaterOff(heaterpin, invertrelay)
-                            if extrapin != 0:
-                                turnHeaterOff(extrapin, invertextrapin, True)
-                            heater = 'Off'
-                        elif force != 0 and temperature <= force:
-                            result = "Temperature below forced level {}".format(force)
-                            s.log(1,"INFO: {}".format(result))
-                            turnHeaterOn(heaterpin, invertrelay)
-                            if extrapin != 0:
-                                turnHeaterOn(extrapin, invertextrapin, True)
-                            heater = 'On'
-                        else:
-                            if ((temperature-limit) <= dewPoint):
-                                turnHeaterOn(heaterpin, invertrelay)
-                                if extrapin != 0:
-                                    turnHeaterOn(extrapin, invertextrapin)
-                                heater = 'On'
-                                result = "Temperature within limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
-                                s.log(1,"INFO: {}".format(result))
-                            else:
-                                result = "Temperature outside limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
+            if heaterpin != 0:
+                heaterpin = s.getGPIOPin(heaterpin)
+                if extrapin !=0:
+                    extrapin = s.getGPIOPin(extrapin)
+                lastRunTime = getLastRunTime()
+                if lastRunTime is not None:
+                    now = int(time.time())
+                    lastRunSecs = now - lastRunTime
+                    if lastRunSecs >= frequency:
+                        s.dbUpdate("dewheaterlastrun", now)
+                        temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude = getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay, sht31heater, soloURL, params)
+                        if temperature is not None:
+                            lastOnSecs = 0
+                            if s.dbHasKey("dewheaterontime"):
+                                lastOnTime = s.dbGet("dewheaterontime")
+                                lastOnSecs = now - lastOnTime
+                            if maxontime != 0 and lastOnSecs >= maxontime:
+                                result = "Heater was on longer than maximum allowed time {}".format(maxontime)
                                 s.log(1,"INFO: {}".format(result))
                                 turnHeaterOff(heaterpin, invertrelay)
                                 if extrapin != 0:
                                     turnHeaterOff(extrapin, invertextrapin, True)
                                 heater = 'Off'
-                            
-                        extraData = {}
-                        extraData["AS_DEWCONTROLSENSOR"] = str(sensorType)
-                        extraData["AS_DEWCONTROLAMBIENT"] = str(temperature)
-                        extraData["AS_DEWCONTROLDEW"] = str(dewPoint)
-                        extraData["AS_DEWCONTROLHUMIDITY"] = str(humidity)
-                        extraData["AS_DEWCONTROLHEATER"] = heater
-                        if pressure is not None:
-                            extraData["AS_DEWCONTROLPRESSURE"] = pressure
-                        if relHumidity is not None:
-                            extraData["AS_DEWCONTROLRELHUMIDITY"] = relHumidity
-                        if altitude is not None:
-                            extraData["AS_DEWCONTROLALTITUDE"] = altitude
+                            elif force != 0 and temperature <= force:
+                                result = "Temperature below forced level {}".format(force)
+                                s.log(1,"INFO: {}".format(result))
+                                turnHeaterOn(heaterpin, invertrelay)
+                                if extrapin != 0:
+                                    turnHeaterOn(extrapin, invertextrapin, True)
+                                heater = 'On'
+                            else:
+                                if ((temperature-limit) <= dewPoint):
+                                    turnHeaterOn(heaterpin, invertrelay)
+                                    if extrapin != 0:
+                                        turnHeaterOn(extrapin, invertextrapin)
+                                    heater = 'On'
+                                    result = "Temperature within limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
+                                    s.log(1,"INFO: {}".format(result))
+                                else:
+                                    result = "Temperature outside limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
+                                    s.log(1,"INFO: {}".format(result))
+                                    turnHeaterOff(heaterpin, invertrelay)
+                                    if extrapin != 0:
+                                        turnHeaterOff(extrapin, invertextrapin, True)
+                                    heater = 'Off'
+                                
+                            extraData = {}
+                            extraData["AS_DEWCONTROLSENSOR"] = str(sensorType)
+                            extraData["AS_DEWCONTROLAMBIENT"] = str(temperature)
+                            extraData["AS_DEWCONTROLDEW"] = str(dewPoint)
+                            extraData["AS_DEWCONTROLHUMIDITY"] = str(humidity)
+                            extraData["AS_DEWCONTROLHEATER"] = heater
+                            if pressure is not None:
+                                extraData["AS_DEWCONTROLPRESSURE"] = pressure
+                            if relHumidity is not None:
+                                extraData["AS_DEWCONTROLRELHUMIDITY"] = relHumidity
+                            if altitude is not None:
+                                extraData["AS_DEWCONTROLALTITUDE"] = altitude
 
-                        s.saveExtraData(extradatafilename,extraData)
+                            s.saveExtraData(extradatafilename,extraData)
 
-                        debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude)
+                            debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude)
 
+                        else:
+                            result = "Failed to read sensor"
+                            s.log(0, "ERROR: {}".format(result))
+                            s.deleteExtraData(extradatafilename)
                     else:
-                        result = "Failed to read sensor"
-                        s.log(0, "ERROR: {}".format(result))
-                        s.deleteExtraData(extradatafilename)
+                        result = "Not run. Only running every {}s. Last ran {}s ago".format(frequency, lastRunSecs)
+                        s.log(1,"INFO: {}".format(result))
                 else:
-                    result = "Not run. Only running every {}s. Last ran {}s ago".format(frequency, lastRunSecs)
-                    s.log(1,"INFO: {}".format(result))
+                    now = int(time.time())
+                    s.dbAdd("dewheaterlastrun", now)
+                    s.log(1,"INFO: No last run info so assuming startup")
+                    if heaterstartupstate == "ON":
+                        turnHeaterOn(heaterpin, invertrelay)
+                        if extrapin != 0:
+                            turnHeaterOn(extrapin, invertextrapin)
+                        heater = 'On'
+                    else:
+                        turnHeaterOff(heaterpin, invertrelay)
+                        if extrapin != 0:
+                            turnHeaterOff(extrapin, invertextrapin)
+                        heater = 'Off'
             else:
-                now = int(time.time())
-                s.dbAdd("dewheaterlastrun", now)
-                s.log(1,"INFO: No last run info so assuming startup")
-                if heaterstartupstate == "ON":
-                    turnHeaterOn(heaterpin, invertrelay)
-                    if extrapin != 0:
-                        turnHeaterOn(extrapin, invertextrapin)
-                    heater = 'On'
-                else:
-                    turnHeaterOff(heaterpin, invertrelay)
-                    if extrapin != 0:
-                        turnHeaterOff(extrapin, invertextrapin)
-                    heater = 'Off'
+                s.deleteExtraData(extradatafilename)
+                result = "heater pin not defined or invalid"
+                s.log(0,"ERROR: {}".format(result))
+
+            s.setLastRun('allskydew')
+
         else:
-            s.deleteExtraData(extradatafilename)
-            result = "heater pin not defined or invalid"
-            s.log(0,"ERROR: {}".format(result))
-
-        s.setLastRun('allskydew')
-
+            result = 'Will run in {:.2f} seconds'.format(frequency - diff)
+            s.log(1,"INFO: {}".format(result))
     else:
-        result = 'Will run in {:.2f} seconds'.format(frequency - diff)
-        s.log(1,"INFO: {}".format(result))
-
+        if heaterpin != 0:
+            turnHeaterOff(heaterpin, invertrelay)
+        if extrapin != 0:
+            turnHeaterOff(extrapin, invertextrapin, True)
+ 
+        extraData = {}
+        extraData["AS_DEWCONTROLSENSOR"] = str(sensorType)
+        extraData["AS_DEWCONTROLAMBIENT"] = 0
+        extraData["AS_DEWCONTROLDEW"] = 0
+        extraData["AS_DEWCONTROLHUMIDITY"] = 0
+        extraData["AS_DEWCONTROLHEATER"] = "Disabled"
+        s.saveExtraData(extradatafilename,extraData)
+            
+        result = 'Dew control disabled during the day'
+        s.log(1,f"INFO: {result}")
+        
     return result
 
 def dewheater_cleanup():
