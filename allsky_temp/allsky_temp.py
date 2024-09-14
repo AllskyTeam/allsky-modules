@@ -18,14 +18,16 @@ from adafruit_htu21d import HTU21D
 from meteocalc import heat_index
 from meteocalc import dew_point
 from digitalio import DigitalInOut, Direction, Pull
+from DS18B20dvr.DS18B20 import DS18B20
     
 metaData = {
     "name": "Temperature Monitor",
     "description": "Reads upto 3 temperature sensors",
     "module": "allsky_temp",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "events": [
-        "periodic"
+        "periodic",
+        "night"
     ],
     "experimental": "false",
     "arguments":{
@@ -37,6 +39,7 @@ metaData = {
         "name1": "",
         "inputpin1": "",
         "i2caddress1": "",
+        "ds18b20address1": "",
         "dhtxxretrycount1": "2",
         "dhtxxdelay1" : "500",
         "sht31heater1": "False",
@@ -49,6 +52,7 @@ metaData = {
         "name2": "",
         "inputpin2": "",
         "i2caddress2": "",
+        "ds18b20address2": "",
         "dhtxxretrycount2": "2",
         "dhtxxdelay2" : "500",
         "sht31heater2": "False",
@@ -61,6 +65,7 @@ metaData = {
         "name3": "",
         "inputpin3": "",
         "i2caddress3": "",
+        "ds18b20address3": "",
         "dhtxxretrycount3": "2",
         "dhtxxdelay3" : "500",
         "sht31heater3": "False",
@@ -107,7 +112,7 @@ metaData = {
             "tab": "Sensor 1",
             "type": {
                 "fieldtype": "select",
-                "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0",
+                "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20",
                 "default": "None"
             }
         },
@@ -132,6 +137,12 @@ metaData = {
             "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
             "tab": "Sensor 1"
         },
+        "ds18b20address1": {
+            "required": "false",
+            "description": "DS18B20 Address",
+            "tab": "Sensor 1",
+            "help": "Filename in /sys/bus/w1/devices"
+        },        
         "dhtxxretrycount1" : {
             "required": "false",
             "description": "Retry Count",
@@ -207,7 +218,7 @@ metaData = {
             "tab": "Sensor 2",
             "type": {
                 "fieldtype": "select",
-                "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0",
+                "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20",
                 "default": "None"
             }
         },
@@ -232,6 +243,12 @@ metaData = {
             "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
             "tab": "Sensor 2"
         },
+        "ds18b20address2": {
+            "required": "false",
+            "description": "DS18B20 Address",
+            "tab": "Sensor 2",
+            "help": "Filename in /sys/bus/w1/devices"
+        },         
         "dhtxxretrycount2" : {
             "required": "false",
             "description": "Retry Count",
@@ -306,7 +323,7 @@ metaData = {
             "tab": "Sensor 3",
             "type": {
                 "fieldtype": "select",
-                "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0",
+                "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20",
                 "default": "None"
             }
         },
@@ -331,6 +348,12 @@ metaData = {
             "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
             "tab": "Sensor 3"
         },
+        "ds18b20address3": {
+            "required": "false",
+            "description": "DS18B20 Address",
+            "tab": "Sensor 3",
+            "help": "Filename in /sys/bus/w1/devices"
+        },         
         "dhtxxretrycount3" : {
             "required": "false",
             "description": "Retry Count",
@@ -410,7 +433,14 @@ metaData = {
                 "authorurl": "https://github.com/allskyteam",
                 "changes": "Initial Release"
             }
-        ]                                       
+        ],
+        "v1.0.1" : [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": "Added DS1820"
+            }
+        ]                                                 
     }
 }
 
@@ -562,7 +592,20 @@ def readAHTX0(i2caddress):
 
     return temperature, humidity
 
-def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay, sht31heater, params):
+def readDS18B20(address):
+    humidity = None
+    temperature = None
+    
+    try:
+        device = DS18B20(address)
+        temperature = device.read_temperature()
+    except Exception as e:
+        eType, eObject, eTraceback = sys.exc_info()
+        s.log(4, f"ERROR: Module readDS18B20 failed on line {eTraceback.tb_lineno} - {e}")
+
+    return temperature, humidity
+
+def getSensorReading(sensorType, inputpin, i2caddress, ds18b20address, dhtxxretrycount, dhtxxdelay, sht31heater, params):
     temperature = None
     humidity = None
     dewPoint = None
@@ -581,14 +624,15 @@ def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdel
         temperature, humidity = readHtu21(i2caddress)
     elif sensorType == "AHTx0":
         temperature, humidity = readAHTX0(i2caddress)
+    elif sensorType == "DS18B20":
+        temperature, humidity = readDS18B20(ds18b20address)
     else:
         s.log(0,"ERROR: No sensor type defined")
 
+    tempUnits = s.getSetting("temptype")
     if temperature is not None and humidity is not None:
         dewPoint = dew_point(temperature, humidity).c
         heatIndex = heat_index(temperature, humidity).c
-
-        tempUnits = s.getSetting("temptype")
         if tempUnits == 'F':
             temperature = (temperature * (9/5)) + 32
             dewPoint = (dewPoint * (9/5)) + 32
@@ -599,7 +643,12 @@ def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdel
         humidity = round(humidity, 2)
         dewPoint = round(dewPoint, 2)
         heatIndex = round(heatIndex, 2)
-
+    else:
+        if temperature is not None:
+            if tempUnits == 'F':
+                temperature = (temperature * (9/5)) + 32
+                s.log(4,"INFO: Converted temperature ONLY to F")
+                
     return temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude
 
 def debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude):
@@ -629,6 +678,7 @@ def temp(params, event):
                 dhtxxretrycount = int(params["dhtxxretrycount" + str(sensorNumber)])
                 dhtxxdelay = int(params["dhtxxdelay" + str(sensorNumber)])
                 sht31heater = params["sht31heater" + str(sensorNumber)]
+                ds18b20address = params["ds18b20address" + str(sensorNumber)]
                 name = params["name" + str(sensorNumber)]
 
                 try:
@@ -646,7 +696,7 @@ def temp(params, event):
                 dewPoint = 0
                 heatIndex = 0
 
-                temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude = getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay, sht31heater, params)
+                temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude = getSensorReading(sensorType, inputpin, i2caddress, ds18b20address, dhtxxretrycount, dhtxxdelay, sht31heater, params)
                 debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude)
 
                 gpioValue = 'N/A'
