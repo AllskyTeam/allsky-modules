@@ -32,6 +32,29 @@ GPIO Off - The Human Readable value to use when the GPIO pin is disabled. This v
 
 NOTE: If No GPIO pin is selected or the Max temp is not entered then the values for GPIOState will be N/A
 
+Example Extra Data File
+-----------------------
+
+{
+    "AS_GPIOSTATE1": "Off",                   <-- GPIO state of the first sensor
+    "AS_TEMPSENSOR1": "DS18B20",              <-- Sensor 1 Type
+    "AS_TEMPSENSORNAME1": "DS1",              <-- Sensor 1 Name
+    "AS_TEMPAMBIENT1": "21.875",              <-- Sensor 1 Temperature
+    "AS_TEMPDEW1": "None",                    <-- Sensor 1 Dew Point (Since this is a DS18B20 there is no Dew Point value)
+    "AS_TEMPHUMIDITY1": "None",               <-- Sensor 1 Humidity (Since this is a DS18B20 there is no Humidity value)
+    "AS_GPIOSTATE2": "N/A",                   <-- GPIO state of the second sensor (This is N/A as no GPIO pin is defined)
+    "AS_TEMPSENSOR2": "DS18B20",              <-- Sensor 2 Type
+    "AS_TEMPSENSORNAME2": "DS2",              <-- Sensor 2 Name
+    "AS_TEMPAMBIENT2": "22.25",               <-- Sensor 2 Temperature
+    "AS_TEMPDEW2": "None",                    <-- Sensor 2 Dew Point (Since this is a DS18B20 there is no Dew Point value)
+    "AS_TEMPHUMIDITY2": "None",               <-- Sensor 2 Humidity (Since this is a DS18B20 there is no Humidity value)
+    "AS_GPIOSTATE3": "N/A",                   <-- GPIO state of the third sensor (This is N/A as no GPIO pin is defined)
+    "AS_TEMPSENSOR3": "SHT31",                <-- Sensor 3 Type
+    "AS_TEMPSENSORNAME3": "bme",              <-- Sensor 3 Name
+    "AS_TEMPAMBIENT3": "24.56",               <-- Sensor 3 Temperature
+    "AS_TEMPDEW3": "19.22",                   <-- Sensor 3 Dew Point
+    "AS_TEMPHUMIDITY3": "72.21"               <-- Sensor 3 Humidity
+}
 
 DS18B20 devices
 ---------------

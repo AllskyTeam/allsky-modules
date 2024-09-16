@@ -7,6 +7,7 @@ import urllib.request
 import requests
 import json
 import board
+from pathlib import Path
 from meteocalc import heat_index
 from meteocalc import dew_point, Temp
 import board
@@ -595,13 +596,23 @@ def readAHTX0(i2caddress):
 def readDS18B20(address):
     humidity = None
     temperature = None
-    
-    try:
-        device = DS18B20(address)
-        temperature = device.read_temperature()
-    except Exception as e:
-        eType, eObject, eTraceback = sys.exc_info()
-        s.log(4, f"ERROR: Module readDS18B20 failed on line {eTraceback.tb_lineno} - {e}")
+
+    one_wire_base_dir = Path('/sys/bus/w1/devices/')
+    one_wire_sensor_dir = Path(os.path.join(one_wire_base_dir, address))
+
+    if one_wire_base_dir.is_dir():
+        if one_wire_sensor_dir.is_dir():
+            try:
+                device = DS18B20(address)
+                temperature = device.read_temperature()
+            # pylint: disable=broad-exception-caught
+            except Exception as ex:
+                _, _, trace_back = sys.exc_info()
+                s.log(4, f"ERROR: Module readDS18B20 failed on line {trace_back.tb_lineno} - {ex}")
+        else:
+            s.log(4,f'ERROR: (readDS18B20) - "{address}" is not a valid DS18B20 address. Please check /sys/bus/w1/devices')
+    else:
+        s.log(4,'ERROR: (readDS18B20) - One Wire is not enabled. Please use the raspi-config utility to enable it')
 
     return temperature, humidity
 
@@ -700,24 +711,24 @@ def temp(params, event):
                 debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude)
 
                 gpioValue = 'N/A'
-                if maxTemp != -1 and gpioPin != -1:
-                    gpio = s.getGPIOPin(gpioPin)
-                    pin = DigitalInOut(gpio)
-                    pin.switch_to_output()
-                    if temperature > maxTemp:
-                        
-                        gpioValue = 'On'
-                        if 'gpioon' + str(sensorNumber) in params:
-                            gpioValue = params['gpioon' + str(sensorNumber)]
-        
-                        s.log(4, f'INFO: Temperatture {temperature} is greater than {maxTemp} so enabling GPIO {gpioPin}')
-                        pin.value = 1
-                    else:
-                        gpioValue = 'Off'
-                        if 'gpiooff' + str(sensorNumber) in params:
-                            gpioValue = params['gpiooff' + str(sensorNumber)]
-                        s.log(4, f'INFO: Temperatture {temperature} is less than {maxTemp} so disabling GPIO {gpioPin}')
-                        pin.value = 0
+                if temperature is not None: 
+                    if maxTemp != -1 and gpioPin != -1:
+                        gpio = s.getGPIOPin(gpioPin)
+                        pin = DigitalInOut(gpio)
+                        pin.switch_to_output()                   
+                        if temperature > maxTemp:
+                            gpioValue = 'On'
+                            if 'gpioon' + str(sensorNumber) in params:
+                                gpioValue = params['gpioon' + str(sensorNumber)]
+            
+                            s.log(4, f'INFO: Temperature {temperature} is greater than {maxTemp} so enabling GPIO {gpioPin}')
+                            pin.value = 1
+                        else:
+                            gpioValue = 'Off'
+                            if 'gpiooff' + str(sensorNumber) in params:
+                                gpioValue = params['gpiooff' + str(sensorNumber)]
+                            s.log(4, f'INFO: Temperature {temperature} is less than {maxTemp} so disabling GPIO {gpioPin}')
+                            pin.value = 0
                     
                 if temperature is not None:
                     extraData["AS_GPIOSTATE" + str(sensorNumber)] = gpioValue                   
