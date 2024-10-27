@@ -15,13 +15,12 @@ metaData = {
     "module": "allsky_adsb",    
     "version": "v1.0.0",
     "events": [
-        "day",
-        "night",
         "periodic"
     ],
     "enabled": "false",    
     "experimental": "true",    
     "arguments":{
+        "period": 60,
         "data_source": "Local",
         "local_adsb_url": "",
         "observer_altitude": 0,
@@ -126,6 +125,8 @@ metaData = {
 }
 
 def local_adsb(local_adsb_url, observer_location):
+    ''' Retreives data from a local ADSB source
+    '''
     found_aircraft = {}
     result = ''
     
@@ -164,6 +165,9 @@ def local_adsb(local_adsb_url, observer_location):
     return found_aircraft, result
 
 def airplaneslive_adsb(params, observer_location):
+    ''' Retreives data from Airplanes live
+    '''
+    
     found_aircraft = {}
     result = ''
     
@@ -217,6 +221,8 @@ def airplaneslive_adsb(params, observer_location):
     return found_aircraft, result
 
 def opensky_adsb(params, observer_location):
+    ''' Retreives data from Opensky
+    '''    
     found_aircraft = {}
     result = ''
     #url='https://opensky-network.org/api/states/all?lamin=51.217207&lamax=52.895649&lomin=-1.016235&lomax=1.845703'
@@ -264,15 +270,23 @@ def opensky_adsb(params, observer_location):
     return found_aircraft, result
 
 def knots_to_mach(knots, speed_of_sound_knots=661.5):
+    ''' Converts knots to an estimated mach number
+    '''    
     return knots / speed_of_sound_knots
 
 def get_flight_level(altitude):
+    ''' Converts an altitude in meters to a flight levek
+    '''        
     return f'FL{int(altitude / 100):03}'
 
 def feet_to_meters(feet):
+    ''' Converts feet to meters
+    '''        
     return feet * 0.3048
 
 def meters_to_miles(meters):
+    ''' Converts meters to mils
+    '''        
     return meters / 1609.344
 
 def haversine_distance(lat1, lon1, lat2, lon2):
@@ -325,9 +339,12 @@ def look_angle(aircraft_pos, observer_location):
     return azimuth, elevation, surface_distance, slant_distance
 
 def adsb(params, event):
+    ''' The entry point for the module called by the module manager
+    '''        
     result = ''
     period = 1
-
+    period = int(params["period"])
+    
     data_source = params['data_source']
     local_adsb_url = params['local_adsb_url']
     observer_altitude = int(params['observer_altitude'])
@@ -382,6 +399,8 @@ def adsb(params, event):
     return result
 
 def adsb_cleanup():
+    ''' Cleans up the module if it is removed from a flow, called by the module manager
+    '''       
     moduleData = {
         "metaData": metaData,
         "cleanup": {
