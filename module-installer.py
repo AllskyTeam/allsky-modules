@@ -286,7 +286,14 @@ class ALLSKYMODULEINSTALLER:
             f.close()          
             data += readmeText
         else:
-            data += 'No readme.txt file available'
+            readmeFile = os.path.join(modulePath, 'README.md')
+            if os.path.exists(readmeFile):
+                f = open(readmeFile, 'r')
+                readmeText = f.read()
+                f.close()          
+                data += readmeText
+            else:
+                data += 'No readme.txt file available'
                      
         data += '\n\nChangelog\n'
         data += f"{'-'*40}\n\n"
