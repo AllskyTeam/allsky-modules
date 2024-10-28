@@ -19,6 +19,9 @@ There are three data sources available
 | **Opensky**         | The Opensky network
 | **Airplanes Live**  | The Airplane sLive network
 
+These datasource typically do not provide details about the actual aircraft type. The 'Lookup Type' option will attempt to get additional information about the aircraft type from https://hexdb.io/. This is enabled by default and if you do use it please consider donating via https://ko-fi.com/hexdb
+Not all aircraft will be recognised as there is no worldwide database available, just those provided by volunteers such as hexdb.io
+
 ## Local
 This requires a local ADBS receiver. The setup of this is beyond the scope of this document. There are plenty of resources available online for setting up a local ADSB receiver and feeding tracking sites. Some examples
 
@@ -59,19 +62,34 @@ The module will create an allsky overlay extra data file (allskyadsb.json) conta
 aircraft_X_hex - The icao code of the aircraft
 aircraft_X_text - Short form text of the aircraft
 aircraft_X_longtext - Long form text of the aircraft
+aircraft_X_type - The type of aircraft (if enabled and the hex code is known)
+aircraft_X_owner - The aircraft owner (if enabled and the hex code is known)
+aircraft_X_registration - The aircraft registration (if enabled and the hex code is known)
 
 ### Example short form text
-ZY39RM  225°
+WUK78 207°
 
 This has the callsign and azimuth of the aircraft
 
 ### Example long form text
-EZY39RM  225° 26Miles FL067  222kts
+WUK78 A321 207° 11Miles FL122  264kts
 
 This has the
 
 - callsign
+- Aircraft type (If enabled)
 - Azimuth
 - Distance
 - Flight level
 - Speed
+
+## Raw overlay data
+
+The following data is available for the overlay manager
+
+    "aircraft_1_hex": "407b55",
+    "aircraft_1_type": "A321",
+    "aircraft_1_owner": "Wizz Air UK",
+    "aircraft_1_registration": "G-WUKN",
+    "aircraft_1_text": "WUK78 207\u00b0",
+    "aircraft_1_longtext": "WUK78 A321 207\u00b0 11Miles FL122  264kts",

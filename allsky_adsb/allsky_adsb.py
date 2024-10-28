@@ -24,6 +24,7 @@ metaData = {
     "arguments":{
         "period": 60,
         "data_source": "Local",
+        "lookup_type": "true",
         "distance_limit": 50,
         "timeout": 10,
         "local_adsb_url": "",
@@ -48,6 +49,15 @@ metaData = {
                 "default": "Local"
             }
         },
+        "lookup_type" : {
+            "required": "false",
+            "description": "Lookup Type",
+            "help": "Lookup the aircraft type using hexdb.io",
+            "tab": "Data Source",
+            "type": {
+                "fieldtype": "checkbox"
+            }          
+        },         
         "distance_limit" : {
             "required": "true",
             "description": "Limit Distance",
@@ -208,9 +218,9 @@ def local_adsb(local_adsb_url, observer_location, timeout):
         else:
             result = f'ERROR: Failed to retrieve data from "{local_adsb_url}". {response.status_code} - {response.text}'
     except MissingSchema:
-        result = f'The provided URL "{local_adsb_url}" is invalid'
+        result = f'ERROR: The provided local adsb URL "{local_adsb_url}" is invalid'
     except JSONDecodeError:
-        result = f'The provided URL "{local_adsb_url}" is not returning JSON data'
+        result = f'ERROR: The provided local adsb URL "{local_adsb_url}" is not returning JSON data'
 
     return found_aircraft, result
 
@@ -225,7 +235,7 @@ def airplaneslive_adsb(params, observer_location, timeout):
 
     radius = params['airplaneslive_radius']
 
-    s.log(4, 'INFO: Getting data from OpenSky Network')  
+    s.log(4, 'INFO: Getting data from Airplanes Live Network')  
     url = f'https://api.airplanes.live/v2/point/{observer_location[0]}/{observer_location[1]}/{radius}'
     try:
         response = requests.get(url, timeout=timeout)
@@ -392,6 +402,37 @@ def look_angle(aircraft_pos, observer_location):
 
     return azimuth, elevation, surface_distance, slant_distance
 
+def _get_aircraft_info(icao, timeout, lookup_type):
+
+    aircraft_info = {
+        'ICAOTypeCode': '', 
+        'Manufacturer': '', 
+        'ModeS': '', 
+        'OperatorFlagCode': '', 
+        'RegisteredOwners': '', 
+        'Registration': '', 
+        'Type': ''
+    }
+    
+    if lookup_type: 
+        url = f'https://hexdb.io/api/v1/aircraft/{icao}'
+        try:
+            response = requests.get(url, timeout=timeout)
+
+            if response.status_code == 200:
+                aircraft_info = response.json()
+
+                aircraft_info['TypeLong'] = aircraft_info['Type']
+                aircraft_info['Type'] = aircraft_info['Type'].split()[0]
+            else:
+                s.log(4, f'ERROR: Failed to retrieve data from "{url}". {response.status_code} - {response.text}')
+        except MissingSchema:
+            s.log(4, f'The provided URL "{url}" is invalid')
+        except JSONDecodeError:
+            s.log(4, f'The provided URL "{url}" is not returning JSON data')
+
+    return aircraft_info
+
 def adsb(params, event):
     ''' The entry point for the module called by the module manager
     '''
@@ -403,6 +444,7 @@ def adsb(params, event):
     data_source = params['data_source']
     local_adsb_url = params['local_adsb_url']
     observer_altitude = int(params['observer_altitude'])
+    lookup_type = params['lookup_type']
 
     should_run, diff = s.shouldRun(module, period)
     if should_run:
@@ -432,9 +474,14 @@ def adsb(params, event):
                     counter = 1
                     for aircraft in aircraft_list.values():
                         if aircraft['distance_miles'] <= distance_limit:
+                            aircraft['info'] = _get_aircraft_info(aircraft['hex'], timeout, lookup_type)
                             extra_data[f'aircraft_{counter}_hex'] = aircraft['hex']
+                            extra_data[f'aircraft_{counter}_type'] = aircraft['info']['Type']
+                            extra_data[f'aircraft_{counter}_owner'] = aircraft['info']['RegisteredOwners']
+                            extra_data[f'aircraft_{counter}_registration'] = aircraft['info']['Registration']
+                            extra_data[f'aircraft_{counter}_manufacturer'] = aircraft['info']['Manufacturer']
                             extra_data[f'aircraft_{counter}_text'] = f"{aircraft['flight']} {aircraft['azimuth']:.0f}°"
-                            extra_data[f'aircraft_{counter}_longtext'] = f"{aircraft['flight']} {aircraft['azimuth']:.0f}° {aircraft['distance_miles']:.0f}Miles {aircraft['altitude']}  {aircraft['ias']}kts"
+                            extra_data[f'aircraft_{counter}_longtext'] = f"{aircraft['flight']} {aircraft['info']['Type']} {aircraft['azimuth']:.0f}° {aircraft['distance_miles']:.0f}Miles {aircraft['altitude']}  {aircraft['ias']}kts"
                             counter = counter + 1
                         else:
                             s.log(4,f'INFO: Aicraft {aircraft["flight"]} excludes as beyond {distance_limit} miles')
