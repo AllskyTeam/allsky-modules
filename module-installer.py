@@ -6,6 +6,8 @@ import subprocess
 import tempfile
 import re
 import smbus
+import shutil
+from pathlib import Path
 from platform import python_version
 from packaging import version
 from urllib.request import urlopen as url
@@ -200,21 +202,36 @@ class ALLSKYMODULEINSTALLER:
                 failed = f'Could not set permissions on {installedPath}\n\n'
                 result = False
         else:
-            failed = f'Could not copy module from {self._scriptPath} to {self._destPath}\n\n'
+            failed = f'Could not copy module from {scriptPath} to {self._destPath}\n\n'
             result = False
-        
+
         if result:
             infoPath = os.path.join(modulePath, 'readme.txt')
             if os.path.exists(infoPath):
                 packageInfoPath = os.path.join(self._destPathInfo,module)
                 if not os.path.isdir(packageInfoPath):
                     os.makedirs(packageInfoPath, mode = 0o777, exist_ok = True)
-                            
+
                 cmd = f'cp {infoPath} {packageInfoPath}'
                 os.system(cmd)
-            
+
         return result
-                                               
+    
+    def _install_module_data(self, module):
+        result = True
+        data_dir = os.path.join(self._basePath, module, module.replace('allsky_', ''))
+        if Path(data_dir).is_dir():
+            try:
+                shutil.copytree(data_dir, self._destPath)
+            except FileExistsError:
+                print('Destination directory already exists.')
+                result = False
+            except Exception as exception:
+                print(f'Error occurred: {exception}')
+                result = False
+
+        return result
+                                                       
     def _doInstall(self):
         os.system('clear')
         
@@ -230,7 +247,10 @@ class ALLSKYMODULEINSTALLER:
             if self._checkPythonVersion(moduleData):
                 if self._installDependencies(module, modulePath):
                     if self._installModule(module, scriptPath, installedPath, modulePath):
-                        print(f'SUCCESS: Module "{module}" installed\n\n')
+                        if self._install_module_data(module):
+                            print(f'SUCCESS: Module "{module}" installed\n\n')
+                        else:
+                            print(f'ERROR: Module "{module}" failed to installed\n\n')
                     else:
                         print(f'ERROR: Module "{module}" failed to installed\n\n')
     

@@ -10,6 +10,8 @@ import sys
 import requests
 from requests.exceptions import MissingSchema, JSONDecodeError
 import math
+import json
+import os
 
 metaData = {
     "name": "ADSB - Aircraft tracking",
@@ -24,7 +26,7 @@ metaData = {
     "arguments":{
         "period": 60,
         "data_source": "Local",
-        "lookup_type": "true",
+        "aircraft_data": "local",
         "distance_limit": 50,
         "timeout": 10,
         "local_adsb_url": "",
@@ -48,16 +50,7 @@ metaData = {
                 "values": "Local,OpenSky,AirplanesLive",
                 "default": "Local"
             }
-        },
-        "lookup_type" : {
-            "required": "false",
-            "description": "Lookup Type",
-            "help": "Lookup the aircraft type using hexdb.io",
-            "tab": "Data Source",
-            "type": {
-                "fieldtype": "checkbox"
-            }          
-        },         
+        },        
         "distance_limit" : {
             "required": "true",
             "description": "Limit Distance",
@@ -159,10 +152,21 @@ metaData = {
                 "max": 250,
                 "step": 1
             }
-        }
+        },
+         "aircraft_data" : {
+            "required": "false",
+            "description": "Data Source",
+            "help": "The source for the adsb data",
+            "tab": "Aircraft Data",
+            "type": {
+                "fieldtype": "select",
+                "values": "Local,Hexdb",
+                "default": "Local"
+            }
+        }        
     },
     "businfo": [
-    ],    
+    ],
     "changelog": {
         "v1.0.0" : [
             {
@@ -191,30 +195,34 @@ def local_adsb(local_adsb_url, observer_location, timeout):
             s.log(4, f'INFO: Retrieved {len(aircraft_data["aircraft"])} aircraft from local ADSB server')
             for aircraft in aircraft_data['aircraft']:
 
-                if 'flight' in aircraft:
-                    if 'ias' in aircraft:
-                        if 'lat' in aircraft:
-                            aircraft_pos = (float(aircraft['lat']), float(aircraft['lon']), feet_to_meters(int(aircraft['alt_baro'])))
-                            aircraft_azimuth, aircraft_elevation, aircraft_distance, slant_distance = look_angle(aircraft_pos, observer_location)
+                if 'flight' not in aircraft or aircraft['flight'].replace(' ', '') == '':
+                    aircraft['flight'] = aircraft['hex'].rstrip()
 
-                            found_aircraft[aircraft['hex']] = {
-                                'hex': aircraft['hex'].rstrip(),
-                                'flight': aircraft['flight'].rstrip(),
-                                'distance': aircraft_distance,
-                                'distance_miles' : meters_to_miles(aircraft_distance),
-                                'altitude': get_flight_level(aircraft['alt_baro']),
-                                'ias': aircraft['ias'] if 'ias' in aircraft else '',
-                                'tas': aircraft['tas'] if 'tas' in aircraft else '',
-                                'mach': aircraft['mach'] if 'mach' in aircraft else '',
-                                'azimuth': aircraft_azimuth,
-                                'elevation': aircraft_elevation                   
-                            }
-                        else:
-                            s.log(4, f'INFO: Ignoring {aircraft["flight"].rstrip()} as the latitude missing')
+                if 'ias' not in aircraft:
+                    if 'gs' in aircraft:
+                        aircraft['ias'] = aircraft['gs']
+
+                if 'ias' in aircraft:
+                    if 'lat' in aircraft:
+                        aircraft_pos = (float(aircraft['lat']), float(aircraft['lon']), feet_to_meters(int(aircraft['alt_baro'])))
+                        aircraft_azimuth, aircraft_elevation, aircraft_distance, slant_distance = look_angle(aircraft_pos, observer_location)
+
+                        found_aircraft[aircraft['hex']] = {
+                            'hex': aircraft['hex'].rstrip(),
+                            'flight': aircraft['flight'].rstrip(),
+                            'distance': aircraft_distance,
+                            'distance_miles' : meters_to_miles(aircraft_distance),
+                            'altitude': get_flight_level(aircraft['alt_baro']),
+                            'ias': aircraft['ias'] if 'ias' in aircraft else '',
+                            'tas': aircraft['tas'] if 'tas' in aircraft else '',
+                            'mach': aircraft['mach'] if 'mach' in aircraft else '',
+                            'azimuth': aircraft_azimuth,
+                            'elevation': aircraft_elevation                   
+                        }
                     else:
-                        s.log(4, f'INFO: Ignoring {aircraft["flight"].rstrip()} as the airspeed missing')
+                        s.log(4, f'INFO: Ignoring {aircraft["flight"].rstrip()} as the latitude missing')
                 else:
-                    s.log(4, f'INFO: Ignoring {aircraft["hex"].rstrip()} as the flight number is missing')      
+                    s.log(4, f'INFO: Ignoring {aircraft["flight"].rstrip()} as the airspeed missing')
         else:
             result = f'ERROR: Failed to retrieve data from "{local_adsb_url}". {response.status_code} - {response.text}'
     except MissingSchema:
@@ -340,8 +348,14 @@ def knots_to_mach(knots, speed_of_sound_knots=661.5):
 
 def get_flight_level(altitude):
     ''' Converts an altitude in meters to a flight levek
-    '''        
-    return f'FL{int(altitude / 100):03}'
+    '''
+    
+    if altitude < 1000:
+        result = 'LOW'
+    else: 
+        result = f'FL{int(altitude / 100):03}'
+        
+    return result
 
 def feet_to_meters(feet):
     ''' Converts feet to meters
@@ -402,7 +416,7 @@ def look_angle(aircraft_pos, observer_location):
 
     return azimuth, elevation, surface_distance, slant_distance
 
-def _get_aircraft_info(icao, timeout, lookup_type):
+def _get_aircraft_info(icao, timeout, aircraft_data):
 
     aircraft_info = {
         'ICAOTypeCode': '', 
@@ -411,10 +425,11 @@ def _get_aircraft_info(icao, timeout, lookup_type):
         'OperatorFlagCode': '', 
         'RegisteredOwners': '', 
         'Registration': '', 
-        'Type': ''
+        'Type': '',
+        'Military': ''
     }
     
-    if lookup_type: 
+    if aircraft_data == 'local':
         url = f'https://hexdb.io/api/v1/aircraft/{icao}'
         try:
             response = requests.get(url, timeout=timeout)
@@ -424,12 +439,40 @@ def _get_aircraft_info(icao, timeout, lookup_type):
 
                 aircraft_info['TypeLong'] = aircraft_info['Type']
                 aircraft_info['Type'] = aircraft_info['Type'].split()[0]
+                aircraft_info['Military'] = ''
             else:
                 s.log(4, f'ERROR: Failed to retrieve data from "{url}". {response.status_code} - {response.text}')
         except MissingSchema:
             s.log(4, f'The provided URL "{url}" is invalid')
         except JSONDecodeError:
             s.log(4, f'The provided URL "{url}" is not returning JSON data')
+    else:
+        database_dir = '/opt/allsky/modules/adsb/adsb_data'
+        icao_key = icao[:2]
+        icao_file = f'{icao_key}.json'
+        file_path = os.path.join(database_dir, icao_file)
+
+        try:
+            with open(file_path, 'r', encoding='utf-8') as file:
+                ac_data = json.load(file)
+
+            if icao in ac_data:
+                ac_info = ac_data[icao]
+                aircraft_info = {
+                    'ICAOTypeCode': ac_info['st'], 
+                    'Manufacturer': ac_info['m'], 
+                    'ModeS': '', 
+                    'OperatorFlagCode': '', 
+                    'RegisteredOwners': ac_info['o'], 
+                    'Registration': ac_info['r'], 
+                    'Type': ac_info['it'],
+                    'TypeLong': ac_info['it'],
+                    'Military': ''
+                }
+                if ac_info['ml']:
+                    aircraft_info['Military'] = 'Mil'
+        except FileNotFoundError:
+            pass
 
     return aircraft_info
 
@@ -444,8 +487,8 @@ def adsb(params, event):
     data_source = params['data_source']
     local_adsb_url = params['local_adsb_url']
     observer_altitude = int(params['observer_altitude'])
-    lookup_type = params['lookup_type']
-
+    aircraft_data = params['aircraft_data']
+    
     should_run, diff = s.shouldRun(module, period)
     if should_run:
         lat = s.getSetting('latitude')
@@ -474,12 +517,13 @@ def adsb(params, event):
                     counter = 1
                     for aircraft in aircraft_list.values():
                         if aircraft['distance_miles'] <= distance_limit:
-                            aircraft['info'] = _get_aircraft_info(aircraft['hex'], timeout, lookup_type)
+                            aircraft['info'] = _get_aircraft_info(aircraft['hex'], timeout, aircraft_data)
                             extra_data[f'aircraft_{counter}_hex'] = aircraft['hex']
                             extra_data[f'aircraft_{counter}_type'] = aircraft['info']['Type']
                             extra_data[f'aircraft_{counter}_owner'] = aircraft['info']['RegisteredOwners']
                             extra_data[f'aircraft_{counter}_registration'] = aircraft['info']['Registration']
                             extra_data[f'aircraft_{counter}_manufacturer'] = aircraft['info']['Manufacturer']
+                            extra_data[f'aircraft_{counter}_military'] = aircraft['info']['Military']
                             extra_data[f'aircraft_{counter}_text'] = f"{aircraft['flight']} {aircraft['azimuth']:.0f}°"
                             extra_data[f'aircraft_{counter}_longtext'] = f"{aircraft['flight']} {aircraft['info']['Type']} {aircraft['azimuth']:.0f}° {aircraft['distance_miles']:.0f}Miles {aircraft['altitude']}  {aircraft['ias']}kts"
                             counter = counter + 1
