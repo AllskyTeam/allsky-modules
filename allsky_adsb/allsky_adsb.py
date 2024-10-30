@@ -8,14 +8,16 @@ https://github.com/thomasjacquin/allsky
 import allsky_shared as s
 import sys
 import requests
-from requests.exceptions import MissingSchema, JSONDecodeError
 import math
 import json
 import os
 
+from unidecode import unidecode
+from requests.exceptions import MissingSchema, JSONDecodeError
+
 metaData = {
     "name": "ADSB - Aircraft tracking",
-    "description": "Tracks aircraft defined in the capatured image",
+    "description": "Provides aircraft data for display in the captured images",
     "module": "allsky_adsb",    
     "version": "v1.0.0",
     "events": [
@@ -27,6 +29,7 @@ metaData = {
         "period": 60,
         "data_source": "Local",
         "aircraft_data": "local",
+        "aricraft_route": "true",
         "distance_limit": 50,
         "timeout": 10,
         "local_adsb_url": "",
@@ -47,7 +50,7 @@ metaData = {
             "tab": "Data Source",
             "type": {
                 "fieldtype": "select",
-                "values": "Local,OpenSky,AirplanesLive",
+                "values": "Local,OpenSky,AirplanesLive,adsbfi",
                 "default": "Local"
             }
         },        
@@ -59,7 +62,7 @@ metaData = {
             "type": {
                 "fieldtype": "spinner",
                 "min": 0,
-                "max": 200,
+                "max": 250,
                 "step": 1
             }
         },         
@@ -141,29 +144,26 @@ metaData = {
             "help": "The maximum longitude of the bounding box.",
             "tab": "OpenSky"
         },
-        "airplaneslive_radius" : {
-            "required": "true",
-            "description": "Radius",
-            "help": "Tha maximum distance to return aircraft for.",
-            "tab": "Airplanes Live",                        
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 250,
-                "step": 1
-            }
-        },
          "aircraft_data" : {
             "required": "false",
             "description": "Data Source",
-            "help": "The source for the adsb data",
+            "help": "The source for the aircraft data, see the documentaiton for details",
             "tab": "Aircraft Data",
             "type": {
                 "fieldtype": "select",
                 "values": "Local,Hexdb",
                 "default": "Local"
             }
-        }        
+        },
+        "aricraft_route" : {
+            "required": "false",
+            "description": "Get flight route",
+            "help": "Get the flights route if possible",
+            "tab": "Aircraft Data",
+            "type": {
+                "fieldtype": "checkbox"
+            }          
+        }            
     },
     "businfo": [
     ],
@@ -241,7 +241,7 @@ def airplaneslive_adsb(params, observer_location, timeout):
 
     #url = 'https://api.airplanes.live/v2/point/52.4/0.2/50'
 
-    radius = params['airplaneslive_radius']
+    radius = params['distance_limit']
 
     s.log(4, 'INFO: Getting data from Airplanes Live Network')  
     url = f'https://api.airplanes.live/v2/point/{observer_location[0]}/{observer_location[1]}/{radius}'
@@ -250,8 +250,14 @@ def airplaneslive_adsb(params, observer_location, timeout):
 
         if response.status_code == 200:
             aircraft_data = response.json()
-            s.log(4, f'INFO: Retrieved {len(aircraft_data["ac"])} aircraft from AirplanesLive Network')
+            s.log(4, f'INFO: Retrieved {len(aircraft_data["ac"])+1} aircraft from AirplanesLive Network')
             for aircraft in aircraft_data['ac']:
+                flight = aircraft['flight'] if 'flight' in aircraft else 'Unknown'
+                
+                if 'ias' not in aircraft:
+                    if 'gs' in aircraft:
+                        aircraft['ias'] = aircraft['gs']
+                                        
                 if 'lat' in aircraft:
                     if 'alt_baro' in aircraft:
                         if aircraft['alt_baro'] != 'ground':
@@ -260,7 +266,6 @@ def airplaneslive_adsb(params, observer_location, timeout):
                             aircraft_azimuth, aircraft_elevation, aircraft_distance, slant_distance = look_angle(aircraft_pos, observer_location)
 
                             icao = aircraft['hex']
-                            flight = aircraft['flight'] if 'flight' in aircraft else 'Unknown'
 
                             found_aircraft[icao] = {
                                 'hex': icao,
@@ -341,6 +346,67 @@ def opensky_adsb(params, observer_location, timeout):
         
     return found_aircraft, result
 
+def adsbfi_adsb(params, observer_location, timeout):
+    ''' Retreives data from Airplanes live
+    '''
+
+    found_aircraft = {}
+    result = ''
+    radius = params['distance_limit']
+
+    s.log(4, 'INFO: Getting data from Adsb.fi Network')  
+    url = f'https://opendata.adsb.fi/api/v2/lat/{observer_location[0]}/lon/{observer_location[1]}/dist/{radius}'
+    try:
+        response = requests.get(url, timeout=timeout)
+
+        if response.status_code == 200:
+            aircraft_data = response.json()
+            s.log(4, f'INFO: Retrieved {len(aircraft_data["aircraft"])+1} aircraft from Adsb.fi Network')
+            for aircraft in aircraft_data['aircraft']:
+                
+                if 'ias' not in aircraft:
+                    if 'gs' in aircraft:
+                        aircraft['ias'] = aircraft['gs']
+                        
+                flight = aircraft['flight'] if 'flight' in aircraft else 'Unknown'                    
+                if 'lat' in aircraft:
+                    if 'alt_baro' in aircraft:
+                        if aircraft['alt_baro'] != 'ground':
+
+                            aircraft_pos = (float(aircraft['lat']), float(aircraft['lon']), int(feet_to_meters(aircraft['alt_baro'])))
+                            aircraft_azimuth, aircraft_elevation, aircraft_distance, slant_distance = look_angle(aircraft_pos, observer_location)
+
+                            icao = aircraft['hex']
+                        
+                            found_aircraft[icao] = {
+                                'hex': icao,
+                                'flight': flight,
+                                'distance': aircraft_distance,
+                                'distance_miles' : meters_to_miles(aircraft_distance),                          
+                                'altitude': get_flight_level(aircraft['alt_baro']),
+                                'ias': aircraft['ias'] if 'ias' in aircraft else '',
+                                'tas': aircraft['tas'] if 'tas' in aircraft else '',
+                                'mach': aircraft['mach'] if 'mach' in aircraft else '',
+                                'azimuth': aircraft_azimuth,
+                                'elevation': aircraft_elevation   
+                            }
+                        else:
+                            s.log(4, f'INFO: {flight} is on the ground so ignoring')
+                    else:
+                            s.log(4, f'INFO: {flight} no altitude available so ignoring')
+                else:
+                    s.log(4, f'INFO: {flight} has no location so ignoring')
+        else:
+            if response.status_code == 429:
+                result = 'ERROR: You are making too many requests to adsb.fi. increase the time between runs'
+            else:
+                result = f'ERROR: Failed to retrieve data from "{url}". {response.status_code} - {response.text}'
+    except Exception as data_exception:
+        exception_type, exception_object, exception_traceback = sys.exc_info()
+        result = f'ERROR: Failed to retrieve data from {url} - {exception_traceback.tb_lineno} - {data_exception}'
+        
+    return found_aircraft, result
+    
 def knots_to_mach(knots, speed_of_sound_knots=661.5):
     ''' Converts knots to an estimated mach number
     '''    
@@ -476,6 +542,50 @@ def _get_aircraft_info(icao, timeout, aircraft_data):
 
     return aircraft_info
 
+def _get_route(flight, timeout, get_aircraft_route):
+    route_data = {
+        'origin_icao': '',
+        'origin_name': '',
+        'origin_municipality': '',
+        'destination_icao': '',
+        'destination_name': '',
+        'destination_municipality': '',
+        'short_route': '',
+        'medium_route': '',
+        'long_route': ''              
+    }
+    
+    if get_aircraft_route:
+        try:
+            url = f'https://api.adsbdb.com/v0/callsign/{flight}'
+            response = requests.get(url, timeout=timeout)
+
+            if response.status_code == 200:
+                json_data = response.json()
+
+                if 'response' in json_data:
+                    if 'flightroute' in json_data['response']:
+                        aircraft_route = json_data['response']['flightroute']
+                        route_data['origin_icao'] = aircraft_route['origin']['icao_code']
+                        route_data['origin_name'] = aircraft_route['origin']['name']
+                        route_data['origin_municipality'] = aircraft_route['origin']['municipality']
+
+                        route_data['destination_icao'] = aircraft_route['destination']['icao_code']
+                        route_data['destination_name'] = aircraft_route['destination']['name']
+                        route_data['destination_municipality'] = aircraft_route['destination']['municipality']
+                        
+                        route_data['short_route'] = f'{route_data["origin_icao"]} -> {route_data["destination_icao"]}'
+                        route_data['medium_route'] = f'{route_data["origin_municipality"]} -> {route_data["destination_municipality"]}'
+                        route_data['long_route'] = f'({route_data["origin_icao"]}) {route_data["origin_name"]} -> ({route_data["destination_icao"]}) {route_data["destination_name"]}'
+
+                        route_data['medium_route'] = unidecode(route_data['medium_route'])
+                        route_data['long_route'] = unidecode(route_data['long_route'])
+
+        except Exception:
+            pass
+        
+    return route_data
+    
 def adsb(params, event):
     ''' The entry point for the module called by the module manager
     '''
@@ -488,6 +598,7 @@ def adsb(params, event):
     local_adsb_url = params['local_adsb_url']
     observer_altitude = int(params['observer_altitude'])
     aircraft_data = params['aircraft_data']
+    get_aircraft_route = params["aricraft_route"]
     
     should_run, diff = s.shouldRun(module, period)
     if should_run:
@@ -511,6 +622,9 @@ def adsb(params, event):
                 if data_source == 'OpenSky':
                     aircraft_list, result = opensky_adsb(params, observer_location, timeout)
 
+                if data_source == 'adsbfi':
+                    aircraft_list, result = adsbfi_adsb(params, observer_location, timeout)
+
                 if result == '':
                     aircraft_list = dict(sorted(aircraft_list.items(), key=lambda item: item[1]['distance']))
 
@@ -518,6 +632,8 @@ def adsb(params, event):
                     for aircraft in aircraft_list.values():
                         if aircraft['distance_miles'] <= distance_limit:
                             aircraft['info'] = _get_aircraft_info(aircraft['hex'], timeout, aircraft_data)
+                            aircraft['route'] = _get_route(aircraft['flight'].rstrip(), timeout, get_aircraft_route)
+                            
                             extra_data[f'aircraft_{counter}_hex'] = aircraft['hex']
                             extra_data[f'aircraft_{counter}_type'] = aircraft['info']['Type']
                             extra_data[f'aircraft_{counter}_owner'] = aircraft['info']['RegisteredOwners']
@@ -526,6 +642,9 @@ def adsb(params, event):
                             extra_data[f'aircraft_{counter}_military'] = aircraft['info']['Military']
                             extra_data[f'aircraft_{counter}_text'] = f"{aircraft['flight']} {aircraft['azimuth']:.0f}°"
                             extra_data[f'aircraft_{counter}_longtext'] = f"{aircraft['flight']} {aircraft['info']['Type']} {aircraft['azimuth']:.0f}° {aircraft['distance_miles']:.0f}Miles {aircraft['altitude']}  {aircraft['ias']}kts"
+                            extra_data[f'aircraft_{counter}_short_route'] = aircraft['route']['short_route']
+                            extra_data[f'aircraft_{counter}_medium_route'] = aircraft['route']['medium_route']
+                            extra_data[f'aircraft_{counter}_long_route'] = aircraft['route']['long_route']
                             counter = counter + 1
                         else:
                             s.log(4,f'INFO: Aicraft {aircraft["flight"]} excludes as beyond {distance_limit} miles')

@@ -22,19 +22,19 @@ class ALLSKYMODULEINSTALLER:
     _moduleDirs = []
     _modules = []
     _checkList = []
-    
+
     def __init__(self):
         self._basePath = os.path.dirname(os.path.realpath(__file__))
         self._destPath = '/opt/allsky/modules'
         self._destPathDeps = os.path.join(self._destPath,'dependencies')
         self._destPathInfo = os.path.join(self._destPath,'info')
-    
+
     def _checkInstalled(self, path):
         if os.path.exists(path):
             return True
         else:
             return False 
-        
+
     def _preChecks(self):
         result = True
         
@@ -56,7 +56,7 @@ class ALLSKYMODULEINSTALLER:
                 result = False
                         
         return result  
-    
+
     def _readModules(self):
         self._moduleDirs = [] 
         dirs = os.listdir()
@@ -72,7 +72,7 @@ class ALLSKYMODULEINSTALLER:
     def _displayInstallDialog(self):        
         w = Whiptail(title='Select Modules', backtitle='AllSky Module Manager', height=20, width = 40)
         self._checkList = w.checklist('Select the Modules To Install', self._moduleDirs)[0]
-        
+
     def _getModuleData(self, module):
         modulePath = os.path.join(self._basePath, module)
         scriptPath = os.path.join(self._basePath, module, module + '.py')
@@ -110,7 +110,7 @@ class ALLSKYMODULEINSTALLER:
         moduleData = self._fixModuleMetaData(moduleData)
         
         return moduleData
-    
+
     def _checkPythonVersion(self, moduleData):
         result = True
         if moduleData is not None:
@@ -119,7 +119,7 @@ class ALLSKYMODULEINSTALLER:
                     print(f'This module requires Python version {moduleData["pythonversion"]} you have {python_version()} installed')
                     result = False
         return result
-           
+
     def _installPackages(self, module, modulePath):
         result = True
         packagesPath = os.path.join(modulePath, 'packages.txt')
@@ -180,7 +180,7 @@ class ALLSKYMODULEINSTALLER:
                     result = False
 
         return result
-         
+
     def _installDependencies(self, module, modulePath):
         result = False
         
@@ -215,8 +215,17 @@ class ALLSKYMODULEINSTALLER:
                 cmd = f'cp {infoPath} {packageInfoPath}'
                 os.system(cmd)
 
+            infoPath = os.path.join(modulePath, 'README.md')
+            if os.path.exists(infoPath):
+                packageInfoPath = os.path.join(self._destPathInfo,module)
+                if not os.path.isdir(packageInfoPath):
+                    os.makedirs(packageInfoPath, mode = 0o777, exist_ok = True)
+
+                cmd = f'cp {infoPath} {packageInfoPath}'
+                os.system(cmd)
+                
         return result
-    
+
     def _install_module_data(self, module):
         result = True
         data_dir = os.path.join(self._basePath, module, module.replace('allsky_', ''))
@@ -231,10 +240,10 @@ class ALLSKYMODULEINSTALLER:
                 result = False
 
         return result
-                                                       
+
     def _doInstall(self):
         os.system('clear')
-        
+
         if not os.path.isdir(self._destPathDeps):
             os.mkdir(self._destPathDeps)
 
