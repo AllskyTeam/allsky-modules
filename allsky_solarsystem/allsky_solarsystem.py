@@ -206,7 +206,7 @@ class ALLSKYSOLARSYSTEM:
         self._extraData = {}
 
     def _saveExtraData(self):
-        #s.log(4, f'INFO: Adding Extra Data {self._extraData}')
+        s.log(4, f'INFO: Saving {self._extradatafilename}')
         #s.var_dump(self._extraData)
         s.saveExtraData(self._extradatafilename, self._extraData)
 
@@ -216,14 +216,15 @@ class ALLSKYSOLARSYSTEM:
                 lat = radians(s.convertLatLon(self._observerLat))
                 lon = radians(s.convertLatLon(self._observerLon))
 
-                ts = time.time()
-                utcOffset = (datetime.fromtimestamp(ts) - datetime.utcfromtimestamp(ts)).total_seconds()
+                now = time.time()
+                utc_offset = (datetime.fromtimestamp(now) - datetime.utcfromtimestamp(now)).total_seconds()
 
                 observer = ephem.Observer()
                 observer.lat = lat
                 observer.long = lon
                 moon = ephem.Moon()
-                observer.date = datetime.now() - timedelta(seconds=utcOffset)
+                obs_date = datetime.now() - timedelta(seconds=utc_offset)
+                observer.date = obs_date
                 moon.compute(observer)
 
                 nnm = ephem.next_new_moon(observer.date)
@@ -236,16 +237,58 @@ class ALLSKYSOLARSYSTEM:
                 else:
                     symbol = chr(ord('A')+int(symbol+0.5)-1)
 
-                azTemp = str(moon.az).split(":")
-                moonAzimuth = azTemp[0]
-                moonElevation = str(round(degrees(moon.alt),2))
-                moonIllumination = str(round(moon.phase, 2))
-                moonPhaseSymbol  = symbol
+                az_temp = str(moon.az).split(":")
+                moon_azimuth = az_temp[0]
+                moon_elevation = str(round(degrees(moon.alt),2))
+                moon_illumination = str(round(moon.phase, 2))
+                moon_phase_symbol  = symbol
 
-                self._extraData['AS_MOON_AZIMUTH'] = moonAzimuth
-                self._extraData['AS_MOON_ELEVATION'] = moonElevation
-                self._extraData['AS_MOON_ILLUMINATION'] = moonIllumination
-                self._extraData['AS_MOON_SYMBOL'] = moonPhaseSymbol
+                if moon.alt > 0:
+                    moonrise = observer.previous_rising(moon)
+                else:
+                    moonrise = observer.next_rising(moon)
+
+                moonset = observer.next_setting(moon)
+
+                moonrise_locale_full = ephem.localtime(moonrise).strftime('%c')
+                moonrise_locale_date = ephem.localtime(moonrise).strftime('%x')
+                moonrise_locale_time = ephem.localtime(moonrise).strftime('%X')
+                moonset_locale_full = ephem.localtime(moonset).strftime('%c')
+                moonset_locale_date = ephem.localtime(moonset).strftime('%x')
+                moonset_locale_time = ephem.localtime(moonset).strftime('%X')
+
+                next_full_moon = ephem.next_full_moon(observer.date)
+                next_new_moon = ephem.next_new_moon(next_full_moon)
+
+                next_full_moon_locale = ephem.localtime(next_full_moon).strftime('%c')
+                next_full_moon_date = ephem.localtime(next_full_moon).strftime('%x')
+                next_full_moon_time = ephem.localtime(next_full_moon).strftime('%X')
+                next_new_moon_locale = ephem.localtime(next_new_moon).strftime('%c')
+                next_new_moon_date = ephem.localtime(next_new_moon).strftime('%x')
+                next_new_moon_time = ephem.localtime(next_new_moon).strftime('%X')
+                
+                self._extraData['AS_MOON_AZIMUTH'] = moon_azimuth
+                self._extraData['AS_MOON_ELEVATION'] = moon_elevation
+                self._extraData['AS_MOON_ILLUMINATION'] = moon_illumination
+                self._extraData['AS_MOON_SYMBOL'] = moon_phase_symbol
+                
+                self._extraData['AS_MOON_RISE_FULL'] = moonrise_locale_full
+                self._extraData['AS_MOON_RISE_DATE'] = moonrise_locale_date
+                self._extraData['AS_MOON_RISE_TIME'] = moonrise_locale_time
+
+                self._extraData['AS_MOON_SET_FULL'] = moonset_locale_full
+                self._extraData['AS_MOON_SET_DATE'] = moonset_locale_date
+                self._extraData['AS_MOON_SET_TIME'] = moonset_locale_time
+
+                self._extraData['AS_MOON_NEXT_FULL_FULL'] = next_full_moon_locale
+                self._extraData['AS_MOON_NEXT_FULL_DATE'] = next_full_moon_date
+                self._extraData['AS_MOON_NEXT_FULL_TIME'] = next_full_moon_time
+                
+                self._extraData['AS_MOON_NEXT_NEW_FULL'] = next_new_moon_locale
+                self._extraData['AS_MOON_NEXT_NEW_DATE'] = next_new_moon_date
+                self._extraData['AS_MOON_NEXT_NEW_TIME'] = next_new_moon_time
+                
+
             else:
                 s.log(0,'ERROR: Moon enabled but cannot use due to prior error initialising skyfield.', sendToAllsky=True)
 
