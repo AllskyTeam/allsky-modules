@@ -8,6 +8,10 @@ This repository contains additional modules that can be used with Allsky. To ins
 
 `git clone https://github.com/AllskyTeam/allsky-modules.git`
 
+Chenge ot the newly cloned folder
+
+`cd allsky-modules`
+
 Then run the installer
 
 `./install.sh`
