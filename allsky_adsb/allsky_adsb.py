@@ -183,8 +183,7 @@ def local_adsb(local_adsb_url, observer_location, timeout):
     '''
     found_aircraft = {}
     result = ''
-    s.log(4, 'INFO: Getting data from local ADSB receiver')  
-    #url = 'http://192.168.1.28:8080/data/aircraft.json'
+    s.log(4, 'INFO: Getting data from local ADSB receiver')
     
     try:
         response = requests.get(local_adsb_url, timeout=timeout)
@@ -238,8 +237,6 @@ def airplaneslive_adsb(params, observer_location, timeout):
 
     found_aircraft = {}
     result = ''
-
-    #url = 'https://api.airplanes.live/v2/point/52.4/0.2/50'
 
     radius = params['distance_limit']
 
@@ -298,7 +295,6 @@ def opensky_adsb(params, observer_location, timeout):
     '''
     found_aircraft = {}
     result = ''
-    #url='https://opensky-network.org/api/states/all?lamin=51.217207&lamax=52.895649&lomin=-1.016235&lomax=1.845703'
 
     lat_min = params['opensky_lat_min']
     lon_min = params['opensky_lon_min']
@@ -417,7 +413,7 @@ def get_flight_level(altitude):
     '''
     
     if altitude < 1000:
-        result = 'LOW'
+        result = f'{altitude}ft'
     else: 
         result = f'FL{int(altitude / 100):03}'
         
@@ -495,7 +491,7 @@ def _get_aircraft_info(icao, timeout, aircraft_data):
         'Military': ''
     }
     
-    if aircraft_data == 'local':
+    if aircraft_data == 'Hexdb':
         url = f'https://hexdb.io/api/v1/aircraft/{icao}'
         try:
             response = requests.get(url, timeout=timeout)
@@ -550,7 +546,7 @@ def _get_route(flight, timeout, get_aircraft_route):
         'destination_icao': '',
         'destination_name': '',
         'destination_municipality': '',
-        'short_route': '',
+        'short_route': 'No Route',
         'medium_route': '',
         'long_route': ''              
     }
@@ -581,8 +577,10 @@ def _get_route(flight, timeout, get_aircraft_route):
                         route_data['medium_route'] = unidecode(route_data['medium_route'])
                         route_data['long_route'] = unidecode(route_data['long_route'])
 
-        except Exception:
-            pass
+        except Exception as data_exception:
+            exception_type, exception_object, exception_traceback = sys.exc_info()
+            result = f'ERROR: Failed to retrieve data from {url} - {exception_traceback.tb_lineno} - {data_exception}'
+            s.log(4, result)
         
     return route_data
     
@@ -599,7 +597,7 @@ def adsb(params, event):
     observer_altitude = int(params['observer_altitude'])
     aircraft_data = params['aircraft_data']
     get_aircraft_route = params["aricraft_route"]
-    
+
     should_run, diff = s.shouldRun(module, period)
     if should_run:
         lat = s.getSetting('latitude')
@@ -640,8 +638,8 @@ def adsb(params, event):
                             extra_data[f'aircraft_{counter}_registration'] = aircraft['info']['Registration']
                             extra_data[f'aircraft_{counter}_manufacturer'] = aircraft['info']['Manufacturer']
                             extra_data[f'aircraft_{counter}_military'] = aircraft['info']['Military']
-                            extra_data[f'aircraft_{counter}_text'] = f"{aircraft['flight']} {aircraft['azimuth']:.0f}°"
-                            extra_data[f'aircraft_{counter}_longtext'] = f"{aircraft['flight']} {aircraft['info']['Type']} {aircraft['azimuth']:.0f}° {aircraft['distance_miles']:.0f}Miles {aircraft['altitude']}  {aircraft['ias']}kts"
+                            extra_data[f'aircraft_{counter}_text'] = f"{aircraft['flight'].strip()} {aircraft['azimuth']:.0f}°"
+                            extra_data[f'aircraft_{counter}_longtext'] = f"{aircraft['flight'].strip()} {aircraft['info']['Type']} {aircraft['azimuth']:.0f}° {aircraft['distance_miles']:.0f}Miles {aircraft['altitude']}  {aircraft['ias']}kts"
                             extra_data[f'aircraft_{counter}_short_route'] = aircraft['route']['short_route']
                             extra_data[f'aircraft_{counter}_medium_route'] = aircraft['route']['medium_route']
                             extra_data[f'aircraft_{counter}_long_route'] = aircraft['route']['long_route']
