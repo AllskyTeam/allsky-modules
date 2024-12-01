@@ -187,11 +187,11 @@ class ALLSKYSOLARSYSTEM:
                 
         self._enableSkyfield = True
         try:
-            s.log(0, 'INFO: Downloading ephemeris data', sendToAllsky=False)
+            s.log(0, 'INFO: Downloading ephemeris data')
             Loader(self._tmpFolder, verbose=False)
             self._eph = load('de421.bsp')
         except Exception as err:
-            s.log(0, f'ERROR: Unable to download de421.bsp: {err}', sendToAllsky=True)
+            s.log(0, f'ERROR: Unable to download de421.bsp: {err}')
             self._enableSkyfield = False
         self._observerLat = s.getSetting('latitude')
         self._observerLon = s.getSetting('longitude')
@@ -290,11 +290,11 @@ class ALLSKYSOLARSYSTEM:
                 
 
             else:
-                s.log(0,'ERROR: Moon enabled but cannot use due to prior error initialising skyfield.', sendToAllsky=True)
+                s.log(0,'ERROR: Moon enabled but cannot use due to prior error initialising skyfield.')
 
         except Exception as e:
             eType, eObject, eTraceback = sys.exc_info()
-            s.log(0, f'ERROR: _calculateMoon failed on line {eTraceback.tb_lineno} - {e}', sendToAllsky=True)
+            s.log(0, f'ERROR: _calculateMoon failed on line {eTraceback.tb_lineno} - {e}')
         return True    
 
     def _getSunTimes(self, location, date):
@@ -366,7 +366,7 @@ class ALLSKYSOLARSYSTEM:
             self._extraData['AS_SUN_ELEVATION'] = str(int(todaySunData["elevation"]))
         except Exception as e:
             eType, eObject, eTraceback = sys.exc_info()
-            s.log(0, f'ERROR: _initialiseSun failed on line {eTraceback.tb_lineno} - {e}', sendToAllsky=True)
+            s.log(0, f'ERROR: _initialiseSun failed on line {eTraceback.tb_lineno} - {e}')
 
         return True
 
