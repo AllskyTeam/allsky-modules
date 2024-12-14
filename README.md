@@ -85,6 +85,6 @@ This option will display information about the system.
 
 ## Custom Modules
 
-It is possible to write your own modules for Allsky using Python. Details of how to create modules can be found in the Allsky [Wiki](https://github.com/AllskyTeam/allsky/wiki).
+Details of how to create your own modules in Python can be found in the `Explanations -> Modules` documentation page available via the link in the WebUI.
 
 If you feel a module would be of help to the community then please consider contributing it to this repository.
