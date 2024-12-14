@@ -2,27 +2,31 @@
 
 ## Installation
 
-### NOTE: These modules require version v2023.05.01_04 or later of Allsky
+### NOTE: These modules require version v2023.05.01_04 or later of Allsky.
 
-This repository contains additional modules that can be used with Allsky. To install the modules first clone this repository.
+This repository contains additional modules that can be used with Allsky. To install the modules first clone this repository:
 
 `git clone https://github.com/AllskyTeam/allsky-modules.git`
 
-Chenge ot the newly cloned folder
+Change to the newly cloned folder:
 
 `cd allsky-modules`
 
-Then run the installer
+Then run the installer:
 
 `./install.sh`
 
-> **NOTE:** If you are using any other branch other than master a warning will be displayed
+> **NOTE:** If you are using any other branch other than master a warning will be displayed.
+
+When you are done installing the modules you want and have verified they work correctly, you can remove the clone:
+
+`cd; rm -fr allsky-modules`
 
 
 ### Moving around the menu
 Use the up and down arrow keys to move the highlighted selection between the options available. Pressing the right arrow key will jump out of the options menu and take you to the `<Ok>` and `<Finish>` buttons. Pressing left will take you back to the options. Alternatively, use the Tab key to switch between these.
 
-When a list is displayed the `<space>` bar can be used to select or unselect an option
+When a list is displayed the `<space>` bar can be used to select or unselect an option.
 
 
 ### Module Installer Main Menu
@@ -35,14 +39,14 @@ When a list is displayed the `<space>` bar can be used to select or unselect an 
 
 This option will display all of the available modules. If a module is already installed then it will be selected by default, this allows previously installed modules to be updated.
 
-You can select or unselect a module. If a module is unselected but currently installed then it will be uninstalled
+You can select or unselect a module. If a module is unselected but currently installed then it will be uninstalled.
 
 > **NOTE:**  If you uninstall a module then please ensure you check the overlay editor to ensure that you have removed and variables the module may generate.
 
 ### Module information
  ![Main Menu](/images/infomenu.png)
 
-This option will display a list of modules. Selecting a module, using the `<space>` bar and pressing `<enter` will display information about the module.
+This option will display a list of modules. Selecting a module, using the `<space>` bar and pressing `<enter>` will display information about the module.
 
  ![Main Menu](/images/moduleinfo.png)
 
@@ -81,6 +85,6 @@ This option will display information about the system.
 
 ## Custom Modules
 
-It is possible to write your own modules for AllSky using Python. Details of how to create modules can be found in the wiki.
+It is possible to write your own modules for Allsky using Python. Details of how to create modules can be found in the Allsky [Wiki](https://github.com/AllskyTeam/allsky/wiki).
 
 If you feel a module would be of help to the community then please consider contributing it to this repository.
