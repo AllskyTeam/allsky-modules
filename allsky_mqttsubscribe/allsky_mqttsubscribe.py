@@ -20,10 +20,10 @@ metaData = {
     "events": [
         "periodic"
     ],
-    "experimental": "true",    
+    "experimental": "true",
     "arguments":{
         "extradatafilename": "allskymqttsubscribe.json",
-        "period": 60,     
+        "period": 60,
         "prefix": "",
         "mqttserver": "",
         "mqttport": 1883,
@@ -36,12 +36,12 @@ metaData = {
             "required": "true",
             "description": "MQTT server to connect to",
             "help": "Example: 192.168.1.250"
-        },  
+        },
         "mqttport": {
             "required": "true",
             "description": "MQTT port to connect to",
             "help": "Example: 1883"
-        },  
+        },
         "mqtttopic": {
             "required": "true",
             "description": "MQTT Topic to subscribe to",
@@ -60,7 +60,7 @@ metaData = {
         "extradatafilename" : {
             "required": "true",
             "description": "Extra Data Filename",
-            "help": "The prefix for variables - DO NOT CHANGE unless you have multiple variables that clash"
+            "help": "The name for the extra variables file"
         },
         "period" : {
             "required": "false",
@@ -69,14 +69,9 @@ metaData = {
             "type": {
                 "fieldtype": "spinner",
                 "min": 0,
-                "max": 1000,
+                "max": 600,
                 "step": 1
             }
-        },
-        "prefix" : {
-            "required": "false",
-            "description": "Prefix for MQTT messages",
-            "help": "The prefix to add to the MQTT messages"
         }
     },
     "enabled": "false",
@@ -87,7 +82,7 @@ metaData = {
                 "authorurl": "https://github.com/allskyteam",
                 "changes": "Initial Release"
             }
-        ]                              
+        ]
     },
     "businfo": [
     ],
@@ -103,20 +98,36 @@ metaData = {
 }
 
 def mqttsubscribe(params, event):
+    """
+    Subscribes to an MQTT topic and processes incoming messages.
+    Args:
+        params (dict): A dictionary containing the following keys:
+            - 'extradatafilename' (str): The filename to save extra data.
+            - 'period' (int): The period to check if the module should run.
+            - 'mqttserver' (str): The MQTT server address.
+            - 'mqttport' (int): The MQTT server port.
+            - 'mqtttopic' (str): The MQTT topic to subscribe to.
+            - 'mqttusername' (str, optional): The MQTT username for authentication.
+            - 'mqttpassword' (str, optional): The MQTT password for authentication.
+    Returns:
+        str: The result of the MQTT subscription process. It could be the received message,
+             "Invalid JSON" if the message is not a valid JSON, "No message received" if no
+             message was received, or an error message if the connection to the MQTT server failed.
+    """
     result = ""
     extra_data = {}
     extradatafilename = params['extradatafilename']
-    prefix = params['prefix']
     period = int(params['period'])
     mqtt_server = params['mqttserver']
     mqtt_port = int(params['mqttport'])
     mqtt_topic = params['mqtttopic']
 
-
+    # Check if the module should run
     should_run, diff = s.shouldRun(metaData['module'], period)
 
     if should_run:
         try:
+            # MQTT client callbacks for connection
             def on_connect(client, userdata, flags, rc):
                 if rc == 0:
                     s.log(1, f'INFO: Connected to MQTT server {mqtt_server}:{mqtt_port}')
@@ -124,6 +135,7 @@ def mqttsubscribe(params, event):
                 else:
                     s.log(1, f'ERROR: Connection to MQTT server failed with code {rc}')
 
+            # MQTT client callbacks for message
             def on_message(client, userdata, msg):
                 nonlocal result
                 nonlocal extra_data
@@ -137,36 +149,44 @@ def mqttsubscribe(params, event):
                     s.log(1, f'ERROR: Failed to decode JSON message: {e}')
                     result = "Invalid JSON"
 
+            # Create MQTT client and connect to the server
             client = mqtt.Client()
             client.on_connect = on_connect
             client.on_message = on_message
 
+            # Set MQTT username and password if provided
             if params['mqttusername'] and params['mqttpassword']:
                 client.username_pw_set(params['mqttusername'], params['mqttpassword'])
 
             client.connect(mqtt_server, mqtt_port, 60)
+
+            # Run the client for a second to connect and receive messages
             client.loop_start()
-
             time.sleep(1)
-
             client.loop_stop()
             client.disconnect()
 
+            # Check if a message was received
             if not extra_data:
                 result = "No message received"
 
+            # Save the extra data and set the last run
             s.log(1, f'INFO: Final result: {result}')
             s.saveExtraData(extradatafilename, extra_data)
             s.setLastRun(metaData['module'])
             return result
+
+        # Handle exceptions
         except Exception as e:
             s.log(1, f'ERROR: Failed to connect to MQTT server: {e}')
             return "Failed to connect to MQTT server"
-    
+
+    # Return the result if the module should not run yet    
     else:
         result = f'Will run in {(period - diff):.2f} seconds'
         s.log(1,f'INFO: {result}')
 
+# Cleanup function to be called when the module is disabled
 def mqttimport_cleanup():
     moduleData = {
         "metaData": metaData,
