@@ -102,7 +102,7 @@ metaData = {
     }
 }
 
-def mqttimport(params, event):
+def mqttsubscribe(params, event):
     result = ""
     extra_data = {}
     extradatafilename = params['extradatafilename']
@@ -117,42 +117,63 @@ def mqttimport(params, event):
 
     if should_run:
         try:
-            client = mqtt.Client()
-            client.connect(mqtt_server, mqtt_port, 60)
-            client.loop_start()
-            client.subscribe(mqtt_topic)
-            s.log(4, f'INFO: Connected to MQTT server {mqtt_server} on port {mqtt_port} and subscribed to topic {mqtt_topic}')
-            def on_message(client, userdata, message):
+            def on_connect(client, userdata, flags, rc):
+                if rc == 0:
+                    s.log(1, f'INFO: Connected to MQTT server {mqtt_server}:{mqtt_port}')
+                    client.subscribe(mqtt_topic)
+                else:
+                    s.log(1, f'ERROR: Connection to MQTT server failed with code {rc}')
+
+            def on_message(client, userdata, msg):
+                nonlocal result
                 nonlocal extra_data
                 try:
-                    payload = json.loads(message.payload.decode("utf-8"))
-                    extra_data.update(payload)
-                    with open(extradatafilename, 'w') as outfile:
-                        json.dump(extra_data, outfile)
-                    s.log(4, f'INFO: Received and saved message: {payload}')
+                    payload = msg.payload.decode('utf-8')
+                    s.log(1, f'INFO: Received message: {payload}')
+                    json_data = json.loads(payload)
+                    result = json_data
+                    extra_data = json_data
                 except json.JSONDecodeError as e:
                     s.log(1, f'ERROR: Failed to decode JSON message: {e}')
+                    result = "Invalid JSON"
+
+            client = mqtt.Client()
+            client.on_connect = on_connect
             client.on_message = on_message
-            result = 'Data retrieved ok at ' + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) 
+
+            if params['mqttusername'] and params['mqttpassword']:
+                client.username_pw_set(params['mqttusername'], params['mqttpassword'])
+
+            client.connect(mqtt_server, mqtt_port, 60)
+            client.loop_start()
+
             time.sleep(1)
+
             client.loop_stop()
             client.disconnect()
-            s.log(4, f'INFO: Disconnected from MQTT server {mqtt_server}')
-        
+
+            if not extra_data:
+                result = "No message received"
+
+            s.log(1, f'INFO: Final result: {result}')
+            s.saveExtraData(extradatafilename, extra_data)
+            s.setLastRun(metaData['module'])
+            return result
         except Exception as e:
             s.log(1, f'ERROR: Failed to connect to MQTT server: {e}')
             return "Failed to connect to MQTT server"
+    
     else:
         result = f'Will run in {(period - diff):.2f} seconds'
         s.log(1,f'INFO: {result}')
 
-def mqttimport():
+def mqttimport_cleanup():
     moduleData = {
         "metaData": metaData,
         "cleanup": {
-            "files": {
-                "allskyboiler.json"
-            },
+            "files": [
+                "extradatafilename"
+            ],
             "env": {}
         }
     }
