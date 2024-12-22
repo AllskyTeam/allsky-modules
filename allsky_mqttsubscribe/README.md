@@ -56,3 +56,32 @@ Log output from `/var/log/allskyperiodic.log` with DEBUG level set to `4` in All
 2024-12-20T20:15:10.014766-06:00 allskypi5 allskperiodic[116931]: }
 2024-12-20T20:15:10.014780-06:00 allskypi5 allskperiodic[116931]: INFO: Final result: {'MQTT_Heater_Control': 'ON', 'RMS': '0.76', 'timestamp': '20:11:42'}
 ```
+
+JSON payload can also be nested:
+
+```json
+{
+  "name": "Heater",
+  "gpio": 21,
+  "properties": {
+    "direction": "out",
+    "state": "off"
+  }
+}
+```
+
+in which case, root keys are appended as suffixes to the child keys (in this case, `properties` is appended)
+
+```shell
+2024-12-21T17:13:15.771164-06:00 allskypi5 allskperiodic[45626]: INFO: --------------- Running Module allsky_mqttsubscribe ---------------
+2024-12-21T17:13:15.771181-06:00 allskypi5 allskperiodic[45626]: INFO: Connected to MQTT server 192.168.1.250:1883
+2024-12-21T17:13:15.771199-06:00 allskypi5 allskperiodic[45626]: INFO: Received message: {
+2024-12-21T17:13:15.771216-06:00 allskypi5 allskperiodic[45626]:   "name": "Heater",
+2024-12-21T17:13:15.771234-06:00 allskypi5 allskperiodic[45626]:   "gpio": 21,
+2024-12-21T17:13:15.771250-06:00 allskypi5 allskperiodic[45626]:   "properties": {
+2024-12-21T17:13:15.771265-06:00 allskypi5 allskperiodic[45626]:     "direction": "out",
+2024-12-21T17:13:15.771280-06:00 allskypi5 allskperiodic[45626]:     "state": "off"
+2024-12-21T17:13:15.771309-06:00 allskypi5 allskperiodic[45626]:   }
+2024-12-21T17:13:15.771325-06:00 allskypi5 allskperiodic[45626]: }
+2024-12-21T17:13:15.771363-06:00 allskypi5 allskperiodic[45626]: INFO: Final result: {'name': 'Heater', 'gpio': 21, 'properties_direction': 'out', 'properties_state': 'off
+```

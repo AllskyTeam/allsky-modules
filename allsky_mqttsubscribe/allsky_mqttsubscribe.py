@@ -11,6 +11,7 @@ import json
 import os
 import time
 import paho.mqtt.client as mqtt
+from flatten_json import flatten
 
 metaData = {
     "name": "Subscribes to MQTT topic and gets messages",
@@ -74,16 +75,6 @@ metaData = {
             }
         }
     },
-    "enabled": "false",
-    "changelog": {
-        "v1.0.0" : [
-            {
-                "author": "Alex Greenland",
-                "authorurl": "https://github.com/allskyteam",
-                "changes": "Initial Release"
-            }
-        ]
-    },
     "businfo": [
     ],
     "changelog": {
@@ -143,7 +134,6 @@ def mqttsubscribe(params, event):
                     payload = msg.payload.decode('utf-8')
                     s.log(1, f'INFO: Received message: {payload}')
                     json_data = json.loads(payload)
-                    result = json_data
                     extra_data = json_data
                 except json.JSONDecodeError as e:
                     s.log(1, f'ERROR: Failed to decode JSON message: {e}')
@@ -170,21 +160,25 @@ def mqttsubscribe(params, event):
             if not extra_data:
                 result = "No message received"
 
-            # Save the extra data and set the last run
+            # Flatten the object (in case this is a nested JSON) and save the extra data and set the last run
+            extra_data = flatten(extra_data)
+            result = extra_data  # Update the result with the flattened data
             s.log(1, f'INFO: Final result: {result}')
             s.saveExtraData(extradatafilename, extra_data)
             s.setLastRun(metaData['module'])
-            return result
 
         # Handle exceptions
         except Exception as e:
             s.log(1, f'ERROR: Failed to connect to MQTT server: {e}')
-            return "Failed to connect to MQTT server"
+            result = "Failed to connect to MQTT server"
 
     # Return the result if the module should not run yet    
     else:
         result = f'Will run in {(period - diff):.2f} seconds'
         s.log(1,f'INFO: {result}')
+        return result
+
+    return result
 
 # Cleanup function to be called when the module is disabled
 def mqttimport_cleanup():
@@ -192,10 +186,9 @@ def mqttimport_cleanup():
         "metaData": metaData,
         "cleanup": {
             "files": [
-                "extradatafilename"
+                "allskymqttsubscribe.json"
             ],
             "env": {}
         }
     }
     s.cleanupModule(moduleData)
-
