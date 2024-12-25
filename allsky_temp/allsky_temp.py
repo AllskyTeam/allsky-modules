@@ -535,7 +535,7 @@ def readBme280I2C(i2caddress):
             bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
 
         temperature =  bme280.temperature
-        humidity = bme280.relative_humidity
+        humidity = bme280.humidity
         relHumidity = bme280.relative_humidity
         altitude = bme280.altitude
         pressure = bme280.pressure
