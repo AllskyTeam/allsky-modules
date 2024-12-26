@@ -379,7 +379,6 @@ def getToD():
             tod = 'night'
     except Exception:
         s.log(0, f"ERROR running {cmd}")
-    tod = 'day'
     return tod 
 
 def createCardinal(degrees):
