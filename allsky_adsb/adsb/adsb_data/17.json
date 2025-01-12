@@ -1,0 +1,35 @@
+{
+  "172a9d": {
+    "i": "172a9d",
+    "r": "RA-76445",
+    "it": "IL76",
+    "y": null,
+    "m": null,
+    "mo": "Ilyushin Il-76TD",
+    "o": null,
+    "st": "L4J",
+    "ml": false
+  },
+  "1705c0": {
+    "i": "1705c0",
+    "r": "RA-67007",
+    "it": "L410",
+    "y": null,
+    "m": null,
+    "mo": "Let L-410UVP-E20 Turbolet",
+    "o": null,
+    "st": "L2T",
+    "ml": false
+  },
+  "171a20": {
+    "i": "171a20",
+    "r": "UP-MI710",
+    "it": "MI8",
+    "y": null,
+    "m": null,
+    "mo": "Mil'' Mi-171A2",
+    "o": null,
+    "st": "H2T",
+    "ml": false
+  }
+}

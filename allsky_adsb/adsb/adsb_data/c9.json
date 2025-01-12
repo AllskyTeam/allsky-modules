@@ -1,0 +1,24 @@
+{
+  "c95000": {
+    "i": "c95000",
+    "r": "4W-AAL",
+    "it": "A320",
+    "y": null,
+    "m": null,
+    "mo": "",
+    "o": null,
+    "st": "L2J",
+    "ml": false
+  },
+  "c90002": {
+    "i": "c90002",
+    "r": "YJ-AV8",
+    "it": "B738",
+    "y": null,
+    "m": null,
+    "mo": "Boeing 737-8SH",
+    "o": null,
+    "st": "L2J",
+    "ml": false
+  }
+}

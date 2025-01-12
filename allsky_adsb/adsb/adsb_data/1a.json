@@ -1,0 +1,68 @@
+{
+  "1a2296": {
+    "i": "1a2296",
+    "r": "RF-08854",
+    "it": "A140",
+    "y": null,
+    "m": null,
+    "mo": "Antonov An-140-100",
+    "o": null,
+    "st": "L2T",
+    "ml": false
+  },
+  "1afe7f": {
+    "i": "1afe7f",
+    "r": "RF-65151",
+    "it": "T134",
+    "y": null,
+    "m": null,
+    "mo": "Tupolev Tu-134-A-3",
+    "o": null,
+    "st": "L2J",
+    "ml": false
+  },
+  "1affff": {
+    "i": "1affff",
+    "r": "97493",
+    "it": "MI8",
+    "y": null,
+    "m": null,
+    "mo": "Mil'' Mi-8",
+    "o": null,
+    "st": "H2T",
+    "ml": false
+  },
+  "1abbf0": {
+    "i": "1abbf0",
+    "r": "48112",
+    "it": "YK40",
+    "y": null,
+    "m": null,
+    "mo": "Yakovlev Yak-40",
+    "o": null,
+    "st": "L3J",
+    "ml": false
+  },
+  "1a6da3": {
+    "i": "1a6da3",
+    "r": "RF-28067",
+    "it": "L410",
+    "y": null,
+    "m": null,
+    "mo": "LET L-410 UVP E20",
+    "o": null,
+    "st": "L2T",
+    "ml": false
+  },
+  "1abbf7": {
+    "i": "1abbf7",
+    "r": "48119",
+    "it": "AN32",
+    "y": null,
+    "m": null,
+    "mo": "",
+    "o": null,
+    "st": "L2T",
+    "ml": false
+  }
+}

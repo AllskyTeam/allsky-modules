@@ -1,0 +1,46 @@
+{
+  "136784": {
+    "i": "136784",
+    "r": "RA-28809",
+    "it": "AN28",
+    "y": null,
+    "m": null,
+    "mo": "Antonov An-28",
+    "o": null,
+    "st": "L2T",
+    "ml": false
+  },
+  "134567": {
+    "i": "134567",
+    "r": "RA-22175",
+    "it": "MI8",
+    "y": null,
+    "m": null,
+    "mo": "",
+    "o": null,
+    "st": "H2T",
+    "ml": false
+  },
+  "132768": {
+    "i": "132768",
+    "r": "RF-31370",
+    "it": "BER2",
+    "y": null,
+    "m": null,
+    "mo": "Beriev Ber-200 ChS",
+    "o": null,
+    "st": "A2J",
+    "ml": false
+  },
+  "132302": {
+    "i": "132302",
+    "r": "RF-31130",
+    "it": "BER2",
+    "y": null,
+    "m": null,
+    "mo": "Beriev Ber-200 ChS",
+    "o": null,
+    "st": "A2J",
+    "ml": false
+  }
+}

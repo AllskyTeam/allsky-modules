@@ -1,0 +1,68 @@
+{
+  "7d0035": {
+    "i": "7d0035",
+    "r": "91380",
+    "it": "CAR",
+    "y": null,
+    "m": null,
+    "mo": "",
+    "o": null,
+    "st": "L1P",
+    "ml": false
+  },
+  "7d0037": {
+    "i": "7d0037",
+    "r": "G-1915",
+    "it": "MM24",
+    "y": null,
+    "m": null,
+    "mo": "",
+    "o": null,
+    "st": "G1P",
+    "ml": false
+  },
+  "7d000e": {
+    "i": "7d000e",
+    "r": "G-1384",
+    "it": "GYRO",
+    "y": null,
+    "m": null,
+    "mo": "",
+    "o": null,
+    "st": "G0-",
+    "ml": false
+  },
+  "7d0012": {
+    "i": "7d0012",
+    "r": "G-1386",
+    "it": "GYRO",
+    "y": null,
+    "m": null,
+    "mo": "",
+    "o": null,
+    "st": "G0-",
+    "ml": false
+  },
+  "7d0017": {
+    "i": "7d0017",
+    "r": "55-1846",
+    "it": "JAB4",
+    "y": null,
+    "m": null,
+    "mo": "LSA 55/3J",
+    "o": null,
+    "st": "L1P",
+    "ml": false
+  },
+  "7d000a": {
+    "i": "7d000a",
+    "r": "G-1837",
+    "it": "CLON",
+    "y": null,
+    "m": null,
+    "mo": "",
+    "o": null,
+    "st": "G1P",
+    "ml": false
+  }
+}
