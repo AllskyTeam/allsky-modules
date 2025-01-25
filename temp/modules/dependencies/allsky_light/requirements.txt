@@ -1,0 +1,2 @@
+adafruit-circuitpython-tsl2591
+adafruit-circuitpython-tsl2561
