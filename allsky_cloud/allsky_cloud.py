@@ -5,286 +5,346 @@ Part of allsky postprocess.py modules.
 https://github.com/thomasjacquin/allsky
 
 '''
-import allsky_shared as s
+import allsky_shared as allsky_shared
+from allsky_base import ALLSKYMODULEBASE
 import sys
 import math
 import board
 import adafruit_mlx90614
 
 metaData = {
-    "name": "Determines cloud cover",
-    "description": "Determines cloud cover using an MLX90614",
-    "module": "allsky_cloud",
-    "version": "v1.0.1",    
-    "events": [
-        "night",
-        "day",
-        "periodic"
-    ],
-    "experimental": "true",    
-    "arguments":{
-        "i2caddress": "",
-        "clearbelow": -10,
-        "cloudyabove": 5,
-        "advanced": "false",
-        "k1": 33,
-        "k2": 0,
-        "k3": 4,
-        "k4": 100,
-        "k5": 100,
-        "k6": 0,
-        "k7": 0,
-        "extradatafilename": "allskcloud.json"
-    },
-    "argumentdetails": {                   
-        "i2caddress": {
-            "required": "false",
-            "description": "I2C Address",
-            "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
-            "tab": "Sensor"
-        },
-        "clearbelow" : {
-            "required": "false",
-            "description": "Clear Below &deg;C",
-            "help": "When the sky temperature is below this value the sky is assumed to be clear",
-            "tab": "Settings",            
-            "type": {
-                "fieldtype": "spinner",
-                "min": -60,
-                "max": 10,
-                "step": 1
-            }          
-        },
-        "cloudyabove" : {
-            "required": "false",
-            "description": "Cloudy Above &deg;C",
-            "help": "When the sky temperature is above this value the sky is assumed to be cloudy",
-            "tab": "Settings",            
-            "type": {
-                "fieldtype": "spinner",
-                "min": -60,
-                "max": 100,
-                "step": 1
-            }          
-        },
-        "extradatafilename": {
-            "required": "true",
-            "description": "Extra Data Filename",
-            "tab": "Advanced",
-            "help": "The name of the file to create with the data for the overlay manager"
-        },        
-        "advanced" : {
-            "required": "false",
-            "description": "Use advanced mode",
-            "help": "Provides a polynomial adjustment for the sky temperature",
-            "tab": "Advanced",
-            "type": {
-                "fieldtype": "checkbox"
-            }          
-        },
-        "k1" : {
-            "required": "false",
-            "description": "k1",
-            "tab": "Advanced",            
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 500,
-                "step": 1
-            }          
-        },
-        "k2" : {
-            "required": "false",
-            "description": "k2",
-            "tab": "Advanced",            
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 500,
-                "step": 1
-            }          
-        },
-        "k3" : {
-            "required": "false",
-            "description": "k3",
-            "tab": "Advanced",            
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 500,
-                "step": 1
-            }          
-        },
-        "k4" : {
-            "required": "false",
-            "description": "k4",
-            "tab": "Advanced",            
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 500,
-                "step": 1
-            }          
-        },
-        "k5" : {
-            "required": "false",
-            "description": "k5",
-            "tab": "Advanced",            
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 500,
-                "step": 1
-            }          
-        },
-        "k6" : {
-            "required": "false",
-            "description": "k6",
-            "tab": "Advanced",            
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 500,
-                "step": 1
-            }          
-        },
-        "k7" : {
-            "required": "false",
-            "description": "k7",
-            "tab": "Advanced",            
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 500,
-                "step": 1
-            }          
-        }        
-    },
-    "enabled": "false",
-    "businfo": [
-        "i2c"
-    ],
-    "changelog": {
-        "v1.0.0" : [
-            {
-                "author": "Alex Greenland",
-                "authorurl": "https://github.com/allskyteam",
-                "changes": "Initial Release"
-            }
-        ],
-        "v1.0.1" : [
-            {
-                "author": "Alex Greenland",
-                "authorurl": "https://github.com/allskyteam",
-                "changes": [
-                    "Added extra error handling",
-                    "Added module to periodic flow",
-                    "Added ability to change the extra data filename",
-                    "Added changelog to metadata"
-                ]
-            }
-        ]                                
-    }                  
+	"name": "Determines cloud cover",
+	"description": "Determines cloud cover using an MLX90614",
+	"module": "allsky_cloud",
+	"version": "v1.0.2",
+	"testable": "true",
+	"centersettings": "false",
+	"extradatafilename": "allsk_cloud.json",  
+	"deprecation": {
+		"fromversion": "v2024.12.06_02",
+		"removein": "v2024.12.06_04",
+		"notes": "This module is being deprecated due to its unreliable nature. Should anyone wish to take over the maintenance of this module please contact the Allsky team.",
+		"replacedby": "None"
+	},
+	"events": [
+	    "night",
+	    "day",
+	    "periodic"
+	],
+	"experimental": "true",
+	"extradata": {
+	    "values": {
+	        "AS_CLOUDAMBIENT": {
+	            "name": "${CLOUDAMBIENT}",
+	            "format": "",
+	            "sample": "",                
+	            "group": "Cloud",
+	            "description": "Ambient Temperature",
+	            "type": "float"
+	        },              
+	        "AS_CLOUDSKY": {
+	            "name": "${CLOUDSKY}",
+	            "format": "",
+	            "sample": "",                 
+	            "group": "Clous",
+	            "description": "Sky Temperature",
+	            "type": "float"
+	        },
+	        "AS_CLOUDCOVER": {
+	            "name": "${CLOUDCOVER}",
+	            "format": "",
+	            "sample": "",                 
+	            "group": "Cloud",
+	            "description": "Cloud cover",
+	            "type": "string"
+	        },
+	        "AS_CLOUDCOVERPERCENT": {
+	            "name": "${CLOUDCOVERPERCENT}",
+	            "format": "",
+	            "sample": "",                 
+	            "group": "Cloud",
+	            "description": "Cloud cover percentage",
+	            "type": "float"
+	        }
+	    }                         
+	},     
+	"arguments":{
+	    "i2caddress": "",
+	    "clearbelow": -10,
+	    "cloudyabove": 5,
+	    "advanced": "false",
+	    "k1": 33,
+	    "k2": 0,
+	    "k3": 4,
+	    "k4": 100,
+	    "k5": 100,
+	    "k6": 0,
+	    "k7": 0
+	},
+	"argumentdetails": {                   
+	    "i2caddress": {
+	        "required": "false",
+	        "description": "I2C Address",
+	        "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
+	        "tab": "Sensor",
+	        "type": {
+	            "fieldtype": "i2c"
+	        }         
+	    },
+	    "clearbelow" : {
+	        "required": "false",
+	        "description": "Clear Below &deg;C",
+	        "help": "When the sky temperature is below this value the sky is assumed to be clear",
+	        "tab": "Settings",            
+	        "type": {
+	            "fieldtype": "spinner",
+	            "min": -60,
+	            "max": 10,
+	            "step": 1
+	        }          
+	    },
+	    "cloudyabove" : {
+	        "required": "false",
+	        "description": "Cloudy Above &deg;C",
+	        "help": "When the sky temperature is above this value the sky is assumed to be cloudy",
+	        "tab": "Settings",            
+	        "type": {
+	            "fieldtype": "spinner",
+	            "min": -60,
+	            "max": 100,
+	            "step": 1
+	        }          
+	    },       
+	    "advanced" : {
+	        "required": "false",
+	        "description": "Use advanced mode",
+	        "help": "Provides a polynomial adjustment for the sky temperature",
+	        "tab": "Advanced",
+	        "type": {
+	            "fieldtype": "checkbox"
+	        }          
+	    },
+	    "k1" : {
+	        "required": "false",
+	        "description": "k1",
+	        "tab": "Advanced",            
+	        "type": {
+	            "fieldtype": "spinner",
+	            "min": 0,
+	            "max": 500,
+	            "step": 1
+	        }          
+	    },
+	    "k2" : {
+	        "required": "false",
+	        "description": "k2",
+	        "tab": "Advanced",            
+	        "type": {
+	            "fieldtype": "spinner",
+	            "min": 0,
+	            "max": 500,
+	            "step": 1
+	        }          
+	    },
+	    "k3" : {
+	        "required": "false",
+	        "description": "k3",
+	        "tab": "Advanced",            
+	        "type": {
+	            "fieldtype": "spinner",
+	            "min": 0,
+	            "max": 500,
+	            "step": 1
+	        }          
+	    },
+	    "k4" : {
+	        "required": "false",
+	        "description": "k4",
+	        "tab": "Advanced",            
+	        "type": {
+	            "fieldtype": "spinner",
+	            "min": 0,
+	            "max": 500,
+	            "step": 1
+	        }          
+	    },
+	    "k5" : {
+	        "required": "false",
+	        "description": "k5",
+	        "tab": "Advanced",            
+	        "type": {
+	            "fieldtype": "spinner",
+	            "min": 0,
+	            "max": 500,
+	            "step": 1
+	        }          
+	    },
+	    "k6" : {
+	        "required": "false",
+	        "description": "k6",
+	        "tab": "Advanced",            
+	        "type": {
+	            "fieldtype": "spinner",
+	            "min": 0,
+	            "max": 500,
+	            "step": 1
+	        }          
+	    },
+	    "k7" : {
+	        "required": "false",
+	        "description": "k7",
+	        "tab": "Advanced",            
+	        "type": {
+	            "fieldtype": "spinner",
+	            "min": 0,
+	            "max": 500,
+	            "step": 1
+	        }          
+	    }        
+	},
+	"enabled": "false",
+	"businfo": [
+	    "i2c"
+	],
+	"changelog": {
+	    "v1.0.0" : [
+	        {
+	            "author": "Alex Greenland",
+	            "authorurl": "https://github.com/allskyteam",
+	            "changes": "Initial Release"
+	        }
+	    ],
+	    "v1.0.1" : [
+	        {
+	            "author": "Alex Greenland",
+	            "authorurl": "https://github.com/allskyteam",
+	            "changes": [
+	                "Added extra error handling",
+	                "Added module to periodic flow",
+	                "Added ability to change the extra data filename",
+	                "Added changelog to metadata"
+	            ]
+	        }
+	    ],
+	    "v1.0.2" : [
+	        {
+	            "author": "Alex Greenland",
+	            "authorurl": "https://github.com/allskyteam",
+	            "changes": [
+	                "Updated for new module system",
+	                "Added deprecation"
+	            ]
+	        }
+	    ]                                
+	}                  
 }
 
-def getsign(d):
-    if d < 0:
-        return -1.0
-    if d == 0:
-        return 0.0
-    return 1.0
+class ALLSKYCLOUD(ALLSKYMODULEBASE):
+	params = []
+	event = ''
+ 
+	def __get_sign(self, d):
+		if d < 0:
+			return -1.0
+		if d == 0:
+			return 0.0
+		return 1.0
 
-def calculateSkyStateAdvanced(skyambient, skyobject, clearbelow, cloudyabove, params):
-    k1 = int(params["k1"])
-    k2 = int(params["k2"])
-    k3 = int(params["k3"])
-    k4 = int(params["k4"])
-    k5 = int(params["k5"])
-    k6 = int(params["k6"])
-    k7 = int(params["k7"])
+	def __calculate_sky_state_advanced(self, sky_ambient, sky_object, clear_below, cloudy_above):
+		k1 = self.get_param('k1', 0, int)  
+		k2 = self.get_param('k2', 0, int)  
+		k3 = self.get_param('k3', 0, int)  
+		k4 = self.get_param('k4', 0, int)  
+		k5 = self.get_param('k5', 0, int)  
+		k6 = self.get_param('k6', 0, int)  
+		k7 = self.get_param('k7', 0, int)  
+  
+		if abs((k2 / 10.0 - sky_ambient)) < 1:
+			t67 = self.__get_sign(k6) * self.__get_sign(sky_ambient - k2 / 10.) * abs((k2 / 10. - sky_ambient))
+		else:
+			t67 = k6 / 10. * self.__get_sign(sky_ambient - k2 / 10.) * (math.log(abs((k2 / 10. - sky_ambient))) / math.log(10) + k7 / 100)
 
-    if abs((k2 / 10.0 - skyambient)) < 1:
-        t67 = getsign(k6) * getsign(skyambient - k2 / 10.) * abs((k2 / 10. - skyambient))
-    else:
-        t67 = k6 / 10. * getsign(skyambient - k2 / 10.) * (math.log(abs((k2 / 10. - skyambient))) / math.log(10) + k7 / 100)
+		td = (k1 / 100.) * (sky_ambient - k2 / 10.) + (k3 / 100.) * pow((math.exp(k4 / 1000. * sky_ambient)), (k5 / 100.)) + t67
 
-    td = (k1 / 100.) * (skyambient - k2 / 10.) + (k3 / 100.) * pow((math.exp(k4 / 1000. * skyambient)), (k5 / 100.)) + t67
+		tsky = sky_object - td
+		if tsky < clear_below:
+			tsky = clear_below
+		elif tsky > cloudy_above:
+			tsky = cloudy_above
+		cloudcoverPercentage = ((tsky - clear_below) * 100.) / (cloudy_above - clear_below)
+		cloudcover, percent = self._calculate_sky_state(sky_ambient, sky_object, clear_below, cloudy_above)
+		return cloudcover, cloudcoverPercentage
 
-    tsky = skyobject - td
-    if tsky < clearbelow:
-        tsky = clearbelow
-    elif tsky > cloudyabove:
-        tsky = cloudyabove
-    cloudcoverPercentage = ((tsky - clearbelow) * 100.) / (cloudyabove - clearbelow)
-    cloudcover, percent = calculateSkyState(skyambient, skyobject, clearbelow, cloudyabove)
-    return cloudcover, cloudcoverPercentage
+	def __calculate_sky_state(self, sky_ambient, sky_object, clear_below, cloudy_above):
+		cloudCover = 'Partial'
 
-def calculateSkyState(skyambient, skyobject, clearbelow, cloudyabove):
-    cloudCover = 'Partial'
+		if sky_object <= clear_below:
+			cloudCover = 'Clear'
 
-    if skyobject <= clearbelow:
-        cloudCover = 'Clear'
+		if sky_object >= cloudy_above:
+			cloudCover = 'Cloudy'
 
-    if skyobject >= cloudyabove:
-        cloudCover = 'Cloudy'
+		return cloudCover, 0
 
-    return cloudCover, 0
+	def run(self):
+		advanced = self.get_param('advanced', False, bool)
+		i2c_address = self.get_param('i2caddress', '', str)
+		clear_below = self.get_param('clearbelow', 0, int)
+		cloudy_above = self.get_param('cloudyabove', 0, int)
+
+		extra_data = {}
+
+		try:    
+			if i2c_address != '':
+				try:
+					i2c_address_int = int(i2c_address, 16)
+				except:
+					result = f'Address {i2c_address} is not a valid i2c address'
+					allsky_shared.log(0,f'ERROR: {result}')
+
+			i2c = board.I2C()
+			if i2c_address != '':
+				mlx = adafruit_mlx90614.MLX90614(i2c, i2c_address_int)
+			else:
+				mlx = adafruit_mlx90614.MLX90614(i2c)
+
+			sky_ambient = mlx.ambient_temperature
+			sky_object = mlx.object_temperature
+
+			if advanced:
+				cloud_cover, percentage = self.__calculate_sky_state_advanced(sky_ambient, sky_object, clear_below, cloudy_above)
+			else:
+				cloud_cover, percentage = self.__calculate_sky_state(sky_ambient, sky_object, clear_below, cloudy_above)
+
+			extra_data['AS_CLOUDAMBIENT'] = sky_ambient
+			extra_data['AS_CLOUDSKY'] = sky_object
+			extra_data['AS_CLOUDCOVER'] = cloud_cover
+			extra_data['AS_CLOUDCOVERPERCENT'] = percentage
+			allsky_shared.saveExtraData(metaData['extradatafilename'], extra_data, metaData['module'], metaData['extradata'])
+
+			result = f'Cloud state - {cloud_cover} {percentage}%. Sky Temp {sky_object}, Ambient {sky_ambient}'
+			allsky_shared.log(1, f'INFO: {result}')
+		except Exception as e:
+			eType, eObject, eTraceback = sys.exc_info()
+			result = f'ERROR: Module cloud failed on line {eTraceback.tb_lineno} - {e}'
+			allsky_shared.log(4, result)
+			
+		return result 
 
 def cloud(params, event):
-    i2caddress = params["i2caddress"]
-    clearbelow = int(params["clearbelow"])
-    cloudyabove = int(params["cloudyabove"])
-    extradatafilename = params['extradatafilename']
-    
-    advanced = params["advanced"]
+	allsky_cloud = ALLSKYCLOUD(params, event)
+	result = allsky_cloud.run()
 
-    data = {}
-    
-    try:    
-        if i2caddress != "":
-            try:
-                i2caddressInt = int(i2caddress, 16)
-            except:
-                result = "Address {} is not a valid i2c address".format(i2caddress)
-                s.log(0,"ERROR: {}".format(result))
-
-        i2c = board.I2C()
-        if i2caddress != "":
-            mlx = adafruit_mlx90614.MLX90614(i2c, i2caddressInt)
-        else:
-            mlx = adafruit_mlx90614.MLX90614(i2c)
-
-        skyambient = mlx.ambient_temperature
-        skyobject = mlx.object_temperature
-
-        if advanced:
-            cloudCover, percentage = calculateSkyStateAdvanced(skyambient, skyobject, clearbelow, cloudyabove, params)
-        else:
-            cloudCover, percentage = calculateSkyState(skyambient, skyobject, clearbelow, cloudyabove)
-
-        data["AS_CLOUDAMBIENT"] = str(skyambient)
-        data["AS_CLOUDSKY"] = str(skyobject)
-        data["AS_CLOUDCOVER"] = cloudCover
-        data["AS_CLOUDCOVERPERCENT"] = str(percentage)
-        s.saveExtraData(extradatafilename, data)
-
-        result = "Cloud state - {0} {1}. Sky Temp {2}, Ambient {3}".format(cloudCover, percentage, skyobject, skyambient)
-        s.log(1, "INFO: {}".format(result))
-    except Exception as e:
-        eType, eObject, eTraceback = sys.exc_info()
-        result = f"ERROR: Module cloud failed on line {eTraceback.tb_lineno} - {e}"
-        s.log(4, result)
-        
-    return result 
+	return result
 
 def cloud_cleanup():
-    moduleData = {
-        "metaData": metaData,
-        "cleanup": {
-            "files": {
-                "allskcloud.json"
-            },
-            "env": {}
-        }
-    }
-    s.cleanupModule(moduleData)
+	moduleData = {
+	    "metaData": metaData,
+	    "cleanup": {
+	        "files": {
+	            metaData['extradatafilename']
+	        },
+	        "env": {}
+	    }
+	}
+	allsky_shared.cleanupModule(moduleData)

@@ -4,657 +4,499 @@ allsky_fans.py
 Part of allsky postprocess.py modules.
 https://github.com/thomasjacquin/allsky
 
+Disable bcm2835 on pi 4 as it interferes with the hardware pwm
+# Enable audio (loads snd_bcm2835)
+#dtparam=audio=on
+
+dtoverlay=pwm-2chan
+
 '''
-import allsky_shared as s
-import time
-import os
-import shutil
-from vcgencmd import Vcgencmd
-import board
+import allsky_shared as allsky_shared
+from gpiozero import CPUTemperature
 from digitalio import DigitalInOut, Direction, Pull
 
 import sys
-from adafruit_bme280 import basic as adafruit_bme280
-import adafruit_bmp280 as adafruit_bmp280
-import adafruit_dht
-import adafruit_sht31d
-
-from rpi_hardware_pwm import HardwarePWM
+from rpi_hardware_pwm import HardwarePWM, HardwarePWMException
 from gpiozero import Device
 
 metaData = {
-    "name": "Control Allsky Fans",
-    "description": "Start A Fans when the CPU or external sensor reaches a set temperature",
-    "module": "allsky_fans",    
-    "version": "v1.0.2",    
-    "events": [
-        "periodic"
-    ],
-    "enabled": "false",    
-    "experimental": "true",    
-    "arguments":{
-        "sensor_type": "Internal",
-        "period": 60,
-        "fanpin": "",
-        "invertrelay": "False",        
-        "DHTinputpin": "",
-        "usepwm": "false",
-        "pwmpin": "18",
-        "pwmmin": 0,
-        "pwmmax": 100,
-        "dhtxxretrycount": "2",
-        "dhtxxdelay" : "500",
-        "i2caddress_BME280_I2C": "",
-        "i2caddress_BMP280_I2C": "",
-        "limit_BME280_I2C" : 30,
-        "limit_BMP280_I2C" : 30,
-        "limit_DHT" : 30,
-        "limitInternal": 60,
-        "i2caddress_SHT31_I2C": "",
-        "sht31heater": "false",
-        "limit_SHT31": 30
-    },
-    "argumentdetails": {
-        "sensor_type" : {
-            "required": "false",
-            "description": "Sensor Type",
-            "help": "The type of sensor that is being used.",
-            "tab": "Sensor",
-            "type": {
-                "fieldtype": "select",
-                "values": "Internal,DHT22,DHT11,AM2302,BME280-I2C,BMP280-I2C,SHT31",
-                "default": "Internal"
-            }
-        },
-        "period" : {
-            "required": "true",
-            "description": "Read Every",
-            "help": "Reads data every x seconds.",                
-            "tab": "Sensor",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 30,
-                "max": 600,
-                "step": 1
-            }          
-        },
-        "fanpin": {
-            "required": "false",
-            "description": "Fans Relay Pin",
-            "help": "The GPIO pin the fan control relay is connected to",
-            "tab": "Sensor",
-            "type": {
-                "fieldtype": "gpio"
-            }           
-        },         
-        "invertrelay" : {
-            "required": "false",
-            "description": "Invert Relay",
-            "help": "Invert relay activation logic from pin HIGH to pin LOW",
-            "tab": "Sensor",
-            "type": {
-                "fieldtype": "checkbox"
-            }
-        },
-        "usepwm" : {
-            "required": "false",
-            "description": "Use PWM",
-            "help": "Use PWM Fan control. Please see the module documentation BEFORE using this feature",
-            "tab": "PWM",
-            "type": {
-                "fieldtype": "checkbox"
-            }
-        },
-        "pwmpin": {
-            "required": "false",
-            "description": "PWM Pin",
-            "help": "The GPIO pin for PWM. Please see the module documentation BEFORE using this feature",
-            "tab": "PWM",
-            "type": {
-                "fieldtype": "gpio"
-            }
-        },
-        "pwmmin" : {
-            "required": "false",
-            "description": "Min PWM Temp",
-            "help": "Below this temp the fan will be off. This equates to 0% PWM duty cycle",
-            "tab": "PWM",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 200,
-                "step": 1
-            }     
-        },
-        "pwmmax" : {
-            "required": "false",
-            "description": "Max PWM Temp",
-            "help": "Below this temp the fan will be on. This equates to 100% PWM duty cycle",
-            "tab": "PWM",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 200,
-                "step": 1
-            }     
-        },         
-        "limitInternal" : {
-            "required": "false",
-            "description": "CPU Temp. Limit",
-            "help": "The CPU temperature limit beyond which fans are activated",
-            "tab": "Internal",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 30,
-                "max": 75,
-                "step": 1
-            }     
-        },        
-        "limit_DHT" : {
-            "required": "false",
-            "description": "Sensor Temp. Limit",
-            "help": "The sensor temperature limit beyond which fans are activated",
-            "tab": "DHTXX",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 45,
-                "step": 1
-            }          
-        },
-        "DHTinputpin": {
-            "required": "false",
-            "description": "Input Pin",
-            "help": "The input pin for DHT type (DHT11, DHT22, AM2302) sensors",
-            "tab": "DHTXX",
-            "type": {
-                "fieldtype": "gpio"
-            }
-        },
-        "dhtxxretrycount" : {
-            "required": "false",
-            "description": "Retry Count",
-            "help": "The number of times to retry the sensor read",
-            "tab": "DHTXX",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 5,
-                "step": 1
-            }
-        },
-        "dhtxxdelay" : {
-            "required": "false",
-            "description": "Delay",
-            "help": "The delay between failed sensor reads in milliseconds",
-            "tab": "DHTXX",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 5000,
-                "step": 1
-            }
-        },
-        "i2caddress_BME280_I2C": {
-            "required": "false",
-            "description": "I2C Address",
-            "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
-            "tab": "BME280-I2C"
-        },
-        "i2caddress_BMP280_I2C": {
-            "required": "false",
-            "description": "I2C Address",
-            "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
-            "tab": "BMP280-I2C"
-        },                
-        "limit_BME280_I2C" : {
-            "required": "false",
-            "description": "Sensor Temp. Limit",
-            "help": "The sensor temperature limit beyond which fans are activated",
-            "tab": "BME280-I2C",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 100,
-                "step": 1
-            }
-        },
-        "limit_BMP280_I2C" : {
-            "required": "false",
-            "description": "Sensor Temp. Limit",
-            "help": "The sensor temperature limit beyond which fans are activated",
-            "tab": "BMP280-I2C",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 100,
-                "step": 1
-            }
-        },
-        "i2caddress_SHT31_I2C" : {
-            "required": "false",
-            "description": "I2C Address",
-            "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
-            "tab": "SHT31"         
-        },
-        "sht31heater" : {
-            "required": "false",
-            "description": "Enable Heater",
-            "help": "Enable the inbuilt heater on the SHT31",
-            "tab": "SHT31",
-            "type": {
-                "fieldtype": "checkbox"
-            }
-        },
-        "limit_SHT31" : {
-            "required": "false",
-            "description": "Sensor Temp. Limit",
-            "help": "The sensor temperature limit beyond which fans are activated",
-            "tab": "SHT31",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 100,
-                "step": 1
-            }
-        }  
-    },
-    "businfo": [
-        "i2c"
-    ],    
-    "changelog": {
-        "v1.0.0" : [
-            {
-                "author": "Lorenzi70",
-                "authorurl": "https://github.com/allskyteam",
-                "changes": "Initial Release"
-            }
-        ],
-        "v1.0.1" : [
-            {
-                "author": "Tamas Maroti (CapricornusObs)",
-                "authorurl": "https://github.com/CapricornusObs",
-                "changes": [
-                    "Added external temperature sensors to control fan",
-                    "Added BMP280 sersor control code"
-                ]
-            }
-        ],
-        "v1.0.2" : [
-            {
-                "author": "Alex Greenland",
-                "authorurl": "https://github.com/allskyteam",
-                "changes": [
-                    "Added PWM options for fan control",
-                    "Added SHT31 temperature sensor"
-                ]
-            }
-        ]        
-    }
+	"name": "Control Allsky Fans",
+	"description": "Start A Fans when the CPU or external sensor reaches a set temperature",
+	"module": "allsky_fans",    
+	"version": "v1.0.3",
+	"testable": "true",
+	"centersettings": "false", 
+	"events": [
+		"night",
+		"day",
+		"periodic"
+	],
+	"enabled": "false",    
+	"experimental": "false",
+	"extradatafilename": "allsky_fans.json", 
+	"extradata": {
+		"values": {
+			"AS_FANS_FAN_STATE": {
+				"name": "${FANS_FAN_STATE}",
+				"format": "",
+				"sample": "",                
+				"group": "Fan",
+				"description": "Fan Status",
+				"type": "bool"
+			},
+			"AS_FANS_TEMPERATURE": {
+				"name": "${FANS_TEMPERATURE}",
+				"format": "",
+				"sample": "",                 
+				"group": "Fan",
+				"description": "Fan module Temperature",
+				"type": "temperature"
+			},             
+			"AS_FANS_TEMP_LIMIT": {
+				"name": "${FANS_TEMP_LIMIT}",
+				"format": "",
+				"sample": "",                 
+				"group": "Fan",
+				"description": "Activation Temperature",
+				"type": "temperature"
+			},
+			"AS_FANS_USE_PWM": {
+				"name": "${FANS_USE_PWM}",
+				"format": "",
+				"sample": "",                 
+				"group": "Fan",
+				"description": "Use PWM Fan Control",
+				"type": "bool"
+			},
+			"AS_FANS_PWM_ENABLED": {
+				"name": "${FANS_PWM_ENABLED}",
+				"format": "",
+				"sample": "",                 
+				"group": "Fan",
+				"description": "PWM Fan control enabled",
+				"type": "bool"
+			},
+			"AS_FANS_PWM_DUTY_CYCLE": {
+				"name": "${FANS_PWM_DUTY_CYCLE}",
+				"format": "",
+				"sample": "",                 
+				"group": "Fan",
+				"description": "PWM Duty Cycle",
+				"type": "Number"
+			}
+		}
+	}, 
+	"arguments":{
+		"sensor_type": "Internal",
+		"period": 60,
+		"fanpin": "18",
+		"invertrelay": "False",        
+		"usepwm": "false",
+		"pwmmin": 0,
+		"pwmmax": 100,
+		"limitInternal": 60,
+		"temperature": "AS_TEMP"
+	},
+	"argumentdetails": {
+		"sensor_type" : {
+			"required": "false",
+			"description": "Sensor Type",
+			"help": "The type of sensor that is being used.",
+			"tab": "Sensor",
+			"type": {
+				"fieldtype": "select",
+				"values": "Internal,Allsky",
+				"default": "Internal"
+			}
+		},
+		"temperature": {
+			"required": "false",
+			"description": "Temperature Variable",
+			"help": "The Variable to use for the temperature",
+			"tab": "Sensor",
+			"filters": {
+				"filter": "sensor_type",
+				"filtertype": "show",
+				"values": [
+					"Allsky"
+				]
+			},            
+			"type": {
+				"fieldtype": "variable"
+			}                             
+		},
+		"limitInternal" : {
+			"required": "false",
+			"description": "Temp. Limit",
+			"help": "The temperature limit beyond which fans are activated",
+			"tab": "Sensor",
+			"filters": {
+				"filter": "sensor_type",
+				"filtertype": "show",
+				"values": [
+					"Internal",
+					"Allsky"
+				]
+			},     
+			"type": {
+				"fieldtype": "spinner",
+				"min": 30,
+				"max": 75,
+				"step": 1
+			}     
+		},  
+		"period" : {
+			"required": "true",
+			"description": "Read Every",
+			"help": "Reads data every x seconds.",                
+			"tab": "Sensor",
+			"type": {
+				"fieldtype": "spinner",
+				"min": 30,
+				"max": 600,
+				"step": 1
+			}          
+		},
+		"fanpin": {
+			"required": "false",
+			"description": "Fans Relay Pin",
+			"help": "The GPIO pin for the fan relay or PWM",
+			"tab": "Sensor",
+			"type": {
+				"fieldtype": "gpio"
+			}           
+		},         
+		"invertrelay" : {
+			"required": "false",
+			"description": "Invert Relay",
+			"help": "Invert relay activation logic from pin HIGH to pin LOW",
+			"tab": "Sensor",
+			"type": {
+				"fieldtype": "checkbox"
+			}
+		},
+		"usepwm" : {
+			"required": "false",
+			"description": "Use PWM",
+			"help": "Use PWM Fan control. Please see the module documentation BEFORE using this feature",
+			"tab": "PWM",
+			"type": {
+				"fieldtype": "checkbox"
+			}
+		},
+		"pwmmin" : {
+			"required": "false",
+			"description": "Min PWM Temp",
+			"help": "Below this temp the fan will be off. This equates to 0% PWM duty cycle",
+			"tab": "PWM",
+			"type": {
+				"fieldtype": "spinner",
+				"min": 0,
+				"max": 200,
+				"step": 1
+			}     
+		},
+		"pwmmax" : {
+			"required": "false",
+			"description": "Max PWM Temp",
+			"help": "Below this temp the fan will be on. This equates to 100% PWM duty cycle",
+			"tab": "PWM",
+			"type": {
+				"fieldtype": "spinner",
+				"min": 0,
+				"max": 200,
+				"step": 1
+			}     
+		}
+	},
+	"businfo": [
+		"i2c"
+	],
+	"changelog": {
+		"v1.0.0" : [
+			{
+				"author": "Lorenzi70",
+				"authorurl": "https://github.com/allskyteam",
+				"changes": "Initial Release"
+			}
+		],
+		"v1.0.1" : [
+			{
+				"author": "Tamas Maroti (CapricornusObs)",
+				"authorurl": "https://github.com/CapricornusObs",
+				"changes": [
+					"Added external temperature sensors to control fan",
+					"Added BMP280 sersor control code"
+				]
+			}
+		],
+		"v1.0.2" : [
+			{
+				"author": "Alex Greenland",
+				"authorurl": "https://github.com/allskyteam",
+				"changes": [
+					"Added PWM options for fan control",
+					"Added SHT31 temperature sensor"
+				]
+			}
+		],
+		"v1.0.3" : [
+			{
+				"author": "Alex Greenland",
+				"authorurl": "https://github.com/allskyteam",
+				"changes": [
+					"Converted to new module format",
+					"Removed all external sensors - Use allsky_temp module to read sensors"
+				]
+			}
+		]       
+	}
 }
 
-def doDHTXXRead(inputpin):
-    temperature = None
-    humidity = None
+class ALLSKYFANS:
+	_params = []
+	_event = ''
+	_temperature = 0
+	_temperature_limit = 0
+	_fan_pin = 0
+	_invert_relay = False
+	_debugmode = False
+	_pwm_map = {
+		"4B": {
+			"enabled": "/sys/class/pwm/pwmchip0/pwm%CHANNEL%/enable",
+			"chip": 0,
+			"addresses": {
+				18: 0,
+				19: 1,
+				12: 0,
+				13: 1
+			}
+		},
+		"5B": {
+			"enabled": "/sys/class/pwm/pwmchip2/pwm%CHANNEL%/enable",
+			"chip": 2,
+			"addresses": {
+				18: 0,
+				19: 1,
+				12: 0,
+				13: 1
+			}
+		}
+	}
 
-    try:
-        pin = s.getGPIOPin(inputpin)
-        dhtDevice = adafruit_dht.DHT22(pin, use_pulseio=False)
-        try:
-            temperature = dhtDevice.temperature
-            humidity = dhtDevice.humidity
-        except RuntimeError as e:
-            eType, eObject, eTraceback = sys.exc_info()
-            s.log(0, f"ERROR: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}")
-    except Exception as e:
-        eType, eObject, eTraceback = sys.exc_info()
-        s.log(0, f"ERROR: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}")
+	def _init_(self, params, event):
+		self._params = params
+		self._event = event
 
-    return temperature, humidity
+	def _get_cpu_temperature(self):
+		temp_c = 0
+		try:
+			temp = CPUTemperature().temperature
+			temp_c = float(temp)
+		except Exception as e:
+			exception_type, exception_object, exception_traceback = sys.exc_info()
+			result = f'Module _get_cpu_temperature - {exception_traceback.tb_lineno} - {e}'
+			allsky_shared.log(4, f'ERROR: {result}')   
+     
+		return temp_c
 
-def readDHT22(inputpin, dhtxxretrycount, dhtxxdelay):
-    temperature = None
-    humidity = None
-    count = 0
-    reading = True
+	def _get_allsky_temperature(self):
+		temperature = 0
+		try:
+			temperature = allsky_shared.get_allsky_variable(self._params['temperature'])
+			temperature = float(temperature)
+		except Exception as e:
+			exception_type, exception_object, exception_traceback = sys.exc_info()
+			result = f'Module _get_cpu_temperature - {exception_traceback.tb_lineno} - {e}'
+			allsky_shared.log(4, f'ERROR: {result}')   
 
-    while reading:
-        temperature, humidity = doDHTXXRead(inputpin)
+		return temperature
 
-        if temperature is None and humidity is None:
-            s.log(4, "INFO: Failed to read DHTXX on attempt {}".format(count+1))
-            count = count + 1
-            if count > dhtxxretrycount:
-                reading = False
-            else:
-                time.sleep(dhtxxdelay/1000)
-        else:
-            reading = False
+	def _get_param(self, param, default, target_type=str):
+		result = default
+		try:
+			result = self._params[param]
+		except ValueError:
+			pass
 
-    return temperature, humidity
+		try:
+			result = target_type(result)
+		except (ValueError, TypeError) as e:
+			allsky_shared.log(4, f'ERROR: Cannot cast "{param}" to {target_type._name_}. Using default "{default}"')
+			result = default
+		
+		return result
+  
+	def _turn_fan_on(self, fan_pin, invert_relay):
+		pin = DigitalInOut(fan_pin)
+		pin.switch_to_output()
+		
+		if invert_relay:
+			pin.value = 0
+		else:
+			pin.value = 1
 
-def readBme280I2C(i2caddress):
-    temperature = None
-    humidity = None
-    pressure = None
-    rel_humidity = None
-    altitude = None
+	def _turn_fan_off(self, fan_pin, invert_relay):
+		pin = DigitalInOut(fan_pin)
+		pin.switch_to_output()
 
-    if i2caddress != "":
-        try:
-            i2caddressInt = int(i2caddress, 16)
-        except Exception as e:
-            eType, eObject, eTraceback = sys.exc_info()
-            s.log(0, f"ERROR: Module readBme280I2C failed on line {eTraceback.tb_lineno} - {e}")
+		if invert_relay:
+			pin.value = 1
+		else:    
+			pin.value = 0
 
-    try:
-        i2c = board.I2C()
-        if i2caddress != "":
-            bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c, i2caddressInt)
-        else:
-            bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
-
-        temperature =  bme280.temperature
-        humidity = bme280.relative_humidity
-        rel_humidity = bme280.relative_humidity
-        altitude = bme280.altitude
-        pressure = bme280.pressure
-    except ValueError as e:
-        eType, eObject, eTraceback = sys.exc_info()
-        s.log(0, f"ERROR: Module readBme280I2C failed on line {eTraceback.tb_lineno} - {e}")
-
-    return temperature, humidity, pressure, rel_humidity, altitude
-
-def readBmp280I2C(i2caddress):
-    temperature = None
-    humidity = None
-    pressure = None
-    rel_humidity = None
-    altitude = None
-
-    if i2caddress != "":
-        try:
-            i2caddressInt = int(i2caddress, 16)
-        except Exception as e:
-            eType, eObject, eTraceback = sys.exc_info()
-            s.log(0, f"ERROR: Module readBmp280I2C failed on line {eTraceback.tb_lineno} - {e}")
-
-    try:
-        i2c = board.I2C()
-        if i2caddress != "":
-            bmp280 = adafruit_bmp280.Adafruit_BMP280_I2C(i2c, i2caddressInt)
-        else:
-            bmp280 = adafruit_bmp280.Adafruit_BMP280_I2C(i2c)
-
-        temperature =  bmp280.temperature
-        altitude = bmp280.altitude
-        pressure = bmp280.pressure
-    except ValueError as e:
-        eType, eObject, eTraceback = sys.exc_info()
-        s.log(0, f"ERROR: Module readBmp280I2C failed on line {eTraceback.tb_lineno} - {e}")
-
-    return temperature, pressure, altitude
-
-def readSHT31(sht31heater, i2caddress):
-    temperature = None
-    humidity = None
+	def _display_status(self, value):
+		return 'On' if value else 'Off'
     
-    if i2caddress != "":
-        try:
-            i2caddressInt = int(i2caddress, 16)
-        except Exception as e:
-            eType, eObject, eTraceback = sys.exc_info()
-            s.log(0, f"ERROR: Module readSHT31 failed on line {eTraceback.tb_lineno} - {e}")
-            return temperature, humidity
-                
-    try:
-        i2c = board.I2C()
-        if i2caddress != "":
-            sensor = adafruit_sht31d.SHT31D(i2c, i2caddressInt)
-        else:
-            sensor = adafruit_sht31d.SHT31D(i2c)
-        sensor.heater = sht31heater
-        temperature = sensor.temperature
-        humidity = sensor.relative_humidity
-    except Exception as e:
-        eType, eObject, eTraceback = sys.exc_info()
-        s.log(4, f"ERROR: Module readSHT31 failed on line {eTraceback.tb_lineno} - {e}")
+	def _use_bool_fan_control(self):
+		error = False
+         
+		if (self._temperature > self._temperature_limit):
+			self._turn_fan_on(self._fan_pin, self._invert_relay)
+			fan_status = True
+			result = f'{self._temperature} is higher then set limit of {self._temperature_limit}, Fans are {self._display_status(fan_status)} via fan pin {self._fan_pin}'
+		else:
+			self._turn_fan_off(self._fan_pin, self._invert_relay)
+			fan_status = False
+			result = f'{self._temperature} is lower then set limit of {self._temperature_limit}, Fans are {self._display_status(fan_status)} via fan pin {self._fan_pin}'
 
-    return temperature, humidity
+		return result, error
+     
+	def _use_pwm_fan_control(self):
+		pwm_min = self._get_param('pwmmin', 0, int)
+		pwm_max = self._get_param('pwmmax', 0, int)
+		result = ''
+		pwm_enabled = '0'
+		pwm_duty_cycle = 0
+		error = False
+  
+		try:
+			if self._fan_pin != 0:
+				Device.ensure_pin_factory()
+				pi_info = Device.pin_factory.board_info
+				model = pi_info.model
+				if model in self._pwm_map:
+					pwm_channel =  self._pwm_map[model]['addresses'][self._fan_pin]
+					enabled_file = self._pwm_map[model]['enabled']
+					chip = self._pwm_map[model]['chip']
+					enabled_file = enabled_file.replace('%CHANNEL%', str(pwm_channel))
+					try:
+						with open(enabled_file, 'r', encoding='utf-8') as file:
+							pwm_enabled = file.readline().strip()
+					except FileNotFoundError:
+						pwm_enabled = '0'
 
-def getTemperature():
-    tempC = None
-    vcgm = Vcgencmd()
-    temp = vcgm.measure_temp()
-    tempC = round(temp,1)
+					pwm = HardwarePWM(pwm_channel=pwm_channel, hz=60, chip=chip)
+					if pwm_enabled == '0':
+						pwm.start(0)
+						pwm.change_frequency(25_000)
 
-    return tempC
+					if self._temperature <= pwm_min:
+						pwm_duty_cycle = 0
+					elif self._temperature > pwm_max:
+						pwm_duty_cycle = 100
+					else:
+						pwm_duty_cycle = int(((self._temperature - pwm_min) / (pwm_max - pwm_min)) * 100)
 
-def turnFansOn(fanpin, invertrelay):
-    result = "Turning Fans ON"
-    pin = DigitalInOut(fanpin)
-    pin.switch_to_output()
-    
-    if invertrelay:
-        pin.value = 0
-    else:
-        pin.value = 1
+					pwm.change_duty_cycle(pwm_duty_cycle)
+					
+					if pwm_duty_cycle == 0:
+						pwm.stop()
+		
+					result = f'PWM duty cycle set to {pwm_duty_cycle} on pin {self._fan_pin}'
+				else:
+					result = f'Pi Model ({model}) is not supported for PWM'
+					allsky_shared.log(0, f'ERROR: {result}')
+			else:
+				result = 'PWM Pin is invalid'
+				allsky_shared.log(0, f'ERROR: {result}')
+		except HardwarePWMException as e:
+			result = f'There is a problem with the PWM hardware. Please refer to the module documentation for help - "{e}"'
+			allsky_shared.log(0, f'ERROR: {result}')
+			error = True
+		except Exception as e:
+			exception_type, exception_object, exception_traceback = sys.exc_info()
+			result = f'Module _use_pwm_fan_control - {exception_traceback.tb_lineno} - {e}'
+			allsky_shared.log(4, f'ERROR: {result}')      
 
-    s.log(4,f"INFO: {result}")
+		return result, pwm_duty_cycle, pwm_enabled, error
+		
+	def run(self):
+		result = ''
+		fan_status = ''
+		sensor_type = self._get_param('sensor_type', 'internal')
+		run_period = self._get_param('period', 60, int)
+		self._temperature_limit = self._get_param('limitInternal', 0, int)
+		self._fan_pin = self._get_param('fanpin', None, int)
+		self._invert_relay = self._get_param('invertrelay', False, bool)
+		self._debugmode = self._get_param('ALLSKYTESTMODE', False, bool)  
+		use_pwm = self._get_param('usepwm', False, bool)
+		self._temperature = None
+		fan_status = False
+		error = False
+		
+		try:
+			should_run, diff = allsky_shared.shouldRun(metaData['module'], run_period)
+			if should_run or self._debugmode:
+				extra_data = {}
+				if self._fan_pin is not None:
 
-def turnFansOff(fanpin, invertrelay):
-    result = "Turning Fans OFF"
-    pin = DigitalInOut(fanpin)
-    pin.switch_to_output()
+					if sensor_type == 'Internal':
+						self._temperature = self._get_cpu_temperature()
+					if sensor_type == 'Allsky':
+						self._temperature = self._get_allsky_temperature()
 
-    if invertrelay:
-        pin.value = 1
-    else:    
-        pin.value = 0
-        
-    s.log(4,f"INFO: {result}")
+					if self._temperature is not None:
+						if use_pwm:
+							result, pwm_duty_cycle, pwm_enabled, error = self._use_pwm_fan_control()
+						else:
+							self._fan_pin = allsky_shared.getGPIOPin(self._fan_pin)         
+							result, error = self._use_bool_fan_control()
 
-def debugOutput(sensor_type, temperature, humidity, rel_humidity, usepwm, duty_cycle):
-    extra_text = ""
-    if usepwm:
-        extra_text = f"Using PWM duty cycle set to {duty_cycle}"
-    if temperature is None:
-        temperature = 0
-    if humidity is None:
-        humidity = 0
-    if rel_humidity is None:
-        rel_humidity = 0
-    s.log(3,f"DEBUG: Sensor {sensor_type} read. Temperature {temperature:.2f} Humidity {humidity:.2f} Relative Humidity {rel_humidity:.2f} {extra_text}")
+						if not error:
+							extra_data['AS_FANS_FAN_STATE'] = fan_status
+							extra_data['AS_FANS_TEMP_LIMIT'] = self._temperature_limit
+							extra_data['AS_FANS_TEMPERATURE'] = self._temperature
+							if use_pwm:
+								extra_data['AS_FANS_USE_PWM'] = True if use_pwm else False
+								extra_data['AS_FANS_PWM_ENABLED'] = True if pwm_enabled == '1' else False
+								extra_data['AS_FANS_PWM_DUTY_CYCLE'] = pwm_duty_cycle
+										
+							allsky_shared.saveExtraData(metaData['extradatafilename'], extra_data, metaData["module"], metaData["extradata"])
+						
+						allsky_shared.setLastRun(metaData['module'])
+					else:
+						result = 'Failed to get temperature'
+						allsky_shared.log(0, f'ERROR: {result}')
+				else:
+					result = 'fan pin not defined or invalid'
+					allsky_shared.log(0, f'ERROR: {result}')
+			else:
+				result = f'Will run in {(run_period - diff):.0f} seconds'
+		except Exception as e:
+			exception_type, exception_object, exception_traceback = sys.exc_info()
+			result = f'Module run - {exception_traceback.tb_lineno} - {e}'
+			allsky_shared.log(4, f'ERROR: {result}')    
+     
+		if not error:
+			allsky_shared.log(4,f'INFO: {result}')
+
+		return result
 
 def fans(params, event):
-    result = ''
-    fan_status = ''
-    result_text = ""
-    limit = 0
-    sensor_type = params["sensor_type"]
-    fanpin = params['fanpin']
-    try:
-        period = int(params['period'])
-    except ValueError:
-        period = 60
-    invertrelay = params["invertrelay"]
-    i2caddress_BME280_I2C = params['i2caddress_BME280_I2C']
-    i2caddress_BMP280_I2C = params['i2caddress_BMP280_I2C']
-    dhtxxretrycount = int(params["dhtxxretrycount"])
-    dhtxxdelay = int(params["dhtxxdelay"])
-    try:
-        DHTinputpin = int(params["DHTinputpin"])
-    except ValueError:
-        DHTinputpin = 0
-    i2caddress_SHT31 = params['i2caddress_SHT31_I2C']
-    SHT31_heater = params['sht31heater']
+	allsky_fans = ALLSKYFANS(params, event)
+	result = allsky_fans.run()
 
-    usepwm = params["usepwm"]
-    try:
-        pwmpin = int(params["pwmpin"])
-    except ValueError:
-        pwmpin = 0
-
-    try:
-        pwmmin = int(params["pwmmin"])
-    except ValueError:
-        pwmpin = 0
-
-    try:
-        pwmmax = int(params["pwmmax"])
-    except ValueError:
-        pwmmax = 0
-
-    pwm_map = {
-        "4B": {
-            "enabled": "/sys/class/pwm/pwmchip0/pwm%CHANNEL%/enable",
-            "chip": 0,
-            "addresses": {
-                18: 0,
-                19: 1,
-                12: 0,
-                13: 1
-            }
-        },
-        "5B": {
-            "enabled": "/sys/class/pwm/pwmchip2/pwm%CHANNEL%/enable",
-            "chip": 2,
-            "addresses": {
-                18: 0,
-                19: 1,
-                12: 0,
-                13: 1
-            }
-        }
-    }
-
-    pwm_duty_cycle = 0
-    pwm_enabled = "0"
-    temperature = None
-    humidity = None
-    pressure = None
-    rel_humidity = None
-    altitude = None
-    fan_status = "Unknown"
-
-    should_run, diff = s.shouldRun(metaData["module"], period)
-    if should_run:
-        extra_data = {}
-        try:
-            fanpin = int(fanpin)
-        except ValueError:
-            fanpin = 0
-        if fanpin != 0:
-            fanpin = s.getGPIOPin(fanpin)         
-            if sensor_type == "Internal":
-                temperature = getTemperature()
-                limit = int(params["limitInternal"])
-                result_text = "CPU Temp is "
-            elif sensor_type == "BME280-I2C":
-                temperature, humidity, pressure, rel_humidity, altitude = readBme280I2C(i2caddress_BME280_I2C)
-                limit = int(params["limit_BME280_I2C"])
-                result_text = "BME280 Temp is "
-            elif sensor_type == "BMP280-I2C":
-                temperature, pressure, altitude = readBmp280I2C(i2caddress_BMP280_I2C)
-                limit = int(params["limit_BMP280_I2C"])
-                result_text = "BMP280 Temp is "
-            elif sensor_type == "DHT22" or sensor_type == "DHT11" or sensor_type == "AM2302":
-                temperature, rel_humidity = readDHT22(DHTinputpin, dhtxxretrycount, dhtxxdelay)
-                limit = int(params["limit_DHT"])
-                result_text = "DHTXX Temp is "
-            elif sensor_type == "SHT31":
-                limit = int(params["limit_SHT31"])                
-                temperature, humidity = readSHT31(SHT31_heater, i2caddress_SHT31)
-              
-            if temperature is not None:
-                if usepwm:
-                    if pwmpin != 0:
-                        Device.ensure_pin_factory()
-                        pi_info = Device.pin_factory.board_info
-                        model = pi_info.model
-                        if model in pwm_map:
-                            pwm_channel =  pwm_map[model]["addresses"][pwmpin]
-                            enabled_file = pwm_map[model]["enabled"]
-                            chip = pwm_map[model]["chip"]
-                            enabled_file = enabled_file.replace("%CHANNEL%", str(pwm_channel))
-                            try:
-                                with open(enabled_file, 'r', encoding="utf-8") as file:
-                                    pwm_enabled = file.readline().strip()
-                            except FileNotFoundError:
-                                pwm_enabled = "0"
-
-                            pwm = HardwarePWM(pwm_channel=pwm_channel, hz=60, chip=chip)
-                            if pwm_enabled == "0":
-                                pwm.start(0)
-                                pwm.change_frequency(25_000)
-
-                            if temperature <= pwmmin:
-                                pwm_duty_cycle = 0
-                            elif temperature > pwmmax:
-                                pwm_duty_cycle = 100
-                            else:
-                                pwm_duty_cycle = int(((temperature - pwmmin) / (pwmmax - pwmmin)) * 100)
-
-                            pwm.change_duty_cycle(pwm_duty_cycle)
-                            
-                            if pwm_duty_cycle == 0:
-                                pwm.stop()
-                        else:
-                            result = f"Pi Model ({model}) is not supported for PWM"
-                            s.log(0, f"ERROR: {result}")
-                    else:
-                        result = "PWM Pin is invalid"
-                        s.log(0, f"ERROR: {result}")
-                else:
-                    if (temperature > limit):
-                        turnFansOn(fanpin, invertrelay)
-                        fan_status = "On"
-                        result = result_text + f"{temperature} is higher then set limit of {limit}, Fans are {fan_status} via fan pin {fanpin}"
-                    else:
-                        turnFansOff(fanpin, invertrelay)
-                        fan_status = "Off"
-                        result = result_text + f"{temperature} is lower then set limit of {limit}, Fans are {fan_status} via fan pin {fanpin}"
-
-                extra_data["OTH_FANS"] = fan_status
-                extra_data["OTH_FANT"] = limit
-                extra_data["OTH_USE_PWM"] = "Yes" if usepwm else "No"
-                extra_data["OTH_PWM_ENABLED"] = "Yes" if pwm_enabled == "1" else "No"
-                extra_data["OTH_PWM_DUTY_CYCLE"] = pwm_duty_cycle
-                extra_data["OTH_TEMPERATURE"] = temperature
-                if pressure is not None:
-                    extra_data["OTH_PRESSURE"] = pressure
-                if altitude is not None:
-                    extra_data["OTH_ALTITUDE"] = altitude
-                if humidity is not None:
-                    extra_data["OTH_HUMIDITY"] = humidity
-                if rel_humidity is not None:
-                    extra_data["OTH_rel_humidity"] = rel_humidity
-                    
-                s.saveExtraData("allskyfans.json", extra_data)
-                
-                debugOutput(sensor_type, temperature, humidity, rel_humidity, usepwm, pwm_duty_cycle)
-                s.setLastRun(metaData["module"])
-            else:
-                result = "Failed to get temperature"
-                s.log(0, f"ERROR: {result}")
-        else:
-            result = "fan pin not defined or invalid"
-            s.log(0, f"ERROR: {result}")
-    else:
-        result = f'Will run in {(period - diff):.0f} seconds'
-        
-    s.log(4,f"INFO: {result}")
-    
-    return result
+	return result    
 
 def fans_cleanup():
-    moduleData = {
-        "metaData": metaData,
-        "cleanup": {
-            "files": {
-                "allskyfans.json"
-            },
-            "env": {}
-        }
-    }
-    s.cleanupModule(moduleData)
+	moduleData = {
+	    "metaData": metaData,
+	    "cleanup": {
+	        "files": {
+	            metaData['extradatafilename']
+	        },
+	        "env": {}
+	    }
+	}
+	allsky_shared.cleanupModule(moduleData)

@@ -2,26 +2,26 @@
 # TODO: Use units for OW
 # TODO: Add ability to make fields manatory depending upon a select value
 # TODO: Add much better validation for params, like on OW
-import allsky_shared as s
+# TODO: Check rel humidity return values
+import allsky_shared as allsky_shared
+from allsky_base import ALLSKYMODULEBASE
 import time
 import sys
 import os
 import json
-import urllib.request
 import requests
 import json
 import board
-import math
 from pathlib import Path
-from meteocalc import heat_index
+
 from meteocalc import dew_point, Temp
 import board
 import adafruit_sht31d
+import adafruit_sht4x
 import adafruit_dht
 import adafruit_ahtx0
 from adafruit_bme280 import basic as adafruit_bme280
 from adafruit_htu21d import HTU21D
-from meteocalc import heat_index
 from meteocalc import dew_point
 from digitalio import DigitalInOut, Direction, Pull
 from DS18B20dvr.DS18B20 import DS18B20
@@ -39,6 +39,7 @@ metaData = {
 	"experimental": "false",
 	"centersettings": "false",
 	"testable": "true",
+	"extradatafilename": "allsky_temp.json",
 	"extradata": {
 	    "info": {
 	        "count": 4,
@@ -132,6 +133,7 @@ metaData = {
 	    "dhtxxretrycount": "2",
 	    "dhtxxdelay" : "500",
 	    "sht31heater": "False",
+	    "sht41mode": "0xE0",
 		"owapikey": "",        
 		"owfilename": "",        
 		"owperiod": "",        
@@ -146,6 +148,7 @@ metaData = {
 	    "dhtxxretrycount1": "2",
 	    "dhtxxdelay1" : "500",
 	    "sht31heater1": "False",
+	    "sht41mode": "0xE0",
 	    "temp1": "",
 	    "gpio1": "",
 	    "gpioon1": "On",
@@ -164,6 +167,7 @@ metaData = {
 	    "dhtxxretrycount2": "2",
 	    "dhtxxdelay2" : "500",
 	    "sht31heater2": "False",
+	    "sht41mode": "0xE0",     
 	    "temp2": "",
 	    "gpio2": "",
 	    "gpioon2": "On",
@@ -182,6 +186,7 @@ metaData = {
 	    "dhtxxretrycount3": "2",
 	    "dhtxxdelay3" : "500",
 	    "sht31heater3": "False",
+	    "sht41mode": "0xE0",     
 	    "temp3": "",
 	    "gpio3": "",
 	    "gpioon3": "On",
@@ -235,8 +240,7 @@ metaData = {
 	            "fieldtype": "select",
 	            "values": "standard,metric,imperial"
 	        }                
-	    },                          
-	    
+	    },
 	    "type" : {
 	        "required": "false",
 	        "description": "Sensor Type",
@@ -244,7 +248,7 @@ metaData = {
 	        "tab": "Core",
 	        "type": {
 	            "fieldtype": "select",
-	            "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
+	            "values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
 	            "default": "None"
 	        }
 	    },
@@ -286,6 +290,7 @@ metaData = {
 	            "filtertype": "show",
 	            "values": [
 	            	"SHT31",
+	            	"SHT4x",              
 	            	"BME280-I2C",
 	            	"HTU21",
 	             	"AHTx0"
@@ -297,6 +302,11 @@ metaData = {
 	        "description": "DS18B20 Address",
 	        "tab": "Core",
 	        "help": "Filename in /sys/bus/w1/devices",
+	        "type": {
+	            "fieldtype": "ajaxselect",
+				"url": "includes/moduleutil.php?request=Onewire",
+				"placeholder": "Select a One Wire device"
+	        },         
 	        "filters": {
 	            "filter": "type",
 	            "filtertype": "show",
@@ -359,10 +369,28 @@ metaData = {
 	            "filter": "type",
 	            "filtertype": "show",
 	            "values": [
-	            	"SHT31"
+	            	"SHT31"        
 				]
 			}             
 	    },
+	    "sht41mode" : {
+	        "required": "false",
+	        "description": "SHT4x Power Mode",
+	        "help": "Sets the SHT4x power mode",
+	        "tab": "Core",
+	        "type": {
+	            "fieldtype": "select",
+				"values": "0xFD|No heater - high precision,0xF6|No heater - med precision,0xE0|No heater - low precision (Lowest Power Mode),0x39|High heat - 1 second (Highest Power Mode),0x32|High heat - 0.1 second,0x2F|Med heat - 1 second,0x24|Med heat - 0.1 second,0x1E|Low heat - 1 second, 0x15|Low heat - 0.1 second",
+	            "default": "None"
+	        },
+	        "filters": {
+	            "filter": "type",
+	            "filtertype": "show",
+	            "values": [
+					"SHT4x"
+				]
+			}             
+	    },     
 		"owtext": {
 			"message": "<b style='color: #ff0000'>IMPORTANT</b> Do not use this function and the OpenWeather API module as well. If you are using this function then please remove the OpenWeather Module as both create the same overlay data",
 	        "tab": "Core",
@@ -386,8 +414,9 @@ metaData = {
 	    "owapikey": {
 	        "required": "false",
 	        "description": "API Key",
-	        "tab": "Core",            
-	        "help": "Your Open Weather Map API key."         ,
+	        "tab": "Core",
+         	"secret": "true",         
+	        "help": "Your Open Weather Map API key.",
 	        "filters": {
 	            "filter": "type",
 	            "filtertype": "show",
@@ -449,7 +478,7 @@ metaData = {
 	    },          
 		"noticecore" : {
 	        "tab": "Core",      
-			"message": "This sensor is used by Allksy for basic temperature information. The following Variables will be created<br>AS_TEMP - The temperature<br>AS_HUMIDITY - The Humidity<br>AS_DEWPOINT - the dew point<br>AS_HEATINDEX - The heatindex<br>AS_PRESSURE - <Only if supported by the sensor> Barometric Pressure<br>AS_ALTITUDE - <Only if supported by the sensor> The altitude",
+			"message": "This sensor is used by Allksy for basic temperature information. The following Variables will be created<br>AS_TEMP - The temperature<br>AS_HUMIDITY - The Humidity<br>AS_DEWPOINT - the dew point<br>AS_PRESSURE - <Only if supported by the sensor> Barometric Pressure<br>AS_ALTITUDE - <Only if supported by the sensor> The altitude",
 	        "type": {
 	            "fieldtype": "text",
 	            "style": {
@@ -460,8 +489,6 @@ metaData = {
 				}
 	        } 			
 		}, 
-	    
-
 	    "type1" : {
 	        "required": "false",
 	        "description": "Sensor Type",
@@ -469,7 +496,7 @@ metaData = {
 	        "tab": "Sensor 1",
 	        "type": {
 	            "fieldtype": "select",
-	            "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
+	            "values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
 	            "default": "None"
 	        }
 	    },
@@ -525,6 +552,7 @@ metaData = {
 	            "filtertype": "show",
 	            "values": [
 	            	"SHT31",
+					"SHT4x",
 	            	"BME280-I2C",
 	            	"HTU21",
 	             	"AHTx0"
@@ -536,6 +564,11 @@ metaData = {
 	        "description": "DS18B20 Address",
 	        "tab": "Sensor 1",
 	        "help": "Filename in /sys/bus/w1/devices",
+	        "type": {
+	            "fieldtype": "ajaxselect",
+				"url": "includes/moduleutil.php?request=Onewire",
+				"placeholder": "Select a One Wire device"
+	        },          
 	        "filters": {
 	            "filter": "type1",
 	            "filtertype": "show",
@@ -602,6 +635,24 @@ metaData = {
 				]
 			}             
 	    },
+	    "sht41mode1" : {
+	        "required": "false",
+	        "description": "SHT4x Power Mode",
+	        "help": "Sets the SHT4x power mode",
+	        "tab": "Sensor 1",
+	        "type": {
+	            "fieldtype": "select",
+				"values": "0xFD|No heater - high precision,0xF6|No heater - med precision,0xE0|No heater - low precision (Lowest Power Mode),0x39|High heat - 1 second (Highest Power Mode),0x32|High heat - 0.1 second,0x2F|Med heat - 1 second,0x24|Med heat - 0.1 second,0x1E|Low heat - 1 second, 0x15|Low heat - 0.1 second",
+	            "default": "0xE0"
+	        },
+	        "filters": {
+	            "filter": "type1",
+	            "filtertype": "show",
+	            "values": [
+					"SHT4x"
+				]
+			}             
+	    },      
 		"owtext1": {
 			"message": "<b style='color: #ff0000'>IMPORTANT</b> Do not use this function and the OpenWeather API module as well. If you are using this function then please remove the OpenWeather Module as both create the same overlay data",
 	        "tab": "Sensor 1",
@@ -625,8 +676,9 @@ metaData = {
 	    "owapikey1": {
 	        "required": "false",
 	        "description": "API Key",
-	        "tab": "Sensor 1",            
-	        "help": "Your Open Weather Map API key."         ,
+			"secret": "true",         
+	        "tab": "Sensor 1",
+	        "help": "Your Open Weather Map API key.",
 	        "filters": {
 	            "filter": "type1",
 	            "filtertype": "show",
@@ -702,6 +754,7 @@ metaData = {
 	            "filtertype": "show",
 	            "values": [
 	            	"SHT31",
+					"SHT4x",
 	                "DHT22",
 	                "DHT11",
 	                "AM2302",
@@ -726,6 +779,7 @@ metaData = {
 	            "filtertype": "show",
 	            "values": [
 	            	"SHT31",
+					"SHT4x",              
 	                "DHT22",
 	                "DHT11",
 	                "AM2302",
@@ -747,6 +801,7 @@ metaData = {
 	            "filtertype": "show",
 	            "values": [
 	            	"SHT31",
+					"SHT4x",              
 	                "DHT22",
 	                "DHT11",
 	                "AM2302",
@@ -768,6 +823,7 @@ metaData = {
 	            "filtertype": "show",
 	            "values": [
 	            	"SHT31",
+					"SHT4x",              
 	                "DHT22",
 	                "DHT11",
 	                "AM2302",
@@ -779,7 +835,6 @@ metaData = {
 				]
 			}                    
 	    },                    
-	    
 	    "type2" : {
 	        "required": "false",
 	        "description": "Sensor Type",
@@ -787,7 +842,7 @@ metaData = {
 	        "tab": "Sensor 2",
 	        "type": {
 	            "fieldtype": "select",
-	            "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
+	            "values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
 	            "default": "None"
 	        }
 	    },
@@ -843,6 +898,7 @@ metaData = {
 	            "filtertype": "show",
 	            "values": [
 	            	"SHT31",
+					"SHT4x",
 	            	"BME280-I2C",
 	            	"HTU21",
 	             	"AHTx0"
@@ -854,6 +910,11 @@ metaData = {
 	        "description": "DS18B20 Address",
 	        "tab": "Sensor 2",
 	        "help": "Filename in /sys/bus/w1/devices",
+	        "type": {
+	            "fieldtype": "ajaxselect",
+				"url": "includes/moduleutil.php?request=Onewire",
+				"placeholder": "Select a One Wire device"
+	        },         
 	        "filters": {
 	            "filter": "type2",
 	            "filtertype": "show",
@@ -920,6 +981,24 @@ metaData = {
 				]
 			}             
 	    },
+	    "sht41mode2" : {
+	        "required": "false",
+	        "description": "SHT4x Power Mode",
+	        "help": "Sets the SHT4x power mode",
+	        "tab": "Sensor 2",
+	        "type": {
+	            "fieldtype": "select",
+				"values": "0xFD|No heater - high precision,0xF6|No heater - med precision,0xE0|No heater - low precision (Lowest Power Mode),0x39|High heat - 1 second (Highest Power Mode),0x32|High heat - 0.1 second,0x2F|Med heat - 1 second,0x24|Med heat - 0.1 second,0x1E|Low heat - 1 second, 0x15|Low heat - 0.1 second",
+	            "default": "0xE0"
+	        },
+	        "filters": {
+	            "filter": "type2",
+	            "filtertype": "show",
+	            "values": [
+					"SHT4x"
+				]
+			}             
+	    },     
 		"owtext2": {
 			"message": "<b style='color: #ff0000'>IMPORTANT</b> Do not use this function and the OpenWeather API module as well. If you are using this function then please remove the OpenWeather Module as both create the same overlay data",
 	        "tab": "Sensor 2",
@@ -943,8 +1022,9 @@ metaData = {
 	    "owapikey2": {
 	        "required": "false",
 	        "description": "API Key",
+			"secret": "true",         
 	        "tab": "Sensor 2",            
-	        "help": "Your Open Weather Map API key."         ,
+	        "help": "Your Open Weather Map API key.",
 	        "filters": {
 	            "filter": "type2",
 	            "filtertype": "show",
@@ -1020,6 +1100,7 @@ metaData = {
 	            "filtertype": "show",
 	            "values": [
 	            	"SHT31",
+					"SHT4x",              
 	                "DHT22",
 	                "DHT11",
 	                "AM2302",
@@ -1044,6 +1125,7 @@ metaData = {
 	            "filtertype": "show",
 	            "values": [
 	            	"SHT31",
+					"SHT4x",              
 	                "DHT22",
 	                "DHT11",
 	                "AM2302",
@@ -1065,6 +1147,7 @@ metaData = {
 	            "filtertype": "show",
 	            "values": [
 	            	"SHT31",
+					"SHT4x",              
 	                "DHT22",
 	                "DHT11",
 	                "AM2302",
@@ -1086,6 +1169,7 @@ metaData = {
 	            "filtertype": "show",
 	            "values": [
 	            	"SHT31",
+					"SHT4x",              
 	                "DHT22",
 	                "DHT11",
 	                "AM2302",
@@ -1097,7 +1181,6 @@ metaData = {
 				]
 			}                    
 	    }, 
-
 	    "type3" : {
 	        "required": "false",
 	        "description": "Sensor Type",
@@ -1105,7 +1188,7 @@ metaData = {
 	        "tab": "Sensor 3",
 	        "type": {
 	            "fieldtype": "select",
-	            "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
+	            "values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
 	            "default": "None"
 	        }
 	    },
@@ -1161,6 +1244,7 @@ metaData = {
 	            "filtertype": "show",
 	            "values": [
 	            	"SHT31",
+					"SHT4x",
 	            	"BME280-I2C",
 	            	"HTU21",
 	             	"AHTx0"
@@ -1172,6 +1256,11 @@ metaData = {
 	        "description": "DS18B20 Address",
 	        "tab": "Sensor 3",
 	        "help": "Filename in /sys/bus/w1/devices",
+	        "type": {
+	            "fieldtype": "ajaxselect",
+				"url": "includes/moduleutil.php?request=Onewire",
+				"placeholder": "Select a One Wire device"
+	        },         
 	        "filters": {
 	            "filter": "type3",
 	            "filtertype": "show",
@@ -1238,6 +1327,24 @@ metaData = {
 				]
 			}             
 	    },
+	    "sht41mode3" : {
+	        "required": "false",
+	        "description": "SHT4x Power Mode",
+	        "help": "Sets the SHT4x power mode",
+	        "tab": "Sensor 3",
+	        "type": {
+	            "fieldtype": "select",
+				"values": "0xFD|No heater - high precision,0xF6|No heater - med precision,0xE0|No heater - low precision (Lowest Power Mode),0x39|High heat - 1 second (Highest Power Mode),0x32|High heat - 0.1 second,0x2F|Med heat - 1 second,0x24|Med heat - 0.1 second,0x1E|Low heat - 1 second, 0x15|Low heat - 0.1 second",
+	            "default": "None"
+	        },
+	        "filters": {
+	            "filter": "type3",
+	            "filtertype": "show",
+	            "values": [
+					"SHT4x"
+				]
+			}             
+	    },     
 		"owtext3": {
 			"message": "<b style='color: #ff0000'>IMPORTANT</b> Do not use this function and the OpenWeather API module as well. If you are using this function then please remove the OpenWeather Module as both create the same overlay data",
 	        "tab": "Sensor 3",
@@ -1261,8 +1368,9 @@ metaData = {
 	    "owapikey3": {
 	        "required": "false",
 	        "description": "API Key",
+			"secret": "true",
 	        "tab": "Sensor 3",            
-	        "help": "Your Open Weather Map API key."         ,
+	        "help": "Your Open Weather Map API key.",
 	        "filters": {
 	            "filter": "type3",
 	            "filtertype": "show",
@@ -1338,6 +1446,7 @@ metaData = {
 	            "filtertype": "show",
 	            "values": [
 	            	"SHT31",
+					"SHT4x",              
 	                "DHT22",
 	                "DHT11",
 	                "AM2302",
@@ -1362,6 +1471,7 @@ metaData = {
 	            "filtertype": "show",
 	            "values": [
 	            	"SHT31",
+					"SHT4x",              
 	                "DHT22",
 	                "DHT11",
 	                "AM2302",
@@ -1383,6 +1493,7 @@ metaData = {
 	            "filtertype": "show",
 	            "values": [
 	            	"SHT31",
+					"SHT4x",              
 	                "DHT22",
 	                "DHT11",
 	                "AM2302",
@@ -1404,6 +1515,7 @@ metaData = {
 	            "filtertype": "show",
 	            "values": [
 	            	"SHT31",
+					"SHT4x",              
 	                "DHT22",
 	                "DHT11",
 	                "AM2302",
@@ -1448,563 +1560,594 @@ metaData = {
 	}
 }
 
-	
-def readSHT31(sht31heater, i2caddress):
-	temperature = None
-	humidity = None
+class ALLSKYTEMP(ALLSKYMODULEBASE):
+	params = []
+	event = ''
 
-	if i2caddress != "":
+	def _create_cardinal(self, degrees):
 		try:
-			i2caddressInt = int(i2caddress, 16)
+			cardinals = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW','W', 'WNW', 'NW', 'NNW', 'N']
+			cardinal = cardinals[round(degrees / 22.5)]
+		except Exception:
+			cardinal = 'N/A'
+
+		return cardinal
+
+	def _process_ow_result(self, data, expires, units):
+		extra_data = {}
+		#rawData = '{"coord":{"lon":0.2,"lat":52.4},"weather":[{"id":802,"main":"Clouds","description":"scattered clouds","icon":"03d"}],"base":"stations","main":{"temp":291.84,"feels_like":291.28,"temp_min":290.91,"temp_max":292.65,"pressure":1007,"humidity":58},"visibility":10000,"wind":{"speed":8.23,"deg":250,"gust":10.8},"clouds":{"all":40},"dt":1664633294,"sys":{"type":2,"id":2012440,"country":"GB","sunrise":1664603991,"sunset":1664645870},"timezone":3600,"id":2633751,"name":"Witchford","cod":200}'
+		#data = json.loads(rawData)
+		self._set_extra_value('weather.main', data, 'OWWEATHER', expires, extra_data)
+		self._set_extra_value('weather.description', data, 'OWWEATHERDESCRIPTION', expires, extra_data)
+
+		self._set_extra_value('main.temp', data, 'OWTEMP', expires, extra_data)
+		self._set_extra_value('main.feels_like', data, 'OWTEMPFEELSLIKE', expires, extra_data)
+		self._set_extra_value('main.temp_min', data, 'OWTEMPMIN', expires, extra_data)
+		self._set_extra_value('main.temp_max', data, 'OWTEMPMAX', expires, extra_data)
+		self._set_extra_value('main.pressure', data, 'OWPRESSURE', expires, extra_data)
+		self._set_extra_value('main.humidity', data, 'OWHUMIDITY', expires, extra_data)
+
+		self._set_extra_value('wind.speed', data, 'OWWINDSPEED', expires, extra_data)
+		self._set_extra_value('wind.deg', data, 'OWWINDDIRECTION', expires, extra_data)
+		self._set_extra_value('wind.gust', data, 'OWWINDGUST', expires, extra_data)
+
+		self._set_extra_value('clouds.all', data, 'OWCLOUDS', expires, extra_data)
+
+		self._set_extra_value('rain.1hr', data, 'OWRAIN1HR', expires, extra_data)
+		self._set_extra_value('rain.3hr', data, 'OWRAIN3HR', expires, extra_data)
+
+		self._set_extra_value('sys.sunrise', data, 'OWSUNRISE', expires, extra_data)
+		self._set_extra_value('sys.sunset', data, 'OWSUNSET', expires, extra_data)
+
+		temperature = float(self._get_value('main.temp', data))
+		humidity = float(self._get_value('main.humidity', data))
+		if units == 'imperial':
+			t = Temp(temperature, 'f')
+			the_dew_point = dew_point(t, humidity).f
+
+		if units == 'metric':
+			t = Temp(temperature, 'c')        
+			the_dew_point = dew_point(temperature, humidity).c
+
+		if units == 'standard':
+			t = Temp(temperature, 'k')        
+			the_dew_point = dew_point(temperature, humidity).k
+
+		degress = self._get_value('wind.deg', data)
+		cardinal = self._create_cardinal(degress)
+
+		extra_data['AS_OWWINDCARDINAL'] = {
+			'name': '${' + 'OWWINDCARDINAL' + '}',
+			'format': '',
+			'sample': '',
+			'group': 'Environment',
+			'value': cardinal,
+			'source': 'allsky_temp',         
+			'expires': expires
+		}
+
+		extra_data['AS_OWDEWPOINT'] = {
+			'name': '${' + 'OWDEWPOINT' + '}',
+			'format': '',
+			'sample': '',
+			'group': 'Environment',
+			'value': round(the_dew_point,1),
+			'source': 'allsky_temp',         
+			'expires': expires
+		}
+
+		
+		return extra_data
+
+	def _set_extra_value(self, path, data, extra_key, expires, extra_data):
+		value = self._get_value(path, data)
+		if value is not None:
+			extra_data["AS_" + extra_key] = {
+				"name": "${" + extra_key + "}",
+				"format": "",
+				"sample": "",
+				"group": "Environment",
+				"value": value,
+				"source": "allsky_temp",         
+				"expires": expires
+			}
+		
+	def _get_ow_values(self, file_name):
+		temperature = None
+		humidity = None
+		pressure = None
+		the_dew_point = None
+
+		allskyPath = allsky_shared.getEnvironmentVariable('ALLSKY_HOME')
+		extra_data_fileName = os.path.join(allskyPath, 'config', 'overlay', 'extra', file_name)
+
+		if os.path.isfile(extra_data_fileName):
+			file_modified_time = int(os.path.getmtime(extra_data_fileName))
+			with open(extra_data_fileName, 'r', encoding='utf-8') as file:
+				json_data = json.load(file)
+				temperature = self._get_ow_Value('AS_OWTEMP', json_data, file_modified_time)
+				humidity = self._get_ow_Value('AS_OWHUMIDITY', json_data, file_modified_time)
+				pressure = self._get_ow_Value('AS_OWPRESSURE', json_data, file_modified_time)
+				the_dew_point = self._get_ow_Value('AS_OWDEWPOINT', json_data, file_modified_time)
+
+		return temperature, humidity, pressure, the_dew_point
+
+	def _get_ow_Value(self, field, json_data, file_modified_time):
+		result = False    
+
+		if field in json_data:
+			result = json_data[field]['value']
+
+		if 'expires' in json_data[field]:
+			max_age = json_data[field]['expires']
+			age = int(time.time()) - file_modified_time
+			if age > max_age:
+				allsky_shared.log(4, f'WARNING: field {field} has expired - age is {age}')
+				result = None
+				
+		return result
+
+	def _get_value(self, path, data):
+		result = None
+		keys = path.split('.')
+		if keys[0] in data:
+			sub_data = data[keys[0]]
+			
+			if isinstance(sub_data, list):        
+				if keys[1] in sub_data[0]:
+					result = sub_data[0][keys[1]]
+			else:
+				if keys[1] in sub_data:
+					result = sub_data[keys[1]]
+
+		return result
+
+	def _read_open_weather(self, sensor_number):
+		expire = self.get_param('owexpire' + sensor_number, 600, int)
+		period = self.get_param('owperiod' + sensor_number, 60, int)
+		api_key = self.get_param('owapikey' + sensor_number, '', str)
+		file_name = self.get_param('owfilename' + sensor_number, 'allsky_owdata.json', str, True)
+		units = self.get_param('units' + sensor_number, '', str)
+		module = metaData['module']
+
+		temperature = None
+		humidity = None
+		pressure = None
+		the_dew_point = None
+
+		try:
+			should_run, diff = allsky_shared.shouldRun(module, period)
+			if should_run or self._debugmode:
+				if api_key != '':
+					if file_name != '':
+						lat = allsky_shared.getSetting('latitude')
+						if lat is not None and lat != '':
+							lat = allsky_shared.convertLatLon(lat)
+							lon = allsky_shared.getSetting('longitude')
+							if lon is not None and lon != '':
+								lon = allsky_shared.convertLatLon(lon)
+								try:
+									ow_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units={units}&appid={api_key}"
+									allsky_shared.log(4,f"INFO: Reading Openweather API from - {ow_url}")
+									response = requests.get(ow_url)
+									if response.status_code == 200:
+										raw_data = response.json()
+										extra_data = self._process_ow_result(raw_data, expire, units)
+										allsky_shared.saveExtraData(file_name, extra_data, 'internal')
+										result = f'Data acquired and written to extra data file {file_name}'
+										allsky_shared.log(1, f'INFO: {result}')
+									else:
+										result = f'Got error from Open Weather Map API. Response code {response.status_code}'
+										allsky_shared.log(0,f'ERROR: {result}')
+								except Exception as e:
+									eType, eObject, eTraceback = sys.exc_info()            
+									result = str(e)
+									allsky_shared.log(0, f'ERROR: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}')
+								allsky_shared.setLastRun(module)                            
+							else:
+								result = 'Invalid Longitude. Check the Allsky configuration'
+								allsky_shared.log(0, f'ERROR: {result}')
+						else:
+							result = 'Invalid Latitude. Check the Allsky configuration'
+							allsky_shared.log(0, f'ERROR: {result}')
+					else:
+						result = 'Missing filename for data'
+						allsky_shared.log(0, f'ERROR: {result}')
+				else:
+					result = 'Missing Open Weather Map API key'
+					allsky_shared.log(0, f'ERROR: {result}')
+			else:
+				allsky_shared.log(4, f'INFO: Using Cached Openweather API data')
+
+			temperature, humidity, pressure, the_dew_point = self._get_ow_values(file_name)                
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			s.log(0, f"ERROR: Module readSHT31 failed on line {eTraceback.tb_lineno} - {e}")
-				
-	try:
-		i2c = board.I2C()
-		if i2caddress != "":
-			sensor = adafruit_sht31d.SHT31D(i2c, i2caddressInt)
+			allsky_shared.log(0, f'ERROR: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}')
+
+		return temperature, humidity, pressure, the_dew_point	
+
+	def _read_ds18B20(self, sensor_number):
+		humidity = None
+		temperature = None
+
+		ds18b20_address = self.get_param('ds18b20address' + sensor_number, '', str)    
+		one_wire_base_dir = Path('/sys/bus/w1/devices/')
+		one_wire_sensor_dir = Path(os.path.join(one_wire_base_dir, ds18b20_address))
+	
+		if one_wire_base_dir.is_dir():
+			if one_wire_sensor_dir.is_dir():
+				try:
+					device = DS18B20(ds18b20_address)
+					temperature = device.read_temperature()
+				# pylint: disable=broad-exception-caught
+				except Exception as ex:
+					_, _, trace_back = sys.exc_info()
+					allsky_shared.log(4, f'ERROR: Module readDS18B20 failed on line {trace_back.tb_lineno} - {ex}')
+			else:
+				allsky_shared.log(4, f'ERROR: (readDS18B20) - "{ds18b20_address}" is not a valid DS18B20 address. Please check /sys/bus/w1/devices')
 		else:
-			sensor = adafruit_sht31d.SHT31D(i2c)
-		sensor.heater = sht31heater
-		temperature = sensor.temperature
-		humidity = sensor.relative_humidity
-	except Exception as e:
-		eType, eObject, eTraceback = sys.exc_info()
-		s.log(4, f"ERROR: Module readSHT31 failed on line {eTraceback.tb_lineno} - {e}")
+			allsky_shared.log(4, 'ERROR: (readDS18B20) - One Wire is not enabled. Please use the raspi-config utility to enable it')
+
 		return temperature, humidity
 
-	return temperature, humidity
+	def _read_htu21(self, sensor_number):
+		temperature = None
+		humidity = None
 
+		i2c_address = self.get_param('i2caddress' + sensor_number, '', str)    
+		if i2c_address != '':
+			try:
+				i2c_address_int = int(i2c_address, 16)
+			except:
+				result = f'Address {i2c_address} is not a valid i2c address'
+				allsky_shared.log(0, f'ERROR: {result}')
 
-def doDHTXXRead(inputpin):
-	temperature = None
-	humidity = None
-
-	try:
-		pin = s.getGPIOPin(inputpin)
-		dhtDevice = adafruit_dht.DHT22(pin, use_pulseio=False)
 		try:
-			temperature = dhtDevice.temperature
-			humidity = dhtDevice.humidity
-		except RuntimeError as e:
-			eType, eObject, eTraceback = sys.exc_info()
-			s.log(4, f"ERROR: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}")
-	except Exception as e:
-		eType, eObject, eTraceback = sys.exc_info()
-		s.log(4, f"WARNING: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}")
-
-	return temperature, humidity
-
-
-def readDHT22(inputpin, dhtxxretrycount, dhtxxdelay):
-	temperature = None
-	humidity = None
-	count = 0
-	reading = True
-
-	while reading:
-		temperature, humidity = doDHTXXRead(inputpin)
-
-		if temperature is None and humidity is None:
-			s.log(4, "WARNING: Failed to read DHTXX on attempt {}".format(count+1))
-			count = count + 1
-			if count > dhtxxretrycount:
-				reading = False
+			i2c = board.I2C()
+			if i2c_address != '':
+				htu21 = HTU21D(i2c, i2c_address_int)
 			else:
-				time.sleep(dhtxxdelay/1000)
-		else:
-			reading = False
+				htu21 = HTU21D(i2c)
 
-	return temperature, humidity
-
-
-def readBme280I2C(i2caddress):
-	temperature = None
-	humidity = None
-	pressure = None
-	relHumidity = None
-	altitude = None
-
-	if i2caddress != "":
-		try:
-			i2caddressInt = int(i2caddress, 16)
+			temperature =  htu21.temperature
+			humidity = htu21.relative_humidity
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			s.log(0, f"ERROR: Module readBme280I2C failed on line {eTraceback.tb_lineno} - {e}")
-
-	try:
-		i2c = board.I2C()
-		if i2caddress != "":
-			bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c, i2caddressInt)
-		else:
-			bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
-
-		temperature =  bme280.temperature
-		humidity = bme280.humidity
-		relHumidity = bme280.relative_humidity
-		altitude = bme280.altitude
-		pressure = bme280.pressure
-	except Exception as e:
-		eType, eObject, eTraceback = sys.exc_info()
-		s.log(0, f"ERROR: Module readBme280I2C failed on line {eTraceback.tb_lineno} - {e}")
-
-	return temperature, humidity, pressure, relHumidity, altitude
-
-
-def readHtu21(i2caddress):
-	temperature = None
-	humidity = None
-
-	if i2caddress != "":
-		try:
-			i2caddressInt = int(i2caddress, 16)
-		except:
-			result = "Address {} is not a valid i2c address".format(i2caddress)
-			s.log(0,"ERROR: {}".format(result))
-
-	try:
-		i2c = board.I2C()
-		if i2caddress != "":
-			htu21 = HTU21D(i2c, i2caddressInt)
-		else:
-			htu21 = HTU21D(i2c)
-
-		temperature =  htu21.temperature
-		humidity = htu21.relative_humidity
-	except Exception as e:
-		eType, eObject, eTraceback = sys.exc_info()
-		s.log(4, f"ERROR: Module readHtu21 failed on line {eTraceback.tb_lineno} - {e}")
-		
-	return temperature, humidity
-
-
-def readAHTX0(i2caddress):
-	temperature = None
-	humidity = None
-
-	if i2caddress != "":
-		try:
-			i2caddressInt = int(i2caddress, 16)
-		except:
-			result = "Address {} is not a valid i2c address".format(i2caddress)
-			s.log(0,"ERROR: {}".format(result))
-
-	try:
-		i2c = board.I2C()
-		sensor = adafruit_ahtx0.AHTx0(i2c)
-		temperature = sensor.temperature
-		humidity = sensor.relative_humidity
-	except ValueError as e:
-		eType, eObject, eTraceback = sys.exc_info()
-		s.log(4, f"ERROR: Module readAHTX0 failed on line {eTraceback.tb_lineno} - {e}")
-
-	return temperature, humidity
-
-
-def readDS18B20(address):
-	humidity = None
-	temperature = None
-
-	one_wire_base_dir = Path('/sys/bus/w1/devices/')
-	one_wire_sensor_dir = Path(os.path.join(one_wire_base_dir, address))
-
-	if one_wire_base_dir.is_dir():
-		if one_wire_sensor_dir.is_dir():
-			try:
-				device = DS18B20(address)
-				temperature = device.read_temperature()
-			# pylint: disable=broad-exception-caught
-			except Exception as ex:
-				_, _, trace_back = sys.exc_info()
-				s.log(4, f"ERROR: Module readDS18B20 failed on line {trace_back.tb_lineno} - {ex}")
-		else:
-			s.log(4, f'ERROR: (readDS18B20) - "{address}" is not a valid DS18B20 address. Please check /sys/bus/w1/devices')
-	else:
-		s.log(4, 'ERROR: (readDS18B20) - One Wire is not enabled. Please use the raspi-config utility to enable it')
-
-	return temperature, humidity
-
-
-def getOWValue(field, jsonData, fileModifiedTime):
-	result = False    
-
-	if field in jsonData:
-		result = jsonData[field]["value"]
-
-	if "expires" in jsonData[field]:
-		maxAge = jsonData[field]["expires"]
-		age = int(time.time()) - fileModifiedTime
-		if age > maxAge:
-			s.log(4, f"WARNING: field {field} has expired - age is {age}")
-			result = None
+			allsky_shared.log(4, f'ERROR: Module read_htu21 failed on line {eTraceback.tb_lineno} - {e}')
 			
-	return result
+		return temperature, humidity
 
-	                
-def getOWValues(fileName):
-	temperature = None
-	humidity = None
-	pressure = None
-	dewPoint = None
+	def _read_ahtx0(self, sensor_number):
+		temperature = None
+		humidity = None
 
-	allskyPath = s.getEnvironmentVariable("ALLSKY_HOME")
-	extraDataFileName = os.path.join(allskyPath, "config", "overlay", "extra", fileName)
+		i2c_address = self.get_param('i2caddress' + sensor_number, '', str)  
+		if i2c_address != "":
+			try:
+				i2c_address_int = int(i2c_address, 16)
+			except:
+				result = f'Address {i2c_address} is not a valid i2c address'
+				allsky_shared.log(0, f'ERROR: {result}')
 
-	if os.path.isfile(extraDataFileName):
-		fileModifiedTime = int(os.path.getmtime(extraDataFileName))
-		with open(extraDataFileName,"r") as file:
-			jsonData = json.load(file)
-			temperature = getOWValue("AS_OWTEMP", jsonData, fileModifiedTime)
-			humidity = getOWValue("AS_OWHUMIDITY", jsonData, fileModifiedTime)
-			pressure = getOWValue("AS_OWPRESSURE", jsonData, fileModifiedTime)
-			dewPoint = getOWValue("AS_OWDEWPOINT", jsonData, fileModifiedTime)
+		try:
+			i2c = board.I2C()
+			if i2c_address != "":  
+				sensor = adafruit_ahtx0.AHTx0(i2c, i2c_address_int)
+			else:
+				sensor = adafruit_ahtx0.AHTx0(i2c)
+			temperature = sensor.temperature
+			humidity = sensor.relative_humidity
+		except ValueError as e:
+			eType, eObject, eTraceback = sys.exc_info()
+			allsky_shared.log(4, f"ERROR: Module read_ahtx0 failed on line {eTraceback.tb_lineno} - {e}")
 
-	return temperature, humidity, pressure, dewPoint
+		return temperature, humidity
 
-def createCardinal(degrees):
-	try:
-		cardinals = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW','W', 'WNW', 'NW', 'NNW', 'N']
-		cardinal = cardinals[round(degrees / 22.5)]
-	except Exception:
-		cardinal = 'N/A'
+	def _do_dhtxx_read(self, input_pin):
+		temperature = None
+		humidity = None
 
-	return cardinal
+		try:
+			pin = allsky_shared.getGPIOPin(input_pin)
+			dhtDevice = adafruit_dht.DHT22(pin, use_pulseio=False)
+			try:
+				temperature = dhtDevice.temperature
+				humidity = dhtDevice.humidity
+			except RuntimeError as e:
+				eType, eObject, eTraceback = sys.exc_info()
+				allsky_shared.log(4, f'ERROR: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
+		except Exception as e:
+			eType, eObject, eTraceback = sys.exc_info()
+			allsky_shared.log(4, f'WARNING: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
 
-def processResult(data, expires, units):
-	extraData = {}
-	#rawData = '{"coord":{"lon":0.2,"lat":52.4},"weather":[{"id":802,"main":"Clouds","description":"scattered clouds","icon":"03d"}],"base":"stations","main":{"temp":291.84,"feels_like":291.28,"temp_min":290.91,"temp_max":292.65,"pressure":1007,"humidity":58},"visibility":10000,"wind":{"speed":8.23,"deg":250,"gust":10.8},"clouds":{"all":40},"dt":1664633294,"sys":{"type":2,"id":2012440,"country":"GB","sunrise":1664603991,"sunset":1664645870},"timezone":3600,"id":2633751,"name":"Witchford","cod":200}'
-	#data = json.loads(rawData)
-	setExtraValue("weather.main", data, "OWWEATHER", expires, extraData)
-	setExtraValue("weather.description", data, "OWWEATHERDESCRIPTION", expires, extraData)
+		return temperature, humidity
 
-	setExtraValue("main.temp", data, "OWTEMP", expires, extraData)
-	setExtraValue("main.feels_like", data, "OWTEMPFEELSLIKE", expires, extraData)
-	setExtraValue("main.temp_min", data, "OWTEMPMIN", expires, extraData)
-	setExtraValue("main.temp_max", data, "OWTEMPMAX", expires, extraData)
-	setExtraValue("main.pressure", data, "OWPRESSURE", expires, extraData)
-	setExtraValue("main.humidity", data, "OWHUMIDITY", expires, extraData)
+	def _read_dht22(self, sensor_number):
+		temperature = None
+		humidity = None
+		count = 0
+		reading = True
 
-	setExtraValue("wind.speed", data, "OWWINDSPEED", expires, extraData)
-	setExtraValue("wind.deg", data, "OWWINDDIRECTION", expires, extraData)
-	setExtraValue("wind.gust", data, "OWWINDGUST", expires, extraData)
+		input_pin = self.get_param('inputpin' + sensor_number, 0, int)
+		dhtxx_retry_count = self.get_param('dhtxxretrycount' + sensor_number, 0, int)
+		dhtxx_delay = self.get_param('dhtxxdelay' + sensor_number, 0, int)
 
-	setExtraValue("clouds.all", data, "OWCLOUDS", expires, extraData)
-
-	setExtraValue("rain.1hr", data, "OWRAIN1HR", expires, extraData)
-	setExtraValue("rain.3hr", data, "OWRAIN3HR", expires, extraData)
-
-	setExtraValue("sys.sunrise", data, "OWSUNRISE", expires, extraData)
-	setExtraValue("sys.sunset", data, "OWSUNSET", expires, extraData)
-
-	temperature = float(getValue("main.temp", data))
-	humidity = float(getValue("main.humidity", data))
-	if units == "imperial":
-		t = Temp(temperature, 'f')
-		dewPoint = dew_point(t, humidity).f
-		heatIndex = heat_index(t, humidity).f
-
-	if units == "metric":
-		t = Temp(temperature, 'c')        
-		dewPoint = dew_point(temperature, humidity).c
-		heatIndex = heat_index(temperature, humidity).c
-
-	if units == "standard":
-		t = Temp(temperature, 'k')        
-		dewPoint = dew_point(temperature, humidity).k
-		heatIndex = heat_index(temperature, humidity).k
-
-	degress = getValue('wind.deg', data)
-	cardinal = createCardinal(degress)
-
-	extraData["AS_OWWINDCARDINAL"] = {
-		"value": cardinal,
-		"expires": expires
-	}
-	            
-	extraData["AS_OWDEWPOINT"] = {
-	    "value": round(dewPoint,1),
-	    "expires": expires
-	}
-	    
-	extraData["AS_OWHEATINDEX"] = {
-	    "value": round(heatIndex,1),
-	    "expires": expires
-	}
-	
-	return extraData
-
-
-def setExtraValue(path, data, extraKey, expires, extraData):
-	value = getValue(path, data)
-	if value is not None:
-	    extraData["AS_" + extraKey] = {
-	        "value": value,
-	        "expires": expires
-	    }
-
-
-def getValue(path, data):
-	result = None
-	keys = path.split(".")
-	if keys[0] in data:
-		subData = data[keys[0]]
-		
-		if isinstance(subData, list):        
-			if keys[1] in subData[0]:
-				result = subData[0][keys[1]]
-		else:
-			if keys[1] in subData:
-				result = subData[keys[1]]
-
-	return result
-
-
-def readOpenWeather(params):
-	expire = int(params["expire"])
-	period = int(params["period"])
-	apikey = params["apikey"]
-	fileName = params["filename"]
-	module = metaData["module"]
-	units = params["units"]
-	temperature = None
-	humidity = None
-	pressure = None
-	dewPoint = None
-
-	try:
-		shouldRun, diff = s.shouldRun(module, period)
-		if shouldRun:
-			if apikey != "":
-				if fileName != "":
-					lat = s.getSetting("latitude")
-					if lat is not None and lat != "":
-						lat = s.convertLatLon(lat)
-						lon = s.getSetting("longitude")
-						if lon is not None and lon != "":
-							lon = s.convertLatLon(lon)
-							try:
-								resultURL = "https://api.openweathermap.org/data/2.5/weather?lat={0}&lon={1}&units={2}&appid={3}".format(lat, lon, units, apikey)
-								s.log(4,f"INFO: Reading Openweather API from - {resultURL}")
-								response = requests.get(resultURL)
-								if response.status_code == 200:
-									rawData = response.json()
-									extraData = processResult(rawData, expire, units)
-									s.saveExtraData(fileName, extraData )
-									result = f"Data acquired and written to extra data file {fileName}"
-									s.log(1,f"INFO: {result}")
-								else:
-									result = f"Got error from Open Weather Map API. Response code {response.status_code}"
-									s.log(0,f"ERROR: {result}")
-							except Exception as e:
-								result = str(e)
-								s.log(0, f"ERROR: {result}")
-							s.setLastRun(module)                            
-						else:
-							result = "Invalid Longitude. Check the Allsky configuration"
-							s.log(0,f"ERROR: {result}")
-					else:
-						result = "Invalid Latitude. Check the Allsky configuration"
-						s.log(0,f"ERROR: {result}")
+		while reading:
+			temperature, humidity = self._do_dhtxx_read(input_pin)
+			if temperature is None and humidity is None:
+				allsky_shared.log(4, f'WARNING: Failed to read DHTXX on attempt {count+1}')
+				count = count + 1
+				if count > dhtxx_retry_count:
+					reading = False
 				else:
-					result = "Missing filename for data"
-					s.log(0,f"ERROR: {result}")
+					time.sleep(dhtxx_delay/1000)
 			else:
-				result = "Missing Open Weather Map API key"
-				s.log(0,f"ERROR: {result}")
-		else:
-			s.log(4,f"INFO: Using Cached Openweather API data")
+				reading = False
 
-		temperature, humidity, pressure, dewPoint = getOWValues(fileName)                
-	except Exception as e:
-		eType, eObject, eTraceback = sys.exc_info()
-		s.log(0, f"ERROR: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}")   
+		return temperature, humidity
 
-	return temperature, humidity, pressure, dewPoint
+	def _read_bme280_i2c(self, sensor_number):
+		temperature = None
+		humidity = None
+		pressure = None
+		relHumidity = None
+		altitude = None
 
-
-def getSensorReading(sensorType, inputpin, i2caddress, ds18b20address, dhtxxretrycount, dhtxxdelay, sht31heater, params):
-	temperature = None
-	humidity = None
-	dewPoint = None
-	heatIndex = None
-	pressure = None
-	relHumidity = None
-	altitude = None
-
-	if sensorType == "SHT31":
-		temperature, humidity = readSHT31(sht31heater, i2caddress)
-	elif sensorType == "DHT22" or sensorType == "DHT11" or sensorType == "AM2302":
-		temperature, humidity = readDHT22(inputpin, dhtxxretrycount, dhtxxdelay)
-	elif sensorType == "BME280-I2C":
-		temperature, humidity, pressure, relHumidity, altitude = readBme280I2C(i2caddress)
-	elif sensorType == "HTU21":
-		temperature, humidity = readHtu21(i2caddress)
-	elif sensorType == "AHTx0":
-		temperature, humidity = readAHTX0(i2caddress)
-	elif sensorType == "DS18B20":
-		temperature, humidity = readDS18B20(ds18b20address)
-	elif sensorType == "OpenWeather":
-		temperature, humidity, pressure, dewPoint = readOpenWeather(params)        
-	else:
-		s.log(0,"ERROR: No sensor type defined")
-
-	tempUnits = s.getSetting("temptype")
-	if temperature is not None and humidity is not None:
-		dewPoint = dew_point(temperature, humidity).c
-		heatIndex = heat_index(temperature, humidity).c
-		if tempUnits == 'F':
-			temperature = (temperature * (9/5)) + 32
-			dewPoint = (dewPoint * (9/5)) + 32
-			heatIndex = (heatIndex * (9/5)) + 32
-			s.log(4,"INFO: Converted temperature to F")
-
-		temperature = round(temperature, 2)
-		humidity = round(humidity, 2)
-		dewPoint = round(dewPoint, 2)
-		heatIndex = round(heatIndex, 2)
-	else:
-		if temperature is not None:
-			if tempUnits == 'F':
-				temperature = (temperature * (9/5)) + 32
-				s.log(4,"INFO: Converted temperature ONLY to F")
-				
-	return temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude
-
-
-def debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude):
-	s.log(4,f"INFO: Sensor {sensorType} read. Temperature {temperature} Humidity {humidity} Relative Humidity {relHumidity} Dew Point {dewPoint} Heat Index {heatIndex} Pressure {pressure} Altitude {altitude}")
-
+		i2c_address = self.get_param('i2caddress' + sensor_number, '', str)
+		if i2c_address != "":
+			try:
+				i2c_address_int = int(i2c_address, 16)
+			except Exception as e:
+				result = 'Address {i2c_address} is not a valid i2c address'
+				allsky_shared.log(0,"ERROR: {}".format(result))
 	
-def temp(params, event):
-	result = ""
-	extraData = {}
-	extradatafilename = params['extradatafilename']
-	frequency = int(params["frequency"])
-	shouldRun, diff = s.shouldRun('allskytemp', frequency)    
+		if i2c_address != "":
+			try:
+				i2c_address_int = int(i2c_address, 16)
+			except Exception as e:
+				eType, eObject, eTraceback = sys.exc_info()
+				allsky_shared.log(0, f'ERROR: Module read_bme280_i2c failed on line {eTraceback.tb_lineno} - {e}')
 
-	try:
-		debugMode = params["ALLSKYTESTMODE"]
-	except ValueError:
-		debugMode = False
-					
-	if shouldRun or debugMode:
-		now = int(time.time())
-		s.dbUpdate("allskytemp", now)                
-		for sensorNumberItr in range(1,5):
-			if sensorNumberItr == 1:
-				sensorNumber = ""
+		try:
+			i2c = board.I2C()
+			if i2c_address != "":
+				bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c, i2c_address_int)
 			else:
-				sensorNumber = sensorNumberItr - 1
-				
-			sensorType = params["type" + str(sensorNumber)]
+				bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
 
-			if sensorType != 'None':
-				s.log(4,f"INFO: Reading sensor {sensorNumber}, {sensorType}")
-				try:
-					inputpin = int(params["inputpin" + str(sensorNumber)])
-				except ValueError:
-					inputpin = 0
-				
-				i2caddress = params["i2caddress" + str(sensorNumber)]
-				dhtxxretrycount = int(params["dhtxxretrycount" + str(sensorNumber)])
-				dhtxxdelay = int(params["dhtxxdelay" + str(sensorNumber)])
-				sht31heater = params["sht31heater" + str(sensorNumber)]
-				ds18b20address = params["ds18b20address" + str(sensorNumber)]
-				name = params["name" + str(sensorNumber)]
+			temperature =  bme280.temperature
+			humidity = bme280.humidity
+			relHumidity = bme280.relative_humidity
+			altitude = bme280.altitude
+			pressure = bme280.pressure
+		except Exception as e:
+			eType, eObject, eTraceback = sys.exc_info()
+			allsky_shared.log(0, f'ERROR: Module read_bme280_i2c failed on line {eTraceback.tb_lineno} - {e}')
 
-				maxTempKey = "temp" + str(sensorNumber)
-				maxTemp = -1
-				if maxTempKey in params:
-					try:
-						maxTemp = int(params[maxTempKey])
-					except ValueError:
-						maxTemp = -1
-				
-				gpioKey =  "gpio" + str(sensorNumber)
-				gpioPin = -1 
-				if gpioKey in params:                                 
-					try:
-						gpioPin = int(params[gpioKey])
-					except ValueError:
-						gpioPin = -1                    
-		
-				temperature = 0
-				humidity = 0
-				dewPoint = 0
-				heatIndex = 0
+		return temperature, humidity, pressure, altitude
 
-				temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude = getSensorReading(sensorType, inputpin, i2caddress, ds18b20address, dhtxxretrycount, dhtxxdelay, sht31heater, params)
-				if temperature is not None:
-					temperature = round(temperature, 2)
-				if humidity is not None:
-					humidity = round(humidity, 2)
-				if dewPoint is not None:
-					dewPoint = round(dewPoint, 2)
-				if heatIndex is not None:
-					heatIndex = round(heatIndex, 2)
-				if pressure is not None:
-					pressure = round(pressure, 0)
-				if relHumidity is not None:
-					relHumidity = round(relHumidity, 2)
-				if altitude is not None:
-					altitude = round(altitude, 0)
-				debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude)
+	def _read_sht31(self, sensor_number):
+		temperature = None
+		humidity = None
 
-				if sensorNumber != '':
-					gpioValue = False
-					if temperature is not None and sensorNumber != "": 
-						if maxTemp != -1 and gpioPin != -1:
-							try:
-								gpio = s.getGPIOPin(gpioPin)
-								pin = DigitalInOut(gpio)
-								pin.switch_to_output()                   
-								if temperature > maxTemp:
-									gpioValue = True
+		i2c_address = self.get_param('i2caddress' + sensor_number, '', str)
+		sht31_heater = self.get_param('sht31heater' + sensor_number, False, bool)
+    
+		if i2c_address != "":
+			try:
+				i2c_address_int = int(i2c_address, 16)
+			except Exception as e:
+				result = f'Address {i2c_address} is not a valid i2c address'
+				allsky_shared.log(0, f'ERROR: {result}')
 					
-									s.log(4, f'INFO: Temperature {temperature} is greater than {maxTemp} so enabling GPIO {gpioPin}')
-									pin.value = 1
-								else:
-									gpioValue = False
-									s.log(4, f'INFO: Temperature {temperature} is less than {maxTemp} so disabling GPIO {gpioPin}')
-									pin.value = 0
-							except Exception as e:    
-								eType, eObject, eTraceback = sys.exc_info()
-								result = f"ERROR: Failed to set Digital IO to output {eTraceback.tb_lineno} - {e}"
-								s.log(0, result)
-							
-				if temperature is not None:
-					if sensorNumber != '':
-						extraData["AS_GPIOSTATE" + str(sensorNumber)] = gpioValue
-					extraData["AS_TEMPSENSOR" + str(sensorNumber)] = str(sensorType)
-					extraData["AS_TEMPSENSORNAME" + str(sensorNumber)] = name
-					extraData["AS_TEMP" + str(sensorNumber)] = str(temperature)
-					extraData["AS_DEW" + str(sensorNumber)] = str(dewPoint)
-					extraData["AS_HUMIDITY" + str(sensorNumber)] = str(humidity)
+		try:
+			i2c = board.I2C()
+			if i2c_address != '':
+				sensor = adafruit_sht31d.SHT31D(i2c, i2c_address_int)
+			else:
+				sensor = adafruit_sht31d.SHT31D(i2c)
+			sensor.heater = sht31_heater
+			temperature = sensor.temperature
+			humidity = sensor.relative_humidity
+		except Exception as e:
+			eType, eObject, eTraceback = sys.exc_info()
+			allsky_shared.log(4, f'ERROR: Module read_sht31 failed on line {eTraceback.tb_lineno} - {e}')
+			return temperature, humidity
+
+		return temperature, humidity
+
+	def _read_sht4x(self, sensor_number):
+		temperature = None
+		humidity = None
+
+		i2c_address = self.get_param('i2caddress' + sensor_number, '', str)
+		sht41_mode_code = self.get_param('sht41mode' + sensor_number, '0xE0', str)
+    
+		sht41_mode = int('0xe0', 16)
+		try:
+			sht41_mode = int(sht41_mode_code, 16)
+		except Exception as e:
+			pass
+   
+		if i2c_address != "":
+			try:
+				i2c_address_int = int(i2c_address, 16)
+			except Exception as e:
+				result = f'Address {i2c_address} is not a valid i2c address'
+				allsky_shared.log(0, f'ERROR: {result}')
+					
+		try:
+			i2c = board.I2C()
+			if i2c_address != '':
+				sensor = adafruit_sht4x.SHT4x(i2c, i2c_address_int)
+			else:
+				sensor = adafruit_sht4x.SHT4x(i2c)
+			sensor.mode = sht41_mode
+			allsky_shared.log(4, f'INFO: Current mode is {adafruit_sht4x.Mode.string[sensor.mode]}')
+			temperature, humidity = sensor.measurements
+		except Exception as e:
+			eType, eObject, eTraceback = sys.exc_info()
+			allsky_shared.log(4, f'ERROR: Module _read_sht4x failed on line {eTraceback.tb_lineno} - {e}')
+			return temperature, humidity
+
+		return temperature, humidity
+
+	def _get_sensor_reading(self, sensor_type, sensor_number):
+		temperature = None
+		humidity = None
+		the_dew_point = None
+		pressure = None
+		rel_humidity = None
+		altitude = None
+
+		if sensor_type == 'SHT31':
+			temperature, humidity = self._read_sht31(sensor_number)
+		elif sensor_type == 'SHT4x':
+			temperature, humidity = self._read_sht4x(sensor_number)   
+		elif sensor_type == 'DHT22' or sensor_type == 'DHT11' or sensor_type == 'AM2302':
+			temperature, humidity = self._read_dht22(sensor_number)
+		elif sensor_type == 'BME280-I2C':
+			temperature, humidity, pressure, altitude = self._read_bme280_i2c(sensor_number)
+		elif sensor_type == 'HTU21':
+			temperature, humidity = self._read_htu21(sensor_number)
+		elif sensor_type == 'AHTx0':
+			temperature, humidity = self._read_ahtx0(sensor_number)
+		elif sensor_type == 'DS18B20':
+			temperature, humidity = self._read_ds18B20(sensor_number)
+		elif sensor_type == 'OpenWeather':
+			temperature, humidity, pressure, the_dew_point = self._read_open_weather(sensor_number)        
+		else:
+			allsky_shared.log(0, 'ERROR: No sensor type defined')
+
+		temp_units = allsky_shared.getSetting('temptype')
+		if temperature is not None and humidity is not None:
+			the_dew_point = dew_point(temperature, humidity).c
+			if temp_units == 'F':
+				temperature = (temperature * (9/5)) + 32
+				the_dew_point = (the_dew_point * (9/5)) + 32
+				allsky_shared.log(4, 'INFO: Converted temperature to F')
+
+			temperature = round(temperature, 2)
+			humidity = round(humidity, 2)
+			the_dew_point = round(the_dew_point, 2)
+		else:
+			if temperature is not None:
+				if temp_units == 'F':
+					temperature = (temperature * (9/5)) + 32
+					allsky_shared.log(4, 'INFO: Converted temperature ONLY to F')
+					
+		return temperature, humidity, the_dew_point, pressure, rel_humidity, altitude
+
+	def _debug_output(self, sensor_type, temperature, humidity, the_dew_point, pressure, rel_humidity, altitude):
+		allsky_shared.log(4,f'INFO: Sensor {sensor_type} read. Temperature {temperature} Humidity {humidity} Relative Humidity {rel_humidity} Dew Point {the_dew_point} Pressure {pressure} Altitude {altitude}')
+
+	def run(self):
+		result = ''
+		extra_data = {}
+		self._run_interval = self.get_param('frequency', 60, int)  
+		self._debugmode = self.get_param('ALLSKYTESTMODE', False, bool)    
+
+		should_run, diff = allsky_shared.shouldRun('allskytemp', self._run_interval)      
+
+
+		if should_run or self._debugmode:
+			now = int(time.time())
+			allsky_shared.dbUpdate('allskytemp', now)
+			for sensor_number_itr in range(1,5):
+				if sensor_number_itr == 1:
+					sensor_number = ""
+				else:
+					sensor_number = str(sensor_number_itr - 1)
+					
+				sensor_type = self.get_param('type' + sensor_number, 'None', str)
+
+				if sensor_type != 'None':
+					allsky_shared.log(4, f'INFO: Reading sensor {sensor_number}, {sensor_type}')
+					name = self.get_param('name' + sensor_number, 'Unknown', str)
+					max_temp_key = "temp" + sensor_number
+					max_temp = self.get_param(max_temp_key, -1, float)       
+					
+					gpio_key =  'gpio' + sensor_number
+					gpio_pin = self.get_param(gpio_key, -1, int)          
+			
+					temperature = 0
+					humidity = 0
+					the_dew_point = 0
+
+					temperature, humidity, the_dew_point, pressure, rel_humidity, altitude = self._get_sensor_reading(sensor_type, sensor_number)
+					if temperature is not None:
+						temperature = round(temperature, 2)
+					if humidity is not None:
+						humidity = round(humidity, 2)
+					if the_dew_point is not None:
+						the_dew_point = round(the_dew_point, 2)
 					if pressure is not None:
-						extraData["AS_PRESSURE" + str(sensorNumber)] = pressure
-					if relHumidity is not None:
-						extraData["AS_RELHUMIDITY" + str(sensorNumber)] = relHumidity
+						pressure = round(pressure, 0)
+					if rel_humidity is not None:
+						rel_humidity = round(rel_humidity, 2)
 					if altitude is not None:
-						extraData["AS_ALTITUDE" + str(sensorNumber)] = altitude
+						altitude = round(altitude, 0)
+					self._debug_output(sensor_type, temperature, humidity, the_dew_point, pressure, rel_humidity, altitude)
 
-		s.saveExtraData(extradatafilename, extraData, metaData["module"], metaData["extradata"])
+					if sensor_number != '':
+						gpio_value = False
+						if temperature is not None and sensor_number != "": 
+							if max_temp != -1 and gpio_pin != -1:
+								try:
+									gpio = allsky_shared.getGPIOPin(gpio_pin)
+									pin = DigitalInOut(gpio)
+									pin.switch_to_output()                   
+									if temperature > max_temp:
+										gpio_value = True
+						
+										allsky_shared.log(4, f'INFO: Temperature {temperature} is greater than {max_temp} so enabling GPIO {gpio_pin}')
+										pin.value = 1
+									else:
+										gpio_value = False
+										allsky_shared.log(4, f'INFO: Temperature {temperature} is less than {max_temp} so disabling GPIO {gpio_pin}')
+										pin.value = 0
+								except Exception as e:    
+									eType, eObject, eTraceback = sys.exc_info()
+									result = f'ERROR: Failed to set Digital IO to output {eTraceback.tb_lineno} - {e}'
+									allsky_shared.log(0, result)
+								
+					if temperature is not None:
+						if sensor_number != '':
+							extra_data['AS_GPIOSTATE' + sensor_number] = gpio_value
+						extra_data['AS_TEMPSENSOR' + sensor_number] = str(sensor_type)
+						extra_data['AS_TEMPSENSORNAME' + sensor_number] = name
+						extra_data['AS_TEMP' + sensor_number] = str(temperature)
+						extra_data['AS_DEW' + sensor_number] = str(the_dew_point)
+						extra_data['AS_HUMIDITY' + sensor_number] = str(humidity)
+						if pressure is not None:
+							extra_data["AS_PRESSURE" + sensor_number] = pressure
+						if rel_humidity is not None:
+							extra_data["AS_RELHUMIDITY" + sensor_number] = rel_humidity
+						if altitude is not None:
+							extra_data["AS_ALTITUDE" + sensor_number] = altitude
 
-	else:
-		result = 'Will run in {:.2f} seconds'.format(frequency - diff)
-		s.log(1,"INFO: {}".format(result))
+			allsky_shared.saveExtraData(metaData['extradatafilename'], extra_data, metaData['module'], metaData['extradata'])
 
-	return result
+		else:
+			result = 'Will run in {:.2f} seconds'.format(self._run_interval - diff)
+			allsky_shared.log(1, f'INFO: {result}')
 
+		return result
 
+def temp(params, event):
+	allsky_temp = ALLSKYTEMP(params, event)
+	result = allsky_temp.run()
+
+	return result   
+    
 def temp_cleanup():
-	moduleData = {
+	module_data = {
 	    "metaData": metaData,
 	    "cleanup": {
 	        "files": {
-	            "allskytemp.json"
+	            metaData['extradatafilename']
 	        },
 	        "env": {}
 	    }
 	}
-	s.cleanupModule(moduleData)
+	allsky_shared.cleanupModule(module_data)
