@@ -1,3 +1,0 @@
-paho-mqtt
-requests
-flatten_json
