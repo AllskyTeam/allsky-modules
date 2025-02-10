@@ -169,7 +169,7 @@ metaData = {
 	    "temperature": {
 	        "required": "false",
 	        "description": "Temperature Variable",
-	        "help": "The Variabel to use for the temperature",
+	        "help": "The Variable to use for the temperature",
 	        "tab": "Sensor",
 	        "filters": {
 	            "filter": "type",
@@ -179,13 +179,14 @@ metaData = {
 				]
 			},            
 	        "type": {
-	            "fieldtype": "variable"
+	            "fieldtype": "variable",
+				"selectmode": "multi"
 	        }                             
 	    },
 	    "humidity": {
 	        "required": "false",
 	        "description": "Humidity Variable",
-	        "help": "The Variabel to use for the humidity",
+	        "help": "The Variable to use for the humidity",
 	        "tab": "Sensor",
 	        "filters": {
 	            "filter": "type",
