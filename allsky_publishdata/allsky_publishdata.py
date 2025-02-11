@@ -35,13 +35,14 @@ metaData = {
 	],
 	"experimental": "yes",
 	"arguments": {
-	    "extradata": "CAMERA_TYPE,DAY_OR_NIGHT,CURRENT_IMAGE,FULL_FILENAME,ALLSKY_VERSION",
+	    "extradata": "",
 		"influxEnabled": "false",
 		"influxhost": "",
 		"influxport": "8086",
 		"influxtoken": "",
 		"influxbucket": "",
 		"influxorg": "",
+		"influxtypes": "number,temperature",  
 	    "redisEnabled": "false",
 		"redisTimestamp": "true",
 		"redisDatabase": "0",
@@ -84,61 +85,44 @@ metaData = {
 	            "fieldtype": "checkbox"
 	        }
 	    },     
-	    "influxhost": {
-	        "required": "false",
-	        "description": "InfluxDB Host",
-	        "help": "URL of InfluxDB server (with protocol, for example http://localhost)",
-	        "tab": "Influx",
-	        "filters": {
-	            "filter": "influxEnabled",
-	            "filtertype": "show"
-			}       
-	    },
-	    "influxport": {
-	        "required": "false",
-	        "description": "InfluxDB Port",
-	        "help": "InfluxDB server listening port (default 8086)",
-	        "tab": "Influx",         
+		"influxhostdetails": {
+      		"description": "Influx Host",
+			"help": "The url and port number of the influxdb host",
+			"tab": "Influx",
+			"url": {
+				"id": "influxhost"
+			},
+			"port": {
+				"id": "influxport"				
+			},
 	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 65535,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "influxEnabled",
-	            "filtertype": "show"
-			}  
-	    },
+	            "fieldtype": "host"
+	        }     
+		},      
 	    "influxtoken": {
 	        "required": "false",
 	        "description": "InfluxDB Access Token",
-	        "help": "InfluxDB user access token (if not using username and password)",
-	        "tab": "Influx",
-	        "filters": {
-	            "filter": "influxEnabled",
-	            "filtertype": "show"
-			}       
-	    },
+	        "help": "InfluxDB user access token",
+			"secret": "true",         
+	        "tab": "Influx"             
+	    },       
 	    "influxbucket": {
 	        "required": "false",
 	        "description": "InfluxDB Bucket",
 	        "help": "Name of InfluxDB bucket",
-	        "tab": "Influx",
-	        "filters": {
-	            "filter": "influxEnabled",
-	            "filtertype": "show"
-			}         
+	        "tab": "Influx"       
 	    },
 	    "influxorg": {
 	        "required": "false",
 	        "description": "InfluxDB Organization",
 	        "help": "Name of the InfluxDB organization in which the database/bucket is located. Leave default (-) if you're using InfluxDB v1 default installation",
-	        "tab": "Influx",
-	        "filters": {
-	            "filter": "influxEnabled",
-	            "filtertype": "show"
-			}          
+	        "tab": "Influx"         
+	    },
+	    "influxtypes": {
+	        "required": "false",
+	        "description": "Data Types",
+	        "help": "Allsky datatypes that can be sent to influx",
+	        "tab": "Influx"     
 	    },     
 	    "redisEnabled": {
 	        "required": "false",
@@ -152,21 +136,13 @@ metaData = {
 	        "required": "false",
 	        "description": "Address of the redis Host",
 	        "help": "Host",
-	        "tab": "Redis",
-	        "filters": {
-	            "filter": "redisEnabled",
-	            "filtertype": "show"
-			}          
+	        "tab": "Redis"          
 	    },
 	    "redisPort": {
 	        "required": "false",
 	        "description": "Redis Port",
 	        "help": "The port number for the redis server, fefaults to 6379",
-	        "tab": "Redis",
-	        "filters": {
-	            "filter": "redisEnabled",
-	            "filtertype": "show"
-			}  
+	        "tab": "Redis" 
 	    },
 	    "redisDatabase" : {
 	        "required": "false",
@@ -178,11 +154,7 @@ metaData = {
 	            "min": 0,
 	            "max": 3,
 	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "redisEnabled",
-	            "filtertype": "show"
-			}                       
+	        }                     
 	    },     
 	    "redisTimestamp": {
 	        "required": "false",
@@ -191,30 +163,19 @@ metaData = {
 	        "tab": "Redis",
 	        "type": {
 	            "fieldtype": "checkbox"
-	        },
-	        "filters": {
-	            "filter": "redisEnabled",
-	            "filtertype": "show"
-			}  
+	        } 
 	    },     
 	    "redisKey": {
 	        "required": "false",
 	        "description": "Redis Key",
 	        "help": "Use a specific redis key",          
-	        "tab": "Redis",
-	        "filters": {
-	            "filter": "redisEnabled",
-	            "filtertype": "show"
-			}  
+	        "tab": "Redis" 
 	    },
 	    "redisPassword": {
 	        "required": "false",
 	        "description": "Password for the redis server if required",
 	        "tab": "Redis",
-	        "filters": {
-	            "filter": "redisEnabled",
-	            "filtertype": "show"
-			}  
+			"secret": "true"
 	    },
 	    "mqttEnabled": {
 	        "required": "false",
@@ -230,30 +191,18 @@ metaData = {
 	        "tab": "MQTT",
 	        "type": {
 	            "fieldtype": "checkbox"
-	        },
-	        "filters": {
-	            "filter": "mqttEnabled",
-	            "filtertype": "show"
-			}  
+	        } 
 	    },        
 	    "mqttHost": {
 	        "required": "false",
 	        "description": "MQTT Host",
-	        "tab": "MQTT",
-	        "filters": {
-	            "filter": "mqttEnabled",
-	            "filtertype": "show"
-			}  
+	        "tab": "MQTT" 
 	    },
 	    "mqttPort": {
 	        "required": "false",
 	        "description": "MQTT Port",
 	        "help": "1883 for NON SSL or 8883 for SSL.",
-	        "tab": "MQTT",
-	        "filters": {
-	            "filter": "mqttEnabled",
-	            "filtertype": "show"
-			}  
+	        "tab": "MQTT"
 	    },
 	    "mqttloopdelay": {
 	        "required": "false",
@@ -265,38 +214,22 @@ metaData = {
 	            "min": 0.5,
 	            "max": 10,
 	            "step": 0.5
-	        },
-	        "filters": {
-	            "filter": "mqttEnabled",
-	            "filtertype": "show"
-			}          
+	        }          
 	    },        
 	    "mqttTopic": {
 	        "required": "false",
 	        "description": "MQTT Topic",
-	        "tab": "MQTT",
-	        "filters": {
-	            "filter": "mqttEnabled",
-	            "filtertype": "show"
-			}  
+	        "tab": "MQTT" 
 	    },
 	    "mqttUsername": {
 	        "required": "false",
 	        "description": "Username",
-	        "tab": "MQTT",
-	        "filters": {
-	            "filter": "mqttEnabled",
-	            "filtertype": "show"
-			}  
+	        "tab": "MQTT" 
 	    },
 	    "mqttPassword": {
 	        "required": "false",
 	        "description": "Password",
-	        "tab": "MQTT",
-	        "filters": {
-	            "filter": "mqttEnabled",
-	            "filtertype": "show"
-			}  
+	        "tab": "MQTT" 
 	    },
 	    "postEnabled": {
 	        "required": "false",
@@ -310,11 +243,7 @@ metaData = {
 	        "required": "false",
 	        "description": "POST endpoint",
 	        "help": "Host",
-	        "tab": "POST",
-	        "filters": {
-	            "filter": "postEnabled",
-	            "filtertype": "show"
-			}  
+	        "tab": "POST" 
 	    }
 	},
 	"changelog": {
@@ -356,7 +285,60 @@ metaData = {
 }
 
 class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
+	_required_variables = {}
+	_all_variables = {}
+ 
+	def _send_to_influxdb(self):
+		influx_host = self.get_param('influxhost', '', str)
+		influx_port = self.get_param('influxport', 8086, int)      
+		influx_token = self.get_param('influxtoken', '', str)
+		influx_org = self.get_param('influxorg', '', str)
+		influx_bucket = self.get_param('influxbucket', '', str)
+		influx_types_string = self.get_param('influxtypes', 'number,temperature', str, True)
 
+		influx_types = influx_types_string.split(',')
+		influx_host = f'{influx_host}:{influx_port}'
+
+
+		#try:
+		allsky_shared.log(4, f'Sending to {influx_host}, org {influx_org}, bucket {influx_bucket}')
+		write_client = influxdb_client.InfluxDBClient(url=influx_host, token=influx_token, org=influx_org)
+		
+		ping_result = write_client.ping()
+		if ping_result:
+			influxdb_version = write_client.version()
+			allsky_shared.log(4, f'INFO: Ping InfluxDB server at {influx_host}:{influx_port} succeeded. Version {influxdb_version} found')
+			write_api = write_client.write_api(write_options=SYNCHRONOUS)
+			
+			points = []
+			for variable in self._required_variables:
+				if variable:
+					if variable in self._all_variables:
+						if self._all_variables[variable]['type'] in influx_types:
+							points.append(
+								Point(variable).tag(variable, self._all_variables[variable]['value']).field(variable, self._all_variables[variable]['value'])
+							)
+							allsky_shared.log(4, f'Sending {variable} = {self._all_variables[variable]["value"]}')
+						else:
+							allsky_shared.log(4, f'{variable} cannot be sent to InfluxDB as its of type "{self._all_variables[variable]["type"]}", valid types are "{influx_types_string}"')
+					else:
+						allsky_shared.log(4, f'Sending {variable} not found')
+				else:
+					allsky_shared.log(4, f'{variable} is false!!!')
+		
+			if points:
+				write_api.write(bucket=influx_bucket, org=influx_org, record=points)
+				result = f'Data written to InfluxDB server at {influx_host}:{influx_port}'
+				allsky_shared.log(4, f'INFO: {result}')     
+		else:
+			result = f'Failed to ping InfluxDB server at {influx_host}:{influx_port}'
+			allsky_shared.log(0, f'ERROR: {result}')
+   
+   			#except Exception as e:
+			#	eType, eObject, eTraceback = sys.exc_info()
+			#	allsky_shared.log(0, f'ERROR: Module influxdb failed on line {eTraceback.tb_lineno} - {e}')
+   
+        
 	def _get_utc_timestamp(self):
 		dt = datetime.datetime.now(datetime.timezone.utc)
 		utc_time = dt.replace(tzinfo=datetime.timezone.utc)
@@ -394,17 +376,17 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			
 	def run(self):
 		result = 'No result returned'
-		required_variables = self.get_param('extradata', '', str, True)
+		self._required_variables = self.get_param('extradata', '', str, True)
 		use_redis = self.get_param('redisEnabled', False, bool)
 		use_influx = self.get_param('influxEnabled', False, bool)
   
 		json_data = {}
-		all_variables = allsky_shared.get_all_allsky_variables(True, '', True, True)
-		required_variables = required_variables.split(',')
-		for variable in required_variables:
+		self._all_variables = allsky_shared.get_all_allsky_variables(True, '', True, True)
+		self._required_variables = self._required_variables.split(',')
+		for variable in self._required_variables:
 			if variable:
-				if variable in all_variables:
-					variable_value = all_variables[variable]['value']
+				if variable in self._all_variables:
+					variable_value = self._all_variables[variable]['value']
 					#variable_value = self._change_type(variable_value)
 					json_data[variable] = variable_value
 				else:
@@ -443,38 +425,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 				allsky_shared.log(0, f'ERROR: {result}')
 
 		if use_influx:
-			influx_host = self.get_param('influxhost', '', str)
-			influx_port = self.get_param('influxport', 8086, int)      
-			influx_token = self.get_param('influxtoken', '', str)
-			influx_org = self.get_param('influxorg', '', str)
-			influx_bucket = self.get_param('influxbucket', '', str)
-   
-			influx_host = f'{influx_host}:{influx_port}'
-
-
-			#try:
-			
-			allsky_shared.log(4, f'Sending to {influx_host}, org {influx_org}, bucket {influx_bucket}')
-			write_client = influxdb_client.InfluxDBClient(url=influx_host, token=influx_token, org=influx_org)
-			
-			write_api = write_client.write_api(write_options=SYNCHRONOUS)
-			
-			for variable in required_variables:
-				if variable:
-					if variable in all_variables:
-						if all_variables[variable]['type'] == 'number':
-							point = (
-								Point("measurement")
-								.tag("tagname1", "tagvalue1")
-								.field(variable, all_variables[variable]['value'])
-							)
-							allsky_shared.log(4, f'Sending {variable} = {all_variables[variable]["value"]}')
-							write_api.write(bucket=influx_bucket, org=influx_org, record=point)							
-           
-   
-   			#except Exception as e:
-			#	eType, eObject, eTraceback = sys.exc_info()
-			#	allsky_shared.log(0, f'ERROR: Module influxdb failed on line {eTraceback.tb_lineno} - {e}')
+			self._send_to_influxdb()
 
        
 		'''
@@ -518,7 +469,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 
 
 def publishdata(params, event):
-	allsky_publishdata = ALLSKYPUBLISHDATA(params, event)
+	allsky_publishdata = ALLSKYPUBLISHDATA(params, event, metaData)
 	result = allsky_publishdata.run()
 
 	return result  
