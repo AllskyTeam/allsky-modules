@@ -1,3 +1,4 @@
+#TODO - Fix QOS 2 on MQTT
 """ allsky_publishdata.py
 
 Part of allsky postprocess.py modules.
@@ -54,6 +55,7 @@ metaData = {
 	    "mqttusesecure": "true",
 	    "mqttHost": "",
 	    "mqttPort": "1883",
+		"mqttQos": "2",
 	    "mqttloopdelay": "5",
 	    "mqttTopic": "",
 	    "mqttUsername": "",
@@ -192,18 +194,21 @@ metaData = {
 	        "type": {
 	            "fieldtype": "checkbox"
 	        } 
-	    },        
-	    "mqttHost": {
-	        "required": "false",
-	        "description": "MQTT Host",
-	        "tab": "MQTT" 
-	    },
-	    "mqttPort": {
-	        "required": "false",
-	        "description": "MQTT Port",
-	        "help": "1883 for NON SSL or 8883 for SSL.",
-	        "tab": "MQTT"
-	    },
+	    },     
+		"mqtthostdetails": {
+      		"description": "MQTT Host",
+			"help": "The url and port number of the mqtt host, 1883 for NON SSL or 8883 for SSL.",
+			"tab": "MQTT",
+			"url": {
+				"id": "mqttHost"
+			},
+			"port": {
+				"id": "mqttPort"				
+			},
+	        "type": {
+	            "fieldtype": "host"
+	        }     
+		},
 	    "mqttloopdelay": {
 	        "required": "false",
 	        "description": "Loop Delay(s)",
@@ -229,6 +234,7 @@ metaData = {
 	    "mqttPassword": {
 	        "required": "false",
 	        "description": "Password",
+			"secret": "true",
 	        "tab": "MQTT" 
 	    },
 	    "postEnabled": {
@@ -244,6 +250,18 @@ metaData = {
 	        "description": "POST endpoint",
 	        "help": "Host",
 	        "tab": "POST" 
+	    },
+	    "mqttQos": {
+	        "required": "false",
+	        "description": "MQTT QoS",
+	        "help": "0 - (At most once) No guarantee of delivery (fire and forget), 1 - (At least once) Ensures message is delivered at least once (may be duplicated), 2 - (Exactly once) Ensures message is delivered only once (most reliable, but slower).",
+	        "tab": "MQTT",
+	        "type": {
+	            "fieldtype": "spinner",
+	            "min": 0,
+	            "max": 2,
+	            "step": 1
+	        }          
 	    }
 	},
 	"changelog": {
@@ -287,8 +305,10 @@ metaData = {
 class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 	_required_variables = {}
 	_all_variables = {}
+	_json_data = {}
  
 	def _send_to_influxdb(self):
+		result = ''
 		influx_host = self.get_param('influxhost', '', str)
 		influx_port = self.get_param('influxport', 8086, int)      
 		influx_token = self.get_param('influxtoken', '', str)
@@ -299,58 +319,143 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 		influx_types = influx_types_string.split(',')
 		influx_host = f'{influx_host}:{influx_port}'
 
-
-		#try:
-		allsky_shared.log(4, f'Sending to {influx_host}, org {influx_org}, bucket {influx_bucket}')
-		write_client = influxdb_client.InfluxDBClient(url=influx_host, token=influx_token, org=influx_org)
-		
-		ping_result = write_client.ping()
-		if ping_result:
-			influxdb_version = write_client.version()
-			allsky_shared.log(4, f'INFO: Ping InfluxDB server at {influx_host}:{influx_port} succeeded. Version {influxdb_version} found')
-			write_api = write_client.write_api(write_options=SYNCHRONOUS)
+		try:
+			allsky_shared.log(4, f'Sending to {influx_host}, org {influx_org}, bucket {influx_bucket}')
+			write_client = influxdb_client.InfluxDBClient(url=influx_host, token=influx_token, org=influx_org)
 			
-			points = []
-			for variable in self._required_variables:
-				if variable:
-					if variable in self._all_variables:
-						if self._all_variables[variable]['type'] in influx_types:
-							points.append(
-								Point(variable).tag(variable, self._all_variables[variable]['value']).field(variable, self._all_variables[variable]['value'])
-							)
-							allsky_shared.log(4, f'Sending {variable} = {self._all_variables[variable]["value"]}')
+			ping_result = write_client.ping()
+			if ping_result:
+				influxdb_version = write_client.version()
+				allsky_shared.log(4, f'INFO: Ping InfluxDB server at {influx_host}:{influx_port} succeeded. Version {influxdb_version} found')
+				write_api = write_client.write_api(write_options=SYNCHRONOUS)
+				
+				points = []
+				for variable in self._required_variables:
+					if variable:
+						if variable in self._all_variables:
+							if self._all_variables[variable]['type'] in influx_types:
+								points.append(
+									Point(variable).tag(variable, self._all_variables[variable]['value']).field(variable, self._all_variables[variable]['value'])
+								)
+								allsky_shared.log(4, f'Sending {variable} = {self._all_variables[variable]["value"]}')
+							else:
+								allsky_shared.log(4, f'{variable} cannot be sent to InfluxDB as its of type "{self._all_variables[variable]["type"]}", valid types are "{influx_types_string}"')
 						else:
-							allsky_shared.log(4, f'{variable} cannot be sent to InfluxDB as its of type "{self._all_variables[variable]["type"]}", valid types are "{influx_types_string}"')
+							allsky_shared.log(4, f'Sending {variable} not found')
 					else:
-						allsky_shared.log(4, f'Sending {variable} not found')
+						allsky_shared.log(4, f'{variable} is false!!!')
+				if points:
+					write_api.write(bucket=influx_bucket, org=influx_org, record=points)
+					result = f'Data written to InfluxDB server at {influx_host}:{influx_port}'
+					allsky_shared.log(4, f'INFO: {result}')
 				else:
-					allsky_shared.log(4, f'{variable} is false!!!')
-		
-			if points:
-				write_api.write(bucket=influx_bucket, org=influx_org, record=points)
-				result = f'Data written to InfluxDB server at {influx_host}:{influx_port}'
-				allsky_shared.log(4, f'INFO: {result}')     
-		else:
-			result = f'Failed to ping InfluxDB server at {influx_host}:{influx_port}'
+					result = f'NO data written to InfluxDB server at {influx_host}:{influx_port} as no valid variables found'
+					allsky_shared.log(4, f'WARNING: {result}')
+        
+			else:
+				result = f'Failed to ping InfluxDB server at {influx_host}:{influx_port}'
+				allsky_shared.log(0, f'ERROR: {result}')
+		except Exception as e:
+			eType, eObject, eTraceback = sys.exc_info()
+			result = f'Module influxdb failed on line {eTraceback.tb_lineno} - {e}'
 			allsky_shared.log(0, f'ERROR: {result}')
    
-   			#except Exception as e:
-			#	eType, eObject, eTraceback = sys.exc_info()
-			#	allsky_shared.log(0, f'ERROR: Module influxdb failed on line {eTraceback.tb_lineno} - {e}')
+		return result
    
-        
+	def _send_to_redis(self):
+		redis_usetimestamp = self.get_param('redisTimestamp', True, bool)
+		redis_database = self.get_param('redisDatabase', 0, int)
+		redis_key = self.get_param('redisKey', 'Allsky', str, True)
+		redis_host = self.get_param('redisHost', 'localhost', str, True)
+		redis_password = self.get_param('redisPassword', '', str, True)
+		redis_port = self.get_param('redisPort', 6379, int)
+
+		if redis_host:     
+			if redis_key:
+				if redis_usetimestamp:
+					redis_key = self._get_utc_timestamp()
+				try:
+					redis_object = redis.Redis(host=redis_host, port=redis_port, db=redis_database, password=redis_password)
+					redis_object.set(redis_key, json.dumps(self._json_data))
+					allsky_shared.log(1, f'INFO: Published to Redis server at {redis_host}:{redis_port}, Database: {redis_database}, Key: {redis_key}')        
+				except Exception as e:    
+					eType, eObject, eTraceback = sys.exc_info()
+					result = f'ERROR: Failed to connect to the Redis server at {redis_host}:{redis_port} {eTraceback.tb_lineno} - {e}'
+					allsky_shared.log(0, result)      
+			else:
+				result = f'Please specify a topic for Redis to publish to'
+				allsky_shared.log(0, f'ERROR: {result}')
+
+		else:
+			result = f'Please specify a host for Redis to publish to'
+			allsky_shared.log(0, f'ERROR: {result}')
+    
+	def _send_to_mqtt(self):
+		result = ''
+		mqtt_topic = self.get_param('mqttTopic', 'allsky', str, True)
+		mqtt_username = self.get_param('mqttUsername', '', str)
+		mqtt_password = self.get_param('mqttPassword', '', str)
+		mqtt_secure = self.get_param('mqttusesecure', True, bool)
+		mqtt_host = self.get_param('mqttHost', '127.0.0.1', str, True)
+		mqtt_port = self.get_param('mqttPort', 1883, int)
+		mqtt_loop_delay = self.get_param('mqttloopdelay', 5, int)
+		mqtt_qos = self.get_param('mqttQos', 2, int)
+
+		if mqtt_host:
+			if mqtt_topic:
+       
+				mqtt_data = {}
+				for variable in self._required_variables:
+					if variable:
+						if variable in self._all_variables:
+								mqtt_data[variable] = self._all_variables[variable]["value"]
+								allsky_shared.log(4, f'MQTT - Sending {variable} = {self._all_variables[variable]["value"]}')
+						else:
+							allsky_shared.log(4, f'MQTT - Sending {variable} not found')
+					else:
+						allsky_shared.log(4, f'MQTT - {variable} is false!!!')
+
+				if mqtt_data:
+					mqtt_data['utc'] = self._get_utc_timestamp()
+
+					client = paho.Client(protocol=paho.MQTTv5)
+					#client.on_connect = self._mqtt_on_connect
+					#client.on_publish = self._mqtt_on_publish        
+					if mqtt_username and mqtt_password:
+						client.username_pw_set(mqtt_username, mqtt_password)
+
+					if mqtt_secure:
+						client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
+
+					client.connect(mqtt_host, mqtt_port)
+					message_info = client.publish(mqtt_topic, json.dumps(mqtt_data), qos=mqtt_qos)
+					message_info.wait_for_publish(mqtt_loop_delay)
+					client.loop(mqtt_loop_delay)
+					is_published = message_info.is_published()
+					client.disconnect()
+					if is_published:
+						allsky_shared.log(4, f'INFO: MQTT - Published to MQTT on topic: {mqtt_topic}')
+					else:
+						allsky_shared.log(4, f'ERROR: MQTT - No data published to topic: {mqtt_topic}')
+				else:
+					result = f'NO data written to MQTT server at {mqtt_host}:{mqtt_port} as no valid variables found'
+					allsky_shared.log(4, f'WARNING: {result}')
+		
+			else:
+				result = f'MQTT - Please specify a topic to publish'
+				allsky_shared.log(0, f'ERROR: {result}')
+		else:
+			result = f'MQTT - Please specify a MQTT host to publish to'
+			allsky_shared.log(0, f'ERROR: {result}')
+       
+		return result
+            
 	def _get_utc_timestamp(self):
 		dt = datetime.datetime.now(datetime.timezone.utc)
 		utc_time = dt.replace(tzinfo=datetime.timezone.utc)
 		utc_timestamp = utc_time.timestamp()
 		return int(utc_timestamp)
-
-	def _mqtt_on_connect(self, client, userdata, flags, rc, properties=None): 
-		allsky_shared.log(4, f"INFO: MQTT - CONNACK received with code {rc}.")
-
-	def _mqtt_on_publish(self, client, userdata, mid, properties=None):
-		allsky_shared.log(4, f"INFO: MQTT - Message published {mid}.")
-
+  
 	def _change_type(self, value):
 		if value.lower() in ['true', 'false'] or value.lower() in ['on', 'off']:
 			if value == 'true' or value == 'on':
@@ -379,8 +484,8 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 		self._required_variables = self.get_param('extradata', '', str, True)
 		use_redis = self.get_param('redisEnabled', False, bool)
 		use_influx = self.get_param('influxEnabled', False, bool)
+		use_mqtt = self.get_param('mqttEnabled', False, bool)
   
-		json_data = {}
 		self._all_variables = allsky_shared.get_all_allsky_variables(True, '', True, True)
 		self._required_variables = self._required_variables.split(',')
 		for variable in self._required_variables:
@@ -388,73 +493,25 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 				if variable in self._all_variables:
 					variable_value = self._all_variables[variable]['value']
 					#variable_value = self._change_type(variable_value)
-					json_data[variable] = variable_value
+					self._json_data[variable] = variable_value
 				else:
 					allsky_shared.log(0, f'ERROR: Cannot locate environment variable {variable} specified in the extradata')
 			else:
 				allsky_shared.log(0, 'ERROR: Empty environment variable specified in the extradata field. Check commas!')
 
-			json_data['utc'] = self._get_utc_timestamp()
+			self._json_data['utc'] = self._get_utc_timestamp()
    
 		if use_redis:
-			redis_usetimestamp = self.get_param('redisTimestamp', True, bool)
-			redis_database = self.get_param('redisDatabase', 0, int)
-			redis_key = self.get_param('redisKey', 'Allsky', str, True)
-			redis_host = self.get_param('redisHost', 'localhost', str, True)
-			redis_password = self.get_param('redisPassword', '', str, True)
-			redis_port = self.get_param('redisPort', 6379, int)
-   
-			if redis_host:
-				if redis_key:
-					if redis_usetimestamp:
-						redis_key = self._get_utc_timestamp()
-					try:
-						redis_object = redis.Redis(host=redis_host, port=redis_port, db=redis_database, password=redis_password)
-						redis_object.set(redis_key, json.dumps(json_data))
-						allsky_shared.log(1, f'INFO: Published to Redis server at {redis_host}:{redis_port}, Database: {redis_database}, Key: {redis_key}')        
-					except Exception as e:    
-						eType, eObject, eTraceback = sys.exc_info()
-						result = f'ERROR: Failed to connect to the Redis server at {redis_host}:{redis_port} {eTraceback.tb_lineno} - {e}'
-						allsky_shared.log(0, result)      
-				else:
-					result = f'Please specify a topic for Redis to publish to'
-					allsky_shared.log(0, f'ERROR: {result}')
-
-			else:
-				result = f'Please specify a host for Redis to publish to'
-				allsky_shared.log(0, f'ERROR: {result}')
+			self._send_to_redis()
 
 		if use_influx:
 			self._send_to_influxdb()
 
-       
+		if use_mqtt:
+			self._send_to_mqtt()
+   
 		'''
-		if params["mqttEnabled"]:
-			channel_topic = params['mqttTopic']
-			if channel_topic == "":
-				s.log(0, "ERROR:MQTT - Please specify a topic to publish")
-				return
 
-			client = paho.Client(client_id="", userdata=None, protocol=paho.MQTTv5)
-			client.on_connect = MQTTonConnect
-			client.on_publish = MQTTonPublish        
-			if params["mqttUsername"] != "" and params["mqttPassword"] != "":
-				client.username_pw_set(params["mqttUsername"], params["mqttPassword"])
-
-			if params["mqttHost"] == "":
-				s.log(0, "ERROR: MQTT - Please specify a MQTT host to publish to")
-				return
-
-			if params["mqttusesecure"]:
-				client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
-
-			client.connect(params["mqttHost"], int(params["mqttPort"]))
-
-			client.publish(params["mqttTopic"], json.dumps(jsonData),qos=1)
-			s.log(1, f"INFO: MQTT - Published to MQTT on channel: {channel_topic}")
-			delay = int(params['mqttloopdelay'])
-			client.loop(delay)
-			client.disconnect()
 			
 		if params["postEnabled"]:
 			url = params['postEndpoint']

@@ -46,11 +46,7 @@ v1.0.2 by Damian Grocholski (Mr-Groch)
 - Added protection for non numeric variables values
 
 '''
-import allsky_shared as s
-import datetime
-import json
-import os
-from influxdb_client import InfluxDBClient
+import allsky_shared as allsky_shared
 
 metaData = {
 	"name": "Allsky influxdb",
@@ -61,125 +57,19 @@ metaData = {
 	    "night"
 	],
 	"experimental": "true",
+	"deprecation": {
+		"fromversion": "v2024.12.06_01",
+		"removein": "v2024.12.06_01",
+		"notes": "This module has been deprecated. Please use the allsky_publishdata module",
+		"replacedby": "allsky_publishdata",
+		"deprecated": "true"
+	},  
 	"arguments":{
-	    "host": "http://localhost",
-	    "port": "8086",
-	    "user": "",
-	    "password": "",
-	    "token": "",
-	    "v2bucket": "False",
-	    "database": "",
-	    "org": "-",
-	    "values": ""
 	},
 	"argumentdetails": {
-	    "host": {
-	        "required": "true",
-	        "description": "InfluxDB Host",
-	        "help": "URL of InfluxDB server (with protocol, for example http://localhost)"
-	    },
-	    "port": {
-	        "required": "true",
-	        "description": "InfluxDB Port",
-	        "help": "InfluxDB server listening port (default 8086)",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 65535,
-	            "step": 1
-	        }
-	    },
-	    "user": {
-	        "required": "false",
-	        "description": "InfluxDB Username",
-	        "help": "InfluxDB user login (mostly for InfluxDB v1, InfluxDB v2 uses Access Tokens as default)"
-	    },
-	    "password": {
-	        "required": "false",
-	        "description": "InfluxDB Password",
-	        "help": "InfluxDB user password (mostly for InfluxDB v1, InfluxDB v2 uses Access Tokens as default)"
-	    },
-	    "token": {
-	        "required": "false",
-	        "description": "InfluxDB Access Token",
-	        "help": "InfluxDB user access token (if not using username and password)"
-	    },
-	    "v2bucket": {
-	        "required": "true",
-	        "description": "InfluxDB v2 Bucket",
-	        "help": "Enable if you're using InfluxDB v2",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }
-	    },
-	    "database": {
-	        "required": "true",
-	        "description": "InfluxDB v1 Database / v2 Bucket",
-	        "help": "Name of InfluxDB database for v1 or bucket for v2"
-	    },
-	    "org": {
-	        "required": "true",
-	        "description": "InfluxDB Organization",
-	        "help": "Name of the InfluxDB organization in which the database/bucket is located. Leave default (-) if you're using InfluxDB v1 default installation"
-	    },
-	    "values": {
-	        "required": "true",
-	        "description": "AllSky Values",
-	        "help": "AllSky Values to save, comma seperated",
-	        "type": {
-	            "fieldtype": "multivariables"
-	        }
-	    }
 	},
 	"enabled": "false"
 }
 
-
-def createJSONData(values):
-
-	vars = values.split(",")
-	fields = {}
-	for var in os.environ:
-	    if var.startswith("AS_") or var.startswith("ALLSKY_"):
-	        if var in vars:
-	            try:
-	                fields[var] = s.asfloat(s.getEnvironmentVariable(var))
-	            except:
-	                pass
-
-	now = datetime.datetime.utcnow()
-	time = now.strftime('%Y-%m-%dT%H:%M:%SZ')
-	jsonData = [
-	    {
-	        "measurement": "AllSky",
-	        "time": time,
-	        "fields":  fields
-	    }
-	]
-
-	return jsonData
-
 def influxdb(params, event):
-	host = params["host"]
-	port = params["port"]
-	username = params["user"]
-	password = params["password"]
-	token = params["token"]
-	v2bucket = params["v2bucket"]
-	database = params["database"]
-	org = params["org"]
-	values = params["values"]
-	retention_policy = 'autogen'
-
-	jsonData = createJSONData(values)
-
-	bucket = database if v2bucket else f'{database}/{retention_policy}'
-	host = f'{host}:{port}'
-	credentials = token if token != "" else f'{username}:{password}'
-
-	try:
-	    with InfluxDBClient(url=host, token=credentials, org=org) as client:
-	        with client.write_api() as write_api:
-	            write_api.write(bucket, record=jsonData)
-	except Exception as e:
-	    s.log(0,"Error: {}".format(e))
+	return 'Deprectated Please ise allsky_publishdata'

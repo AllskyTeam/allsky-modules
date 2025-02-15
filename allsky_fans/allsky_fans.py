@@ -12,6 +12,7 @@ dtoverlay=pwm-2chan
 
 '''
 import allsky_shared as allsky_shared
+from allsky_base import ALLSKYMODULEBASE
 from gpiozero import CPUTemperature
 from digitalio import DigitalInOut, Direction, Pull
 
@@ -253,9 +254,7 @@ metaData = {
 	}
 }
 
-class ALLSKYFANS:
-	_params = []
-	_event = ''
+class ALLSKYFANS(ALLSKYMODULEBASE):
 	_temperature = 0
 	_temperature_limit = 0
 	_fan_pin = 0
@@ -284,10 +283,6 @@ class ALLSKYFANS:
 		}
 	}
 
-	def _init_(self, params, event):
-		self._params = params
-		self._event = event
-
 	def _get_cpu_temperature(self):
 		temp_c = 0
 		try:
@@ -312,21 +307,6 @@ class ALLSKYFANS:
 
 		return temperature
 
-	def _get_param(self, param, default, target_type=str):
-		result = default
-		try:
-			result = self._params[param]
-		except ValueError:
-			pass
-
-		try:
-			result = target_type(result)
-		except (ValueError, TypeError) as e:
-			allsky_shared.log(4, f'ERROR: Cannot cast "{param}" to {target_type._name_}. Using default "{default}"')
-			result = default
-		
-		return result
-  
 	def _turn_fan_on(self, fan_pin, invert_relay):
 		pin = DigitalInOut(fan_pin)
 		pin.switch_to_output()
@@ -363,8 +343,8 @@ class ALLSKYFANS:
 		return result, error
      
 	def _use_pwm_fan_control(self):
-		pwm_min = self._get_param('pwmmin', 0, int)
-		pwm_max = self._get_param('pwmmax', 0, int)
+		pwm_min = self.get_param('pwmmin', 0, int)
+		pwm_max = self.get_param('pwmmax', 0, int)
 		result = ''
 		pwm_enabled = '0'
 		pwm_duty_cycle = 0
@@ -424,13 +404,13 @@ class ALLSKYFANS:
 	def run(self):
 		result = ''
 		fan_status = ''
-		sensor_type = self._get_param('sensor_type', 'internal')
-		run_period = self._get_param('period', 60, int)
-		self._temperature_limit = self._get_param('limitInternal', 0, int)
-		self._fan_pin = self._get_param('fanpin', None, int)
-		self._invert_relay = self._get_param('invertrelay', False, bool)
-		self._debugmode = self._get_param('ALLSKYTESTMODE', False, bool)  
-		use_pwm = self._get_param('usepwm', False, bool)
+		sensor_type = self.get_param('sensor_type', 'internal')
+		run_period = self.get_param('period', 60, int)
+		self._temperature_limit = self.get_param('limitInternal', 0, int)
+		self._fan_pin = self.get_param('fanpin', None, int)
+		self._invert_relay = self.get_param('invertrelay', False, bool)
+		self._debugmode = self.get_param('ALLSKYTESTMODE', False, bool)  
+		use_pwm = self.get_param('usepwm', False, bool)
 		self._temperature = None
 		fan_status = False
 		error = False
