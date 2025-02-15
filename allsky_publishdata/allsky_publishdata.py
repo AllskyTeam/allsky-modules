@@ -217,25 +217,27 @@ def MQTTonPublish(client, userdata, mid, properties=None):
     s.log(4, f"INFO: MQTT - Message published {mid}.")
 
 def changeType(value):
-    if value.lower() in ['true', 'false'] or value.lower() in ['on', 'off']:
-        if value == 'true' or value == 'on':
-            value = True
-        if value == 'false' or value == 'off':
-            value = False
-        return value
-    
-    try:
-        value = int(value)
-        return value
-    except ValueError:
-        pass
-    
-    try:
-        if '.' in value or 'e' in value.lower():
-            value = float(value)
+    if isinstance(value, str):
+        lower_value = value.lower()
+        if lower_value in ['true', 'false'] or lower_value in ['on', 'off']:
+            if lower_value == 'true' or lower_value == 'on':
+                value = True
+            if lower_value == 'false' or lower_value == 'off':
+                value = False
             return value
-    except ValueError:
-        pass
+        
+        try:
+            value = int(value)
+            return value
+        except ValueError:
+            pass
+        
+        try:
+            if '.' in value or 'e' in value.lower():
+                value = float(value)
+                return value
+        except ValueError:
+            pass
     
     return value
         
