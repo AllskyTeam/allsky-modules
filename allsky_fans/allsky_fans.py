@@ -20,241 +20,242 @@ import sys
 from rpi_hardware_pwm import HardwarePWM, HardwarePWMException
 from gpiozero import Device
 
-metaData = {
-	"name": "Control Allsky Fans",
-	"description": "Start A Fans when the CPU or external sensor reaches a set temperature",
-	"module": "allsky_fans",    
-	"version": "v1.0.3",
-	"testable": "true",
-	"centersettings": "false", 
-	"events": [
-		"night",
-		"day",
-		"periodic"
-	],
-	"enabled": "false",    
-	"experimental": "false",
-	"extradatafilename": "allsky_fans.json", 
-	"extradata": {
-		"values": {
-			"AS_FANS_FAN_STATE": {
-				"name": "${FANS_FAN_STATE}",
-				"format": "",
-				"sample": "",                
-				"group": "Fan",
-				"description": "Fan Status",
-				"type": "bool"
-			},
-			"AS_FANS_TEMPERATURE": {
-				"name": "${FANS_TEMPERATURE}",
-				"format": "",
-				"sample": "",                 
-				"group": "Fan",
-				"description": "Fan module Temperature",
-				"type": "temperature"
-			},             
-			"AS_FANS_TEMP_LIMIT": {
-				"name": "${FANS_TEMP_LIMIT}",
-				"format": "",
-				"sample": "",                 
-				"group": "Fan",
-				"description": "Activation Temperature",
-				"type": "temperature"
-			},
-			"AS_FANS_USE_PWM": {
-				"name": "${FANS_USE_PWM}",
-				"format": "",
-				"sample": "",                 
-				"group": "Fan",
-				"description": "Use PWM Fan Control",
-				"type": "bool"
-			},
-			"AS_FANS_PWM_ENABLED": {
-				"name": "${FANS_PWM_ENABLED}",
-				"format": "",
-				"sample": "",                 
-				"group": "Fan",
-				"description": "PWM Fan control enabled",
-				"type": "bool"
-			},
-			"AS_FANS_PWM_DUTY_CYCLE": {
-				"name": "${FANS_PWM_DUTY_CYCLE}",
-				"format": "",
-				"sample": "",                 
-				"group": "Fan",
-				"description": "PWM Duty Cycle",
-				"type": "Number"
-			}
-		}
-	}, 
-	"arguments":{
-		"sensor_type": "Internal",
-		"period": 60,
-		"fanpin": "18",
-		"invertrelay": "False",        
-		"usepwm": "false",
-		"pwmmin": 0,
-		"pwmmax": 100,
-		"limitInternal": 60,
-		"temperature": "AS_TEMP"
-	},
-	"argumentdetails": {
-		"sensor_type" : {
-			"required": "false",
-			"description": "Sensor Type",
-			"help": "The type of sensor that is being used.",
-			"tab": "Sensor",
-			"type": {
-				"fieldtype": "select",
-				"values": "Internal,Allsky",
-				"default": "Internal"
-			}
-		},
-		"temperature": {
-			"required": "false",
-			"description": "Temperature Variable",
-			"help": "The Variable to use for the temperature",
-			"tab": "Sensor",
-			"filters": {
-				"filter": "sensor_type",
-				"filtertype": "show",
-				"values": [
-					"Allsky"
-				]
-			},            
-			"type": {
-				"fieldtype": "variable"
-			}                             
-		},
-		"limitInternal" : {
-			"required": "false",
-			"description": "Temp. Limit",
-			"help": "The temperature limit beyond which fans are activated",
-			"tab": "Sensor",
-			"filters": {
-				"filter": "sensor_type",
-				"filtertype": "show",
-				"values": [
-					"Internal",
-					"Allsky"
-				]
-			},     
-			"type": {
-				"fieldtype": "spinner",
-				"min": 30,
-				"max": 75,
-				"step": 1
-			}     
-		},  
-		"period" : {
-			"required": "true",
-			"description": "Read Every",
-			"help": "Reads data every x seconds.",                
-			"tab": "Sensor",
-			"type": {
-				"fieldtype": "spinner",
-				"min": 30,
-				"max": 600,
-				"step": 1
-			}          
-		},
-		"fanpin": {
-			"required": "false",
-			"description": "Fans Relay Pin",
-			"help": "The GPIO pin for the fan relay or PWM",
-			"tab": "Sensor",
-			"type": {
-				"fieldtype": "gpio"
-			}           
-		},         
-		"invertrelay" : {
-			"required": "false",
-			"description": "Invert Relay",
-			"help": "Invert relay activation logic from pin HIGH to pin LOW",
-			"tab": "Sensor",
-			"type": {
-				"fieldtype": "checkbox"
-			}
-		},
-		"usepwm" : {
-			"required": "false",
-			"description": "Use PWM",
-			"help": "Use PWM Fan control. Please see the module documentation BEFORE using this feature",
-			"tab": "PWM",
-			"type": {
-				"fieldtype": "checkbox"
-			}
-		},
-		"pwmmin" : {
-			"required": "false",
-			"description": "Min PWM Temp",
-			"help": "Below this temp the fan will be off. This equates to 0% PWM duty cycle",
-			"tab": "PWM",
-			"type": {
-				"fieldtype": "spinner",
-				"min": 0,
-				"max": 200,
-				"step": 1
-			}     
-		},
-		"pwmmax" : {
-			"required": "false",
-			"description": "Max PWM Temp",
-			"help": "Below this temp the fan will be on. This equates to 100% PWM duty cycle",
-			"tab": "PWM",
-			"type": {
-				"fieldtype": "spinner",
-				"min": 0,
-				"max": 200,
-				"step": 1
-			}     
-		}
-	},
-	"businfo": [
-		"i2c"
-	],
-	"changelog": {
-		"v1.0.0" : [
-			{
-				"author": "Lorenzi70",
-				"authorurl": "https://github.com/allskyteam",
-				"changes": "Initial Release"
-			}
-		],
-		"v1.0.1" : [
-			{
-				"author": "Tamas Maroti (CapricornusObs)",
-				"authorurl": "https://github.com/CapricornusObs",
-				"changes": [
-					"Added external temperature sensors to control fan",
-					"Added BMP280 sersor control code"
-				]
-			}
-		],
-		"v1.0.2" : [
-			{
-				"author": "Alex Greenland",
-				"authorurl": "https://github.com/allskyteam",
-				"changes": [
-					"Added PWM options for fan control",
-					"Added SHT31 temperature sensor"
-				]
-			}
-		],
-		"v1.0.3" : [
-			{
-				"author": "Alex Greenland",
-				"authorurl": "https://github.com/allskyteam",
-				"changes": [
-					"Converted to new module format",
-					"Removed all external sensors - Use allsky_temp module to read sensors"
-				]
-			}
-		]       
-	}
-}
-
 class ALLSKYFANS(ALLSKYMODULEBASE):
+    
+	meta_data = {
+		"name": "Control Allsky Fans",
+		"description": "Start A Fans when the CPU or external sensor reaches a set temperature",
+		"module": "allsky_fans",    
+		"version": "v1.0.3",
+		"testable": "true",
+		"centersettings": "false", 
+		"events": [
+			"night",
+			"day",
+			"periodic"
+		],
+		"enabled": "false",    
+		"experimental": "false",
+		"extradatafilename": "allsky_fans.json", 
+		"extradata": {
+			"values": {
+				"AS_FANS_FAN_STATE": {
+					"name": "${FANS_FAN_STATE}",
+					"format": "",
+					"sample": "",                
+					"group": "Fan",
+					"description": "Fan Status",
+					"type": "bool"
+				},
+				"AS_FANS_TEMPERATURE": {
+					"name": "${FANS_TEMPERATURE}",
+					"format": "",
+					"sample": "",                 
+					"group": "Fan",
+					"description": "Fan module Temperature",
+					"type": "temperature"
+				},             
+				"AS_FANS_TEMP_LIMIT": {
+					"name": "${FANS_TEMP_LIMIT}",
+					"format": "",
+					"sample": "",                 
+					"group": "Fan",
+					"description": "Activation Temperature",
+					"type": "temperature"
+				},
+				"AS_FANS_USE_PWM": {
+					"name": "${FANS_USE_PWM}",
+					"format": "",
+					"sample": "",                 
+					"group": "Fan",
+					"description": "Use PWM Fan Control",
+					"type": "bool"
+				},
+				"AS_FANS_PWM_ENABLED": {
+					"name": "${FANS_PWM_ENABLED}",
+					"format": "",
+					"sample": "",                 
+					"group": "Fan",
+					"description": "PWM Fan control enabled",
+					"type": "bool"
+				},
+				"AS_FANS_PWM_DUTY_CYCLE": {
+					"name": "${FANS_PWM_DUTY_CYCLE}",
+					"format": "",
+					"sample": "",                 
+					"group": "Fan",
+					"description": "PWM Duty Cycle",
+					"type": "Number"
+				}
+			}
+		}, 
+		"arguments":{
+			"sensor_type": "Internal",
+			"period": 60,
+			"fanpin": "18",
+			"invertrelay": "False",        
+			"usepwm": "false",
+			"pwmmin": 0,
+			"pwmmax": 100,
+			"limitInternal": 60,
+			"temperature": "AS_TEMP"
+		},
+		"argumentdetails": {
+			"sensor_type" : {
+				"required": "false",
+				"description": "Sensor Type",
+				"help": "The type of sensor that is being used.",
+				"tab": "Sensor",
+				"type": {
+					"fieldtype": "select",
+					"values": "Internal,Allsky",
+					"default": "Internal"
+				}
+			},
+			"temperature": {
+				"required": "false",
+				"description": "Temperature Variable",
+				"help": "The Variable to use for the temperature",
+				"tab": "Sensor",
+				"filters": {
+					"filter": "sensor_type",
+					"filtertype": "show",
+					"values": [
+						"Allsky"
+					]
+				},            
+				"type": {
+					"fieldtype": "variable"
+				}                             
+			},
+			"limitInternal" : {
+				"required": "false",
+				"description": "Temp. Limit",
+				"help": "The temperature limit beyond which fans are activated",
+				"tab": "Sensor",
+				"filters": {
+					"filter": "sensor_type",
+					"filtertype": "show",
+					"values": [
+						"Internal",
+						"Allsky"
+					]
+				},     
+				"type": {
+					"fieldtype": "spinner",
+					"min": 30,
+					"max": 75,
+					"step": 1
+				}     
+			},  
+			"period" : {
+				"required": "true",
+				"description": "Read Every",
+				"help": "Reads data every x seconds.",                
+				"tab": "Sensor",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 30,
+					"max": 600,
+					"step": 1
+				}          
+			},
+			"fanpin": {
+				"required": "false",
+				"description": "Fans Relay Pin",
+				"help": "The GPIO pin for the fan relay or PWM",
+				"tab": "Sensor",
+				"type": {
+					"fieldtype": "gpio"
+				}           
+			},         
+			"invertrelay" : {
+				"required": "false",
+				"description": "Invert Relay",
+				"help": "Invert relay activation logic from pin HIGH to pin LOW",
+				"tab": "Sensor",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"usepwm" : {
+				"required": "false",
+				"description": "Use PWM",
+				"help": "Use PWM Fan control. Please see the module documentation BEFORE using this feature",
+				"tab": "PWM",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"pwmmin" : {
+				"required": "false",
+				"description": "Min PWM Temp",
+				"help": "Below this temp the fan will be off. This equates to 0% PWM duty cycle",
+				"tab": "PWM",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 200,
+					"step": 1
+				}     
+			},
+			"pwmmax" : {
+				"required": "false",
+				"description": "Max PWM Temp",
+				"help": "Below this temp the fan will be on. This equates to 100% PWM duty cycle",
+				"tab": "PWM",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 200,
+					"step": 1
+				}     
+			}
+		},
+		"businfo": [
+			"i2c"
+		],
+		"changelog": {
+			"v1.0.0" : [
+				{
+					"author": "Lorenzi70",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Initial Release"
+				}
+			],
+			"v1.0.1" : [
+				{
+					"author": "Tamas Maroti (CapricornusObs)",
+					"authorurl": "https://github.com/CapricornusObs",
+					"changes": [
+						"Added external temperature sensors to control fan",
+						"Added BMP280 sersor control code"
+					]
+				}
+			],
+			"v1.0.2" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": [
+						"Added PWM options for fan control",
+						"Added SHT31 temperature sensor"
+					]
+				}
+			],
+			"v1.0.3" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": [
+						"Converted to new module format",
+						"Removed all external sensors - Use allsky_temp module to read sensors"
+					]
+				}
+			]       
+		}
+	}    
+    
 	_temperature = 0
 	_temperature_limit = 0
 	_fan_pin = 0
@@ -416,7 +417,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		error = False
 		
 		try:
-			should_run, diff = allsky_shared.shouldRun(metaData['module'], run_period)
+			should_run, diff = allsky_shared.shouldRun(self.meta_data['module'], run_period)
 			if should_run or self._debugmode:
 				extra_data = {}
 				if self._fan_pin is not None:
@@ -442,9 +443,9 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 								extra_data['AS_FANS_PWM_ENABLED'] = True if pwm_enabled == '1' else False
 								extra_data['AS_FANS_PWM_DUTY_CYCLE'] = pwm_duty_cycle
 										
-							allsky_shared.saveExtraData(metaData['extradatafilename'], extra_data, metaData["module"], metaData["extradata"])
+							allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data["module"], self.meta_data["extradata"])
 						
-						allsky_shared.setLastRun(metaData['module'])
+						allsky_shared.setLastRun(self.meta_data['module'])
 					else:
 						result = 'Failed to get temperature'
 						allsky_shared.log(0, f'ERROR: {result}')
@@ -471,10 +472,10 @@ def fans(params, event):
 
 def fans_cleanup():
 	moduleData = {
-	    "metaData": metaData,
+	    "metaData": ALLSKYFANS.meta_data,
 	    "cleanup": {
 	        "files": {
-	            metaData['extradatafilename']
+	            ALLSKYFANS.meta_data['extradatafilename']
 	        },
 	        "env": {}
 	    }

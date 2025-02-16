@@ -38,566 +38,566 @@ from meteocalc import heat_index
 from meteocalc import dew_point
 from digitalio import DigitalInOut, Direction, Pull
 	
-metaData = {
-	"name": "AllSky Dew Heater Control",
-	"description": "Controls a dew heater via a temperature and humidity sensor",
-	"module": "allsky_dewheater",
-	"version": "v1.0.8",
-	"events": [
-	    "periodic",
-	    "day",
-	    "night"
-	],
-	"experimental": "false",
-	"testable": "true",
-	"centersettings": "false",
- 	"dependency": "allsky_temp.py",
-	"deprecation": {
-		"fromversion": "v2024.12.06_01",
-		"removein": "TBC",
-		"notes": "All sensors apart from the 'allsky' sensor will be removed in future updates. Please use the 'allsky environment' module to define any sensors you require. Please see the Allsky help for more information",
-		"deprecated": "false",
-		"partial": "true"
-	},   
-	"extradatafilename": "allsky_dew.json",   
-	"extradata": {
-	    "values": {
-	        "AS_DEWCONTROLSENSOR": {
-	            "name": "${DEWCONTROLSENSOR}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Dew Heater",
-	            "description": "Dew Heater Sensor",
-	            "type": "string"
-	        },              
-	        "AS_DEWCONTROLAMBIENT": {
-	            "name": "${DEWCONTROLAMBIENT}",
-	            "format": "",
-	            "sample": "",                 
-	            "group": "Dew Heater",
-	            "description": "Dew Heater Ambient",
-	            "type": "temperature"
-	        },
-	        "AS_DEWCONTROLDEW": {
-	            "name": "${DEWCONTROLDEW}",
-	            "format": "",
-	            "sample": "",                 
-	            "group": "Dew Heater",
-	            "description": "Dew heater Dew Point",
-	            "type": "temperature"
-	        },
-	        "AS_DEWCONTROLHUMIDITY": {
-	            "name": "${DEWCONTROLHUMIDITY}",
-	            "format": "",
-	            "sample": "",                 
-	            "group": "Dew Heater",
-	            "description": "Dew Heater Humidity",
-	            "type": "Number"
-	        },
-	        "AS_DEWCONTROLHEATER": {
-	            "name": "${DEWCONTROLHEATER}",
-	            "format": "",
-	            "sample": "",                 
-	            "group": "Dew Heater",
-	            "description": "Dew Heater Status",
-	            "type": "gpio"
-	        },
-	        "AS_DEWCONTROLPRESSURE": {
-	            "name": "${DEWCONTROLPRESSURE}",
-	            "format": "",
-	            "sample": "",                 
-	            "group": "Dew Heater",
-	            "description": "Dew Heater Pressure",
-	            "type": "pressure"
-	        },
-	        "AS_DEWCONTROLRELHUMIDITY": {
-	            "name": "${DEWCONTROLRELHUMIDITY}",
-	            "format": "",
-	            "sample": "",                  
-	            "group": "Dew Heater",
-	            "description": "Dew Heater Relative Humidity",
-	            "type": "humidity"
-	        },
-	        "AS_DEWCONTROLALTITUDE": {
-	            "name": "${DEWCONTROLALTITUDE}",
-	            "format": "",
-	            "sample": "",                   
-	            "group": "Dew Heater",
-	            "description": "Dew Heater Altitude",
-	            "type": "altitude"
-	        }
-	    }                         
-	},
-	"arguments":{
-	    "type": "None",
-	    "inputpin": "",
-	    "heaterpin": "",
-	    "extrapin": "",
-	    "temperature": "AS_TEMP",
-	    "humidity": "AS_HUMIDITY",
-	    "i2caddress": "",
-	    "heaterstartupstate": "OFF",
-	    "invertrelay": "False",
-	    "invertextrapin": "False",
-	    "frequency": "0",
-	    "limit": "10",
-	    "force": "0",
-	    "max": "0",
-	    "dhtxxretrycount": "2",
-	    "dhtxxdelay" : "500",
-	    "sht31heater": "False",
-	    "solourl": "",
-	    "apikey": "",
-	    "period": 120,
-	    "expire": 240,
-	    "filename": "openweather.json",
-	    "units": "metric",
-	    "daydisable": "False"                
-	},
-	"argumentdetails": {
-	    "type" : {
-	        "required": "false",
-	        "description": "Sensor Type",
-	        "help": "The type of sensor that is being used.",
-	        "tab": "Sensor",
-	        "type": {
-	            "fieldtype": "select",
-	            "values": "None,Allsky,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,SOLO-Cloudwatcher,OpenWeather",
-	            "default": "None"
-	        }
-	    },
-	    "temperature": {
-	        "required": "false",
-	        "description": "Temperature Variable",
-	        "help": "The Variable to use for the temperature",
-	        "tab": "Sensor",
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"Allsky"
-				]
-			},            
-	        "type": {
-	            "fieldtype": "variable",
-				"selectmode": "multi"
-	        }                             
-	    },
-	    "humidity": {
-	        "required": "false",
-	        "description": "Humidity Variable",
-	        "help": "The Variable to use for the humidity",
-	        "tab": "Sensor",
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"Allsky"
-				]
-			},            
-	        "type": {
-	            "fieldtype": "variable"
-	        }                                         
-	    },                
-	    "inputpin": {
-	        "required": "false",
-	        "description": "Input Pin",
-	        "help": "The input pin for DHT type sensors, not required for i2c devices",
-	        "tab": "Sensor",
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"DHT22",
-	                "DHT11",
-	                "AM2302"
-				]
-			},            
-	        "type": {
-	            "fieldtype": "gpio"
-	        }
-	    },
-	    "dhtxxretrycount" : {
-	        "required": "false",
-	        "description": "Retry Count",
-	        "help": "The number of times to retry the sensor read",
-	        "tab": "Sensor",
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"DHT22",
-	                "DHT11",
-	                "AM2302"
-				]
-			},            
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 5,
-	            "step": 1
-	        }
-	    },
-	    "dhtxxdelay": {
-	        "required": "false",
-	        "description": "Delay",
-	        "help": "The delay between faild sensor reads in milliseconds",
-	        "tab": "Sensor",
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	                "DHT22",
-	                "DHT11",
-	                "AM2302"
-	            ]
-	        },
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 5000,
-	            "step": 1
-	        }
-	    },          
-	    "i2caddress": {
-	        "required": "false",
-	        "description": "I2C Address",
-	        "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
-	        "tab": "Sensor",
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-	                "BME280-I2C",
-	                "HTU21",
-	                "AHTx0"
-				]
-			},            
-	        "type": {
-	            "fieldtype": "i2c"
-	        }            
-	    },
-	    
-	    "sht31heater" : {
-	        "required": "false",
-	        "description": "Enable Heater",
-	        "help": "Enable the inbuilt heater on the SHT31",
-	        "tab": "Sensor",
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31"
-				]
-			},              
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }
-	    },
-
-	    "solourl": {
-	        "required": "false",
-	        "description": "URL from solo",
-	        "help": "Read weather data from lunaticoastro.com 'Solo Cloudwatcher'",
-	        "tab": "Sensor",
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"SOLO-Cloudwatcher"
-				]
-			}            
-	    },
-	    
-		"owtext": {
-			"message": "<b style='color: #ff0000'>IMPORTANT</b> Do not use this function and the OpenWeather API module as well. If you are using this function then please remove the OpenWeather Module as both create the same overlay data",
-	        "tab": "Sensor",
-	        "type": {
-	            "fieldtype": "text",
-	            "style": {
-	                "width": "full",
-					"alert": {
-						"class": "danger"
-					}
-				}
-	        },
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}              						
-		},        
-	    "apikey": {
-	        "required": "false",
-	        "description": "API Key",
-         	"secret": "true",
-	        "tab": "Sensor",
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			},                       
-	        "help": "Your Open Weather Map API key."         
-	    },       
-	    "period" : {
-	        "required": "true",
-	        "description": "Read Every",
-	        "help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
-	        "tab": "Sensor",
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			},                        
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 60,
-	            "max": 1440,
-	            "step": 1
-	        }          
-	    },
-	    "units" : {
-	        "required": "false",
-	        "description": "Units",
-	        "help": "Units of measurement. standard, metric and imperial",
-	        "tab": "Sensor",
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			},                        
-	        "type": {
-	            "fieldtype": "select",
-	            "values": "standard,metric,imperial"
-	        }                
-	    },        
-	    "expire" : {
-	        "required": "true",
-	        "description": "Expiry Time",
-	        "help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value",
-	        "tab": "Sensor",
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			},                                 
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 61,
-	            "max": 1500,
-	            "step": 1
-	        }          
-	    },              
-	    "filename": {
-	        "required": "true",
-	        "description": "Filename",
-	        "tab": "Sensor",
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			},                       
-	        "help": "The name of the file that will be written to the allsky/tmp/extra directory"         
-	    },         
-
-	    "heaterpin": {
-	        "required": "false",
-	        "description": "Heater Pin",
-	        "help": "The pin the heater control relay is connected to",
-	        "tab": "Heater",
-	        "type": {
-	            "fieldtype": "gpio"
-	        }
-	    },
-	    "extrapin": {
-	        "required": "false",
-	        "description": "Extra Pin",
-	        "help": "Extra pin that will be triggered with heater pin",
-	        "tab": "Heater",
-	        "type": {
-	            "fieldtype": "gpio"
-	        }
-	    },
-	    "heaterstartupstate" : {
-	        "required": "false",
-	        "description": "heater Startup State",
-	        "help": "The initial state of the dew heater when allsky is started. This is only used if there is no previous status",
-	        "tab": "Heater",
-	        "type": {
-	            "fieldtype": "select",
-	            "values": "ON,OFF",
-	            "default": "OFF"
-	        }
-	    },
-	    "invertrelay" : {
-	        "required": "false",
-	        "description": "Invert Relay",
-	        "help": "Normally a GPIO pin will go high to enable a relay. Selecting this option if the relay is wired to activate on the GPIO pin going Low",
-	        "tab": "Heater",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }
-	    },
-	    "invertextrapin" : {
-	        "required": "false",
-	        "description": "Invert Extra Pin",
-	        "help": "Normally a GPIO extra pin will go high when ebabling heater. Selecting this option inverts extra pin to go low when enabling heater",
-	        "tab": "Heater",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }
-	    },
-	    "frequency" : {
-	        "required": "false",
-	        "description": "Delay",
-	        "help": "The delay between sensor reads in seconds. Zero will disable this and run the check every time the periodic jobs run",
-	        "tab": "Dew Control",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 1000,
-	            "step": 1
-	        }
-	    },
-	    "limit" : {
-	        "required": "false",
-	        "description": "Limit",
-	        "help": "If the temperature is within this many degrees of the dew point the heater will be enabled or disabled",
-	        "tab": "Dew Control",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": -100,
-	            "max": 100,
-	            "step": 1
-	        }
-	    },
-	    "force" : {
-	        "required": "false",
-	        "description": "Forced Temperature",
-	        "help": "Always enable the heater when the ambient termperature is below this value, zero will disable this.",
-	        "tab": "Dew Control",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": -100,
-	            "max": 100,
-	            "step": 1
-	        }
-	    },
-	    "max" : {
-	        "required": "false",
-	        "description": "Max Heater Time",
-	        "help": "The maximum time in seconds for the heater to be on. Zero will disable this.",
-	        "tab": "Dew Control",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 86400,
-	            "step": 1
-	        }
-	    },
-	    "daydisable" : {
-	        "required": "false",
-	        "description": "Daytime Disable",
-	        "help": "If checked the dew control module will be disabled during the daytime",
-	        "tab": "Dew Control",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }
-	    }     
-
-   
-	                    
-	},
-	"businfo": [
-	    "i2c"
-	],    
-	"changelog": {
-	    "v1.0.0" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Initial Release"
-	        }
-	    ],
-	    "v1.0.1" : [
-	        {
-	            "author": "Damian Grocholski (Mr-Groch)",
-	            "authorurl": "https://github.com/Mr-Groch",
-	            "changes": [
-	                "Added extra pin that is triggered with heater pin",
-	                "Fixed dhtxxdelay (was not implemented)",
-	                "Fixed max heater time (was not implemented)"
-	            ]
-	        }
-	    ],
-	    "v1.0.2" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Initial Release"
-	        }
-	    ],
-	    "v1.0.4" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Add AHTx0 i2c sensor"
-	        },            
-	        {
-	            "author": "Andreas Schminder",
-	            "authorurl": "https://github.com/Adler6907",
-	            "changes": "Added Solo Cloudwatcher"
-	        }
-	    ],
-	    "v1.0.5" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Added OpenWeather option"
-	        }
-	    ],
-	    "v1.0.6" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Added option to disable heater during the day"
-	        }
-	    ],
-	    "v1.0.7" : [
-	        {
-	            "author": "Damian Grocholski (Mr-Groch)",
-	            "authorurl": "https://github.com/Mr-Groch",
-	            "changes": [
-	                "Refactored tabs for easier use",
-	                "Added Allsky as data source option"
-	            ]
-	        }
-	    ],
-	    "v1.0.8" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Refactored for new module and variable system"
-	        }
-	    ]                                             
-	}
-}
-
 class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
  
+	meta_data = {
+		"name": "AllSky Dew Heater Control",
+		"description": "Controls a dew heater via a temperature and humidity sensor",
+		"module": "allsky_dewheater",
+		"version": "v1.0.8",
+		"events": [
+			"periodic",
+			"day",
+			"night"
+		],
+		"experimental": "false",
+		"testable": "true",
+		"centersettings": "false",
+		"dependency": "allsky_temp.py",
+		"deprecation": {
+			"fromversion": "v2024.12.06_01",
+			"removein": "TBC",
+			"notes": "All sensors apart from the 'allsky' sensor will be removed in future updates. Please use the 'allsky environment' module to define any sensors you require. Please see the Allsky help for more information",
+			"deprecated": "false",
+			"partial": "true"
+		},   
+		"extradatafilename": "allsky_dew.json",   
+		"extradata": {
+			"values": {
+				"AS_DEWCONTROLSENSOR": {
+					"name": "${DEWCONTROLSENSOR}",
+					"format": "",
+					"sample": "",                
+					"group": "Dew Heater",
+					"description": "Dew Heater Sensor",
+					"type": "string"
+				},              
+				"AS_DEWCONTROLAMBIENT": {
+					"name": "${DEWCONTROLAMBIENT}",
+					"format": "",
+					"sample": "",                 
+					"group": "Dew Heater",
+					"description": "Dew Heater Ambient",
+					"type": "temperature"
+				},
+				"AS_DEWCONTROLDEW": {
+					"name": "${DEWCONTROLDEW}",
+					"format": "",
+					"sample": "",                 
+					"group": "Dew Heater",
+					"description": "Dew heater Dew Point",
+					"type": "temperature"
+				},
+				"AS_DEWCONTROLHUMIDITY": {
+					"name": "${DEWCONTROLHUMIDITY}",
+					"format": "",
+					"sample": "",                 
+					"group": "Dew Heater",
+					"description": "Dew Heater Humidity",
+					"type": "Number"
+				},
+				"AS_DEWCONTROLHEATER": {
+					"name": "${DEWCONTROLHEATER}",
+					"format": "",
+					"sample": "",                 
+					"group": "Dew Heater",
+					"description": "Dew Heater Status",
+					"type": "gpio"
+				},
+				"AS_DEWCONTROLPRESSURE": {
+					"name": "${DEWCONTROLPRESSURE}",
+					"format": "",
+					"sample": "",                 
+					"group": "Dew Heater",
+					"description": "Dew Heater Pressure",
+					"type": "pressure"
+				},
+				"AS_DEWCONTROLRELHUMIDITY": {
+					"name": "${DEWCONTROLRELHUMIDITY}",
+					"format": "",
+					"sample": "",                  
+					"group": "Dew Heater",
+					"description": "Dew Heater Relative Humidity",
+					"type": "humidity"
+				},
+				"AS_DEWCONTROLALTITUDE": {
+					"name": "${DEWCONTROLALTITUDE}",
+					"format": "",
+					"sample": "",                   
+					"group": "Dew Heater",
+					"description": "Dew Heater Altitude",
+					"type": "altitude"
+				}
+			}                         
+		},
+		"arguments":{
+			"type": "None",
+			"inputpin": "",
+			"heaterpin": "",
+			"extrapin": "",
+			"temperature": "AS_TEMP",
+			"humidity": "AS_HUMIDITY",
+			"i2caddress": "",
+			"heaterstartupstate": "OFF",
+			"invertrelay": "False",
+			"invertextrapin": "False",
+			"frequency": "0",
+			"limit": "10",
+			"force": "0",
+			"max": "0",
+			"dhtxxretrycount": "2",
+			"dhtxxdelay" : "500",
+			"sht31heater": "False",
+			"solourl": "",
+			"apikey": "",
+			"period": 120,
+			"expire": 240,
+			"filename": "openweather.json",
+			"units": "metric",
+			"daydisable": "False"                
+		},
+		"argumentdetails": {
+			"type" : {
+				"required": "false",
+				"description": "Sensor Type",
+				"help": "The type of sensor that is being used.",
+				"tab": "Sensor",
+				"type": {
+					"fieldtype": "select",
+					"values": "None,Allsky,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,SOLO-Cloudwatcher,OpenWeather",
+					"default": "None"
+				}
+			},
+			"temperature": {
+				"required": "false",
+				"description": "Temperature Variable",
+				"help": "The Variable to use for the temperature",
+				"tab": "Sensor",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"Allsky"
+					]
+				},            
+				"type": {
+					"fieldtype": "variable",
+					"selectmode": "multi"
+				}                             
+			},
+			"humidity": {
+				"required": "false",
+				"description": "Humidity Variable",
+				"help": "The Variable to use for the humidity",
+				"tab": "Sensor",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"Allsky"
+					]
+				},            
+				"type": {
+					"fieldtype": "variable"
+				}                                         
+			},                
+			"inputpin": {
+				"required": "false",
+				"description": "Input Pin",
+				"help": "The input pin for DHT type sensors, not required for i2c devices",
+				"tab": "Sensor",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"DHT22",
+						"DHT11",
+						"AM2302"
+					]
+				},            
+				"type": {
+					"fieldtype": "gpio"
+				}
+			},
+			"dhtxxretrycount" : {
+				"required": "false",
+				"description": "Retry Count",
+				"help": "The number of times to retry the sensor read",
+				"tab": "Sensor",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"DHT22",
+						"DHT11",
+						"AM2302"
+					]
+				},            
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 5,
+					"step": 1
+				}
+			},
+			"dhtxxdelay": {
+				"required": "false",
+				"description": "Delay",
+				"help": "The delay between faild sensor reads in milliseconds",
+				"tab": "Sensor",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"DHT22",
+						"DHT11",
+						"AM2302"
+					]
+				},
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 5000,
+					"step": 1
+				}
+			},          
+			"i2caddress": {
+				"required": "false",
+				"description": "I2C Address",
+				"help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
+				"tab": "Sensor",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0"
+					]
+				},            
+				"type": {
+					"fieldtype": "i2c"
+				}            
+			},
+			
+			"sht31heater" : {
+				"required": "false",
+				"description": "Enable Heater",
+				"help": "Enable the inbuilt heater on the SHT31",
+				"tab": "Sensor",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"SHT31"
+					]
+				},              
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+
+			"solourl": {
+				"required": "false",
+				"description": "URL from solo",
+				"help": "Read weather data from lunaticoastro.com 'Solo Cloudwatcher'",
+				"tab": "Sensor",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"SOLO-Cloudwatcher"
+					]
+				}            
+			},
+			
+			"owtext": {
+				"message": "<b style='color: #ff0000'>IMPORTANT</b> Do not use this function and the OpenWeather API module as well. If you are using this function then please remove the OpenWeather Module as both create the same overlay data",
+				"tab": "Sensor",
+				"type": {
+					"fieldtype": "text",
+					"style": {
+						"width": "full",
+						"alert": {
+							"class": "danger"
+						}
+					}
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}              						
+			},        
+			"apikey": {
+				"required": "false",
+				"description": "API Key",
+				"secret": "true",
+				"tab": "Sensor",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				},                       
+				"help": "Your Open Weather Map API key."         
+			},       
+			"period" : {
+				"required": "true",
+				"description": "Read Every",
+				"help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
+				"tab": "Sensor",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				},                        
+				"type": {
+					"fieldtype": "spinner",
+					"min": 60,
+					"max": 1440,
+					"step": 1
+				}          
+			},
+			"units" : {
+				"required": "false",
+				"description": "Units",
+				"help": "Units of measurement. standard, metric and imperial",
+				"tab": "Sensor",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				},                        
+				"type": {
+					"fieldtype": "select",
+					"values": "standard,metric,imperial"
+				}                
+			},        
+			"expire" : {
+				"required": "true",
+				"description": "Expiry Time",
+				"help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value",
+				"tab": "Sensor",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				},                                 
+				"type": {
+					"fieldtype": "spinner",
+					"min": 61,
+					"max": 1500,
+					"step": 1
+				}          
+			},              
+			"filename": {
+				"required": "true",
+				"description": "Filename",
+				"tab": "Sensor",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				},                       
+				"help": "The name of the file that will be written to the allsky/tmp/extra directory"         
+			},         
+
+			"heaterpin": {
+				"required": "false",
+				"description": "Heater Pin",
+				"help": "The pin the heater control relay is connected to",
+				"tab": "Heater",
+				"type": {
+					"fieldtype": "gpio"
+				}
+			},
+			"extrapin": {
+				"required": "false",
+				"description": "Extra Pin",
+				"help": "Extra pin that will be triggered with heater pin",
+				"tab": "Heater",
+				"type": {
+					"fieldtype": "gpio"
+				}
+			},
+			"heaterstartupstate" : {
+				"required": "false",
+				"description": "heater Startup State",
+				"help": "The initial state of the dew heater when allsky is started. This is only used if there is no previous status",
+				"tab": "Heater",
+				"type": {
+					"fieldtype": "select",
+					"values": "ON,OFF",
+					"default": "OFF"
+				}
+			},
+			"invertrelay" : {
+				"required": "false",
+				"description": "Invert Relay",
+				"help": "Normally a GPIO pin will go high to enable a relay. Selecting this option if the relay is wired to activate on the GPIO pin going Low",
+				"tab": "Heater",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"invertextrapin" : {
+				"required": "false",
+				"description": "Invert Extra Pin",
+				"help": "Normally a GPIO extra pin will go high when ebabling heater. Selecting this option inverts extra pin to go low when enabling heater",
+				"tab": "Heater",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"frequency" : {
+				"required": "false",
+				"description": "Delay",
+				"help": "The delay between sensor reads in seconds. Zero will disable this and run the check every time the periodic jobs run",
+				"tab": "Dew Control",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 1000,
+					"step": 1
+				}
+			},
+			"limit" : {
+				"required": "false",
+				"description": "Limit",
+				"help": "If the temperature is within this many degrees of the dew point the heater will be enabled or disabled",
+				"tab": "Dew Control",
+				"type": {
+					"fieldtype": "spinner",
+					"min": -100,
+					"max": 100,
+					"step": 1
+				}
+			},
+			"force" : {
+				"required": "false",
+				"description": "Forced Temperature",
+				"help": "Always enable the heater when the ambient termperature is below this value, zero will disable this.",
+				"tab": "Dew Control",
+				"type": {
+					"fieldtype": "spinner",
+					"min": -100,
+					"max": 100,
+					"step": 1
+				}
+			},
+			"max" : {
+				"required": "false",
+				"description": "Max Heater Time",
+				"help": "The maximum time in seconds for the heater to be on. Zero will disable this.",
+				"tab": "Dew Control",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 86400,
+					"step": 1
+				}
+			},
+			"daydisable" : {
+				"required": "false",
+				"description": "Daytime Disable",
+				"help": "If checked the dew control module will be disabled during the daytime",
+				"tab": "Dew Control",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			}     
+
+	
+							
+		},
+		"businfo": [
+			"i2c"
+		],    
+		"changelog": {
+			"v1.0.0" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Initial Release"
+				}
+			],
+			"v1.0.1" : [
+				{
+					"author": "Damian Grocholski (Mr-Groch)",
+					"authorurl": "https://github.com/Mr-Groch",
+					"changes": [
+						"Added extra pin that is triggered with heater pin",
+						"Fixed dhtxxdelay (was not implemented)",
+						"Fixed max heater time (was not implemented)"
+					]
+				}
+			],
+			"v1.0.2" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Initial Release"
+				}
+			],
+			"v1.0.4" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Add AHTx0 i2c sensor"
+				},            
+				{
+					"author": "Andreas Schminder",
+					"authorurl": "https://github.com/Adler6907",
+					"changes": "Added Solo Cloudwatcher"
+				}
+			],
+			"v1.0.5" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Added OpenWeather option"
+				}
+			],
+			"v1.0.6" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Added option to disable heater during the day"
+				}
+			],
+			"v1.0.7" : [
+				{
+					"author": "Damian Grocholski (Mr-Groch)",
+					"authorurl": "https://github.com/Mr-Groch",
+					"changes": [
+						"Refactored tabs for easier use",
+						"Added Allsky as data source option"
+					]
+				}
+			],
+			"v1.0.8" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Refactored for new module and variable system"
+				}
+			]                                             
+		}
+	}
+
 	def _run_command (self, cmd):
 		proc = subprocess.Popen(cmd,
 								stdout=subprocess.PIPE,
@@ -761,7 +761,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		api_key = self.get_param('apikey', '', str)
 		file_name = self.get_param('filename', 'allsky_openweather.json', str)
 		units = self.get_param('units', 'metric', str)
-		module = metaData['module']
+		module = self.meta_data['module']
 
 		temperature = None
 		humidity = None
@@ -1269,14 +1269,14 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 									if altitude is not None:
 										extraData['AS_DEWCONTROLALTITUDE'] = altitude
 
-								allsky_shared.save_extra_data(metaData['extradatafilename'], extraData, metaData['module'], metaData['extradata'])
+								allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extraData, self.meta_data['module'], self.meta_data['extradata'])
 
 								self._debug_output(sensor_type, temperature, humidity, dew_point, heat_index, pressure, rel_humidity, altitude)
 
 							else:
 								result = "Failed to read sensor"
 								allsky_shared.log(0, f'ERROR: {result}')
-								allsky_shared.delete_extra_data(metaData['extradatafilename'])
+								allsky_shared.delete_extra_data(self.meta_data['extradatafilename'])
 						else:
 							result = f'Not run. Only running every {frequency}s. Last ran {lastRunSecs}s ago'
 							allsky_shared.log(1, f'INFO: {result}')
@@ -1295,7 +1295,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 								self._turn_heater_off(extra_pin, invert_extra_pin)
 							heater = False
 				else:
-					allsky_shared.delete_extra_data(metaData['extradatafilename'])
+					allsky_shared.delete_extra_data(self.meta_data['extradatafilename'])
 					result = 'heater pin not defined or invalid'
 					allsky_shared.log(0, f'ERROR: {result}')
 
@@ -1318,7 +1318,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			extra_data['AS_DEWCONTROLDEW'] = 0
 			extra_data['AS_DEWCONTROLHUMIDITY'] = 0
 			extra_data['AS_DEWCONTROLHEATER'] = 'Disabled'
-			allsky_shared.save_extra_data(metaData['extradatafilename'], extra_data, metaData['module'], metaData['extradata'])
+			allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 				
 			result = 'Dew control disabled during the day'
 			s.log(1, f"INFO: {result}")
@@ -1333,10 +1333,10 @@ def dewheater(params, event):
     
 def dewheater_cleanup():
 	moduleData = {
-	    "metaData": metaData,
+	    "metaData": ALLSKYDEWHEATER.meta_data,
 	    "cleanup": {
 	        "files": {
-	            metaData["extradatafilename"]
+	            ALLSKYDEWHEATER.meta_data["extradatafilename"]
 	        },
 	        "env": {}
 	    }

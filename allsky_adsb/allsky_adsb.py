@@ -6,7 +6,8 @@ Part of allsky postprocess.py modules.
 https://github.com/thomasjacquin/allsky
 
 '''
-import allsky_shared as shared
+import allsky_shared as allsky_shared
+from allsky_base import ALLSKYMODULEBASE
 import sys
 import requests
 import math
@@ -16,355 +17,348 @@ import os
 from unidecode import unidecode
 from requests.exceptions import MissingSchema, JSONDecodeError
 
-metaData = {
-	"name": "ADSB - Aircraft tracking",
-	"description": "Provides aircraft data for display in the captured images",
-	"module": "allsky_adsb",    
-	"version": "v1.0.0",
-	"events": [
-	    "periodic",
-	    "day",
-	    "night"
-	],
-	"enabled": "false",    
-	"experimental": "true",
-	"testable": "true",  
-	"centersettings": "false",
-	"extradatafilename": "allsky_adsb.json", 
-	"extradata": {
-	    "info": {
-	        "count": 20,
-	        "firstblank": "false"
-	    },
-	    "values": {
-	        "AS_AZIMUTH_AIRCRAFT${COUNT}": {
-	            "group": "ADSB Data",
-	            "type": "azimuth",                
-	            "description": "Aircraft ${COUNT} azimuth"
-	        },
-	        "AS_ELEVATION_AIRCRAFT${COUNT}": {
-	            "group": "ADSB Data",
-	            "type": "elevation",                
-	            "description": "Aircraft ${COUNT} elevation"
-	        },
-	        "AS_ALTITUDE_AIRCRAFT${COUNT}": {
-	            "group": "ADSB Data",
-	            "type": "Altitude",                
-	            "description": "Aircraft ${COUNT} altitude"
-	        },                        
-	        "AS_TYPE_AIRCRAFT${COUNT}": {
-	            "group": "ADSB Data",
-	            "type": "string",                
-	            "description": "Aircraft ${COUNT} type"
-	        },              
-	        "AS_OWNER_AIRCRAFT${COUNT}": {
-	            "group": "ADSB Data",
-	            "type": "string",                
-	            "description": "Aircraft ${COUNT} owner"
-	        },
-	        "AS_REGISTRATION_AIRCRAFT${COUNT}": {
-	            "group": "ADSB Data",
-	            "type": "string",                
-	            "description": "Aircraft ${COUNT} registration"
-	        },
-	        "AS_MANUFACTURER_AIRCRAFT${COUNT}": {
-	            "group": "ADSB Data",
-	            "type": "string",                
-	            "description": "Aircraft ${COUNT} manufacturer"
-	        },
-	        "AS_MILITARY_AIRCRAFT${COUNT}": {
-	            "group": "ADSB Data",
-	            "type": "bool",                
-	            "description": "Aircraft ${COUNT} military flag"
-	        },
-	        "AS_TEXT_AIRCRAFT${COUNT}": {
-	            "group": "ADSB Data",
-	            "type": "string",
-	            "description": "Aircraft ${COUNT} short text (reg, bearing)"
-	        },
-	        "AS_LONGTEXT_AIRCRAFT${COUNT}": {
-	            "group": "ADSB Data",
-	            "type": "string",                
-	            "description": "Aircraft ${COUNT} medium text (reg, type, bearing, distance, alt, speed)"
-	        },
-	        "AS_SHORT_ROUTE_AIRCRAFT${COUNT}": {
-	            "group": "ADSB Data",
-	            "type": "string",                
-	            "description": "Aircraft ${COUNT} short route (ICAO -> ICAO)"
-	        },
-	        "AS_MEDIUM_ROUTE_AIRCRAFT${COUNT}": {
-	            "group": "ADSB Data",
-	            "type": "string",                
-	            "description": "Aircraft ${COUNT} short route (City -> CITY)"
-	        },
-	        "AS_LONG_ROUTE_AIRCRAFT${COUNT}": {
-	            "group": "ADSB Data",
-	            "type": "string",                
-	            "description": "Aircraft ${COUNT} long route (ICAO - City -> ICAO - CITY)"
-	        }
-	    }
-	},
-	"arguments":{
-	    "period": 60,
-	    "data_source": "Local",
-	    "aircraft_data": "local",
-	    "aricraft_route": "true",
-	    "distance_limit": 50,
-	    "timeout": 10,
-	    "local_adsb_url": "",
-	    "observer_altitude": 0,
-	    "opensky_username": "",
-	    "opensky_password": "",
-	    "opensky_lat_min": 0,
-	    "opensky_lon_min": 0,
-	    "opensky_lat_max": 0,
-	    "opensky_lon_max": 0,
-	    "airplaneslive_radius": 50
-	},
-	"argumentdetails": {
-	     "data_source" : {
-	        "required": "false",
-	        "description": "Data Source",
-	        "help": "The source for the adsb data",
-	        "tab": "Data Source",
-	        "type": {
-	            "fieldtype": "select",
-	            "values": "Local,OpenSky,AirplanesLive,adsbfi",
-	            "default": "Local"
-	        }
-	    },        
- 
- 		"noticeal" : {
-	        "tab": "Data Source",      
-			"message": "There are no settings required for AirplanesLive",
-	        "type": {
-	            "fieldtype": "text",
-	            "style": {
-	                "width": "full",
-					"alert": {
-						"class": "info"
-					}
-				}
-	        },
-	        "filters": {
-	            "filter": "data_source",
-	            "filtertype": "show",
-	            "values": [
-	            	"AirplanesLive"
-				]
-			}              			
-		}, 
- 		"noticefi" : {
-	        "tab": "Data Source",      
-			"message": "There are no settings required for adsbfi",
-	        "type": {
-	            "fieldtype": "text",
-	            "style": {
-	                "width": "full",
-					"alert": {
-						"class": "info"
-					}
-				}
-	        },
-	        "filters": {
-	            "filter": "data_source",
-	            "filtertype": "show",
-	            "values": [
-	            	"adsbfi"
-				]
-			}              			
-		},    
-	    "local_adsb_url": {
-	        "required": "false",
-	        "description": "Local ADSB Address",
-	        "help": "See the help for how to obtain this address",
-	        "tab": "Data Source",
-	        "filters": {
-	            "filter": "data_source",
-	            "filtertype": "show",
-	            "values": [
-	            	"Local"
-				]
-			}             
-	    },
-	    "opensky_username": {
-	        "required": "false",
-	        "description": "OpenSky Username",
-	        "help": "Your username for the Opensky Network. See the module documentaiton for details on the api limits with and without a username",
-	        "tab": "Data Source",
-	        "filters": {
-	            "filter": "data_source",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenSky"
-				]
-			}            
-	    },
-	    "opensky_password": {
-	        "required": "false",
-	        "description": "OpenSky Password",
-	        "help": "Your password for the Opensky Network",
-	        "tab": "Data Source",
-	        "filters": {
-	            "filter": "data_source",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenSky"
-				]
-			}            
-	    },        
-	    "opensky_lat_min": {
-	        "required": "false",
-	        "description": "Min latitude",
-	        "help": "The minimum latitude of the bounding box. Use a site like http://bboxfinder.com/ to determine the bounding box",
-	        "tab": "Data Source",
-	        "filters": {
-	            "filter": "data_source",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenSky"
-				]
-			}            
-	    },
-	    "opensky_lon_min": {
-	        "required": "false",
-	        "description": "Min longitude",
-	        "help": "The minimum longitude of the bounding box.",
-	        "tab": "Data Source",
-	        "filters": {
-	            "filter": "data_source",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenSky"
-				]
-			}            
-	    },
-	    "opensky_lat_max": {
-	        "required": "false",
-	        "description": "Max latitude",
-	        "help": "The minimum latitude of the bounding box.",
-	        "tab": "Data Source",
-	        "filters": {
-	            "filter": "data_source",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenSky"
-				]
-			}            
-	    },
-	    "opensky_lon_max": {
-	        "required": "false",
-	        "description": "Max longitude",
-	        "help": "The maximum longitude of the bounding box.",
-	        "tab": "Data Source",
-	        "filters": {
-	            "filter": "data_source",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenSky"
-				]
-			}            
-	    },
-	    
-	    
-	    "aircraft_data" : {
-	        "required": "false",
-	        "description": "Aircraft Type Data Source",
-	        "help": "The source for the aircraft data, see the documentaiton for details",
-	        "tab": "Settings",
-	        "type": {
-	            "fieldtype": "select",
-	            "values": "Local,Hexdb",
-	            "default": "Local"
-	        }
-	    },
-	    "aricraft_route" : {
-	        "required": "false",
-	        "description": "Get flight route",
-	        "help": "Get the flights route if possible",
-	        "tab": "Settings",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }          
-	    },
-	    "distance_limit" : {
-	        "required": "true",
-	        "description": "Limit Distance",
-	        "help": "Only include aircraft inside this distance",
-	        "tab": "Settings",                        
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 250,
-	            "step": 1
-	        }
-	    },         
-	    "observer_altitude" : {
-	        "required": "true",
-	        "description": "Altitude",
-	        "help": "Your altitude in metres.",
-	        "tab": "Settings",                        
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 1000,
-	            "step": 10
-	        }
-	    },
-	    "period" : {
-	        "required": "true",
-	        "description": "Read Every",
-	        "help": "Reads data every x seconds. Be careful of any api limits when setting this",
-	        "tab": "Settings",                          
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 60,
-	            "max": 1440,
-	            "step": 1
-	        }
-	    },
-	    "timeout" : {
-	        "required": "true",
-	        "description": "Timeout",
-	        "help": "The number of seconds to wait for a response from the api before aborting",
-	        "tab": "Settings",                        
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 1,
-	            "max": 20,
-	            "step": 1
-	        }
-	    }                    
-	},
-	"businfo": [
-	],
-	"changelog": {
-	    "v1.0.0" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Initial Release"
-	        }
-	    ]
-	}
-}
+class ALLSKYADSB(ALLSKYMODULEBASE):
 
-class ALLSKYADSB:
-	__params = []
-	__event = ''
-	__warnings = {}
-	__missing_adsb_data = False
+	meta_data = {
+		"name": "ADSB - Aircraft tracking",
+		"description": "Provides aircraft data for display in the captured images",
+		"module": "allsky_adsb",    
+		"version": "v1.0.0",
+		"events": [
+			"periodic",
+			"day",
+			"night"
+		],
+		"enabled": "false",    
+		"experimental": "true",
+		"testable": "true",  
+		"centersettings": "false",
+		"extradatafilename": "allsky_adsb.json", 
+		"extradata": {
+			"info": {
+				"count": 20,
+				"firstblank": "false"
+			},
+			"values": {
+				"AS_AZIMUTH_AIRCRAFT${COUNT}": {
+					"group": "ADSB Data",
+					"type": "azimuth",                
+					"description": "Aircraft ${COUNT} azimuth"
+				},
+				"AS_ELEVATION_AIRCRAFT${COUNT}": {
+					"group": "ADSB Data",
+					"type": "elevation",                
+					"description": "Aircraft ${COUNT} elevation"
+				},
+				"AS_ALTITUDE_AIRCRAFT${COUNT}": {
+					"group": "ADSB Data",
+					"type": "Altitude",                
+					"description": "Aircraft ${COUNT} altitude"
+				},                        
+				"AS_TYPE_AIRCRAFT${COUNT}": {
+					"group": "ADSB Data",
+					"type": "string",                
+					"description": "Aircraft ${COUNT} type"
+				},              
+				"AS_OWNER_AIRCRAFT${COUNT}": {
+					"group": "ADSB Data",
+					"type": "string",                
+					"description": "Aircraft ${COUNT} owner"
+				},
+				"AS_REGISTRATION_AIRCRAFT${COUNT}": {
+					"group": "ADSB Data",
+					"type": "string",                
+					"description": "Aircraft ${COUNT} registration"
+				},
+				"AS_MANUFACTURER_AIRCRAFT${COUNT}": {
+					"group": "ADSB Data",
+					"type": "string",                
+					"description": "Aircraft ${COUNT} manufacturer"
+				},
+				"AS_MILITARY_AIRCRAFT${COUNT}": {
+					"group": "ADSB Data",
+					"type": "bool",                
+					"description": "Aircraft ${COUNT} military flag"
+				},
+				"AS_TEXT_AIRCRAFT${COUNT}": {
+					"group": "ADSB Data",
+					"type": "string",
+					"description": "Aircraft ${COUNT} short text (reg, bearing)"
+				},
+				"AS_LONGTEXT_AIRCRAFT${COUNT}": {
+					"group": "ADSB Data",
+					"type": "string",                
+					"description": "Aircraft ${COUNT} medium text (reg, type, bearing, distance, alt, speed)"
+				},
+				"AS_SHORT_ROUTE_AIRCRAFT${COUNT}": {
+					"group": "ADSB Data",
+					"type": "string",                
+					"description": "Aircraft ${COUNT} short route (ICAO -> ICAO)"
+				},
+				"AS_MEDIUM_ROUTE_AIRCRAFT${COUNT}": {
+					"group": "ADSB Data",
+					"type": "string",                
+					"description": "Aircraft ${COUNT} short route (City -> CITY)"
+				},
+				"AS_LONG_ROUTE_AIRCRAFT${COUNT}": {
+					"group": "ADSB Data",
+					"type": "string",                
+					"description": "Aircraft ${COUNT} long route (ICAO - City -> ICAO - CITY)"
+				}
+			}
+		},
+		"arguments":{
+			"period": 60,
+			"data_source": "Local",
+			"aircraft_data": "local",
+			"aircraft_route": "true",
+			"distance_limit": 50,
+			"timeout": 10,
+			"local_adsb_url": "",
+			"observer_altitude": 0,
+			"opensky_username": "",
+			"opensky_password": "",
+			"opensky_lat_min": 0,
+			"opensky_lon_min": 0,
+			"opensky_lat_max": 0,
+			"opensky_lon_max": 0,
+			"airplaneslive_radius": 50
+		},
+		"argumentdetails": {
+			"data_source" : {
+				"required": "false",
+				"description": "Data Source",
+				"help": "The source for the adsb data",
+				"tab": "Data Source",
+				"type": {
+					"fieldtype": "select",
+					"values": "Local,OpenSky,AirplanesLive,adsbfi",
+					"default": "Local"
+				}
+			},        
+	
+			"noticeal" : {
+				"tab": "Data Source",      
+				"message": "There are no settings required for AirplanesLive",
+				"type": {
+					"fieldtype": "text",
+					"style": {
+						"width": "full",
+						"alert": {
+							"class": "info"
+						}
+					}
+				},
+				"filters": {
+					"filter": "data_source",
+					"filtertype": "show",
+					"values": [
+						"AirplanesLive"
+					]
+				}              			
+			}, 
+			"noticefi" : {
+				"tab": "Data Source",      
+				"message": "There are no settings required for adsbfi",
+				"type": {
+					"fieldtype": "text",
+					"style": {
+						"width": "full",
+						"alert": {
+							"class": "info"
+						}
+					}
+				},
+				"filters": {
+					"filter": "data_source",
+					"filtertype": "show",
+					"values": [
+						"adsbfi"
+					]
+				}              			
+			},    
+			"local_adsb_url": {
+				"required": "false",
+				"description": "Local ADSB Address",
+				"help": "See the help for how to obtain this address",
+				"tab": "Data Source",
+				"filters": {
+					"filter": "data_source",
+					"filtertype": "show",
+					"values": [
+						"Local"
+					]
+				}             
+			},
+			"opensky_username": {
+				"required": "false",
+				"description": "OpenSky Username",
+				"help": "Your username for the Opensky Network. See the module documentaiton for details on the api limits with and without a username",
+				"tab": "Data Source",
+				"filters": {
+					"filter": "data_source",
+					"filtertype": "show",
+					"values": [
+						"OpenSky"
+					]
+				}            
+			},
+			"opensky_password": {
+				"required": "false",
+				"description": "OpenSky Password",
+				"help": "Your password for the Opensky Network",
+				"tab": "Data Source",
+				"filters": {
+					"filter": "data_source",
+					"filtertype": "show",
+					"values": [
+						"OpenSky"
+					]
+				}            
+			},        
+			"opensky_lat_min": {
+				"required": "false",
+				"description": "Min latitude",
+				"help": "The minimum latitude of the bounding box. Use a site like http://bboxfinder.com/ to determine the bounding box",
+				"tab": "Data Source",
+				"filters": {
+					"filter": "data_source",
+					"filtertype": "show",
+					"values": [
+						"OpenSky"
+					]
+				}            
+			},
+			"opensky_lon_min": {
+				"required": "false",
+				"description": "Min longitude",
+				"help": "The minimum longitude of the bounding box.",
+				"tab": "Data Source",
+				"filters": {
+					"filter": "data_source",
+					"filtertype": "show",
+					"values": [
+						"OpenSky"
+					]
+				}            
+			},
+			"opensky_lat_max": {
+				"required": "false",
+				"description": "Max latitude",
+				"help": "The minimum latitude of the bounding box.",
+				"tab": "Data Source",
+				"filters": {
+					"filter": "data_source",
+					"filtertype": "show",
+					"values": [
+						"OpenSky"
+					]
+				}            
+			},
+			"opensky_lon_max": {
+				"required": "false",
+				"description": "Max longitude",
+				"help": "The maximum longitude of the bounding box.",
+				"tab": "Data Source",
+				"filters": {
+					"filter": "data_source",
+					"filtertype": "show",
+					"values": [
+						"OpenSky"
+					]
+				}            
+			},
+			"aircraft_data" : {
+				"required": "false",
+				"description": "Aircraft Type Data Source",
+				"help": "The source for the aircraft data, see the documentaiton for details",
+				"tab": "Settings",
+				"type": {
+					"fieldtype": "select",
+					"values": "Local,Hexdb",
+					"default": "Local"
+				}
+			},
+			"aircraft_route" : {
+				"required": "false",
+				"description": "Get flight route",
+				"help": "Get the flights route if possible",
+				"tab": "Settings",
+				"type": {
+					"fieldtype": "checkbox"
+				}          
+			},
+			"distance_limit" : {
+				"required": "true",
+				"description": "Limit Distance",
+				"help": "Only include aircraft inside this distance",
+				"tab": "Settings",                        
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 250,
+					"step": 1
+				}
+			},         
+			"observer_altitude" : {
+				"required": "true",
+				"description": "Altitude",
+				"help": "Your altitude in metres.",
+				"tab": "Settings",                        
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 1000,
+					"step": 10
+				}
+			},
+			"period" : {
+				"required": "true",
+				"description": "Read Every",
+				"help": "Reads data every x seconds. Be careful of any api limits when setting this",
+				"tab": "Settings",                          
+				"type": {
+					"fieldtype": "spinner",
+					"min": 60,
+					"max": 1440,
+					"step": 1
+				}
+			},
+			"timeout" : {
+				"required": "true",
+				"description": "Timeout",
+				"help": "The number of seconds to wait for a response from the api before aborting",
+				"tab": "Settings",                        
+				"type": {
+					"fieldtype": "spinner",
+					"min": 1,
+					"max": 20,
+					"step": 1
+				}
+			}                    
+		},
+		"businfo": [
+		],
+		"changelog": {
+			"v1.0.0" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Initial Release"
+				}
+			]
+		}
+	}
+
+	_warnings = {}
+	_missing_adsb_data = False
  
-	def __init__(self, params, event):
-		self.__params = params
-		self.__event = event
-		
-	def __local_adsb(self, local_adsb_url, observer_location, timeout):
+	def _local_adsb(self, local_adsb_url, observer_location, timeout):
 		''' Retreives data from a local ADSB source
 		'''
 		found_aircraft = {}
 		result = ''
-		shared.log(4, 'INFO: Getting data from local ADSB receiver')
+		allsky_shared.log(4, 'INFO: Getting data from local ADSB receiver')
 		
 		try:
 			response = requests.get(local_adsb_url, timeout=timeout)
@@ -372,7 +366,7 @@ class ALLSKYADSB:
 			if response.status_code == 200:
 				aircraft_data = response.json()
 
-				shared.log(4, f'INFO: Retrieved {len(aircraft_data["aircraft"])} aircraft from local ADSB server')
+				allsky_shared.log(4, f'INFO: Retrieved {len(aircraft_data["aircraft"])} aircraft from local ADSB server')
 				for aircraft in aircraft_data['aircraft']:
 
 					if 'flight' not in aircraft or aircraft['flight'].replace(' ', '') == '':
@@ -384,15 +378,15 @@ class ALLSKYADSB:
 
 					if 'ias' in aircraft:
 						if 'lat' in aircraft:
-							aircraft_pos = (float(aircraft['lat']), float(aircraft['lon']), self.__feet_to_meters(int(aircraft['alt_baro'])))
-							aircraft_azimuth, aircraft_elevation, aircraft_distance, slant_distance = self.__look_angle(aircraft_pos, observer_location)
+							aircraft_pos = (float(aircraft['lat']), float(aircraft['lon']), self._feet_to_meters(int(aircraft['alt_baro'])))
+							aircraft_azimuth, aircraft_elevation, aircraft_distance, slant_distance = self._look_angle(aircraft_pos, observer_location)
 
 							found_aircraft[aircraft['hex']] = {
 								'hex': aircraft['hex'].rstrip(),
 								'flight': aircraft['flight'].rstrip(),
 								'distance': aircraft_distance,
-								'distance_miles': self.__meters_to_miles(aircraft_distance),
-								'altitude': self.__get_flight_level(aircraft['alt_baro']),
+								'distance_miles': self._meters_to_miles(aircraft_distance),
+								'altitude': self._get_flight_level(aircraft['alt_baro']),
 								'altituderaw': aircraft['alt_baro'],
 								'ias': aircraft['ias'] if 'ias' in aircraft else '',
 								'tas': aircraft['tas'] if 'tas' in aircraft else '',
@@ -413,7 +407,7 @@ class ALLSKYADSB:
 
 		return found_aircraft, result
 
-	def __airplaneslive_adsb(self, observer_location, timeout):
+	def _airplaneslive_adsb(self, observer_location, timeout):
 		''' Retreives data from Airplanes live
 		'''
 
@@ -422,14 +416,14 @@ class ALLSKYADSB:
 
 		radius = self.__params['distance_limit']
 
-		shared.log(4, 'INFO: Getting data from Airplanes Live Network')  
+		allsky_shared.log(4, 'INFO: Getting data from Airplanes Live Network')  
 		url = f'https://api.airplanes.live/v2/point/{observer_location[0]}/{observer_location[1]}/{radius}'
 		try:
 			response = requests.get(url, timeout=timeout)
 
 			if response.status_code == 200:
 				aircraft_data = response.json()
-				shared.log(4, f'INFO: Retrieved {len(aircraft_data["ac"])+1} aircraft from AirplanesLive Network')
+				allsky_shared.log(4, f'INFO: Retrieved {len(aircraft_data["ac"])+1} aircraft from AirplanesLive Network')
 				for aircraft in aircraft_data['ac']:
 					flight = aircraft['flight'] if 'flight' in aircraft else 'Unknown'
 
@@ -441,8 +435,8 @@ class ALLSKYADSB:
 						if 'alt_baro' in aircraft:
 							if aircraft['alt_baro'] != 'ground':
 
-								aircraft_pos = (float(aircraft['lat']), float(aircraft['lon']), int(self.__feet_to_meters(aircraft['alt_baro'])))
-								aircraft_azimuth, aircraft_elevation, aircraft_distance, slant_distance = self.__look_angle(aircraft_pos, observer_location)
+								aircraft_pos = (float(aircraft['lat']), float(aircraft['lon']), int(self._feet_to_meters(aircraft['alt_baro'])))
+								aircraft_azimuth, aircraft_elevation, aircraft_distance, slant_distance = self._look_angle(aircraft_pos, observer_location)
 
 								icao = aircraft['hex']
 
@@ -450,8 +444,8 @@ class ALLSKYADSB:
 									'hex': icao,
 									'flight': flight,
 									'distance': aircraft_distance,
-									'distance_miles' : self.__meters_to_miles(aircraft_distance),                          
-									'altitude': self.__get_flight_level(aircraft['alt_baro']),
+									'distance_miles' : self._meters_to_miles(aircraft_distance),                          
+									'altitude': self._get_flight_level(aircraft['alt_baro']),
 									'altituderaw': aircraft['alt_baro'],
 									'ias': aircraft['ias'] if 'ias' in aircraft else '',
 									'tas': aircraft['tas'] if 'tas' in aircraft else '',
@@ -464,7 +458,7 @@ class ALLSKYADSB:
 						else:
 							self.__add_warning('altitude', aircraft['flight'].rstrip())
 					else:
-						shared.log(4, f'INFO: {flight} has no location so ignoring')
+						allsky_shared.log(4, f'INFO: {flight} has no location so ignoring')
 			else:
 				result = f'ERROR: Failed to retrieve data from "{url}". {response.status_code} - {response.text}'
 		except Exception as data_exception:
@@ -473,7 +467,7 @@ class ALLSKYADSB:
 			
 		return found_aircraft, result
 
-	def __opensky_adsb(self, observer_location, timeout):
+	def _opensky_adsb(self, observer_location, timeout):
 		''' Retreives data from Opensky
 		'''
 		found_aircraft = {}
@@ -487,7 +481,7 @@ class ALLSKYADSB:
 		password = self.__params['opensky_password'] if self.__params['opensky_password'] != '' else None
 
 		url = f'https://opensky-network.org/api/states/all?lamin={lat_min}&lamax={lat_max}&lomin={lon_min}&lomax={lon_max}'
-		shared.log(4, 'INFO: Getting data from OpenSky Network')
+		allsky_shared.log(4, 'INFO: Getting data from OpenSky Network')
 
 		try:
 			if username is not None and password is not None:
@@ -498,10 +492,10 @@ class ALLSKYADSB:
 			if response.status_code == 200:
 				aircraft_data = response.json()
 
-				shared.log(4, f'INFO: Retrieved {len(aircraft_data["states"])} aircraft from OpenSky Network') 
+				allsky_shared.log(4, f'INFO: Retrieved {len(aircraft_data["states"])} aircraft from OpenSky Network') 
 				for aircraft in aircraft_data['states']:
 					aircraft_pos = (float(aircraft[6]), float(aircraft[5]), int(aircraft[7]))
-					aircraft_azimuth, aircraft_elevation, aircraft_distance, slant_distance = self.__look_angle(aircraft_pos, observer_location)
+					aircraft_azimuth, aircraft_elevation, aircraft_distance, slant_distance = self._look_angle(aircraft_pos, observer_location)
 
 					icao = aircraft[0]
 					flight = aircraft[1]
@@ -509,12 +503,12 @@ class ALLSKYADSB:
 						'hex': icao,
 						'flight': flight,
 						'distance': aircraft_distance,
-						'distance_miles': self.__meters_to_miles(aircraft_distance),                
-						'altitude': self.__get_flight_level(aircraft[7]),
+						'distance_miles': self._meters_to_miles(aircraft_distance),                
+						'altitude': self._get_flight_level(aircraft[7]),
 						'altituderaw': aircraft[7],
 						'ias': int(aircraft[9]),
 						'tas': int(aircraft[9]),
-						'mach': self.__knots_to_mach(aircraft[9]),
+						'mach': self._knots_to_mach(aircraft[9]),
 						'azimuth': aircraft_azimuth,
 						'elevation': aircraft_elevation    
 					}
@@ -526,7 +520,7 @@ class ALLSKYADSB:
 			
 		return found_aircraft, result
 
-	def __adsbfi_adsb(self, observer_location, timeout):
+	def _adsbfi_adsb(self, observer_location, timeout):
 		''' Retreives data from Airplanes live
 		'''
 
@@ -534,14 +528,14 @@ class ALLSKYADSB:
 		result = ''
 		radius = self.__params['distance_limit']
 
-		shared.log(4, 'INFO: Getting data from Adsb.fi Network')  
+		allsky_shared.log(4, 'INFO: Getting data from Adsb.fi Network')  
 		url = f'https://opendata.adsb.fi/api/v2/lat/{observer_location[0]}/lon/{observer_location[1]}/dist/{radius}'
 		try:
 			response = requests.get(url, timeout=timeout)
 
 			if response.status_code == 200:
 				aircraft_data = response.json()
-				shared.log(4, f'INFO: Retrieved {len(aircraft_data["aircraft"])+1} aircraft from Adsb.fi Network')
+				allsky_shared.log(4, f'INFO: Retrieved {len(aircraft_data["aircraft"])+1} aircraft from Adsb.fi Network')
 				for aircraft in aircraft_data['aircraft']:
 					
 					if 'ias' not in aircraft:
@@ -553,8 +547,8 @@ class ALLSKYADSB:
 						if 'alt_baro' in aircraft:
 							if aircraft['alt_baro'] != 'ground':
 
-								aircraft_pos = (float(aircraft['lat']), float(aircraft['lon']), int(self.__feet_to_meters(aircraft['alt_baro'])))
-								aircraft_azimuth, aircraft_elevation, aircraft_distance, slant_distance = self.__look_angle(aircraft_pos, observer_location)
+								aircraft_pos = (float(aircraft['lat']), float(aircraft['lon']), int(self._feet_to_meters(aircraft['alt_baro'])))
+								aircraft_azimuth, aircraft_elevation, aircraft_distance, slant_distance = self._look_angle(aircraft_pos, observer_location)
 
 								icao = aircraft['hex']
 							
@@ -562,8 +556,8 @@ class ALLSKYADSB:
 									'hex': icao,
 									'flight': flight,
 									'distance': aircraft_distance,
-									'distance_miles' : self.__meters_to_miles(aircraft_distance),                          
-									'altitude': self.__get_flight_level(aircraft['alt_baro']),
+									'distance_miles' : self._meters_to_miles(aircraft_distance),                          
+									'altitude': self._get_flight_level(aircraft['alt_baro']),
 									'altituderaw': aircraft['alt_baro'],                                
 									'ias': aircraft['ias'] if 'ias' in aircraft else '',
 									'tas': aircraft['tas'] if 'tas' in aircraft else '',
@@ -588,12 +582,12 @@ class ALLSKYADSB:
 			
 		return found_aircraft, result
 
-	def __knots_to_mach(self, knots, speed_of_sound_knots=661.5):
+	def _knots_to_mach(self, knots, speed_of_sound_knots=661.5):
 		''' Converts knots to an estimated mach number
 		'''    
 		return knots / speed_of_sound_knots
 
-	def __get_flight_level(self, altitude):
+	def _get_flight_level(self, altitude):
 		''' Converts an altitude in meters to a flight level
 		'''
 		
@@ -604,17 +598,17 @@ class ALLSKYADSB:
 			
 		return result
 
-	def __feet_to_meters(self, feet):
+	def _feet_to_meters(self, feet):
 		''' Converts feet to meters
 		'''        
 		return feet * 0.3048
 
-	def __meters_to_miles(self, meters):
+	def _meters_to_miles(self, meters):
 		''' Converts meters to mils
 		'''        
 		return meters / 1609.344
 
-	def __haversine_distance(self, lat1, lon1, lat2, lon2):
+	def _haversine_distance(self, lat1, lon1, lat2, lon2):
 		'''Calculate greate circle distance between two points
 
 		Thanks to ChatGPT for the function
@@ -633,7 +627,7 @@ class ALLSKYADSB:
 		distance = EARTH_RADIUS * c
 		return distance
 
-	def __look_angle(self, aircraft_pos, observer_location):
+	def _look_angle(self, aircraft_pos, observer_location):
 		'''Calculate look angle between observer and aircraft
 
 		Thanks to ChatGPT for the function
@@ -647,7 +641,7 @@ class ALLSKYADSB:
 		alt2 = aircraft_pos[2]
 
 		# Surface distance between points
-		surface_distance = self.__haversine_distance(lat1, lon1, lat2, lon2)
+		surface_distance = self._haversine_distance(lat1, lon1, lat2, lon2)
 
 		# Azimuth calculation
 		dlon = math.radians(lon2 - lon1)
@@ -663,7 +657,7 @@ class ALLSKYADSB:
 
 		return azimuth, elevation, surface_distance, slant_distance
 
-	def __get_aircraft_info(self, icao, timeout, aircraft_data):
+	def _get_aircraft_info(self, icao, timeout, aircraft_data):
 
 		aircraft_info = {
 			'ICAOTypeCode': '', 
@@ -688,11 +682,11 @@ class ALLSKYADSB:
 					aircraft_info['Type'] = aircraft_info['Type'].split()[0]
 					aircraft_info['Military'] = ''
 				else:
-					shared.log(4, f'ERROR: Failed to retrieve data from "{url}". {response.status_code} - {response.text}')
+					allsky_shared.log(4, f'ERROR: Failed to retrieve data from "{url}". {response.status_code} - {response.text}')
 			except MissingSchema:
-				shared.log(4, f'The provided URL "{url}" is invalid')
+				allsky_shared.log(4, f'The provided URL "{url}" is invalid')
 			except JSONDecodeError:
-				shared.log(4, f'The provided URL "{url}" is not returning JSON data')
+				allsky_shared.log(4, f'The provided URL "{url}" is not returning JSON data')
 		else:
 			database_dir = '/opt/allsky/modules/adsb/adsb_data'
 			if os.path.isdir(database_dir):
@@ -722,11 +716,11 @@ class ALLSKYADSB:
 				except FileNotFoundError:
 					pass
 			else:
-				self.__missing_adsb_data = True
+				self._missing_adsb_data = True
 
 		return aircraft_info
 
-	def __get_route(self, flight, timeout, get_aircraft_route):
+	def _get_route(self, flight, timeout, get_aircraft_route):
 		route_data = {
 			'origin_icao': '',
 			'origin_name': '',
@@ -768,55 +762,48 @@ class ALLSKYADSB:
 			except Exception as data_exception:
 				exception_type, exception_object, exception_traceback = sys.exc_info()
 				result = f'ERROR: Failed to retrieve data from {url} - {exception_traceback.tb_lineno} - {data_exception}'
-				shared.log(4, result)
+				allsky_shared.log(4, result)
 			
 		return route_data
 	
 	def run(self):
-		''' The entry point for the module called by the module manager
-		'''
 		result = ''
 
 		try:
-			module = metaData['module']
-			period = int(self.__params['period'])
-			timeout = int(self.__params['timeout'])
-			distance_limit = int(self.__params['distance_limit'])
-			data_source = self.__params['data_source']
-			local_adsb_url = self.__params['local_adsb_url']
-			observer_altitude = int(self.__params['observer_altitude'])
-			aircraft_data = self.__params['aircraft_data']
-			get_aircraft_route = self.__params["aricraft_route"]
-
-			try:
-				debugMode = self.__params["ALLSKYTESTMODE"]
-			except ValueError:
-				debugMode = False
+			module = self.meta_data['module']
+			period = self.get_param('period', 60, int)  
+			timeout = self.get_param('timeout', 10, int)  
+			distance_limit = self.get_param('distance_limit', 50, int)  
+			data_source = self.get_param('data_source', 'Local', str, True)  
+			local_adsb_url = self.get_param('local_adsb_url', '', str, True)  
+			observer_altitude = self.get_param('observer_altitude', 0, int)  
+			aircraft_data = self.get_param('aircraft_data', 'local', str, True)  
+			get_aircraft_route = self.get_param('aircraft_route', False, bool)
 				
-			should_run, diff = shared.shouldRun(module, period)
-			if should_run or debugMode:
-				lat = shared.getSetting('latitude')
+			should_run, diff = allsky_shared.shouldRun(module, period)
+			if should_run or self.debugmode:
+				lat = allsky_shared.getSetting('latitude')
 				if lat is not None and lat != '':
-					lat = shared.convertLatLon(lat)
-					lon = shared.getSetting('longitude')
+					lat = allsky_shared.convertLatLon(lat)
+					lon = allsky_shared.getSetting('longitude')
 					if lon is not None and lon != '':
-						lon = shared.convertLatLon(lon)
+						lon = allsky_shared.convertLatLon(lon)
 
 						observer_location = (lat, lon, observer_altitude)
 
 						extra_data = {}
 
 						if data_source == 'Local':
-							aircraft_list, result = self.__local_adsb(local_adsb_url, observer_location, timeout)
+							aircraft_list, result = self._local_adsb(local_adsb_url, observer_location, timeout)
 
 						if data_source == 'AirplanesLive':
-							aircraft_list, result = self.__airplaneslive_adsb(observer_location, timeout)
+							aircraft_list, result = self._airplaneslive_adsb(observer_location, timeout)
 
 						if data_source == 'OpenSky':
-							aircraft_list, result = self.__opensky_adsb(observer_location, timeout)
+							aircraft_list, result = self._opensky_adsb(observer_location, timeout)
 
 						if data_source == 'adsbfi':
-							aircraft_list, result = self.__adsbfi_adsb(observer_location, timeout)
+							aircraft_list, result = self._adsbfi_adsb(observer_location, timeout)
 
 						if result == '':
 							aircraft_list = dict(sorted(aircraft_list.items(), key=lambda item: item[1]['distance']))
@@ -824,8 +811,8 @@ class ALLSKYADSB:
 							counter = 1
 							for aircraft in aircraft_list.values():
 								if aircraft['distance_miles'] <= distance_limit:
-									aircraft['info'] = self.__get_aircraft_info(aircraft['hex'], timeout, aircraft_data)
-									aircraft['route'] = self.__get_route(aircraft['flight'].rstrip(), timeout, get_aircraft_route)
+									aircraft['info'] = self._get_aircraft_info(aircraft['hex'], timeout, aircraft_data)
+									aircraft['route'] = self._get_route(aircraft['flight'].rstrip(), timeout, get_aircraft_route)
 
 									extra_data[f'AS_HEX_AIRCRAFT{counter}'] = aircraft['hex']
 									extra_data[f'AS_AZIMUTH_AIRCRAFT{counter}'] = int(aircraft['azimuth'])
@@ -845,64 +832,64 @@ class ALLSKYADSB:
 								else:
 									self.__add_warning('excluded', aircraft["flight"])
 							result = f'Wrote {counter} aircraft to extra data file allskyadsb.json'
-							shared.saveExtraData(metaData['extradatafilename'], extra_data, metaData["module"], metaData["extradata"])
-							shared.setLastRun(module)
-							shared.log(4,f'INFO: {result}')
+							allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+							allsky_shared.setLastRun(module)
+							allsky_shared.log(4,f'INFO: {result}')
 						else:
-							shared.log(0, result)
+							allsky_shared.log(0, result)
 					else:
 						result = f'The longitude in the main Allsky settings is invalid "{lon}"'
-						shared.log(0, f'ERROR: {result}')
+						allsky_shared.log(0, f'ERROR: {result}')
 				else:
 					result = f'The latitude in the main Allsky settings is invalid "{lat}"'
-					shared.log(0, f'ERROR: {result}')
+					allsky_shared.log(0, f'ERROR: {result}')
      
             	
-				if self.__missing_adsb_data:
-					shared.log(4, f'ERROR: The aircarft database has not been initialised so no aircraft information available. Please check the adsb module documentation')
+				if self._missing_adsb_data:
+					allsky_shared.log(4, f'ERROR: The aircarft database has not been initialised so no aircraft information available. Please check the adsb module documentation')
 
 				message = self.__get_warnings('excluded')
 				if message != '':
-					shared.log(4, f'INFO: Aicraft {message} excludes as beyond {distance_limit} miles')
+					allsky_shared.log(4, f'INFO: Aicraft {message} excludes as beyond {distance_limit} miles')
 
 				message = self.__get_warnings('latitude')
 				if message != '':
-					shared.log(4, f'INFO: Ignoring {message} as their latitude missing')
+					allsky_shared.log(4, f'INFO: Ignoring {message} as their latitude missing')
 
 				message = self.__get_warnings('airspeed')
 				if message != '':
-					shared.log(4, f'INFO: Ignoring {message} as their airspeed missing')
+					allsky_shared.log(4, f'INFO: Ignoring {message} as their airspeed missing')
 
 				message = self.__get_warnings('altitude')
 				if message != '':
-					shared.log(4, f'INFO: {message} have no altitude available so ignoring')
+					allsky_shared.log(4, f'INFO: {message} have no altitude available so ignoring')
 
 				message = self.__get_warnings('ground')
 				if message != '':
-					shared.log(4, f'INFO: {message} are on the ground so ignoring')
+					allsky_shared.log(4, f'INFO: {message} are on the ground so ignoring')
 
 				message = self.__get_warnings('location')
 				if message != '':
-					shared.log(4, f'INFO: {message} have no location so ignoring')
+					allsky_shared.log(4, f'INFO: {message} have no location so ignoring')
           		
 			else:
 				result = f'Will run in {(period - diff):.0f} seconds'
-				shared.log(4,f'INFO: {result}')
+				allsky_shared.log(4,f'INFO: {result}')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			shared.log(0, f"ERROR: adsb failed on line {eTraceback.tb_lineno} - {e}")    
+			allsky_shared.log(0, f"ERROR: adsb failed on line {eTraceback.tb_lineno} - {e}")    
 		return result
 
 	def __add_warning(self, warning_key, warning_text):
-		if not warning_key in self.__warnings:
-			self.__warnings[warning_key] = []
+		if not warning_key in self._warnings:
+			self._warnings[warning_key] = []
 
-		self.__warnings[warning_key].append(warning_text)
+		self._warnings[warning_key].append(warning_text)
     
 	def __get_warnings(self, warning_key):
 		result = ''
-		if warning_key in self.__warnings:
-			result = ', '.join(self.__warnings[warning_key])
+		if warning_key in self._warnings:
+			result = ', '.join(self._warnings[warning_key])
 
 		return result
   
@@ -916,12 +903,12 @@ def adsb_cleanup():
 	''' Cleans up the module if it is removed from a flow, called by the module manager
 	'''       
 	moduleData = {
-	    "metaData": metaData,
+	    "metaData": ALLSKYADSB.meta_data,
 	    "cleanup": {
 	        "files": {
-	            metaData['extradatafilename']
+	            ALLSKYADSB.meta_data['extradatafilename']
 	        },
 	        "env": {}
 	    }
 	}
-	shared.cleanupModule(moduleData)
+	allsky_shared.cleanupModule(moduleData)

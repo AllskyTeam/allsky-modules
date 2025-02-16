@@ -6,164 +6,164 @@ import board
 import digitalio
 import sparkfun_qwiicas3935
 
-metaData = {
-	"name": "AllSKY Lightning",
-	"description": "Detects Lightning using an as3935",
-	"version": "v1.0.0",
-	"module": "allsky_lightning", 
-	"centersettings": "false",
-	"testable": "true",
-	"experimental": "true",
-	"events": [
-		"day",
-		"night",
-	    "periodic"
-	],
- 	"extradatafilename": "allsky_lightning.json", 
-   	"extradata": {
-	    "values": {
-	        "AS_LIGHTNING_COUNT": {
-	            "name": "${LIGHTNING_COUNT}",
-	            "format": "",
-	            "sample": "",                 
-	            "group": "Environment",
-	            "description": "Number of lightning strikes",
-	            "type": "Number"
-	        },
-	        "AS_LIGHTNING_DIST": {
-	            "name": "${LIGHTNING_DIST}",
-	            "format": "",
-	            "sample": "",                 
-	            "group": "Environment",
-	            "description": "Approx distance of last strike",
-	            "type": "Number"
-	        },
-	        "AS_LIGHTNING_ENERGY": {
-	            "name": "${LIGHTNING_ENERGY}",
-	            "format": "",
-	            "sample": "",                 
-	            "group": "Environment",
-	            "description": "Energy of last strike",
-	            "type": "Number"
-	        },
-	        "AS_LIGHTNING_LAST": {
-	            "name": "${LIGHTNING_LAST}",
-	            "format": "",
-	            "sample": "",                 
-	            "group": "Environment",
-	            "description": "Date/Time of last strike",
-	            "type": "timestamp"
-	        }                                        
-	    }                
-	},
-	"arguments":{
-	    "i2caddress": "",
-     	"interruptpin": "",
-		"maskdisturbers": "True",
-		"noiselevel": 2,
-		"watchdogthreshold": 2,
-		"spikerejection": 2,
-		"lightningthreshold": 1,
-		"expirestrikes": 600
-	},
-	"argumentdetails": {
-	    "i2caddress": {
-	        "required": "false",
-	        "description": "I2C Address",
-	        "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x03",
-	        "type": {
-	            "fieldtype": "i2c"
-	        }           
-	    },
-	    "interruptpin": {
-	        "required": "true",
-	        "description": "Input Pin",
-	        "help": "The input pin for the lightning sensor",
-	        "type": {
-	            "fieldtype": "gpio"
-	        }           
-	    },
-	    "maskdisturbers" : {
-	        "required": "false",
-	        "description": "Mask disturbers",
-	        "help": "If enabled disturbers will be ignored",
-	        "tab": "Advanced",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }            
-	    },
-	    "noiselevel" : {
-	        "required": "false",
-	        "description": "Noise level",
-	        "help": "Sets the base noise level, 1 is lowest 7 is highest ambient noise",
-	        "tab": "Advanced",            
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 1,
-	            "max": 7,
-	            "step": 1
-	        }                      
-	    },
-	    "watchdogthreshold" : {
-	        "required": "false",
-	        "description": "Watchdog Threshold",
-	        "help": "Minimum signal level to trigger the lightning verification algorithm (1-10)",
-	        "tab": "Advanced",            
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 1,
-	            "max": 10,
-	            "step": 1
-	        }                      
-	    },
-	    "spikerejection" : {
-	        "required": "false",
-	        "description": "Spike Rejection",
-	        "help": "The default setting is two. The shape of the spike is analyzed during the chip's validation routine. You can round this spike at the cost of sensitivity to distant events (1-11)",
-	        "tab": "Advanced",            
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 1,
-	            "max": 11,
-	            "step": 1
-	        }                      
-	    },
-	    "lightningthreshold" : {
-	        "required": "false",
-	        "description": "Strike Threshold",
-	        "help": "The number of strikes detected before an event is triggered.",
-	        "tab": "Advanced",
-	        "type": {
-	            "fieldtype": "select",
-	            "values": "1,5,9,16",
-	            "default": "None"
-	        }
-	    },
-	    "expirestrikes" : {
-	        "required": "false",
-	        "description": "Expire Strikes",
-	        "help": "If a strike is detected then after this number of seconds of no strikes the strikes overlay variable and strike counter will be reset. Default is 600 seconds (10 minutes)",
-	        "tab": "Advanced",            
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 1,
-	            "max": 3600,
-	            "step": 1
-	        }                      
-	    }                                                     
-	},
-	"changelog": {
-	    "v1.0.0" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Initial Release"
-	        }
-	    ]                              
-	}         
-}
-
 class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
+
+	meta_data = {
+		"name": "AllSKY Lightning",
+		"description": "Detects Lightning using an as3935",
+		"version": "v1.0.0",
+		"module": "allsky_lightning", 
+		"centersettings": "false",
+		"testable": "true",
+		"experimental": "true",
+		"events": [
+			"day",
+			"night",
+			"periodic"
+		],
+		"extradatafilename": "allsky_lightning.json", 
+		"extradata": {
+			"values": {
+				"AS_LIGHTNING_COUNT": {
+					"name": "${LIGHTNING_COUNT}",
+					"format": "",
+					"sample": "",                 
+					"group": "Environment",
+					"description": "Number of lightning strikes",
+					"type": "Number"
+				},
+				"AS_LIGHTNING_DIST": {
+					"name": "${LIGHTNING_DIST}",
+					"format": "",
+					"sample": "",                 
+					"group": "Environment",
+					"description": "Approx distance of last strike",
+					"type": "Number"
+				},
+				"AS_LIGHTNING_ENERGY": {
+					"name": "${LIGHTNING_ENERGY}",
+					"format": "",
+					"sample": "",                 
+					"group": "Environment",
+					"description": "Energy of last strike",
+					"type": "Number"
+				},
+				"AS_LIGHTNING_LAST": {
+					"name": "${LIGHTNING_LAST}",
+					"format": "",
+					"sample": "",                 
+					"group": "Environment",
+					"description": "Date/Time of last strike",
+					"type": "timestamp"
+				}                                        
+			}                
+		},
+		"arguments":{
+			"i2caddress": "",
+			"interruptpin": "",
+			"maskdisturbers": "True",
+			"noiselevel": 2,
+			"watchdogthreshold": 2,
+			"spikerejection": 2,
+			"lightningthreshold": 1,
+			"expirestrikes": 600
+		},
+		"argumentdetails": {
+			"i2caddress": {
+				"required": "false",
+				"description": "I2C Address",
+				"help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x03",
+				"type": {
+					"fieldtype": "i2c"
+				}           
+			},
+			"interruptpin": {
+				"required": "true",
+				"description": "Input Pin",
+				"help": "The input pin for the lightning sensor",
+				"type": {
+					"fieldtype": "gpio"
+				}           
+			},
+			"maskdisturbers" : {
+				"required": "false",
+				"description": "Mask disturbers",
+				"help": "If enabled disturbers will be ignored",
+				"tab": "Advanced",
+				"type": {
+					"fieldtype": "checkbox"
+				}            
+			},
+			"noiselevel" : {
+				"required": "false",
+				"description": "Noise level",
+				"help": "Sets the base noise level, 1 is lowest 7 is highest ambient noise",
+				"tab": "Advanced",            
+				"type": {
+					"fieldtype": "spinner",
+					"min": 1,
+					"max": 7,
+					"step": 1
+				}                      
+			},
+			"watchdogthreshold" : {
+				"required": "false",
+				"description": "Watchdog Threshold",
+				"help": "Minimum signal level to trigger the lightning verification algorithm (1-10)",
+				"tab": "Advanced",            
+				"type": {
+					"fieldtype": "spinner",
+					"min": 1,
+					"max": 10,
+					"step": 1
+				}                      
+			},
+			"spikerejection" : {
+				"required": "false",
+				"description": "Spike Rejection",
+				"help": "The default setting is two. The shape of the spike is analyzed during the chip's validation routine. You can round this spike at the cost of sensitivity to distant events (1-11)",
+				"tab": "Advanced",            
+				"type": {
+					"fieldtype": "spinner",
+					"min": 1,
+					"max": 11,
+					"step": 1
+				}                      
+			},
+			"lightningthreshold" : {
+				"required": "false",
+				"description": "Strike Threshold",
+				"help": "The number of strikes detected before an event is triggered.",
+				"tab": "Advanced",
+				"type": {
+					"fieldtype": "select",
+					"values": "1,5,9,16",
+					"default": "None"
+				}
+			},
+			"expirestrikes" : {
+				"required": "false",
+				"description": "Expire Strikes",
+				"help": "If a strike is detected then after this number of seconds of no strikes the strikes overlay variable and strike counter will be reset. Default is 600 seconds (10 minutes)",
+				"tab": "Advanced",            
+				"type": {
+					"fieldtype": "spinner",
+					"min": 1,
+					"max": 3600,
+					"step": 1
+				}                      
+			}                                                     
+		},
+		"changelog": {
+			"v1.0.0" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Initial Release"
+				}
+			]                              
+		}         
+	}
     
 	def run(self):
      
@@ -243,7 +243,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 					extra_data['AS_LIGHTNING_LAST'] = last_strike_time
 					extra_data['AS_LIGHTNING_DIST'] = distance_to_storm    
 					extra_data['AS_LIGHTNING_ENERGY'] = lightning_energy    
-					allsky_shared.saveExtraData(metaData['extradatafilename'], extra_data, metaData['module'], metaData['extradata'])
+					allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 		
 					allsky_shared.dbUpdate('allsky_lightning_strike_counter', count)
 					allsky_shared.dbUpdate('allsky_lightning_last_strike', last_strike_time)    
@@ -263,7 +263,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 					extra_data['AS_LIGHTNING_LAST'] = last_strike_time
 					extra_data['AS_LIGHTNING_DIST'] = 0    
 					extra_data['AS_LIGHTNING_ENERGY'] = 0    
-					allsky_shared.saveExtraData(metaData['extradatafilename'], extra_data, metaData['module'], metaData['extradata'])
+					allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
        
 		else:
 			result = 'Lightning Detector does not appear to be connected. Please check wiring.'
@@ -277,10 +277,10 @@ def lightning(params, event):
 
 def lightning_cleanup():
 	moduleData = {
-	    "metaData": metaData,
+	    "metaData": ALLSKYLIGHTNING.meta_data,
 	    "cleanup": {
 	        "files": {
-	            metaData['extradatafilename']
+	            ALLSKYLIGHTNING.meta_data['extradatafilename']
 	        },
 	        "env": {}
 	    }

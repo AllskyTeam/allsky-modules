@@ -15,152 +15,150 @@ import subprocess
 from gps import *
 from datetime import timedelta
 
-metaData = {
-	"name": "AllSKY GPS",
-	"description": "Sets date/time and position from an attached GPS",
-	"version": "v1.0.0",
-	"module": "allsky_gps", 
-	"centersettings": "false",
-	"testable": "true",   
-	"events": [
-		"day",
-		"night",
-	    "periodic"
-	],
- 	"extradatafilename": "allsky_gps.json", 
-   	"extradata": {
-	    "values": {
-	        "AS_PIGPSFIXDISC": {
-	            "name": "${PIGPSFIXDISC}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "GPS",
-	            "description": "GPS and Allsky position discrepancy",
-	            "type": "string"
-	        },
-	        "AS_PIGPSLAT": {
-	            "name": "${PIGPSLAT}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "GPS",
-	            "description": "GPS Latitude",
-	            "type": "latitude"
-	        },
-	        "AS_PIGPSLON": {
-	            "name": "${PIGPSLON}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "GPS",
-	            "description": "GPS Longitude",
-	            "type": "longitude"
-	        },
-	        "AS_PIGPSFIX": {
-	            "name": "${PIGPSFIX}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "GPS",
-	            "description": "GPS Fix",
-	            "type": "bool"
-	        }                               
-	    }                         
-	},
-	"arguments":{
-	    "warnposition": "True",
-	    "setposition": "False",
-	    "settime": "True",
-	    "timeperiod": "60",
-	    "extradataposdisc": "GPS Position differs from AllSky",
-	    "obfuscate": "False",
-	    "obfuscatelatdistance": 0,
-	    "obfuscatelondistance": 0
-	},
-	"argumentdetails": {
-	    "warnposition" : {
-	        "required": "false",
-	        "description": "Lat/Lon Warning",
-	        "help": "Warn if the GPS position doesnt match the AllSky position",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }          
-	    },
-	    "setposition" : {
-	        "required": "false",
-	        "description": "Set Lat/Lon",
-	        "help": "Sets the Latitude and Longitude in the AllSky Config",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }          
-	    },
-	    "settime" : {
-	        "required": "false",
-	        "description": "Set Time",
-	        "help": "Sets the local time, based upon timezone, from the gps data",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }          
-	    },        
-	    "timeperiod" : {
-	        "required": "true",
-	        "description": "Set Every",
-	        "help": "How frequently (in seconds) to set the time",                
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 60,
-	            "max": 1440,
-	            "step": 1
-	        }          
-	    },
-	    "extradataposdisc": {
-	        "required": "true",
-	        "description": "Discrepancy Warning",
-	        "help": "Message to set when the GPS coordinates differ from the AllSky settings"         
-	    },
-	    "obfuscate" : {
-	        "required": "false",
-	        "description": "Obfuscate Position",
-	        "help": "Adds the values below to the lat/lon to prevent youre precise location being available",
-	        "tab": "Obfuscation",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }          
-	    },
-	    "obfuscatelatdistance" : {
-	        "description": "Latitude Metres",
-	        "help": "Number of metres to add to the latitude",
-	        "tab": "Obfuscation",                       
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": -10000,
-	            "max": 10000,
-	            "step": 1
-	        }          
-	    },
-	    "obfuscatelondistance" : {
-	        "description": "Longitude Metres",
-	        "help": "Number of metres to add to the longitude",                
-	        "tab": "Obfuscation",            
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": -10000,
-	            "max": 10000,
-	            "step": 1
-	        }          
-	    }                           
-	},
-	"changelog": {
-	    "v1.0.0" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Initial Release"
-	        }
-	    ]                              
-	}         
-}
-
 class ALLSKYGPS(ALLSKYMODULEBASE):
-	params = []
-	event = ''
+
+	meta_data = {
+		"name": "AllSKY GPS",
+		"description": "Sets date/time and position from an attached GPS",
+		"version": "v1.0.0",
+		"module": "allsky_gps", 
+		"centersettings": "false",
+		"testable": "true",   
+		"events": [
+			"day",
+			"night",
+			"periodic"
+		],
+		"extradatafilename": "allsky_gps.json", 
+		"extradata": {
+			"values": {
+				"AS_PIGPSFIXDISC": {
+					"name": "${PIGPSFIXDISC}",
+					"format": "",
+					"sample": "",                
+					"group": "GPS",
+					"description": "GPS and Allsky position discrepancy",
+					"type": "string"
+				},
+				"AS_PIGPSLAT": {
+					"name": "${PIGPSLAT}",
+					"format": "",
+					"sample": "",                
+					"group": "GPS",
+					"description": "GPS Latitude",
+					"type": "latitude"
+				},
+				"AS_PIGPSLON": {
+					"name": "${PIGPSLON}",
+					"format": "",
+					"sample": "",                
+					"group": "GPS",
+					"description": "GPS Longitude",
+					"type": "longitude"
+				},
+				"AS_PIGPSFIX": {
+					"name": "${PIGPSFIX}",
+					"format": "",
+					"sample": "",                
+					"group": "GPS",
+					"description": "GPS Fix",
+					"type": "bool"
+				}                               
+			}                         
+		},
+		"arguments":{
+			"warnposition": "True",
+			"setposition": "False",
+			"settime": "True",
+			"timeperiod": "60",
+			"extradataposdisc": "GPS Position differs from AllSky",
+			"obfuscate": "False",
+			"obfuscatelatdistance": 0,
+			"obfuscatelondistance": 0
+		},
+		"argumentdetails": {
+			"warnposition" : {
+				"required": "false",
+				"description": "Lat/Lon Warning",
+				"help": "Warn if the GPS position doesnt match the AllSky position",
+				"type": {
+					"fieldtype": "checkbox"
+				}          
+			},
+			"setposition" : {
+				"required": "false",
+				"description": "Set Lat/Lon",
+				"help": "Sets the Latitude and Longitude in the AllSky Config",
+				"type": {
+					"fieldtype": "checkbox"
+				}          
+			},
+			"settime" : {
+				"required": "false",
+				"description": "Set Time",
+				"help": "Sets the local time, based upon timezone, from the gps data",
+				"type": {
+					"fieldtype": "checkbox"
+				}          
+			},        
+			"timeperiod" : {
+				"required": "true",
+				"description": "Set Every",
+				"help": "How frequently (in seconds) to set the time",                
+				"type": {
+					"fieldtype": "spinner",
+					"min": 60,
+					"max": 1440,
+					"step": 1
+				}          
+			},
+			"extradataposdisc": {
+				"required": "true",
+				"description": "Discrepancy Warning",
+				"help": "Message to set when the GPS coordinates differ from the AllSky settings"         
+			},
+			"obfuscate" : {
+				"required": "false",
+				"description": "Obfuscate Position",
+				"help": "Adds the values below to the lat/lon to prevent youre precise location being available",
+				"tab": "Obfuscation",
+				"type": {
+					"fieldtype": "checkbox"
+				}          
+			},
+			"obfuscatelatdistance" : {
+				"description": "Latitude Metres",
+				"help": "Number of metres to add to the latitude",
+				"tab": "Obfuscation",                       
+				"type": {
+					"fieldtype": "spinner",
+					"min": -10000,
+					"max": 10000,
+					"step": 1
+				}          
+			},
+			"obfuscatelondistance" : {
+				"description": "Longitude Metres",
+				"help": "Number of metres to add to the longitude",                
+				"tab": "Obfuscation",            
+				"type": {
+					"fieldtype": "spinner",
+					"min": -10000,
+					"max": 10000,
+					"step": 1
+				}          
+			}                           
+		},
+		"changelog": {
+			"v1.0.0" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Initial Release"
+				}
+			]                              
+		}         
+	}
 
 	def _compare_gps_and_allsky(self, lat, lon):
 		allsky_lat = allsky_shared.getSetting('latitude')
@@ -269,12 +267,11 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 		obfuscate = self.get_param('obfuscate', False, bool)
 		obfuscate_lat_distance = self.get_param('obfuscatelatdistance', 0, int)
 		obfuscate_lon_distance = self.get_param('obfuscatelondistance', 0, int)
-		self._debugmode = self.get_param('ALLSKYTESTMODE', False, bool)   
   
 		should_run, diff = allsky_shared.shouldRun('pigps', period)
 
 		gpsd = gps(mode=WATCH_ENABLE|WATCH_NEWSTYLE)
-		if should_run or self._debugmode:
+		if should_run or self.debug_mode:
 			if set_time:
 				if not self._check_time_sync_running():
 					try:
@@ -379,7 +376,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 						allsky_shared.log(1, f'ERROR: {result}') 
 						break                    
 			
-				allsky_shared.saveExtraData(metaData['extradatafilename'], extra_data, metaData['module'], metaData['extradata'])
+				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 				allsky_shared.setLastRun('pigps')
    
 			except Exception as e:
@@ -400,10 +397,10 @@ def pigps(params, event):
 
 def pigps_cleanup():
 	moduleData = {
-	    "metaData": metaData,
+	    "metaData": ALLSKYGPS.meta_data,
 	    "cleanup": {
 	        "files": {
-	            metaData['extradatafilename']
+	            ALLSKYGPS.meta_data['extradatafilename']
 	        },
 	        "env": {}
 	    }

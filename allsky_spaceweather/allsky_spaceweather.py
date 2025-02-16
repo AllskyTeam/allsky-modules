@@ -16,108 +16,110 @@ import ephem
 import pytz
 import datetime
 
-metaData = {
-	"name": "Space Weather",
-	"description": "Retrieves and processes space weather data from NOAA SWPC for use in AllSky overlays",
-	"module": "allsky_spaceweather",
-	"version": "v1.0.1",
-	"centersettings": "false",
-	"testable": "true", 
-	"extradatafilename": "allsky_spaceweather.json", 
-	"events": [
-		"day",
-		"night",
-	    "periodic"
-	],
-	"extradata": {
-	    "values": {
-	        "SWX_SWIND_SPEED": {
-	            "name": "${SWIND_SPEED}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Space",
-	            "description": "Solar wind speed",
-	            "type": "Number"
-	        },
-	        "SWX_SWIND_DENSITY": {
-	            "name": "${SWIND_DENSITY}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Space",
-	            "description": "Solar wind density",
-	            "type": "Number"
-	        },
-	        "SWX_SWIND_TEMP": {
-	            "name": "${SWIND_TEMP}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Space",
-	            "description": "Solar wind temperature",
-	            "type": "Number"
-	        },
-	        "SWX_KPDATA": {
-	            "name": "${KPDATA}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Space",
-	            "description": "KP Data",
-	            "type": "Number"
-	        },
-	        "SWX_BZDATA": {
-	            "name": "${BZDATA}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Space",
-	            "description": "BZ Data",
-	            "type": "Number"
-	        },
-	        "SWX_S_ANGLE": {
-	            "name": "${S_ANGLE}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Space",
-	            "description": "Sun Angle",
-	            "type": "Number"
-	        }
-	    }                         
-	}, 
-	"arguments": {
-	    "latitude": "",
-	    "longitude": "",
-	    "period": 300,
-	    "filename": "spaceweather.json"
-	},
-	"argumentdetails": {
-	    "period": {
-	        "required": "true",
-	        "description": "Update Period",
-	        "help": "How often to fetch new data (in seconds). 300 seconds minimum (5 minutes) to avoid overloading the API",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 300,
-	            "max": 3000,
-	            "step": 60
-	        }
-	    }
-	},
-	"changelog": {
-	    "v1.0.0": [
-	        {
-	            "author": "Jim Cauthen",
-	            "authorurl": "https://github.com/jcauthen78/",
-	            "changes": "Initial Release"
-	        }
-	    ],
-	    "v1.0.0": [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Updates for new module system"
-	        }
-	    ]     
-	}
-}
 class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
+
+	meta_data = {
+		"name": "Space Weather",
+		"description": "Retrieves and processes space weather data from NOAA SWPC for use in AllSky overlays",
+		"module": "allsky_spaceweather",
+		"version": "v1.0.1",
+		"centersettings": "false",
+		"testable": "true", 
+		"extradatafilename": "allsky_spaceweather.json", 
+		"events": [
+			"day",
+			"night",
+			"periodic"
+		],
+		"extradata": {
+			"values": {
+				"SWX_SWIND_SPEED": {
+					"name": "${SWIND_SPEED}",
+					"format": "",
+					"sample": "",
+					"group": "Space",
+					"description": "Solar wind speed",
+					"type": "Number"
+				},
+				"SWX_SWIND_DENSITY": {
+					"name": "${SWIND_DENSITY}",
+					"format": "",
+					"sample": "",
+					"group": "Space",
+					"description": "Solar wind density",
+					"type": "Number"
+				},
+				"SWX_SWIND_TEMP": {
+					"name": "${SWIND_TEMP}",
+					"format": "",
+					"sample": "",
+					"group": "Space",
+					"description": "Solar wind temperature",
+					"type": "Number"
+				},
+				"SWX_KPDATA": {
+					"name": "${KPDATA}",
+					"format": "",
+					"sample": "",
+					"group": "Space",
+					"description": "KP Data",
+					"type": "Number"
+				},
+				"SWX_BZDATA": {
+					"name": "${BZDATA}",
+					"format": "",
+					"sample": "",
+					"group": "Space",
+					"description": "BZ Data",
+					"type": "Number"
+				},
+				"SWX_S_ANGLE": {
+					"name": "${S_ANGLE}",
+					"format": "",
+					"sample": "",
+					"group": "Space",
+					"description": "Sun Angle",
+					"type": "Number"
+				}
+			}                         
+		}, 
+		"arguments": {
+			"latitude": "",
+			"longitude": "",
+			"period": 300,
+			"filename": "spaceweather.json"
+		},
+		"argumentdetails": {
+			"period": {
+				"required": "true",
+				"description": "Update Period",
+				"help": "How often to fetch new data (in seconds). 300 seconds minimum (5 minutes) to avoid overloading the API",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 300,
+					"max": 3000,
+					"step": 60
+				}
+			}
+		},
+		"changelog": {
+			"v1.0.0": [
+				{
+					"author": "Jim Cauthen",
+					"authorurl": "https://github.com/jcauthen78/",
+					"changes": "Initial Release"
+				}
+			],
+			"v1.0.0": [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Updates for new module system"
+				}
+			]     
+		}
+	}
+
 	_urls = {
 		"wind": "https://services.swpc.noaa.gov/products/solar-wind/plasma-6-hour.json",
 		"kp": "https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json",
@@ -195,7 +197,7 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
   
 		try:
 			# Get period from params, enforce minimum of 300 seconds
-			module = metaData['module']
+			module = self.meta_data['module']
 			
 			shouldRun, diff = allsky_shared.shouldRun(module, period)
 			if not shouldRun and not self._debugmode:
@@ -285,8 +287,8 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 			}
 
 			# Save data to file
-			allsky_shared.saveExtraData(metaData['extradatafilename'], space_weather_data, metaData['module'], metaData['extradata'])
-			result = f"Space weather data successfully written to {metaData['extradatafilename']}"
+			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], space_weather_data, self.meta_data['module'], self.meta_data['extradata'])
+			result = f"Space weather data successfully written to {self.meta_data['extradatafilename']}"
 			allsky_shared.log(1, f"INFO: {result}")
 			allsky_shared.setLastRun(module)
 
@@ -306,10 +308,10 @@ def spaceweather(params, event):
 def spaceweather_cleanup():
 	"""Cleanup function for the module"""
 	moduleData = {
-	    "metaData": metaData,
+	    "metaData": ALLSKYSPACEWEATHER.meta_data,
 	    "cleanup": {
 	        "files": {
-	            metaData['extradatafilename']
+	            ALLSKYSPACEWEATHER.meta_data['extradatafilename']
 	        },
 	        "env": {}
 	    }

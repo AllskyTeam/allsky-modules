@@ -14,82 +14,80 @@ from allsky_base import ALLSKYMODULEBASE
 import sys 
 from digitalio import DigitalInOut, Direction, Pull
 
-metaData = {
-	"name": "Rain detection",
-	"description": "Detects rain via an external digital sensor",
-	"module": "allsky_rain",
-	"centersettings": "false",
-	"testable": "true", 
-	"version": "v1.0.1",      
-	"events": [
-	    "day",
-		"night",
-		"periodic"
-	],
- 	"extradatafilename": "allsky_rain.json", 
- 	"extradata": {
-	    "values": {
-	        "AS_RAINSTATE": {
-	            "name": "${RAINSTATE}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "Rain state human readable",
-	            "type": "string"
-	        },
-	        "AS_ALLSKYRAINFLAG": {
-	            "name": "${ALLSKYRAINFLAG}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "Rain state boolean",
-	            "type": "bool"
-	        }         
-	    }                         
-	},
-	"arguments":{
-	    "inputpin": "",
-	    "invertsensor": "false"
-	},
-	"argumentdetails": {
-	    "inputpin": {
-	        "required": "true",
-	        "description": "Input Pin",
-	        "help": "The input pin for the digital rain sensor",
-	        "type": {
-	            "fieldtype": "gpio"
-	        }           
-	    },
-	    "invertsensor" : {
-	        "required": "false",
-	        "description": "Invert Sensor",
-	        "help": "Normally the sensor will be high for clear and low for rain. This settign will reverse this",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }               
-	    }             
-	},
-	"changelog": {
-	    "v1.0.0" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Initial Release"
-	        }
-	    ],
-	    "v1.0.1" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Refactored for new module and variable system"
-	        }
-	    ]                                    
-	}         
-}
-
 class ALLSKYRAIN(ALLSKYMODULEBASE):
-	params = []
-	event = ''
+
+	meta_data = {
+		"name": "Rain detection",
+		"description": "Detects rain via an external digital sensor",
+		"module": "allsky_rain",
+		"centersettings": "false",
+		"testable": "true", 
+		"version": "v1.0.1",      
+		"events": [
+			"day",
+			"night",
+			"periodic"
+		],
+		"extradatafilename": "allsky_rain.json", 
+		"extradata": {
+			"values": {
+				"AS_RAINSTATE": {
+					"name": "${RAINSTATE}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "Rain state human readable",
+					"type": "string"
+				},
+				"AS_ALLSKYRAINFLAG": {
+					"name": "${ALLSKYRAINFLAG}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "Rain state boolean",
+					"type": "bool"
+				}         
+			}                         
+		},
+		"arguments":{
+			"inputpin": "",
+			"invertsensor": "false"
+		},
+		"argumentdetails": {
+			"inputpin": {
+				"required": "true",
+				"description": "Input Pin",
+				"help": "The input pin for the digital rain sensor",
+				"type": {
+					"fieldtype": "gpio"
+				}           
+			},
+			"invertsensor" : {
+				"required": "false",
+				"description": "Invert Sensor",
+				"help": "Normally the sensor will be high for clear and low for rain. This settign will reverse this",
+				"type": {
+					"fieldtype": "checkbox"
+				}               
+			}             
+		},
+		"changelog": {
+			"v1.0.0" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Initial Release"
+				}
+			],
+			"v1.0.1" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Refactored for new module and variable system"
+				}
+			]                                    
+		}         
+	}
 
 	def run(self):
 		try:
@@ -122,18 +120,18 @@ class ALLSKYRAIN(ALLSKYMODULEBASE):
 					extra_data = {}
 					extra_data['AS_RAINSTATE'] = result_state
 					extra_data['AS_ALLSKYRAINFLAG'] = rain_flag
-					allsky_shared.saveExtraData(metaData['extradatafilename'], extra_data, metaData['module'], metaData['extradata'])
+					allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 
 					result = f'Rain State: Its {result_state}'
 					allsky_shared.log(1, f'INFO: {result}')
 				except Exception as ex:
 					result = f'Unable to read Rain sensor {ex}'
 					allsky_shared.log(0, f'ERROR: {result}')
-					allsky_shared.deleteExtraData(metaData['extradatafilename'])
+					allsky_shared.deleteExtraData(self.meta_data['extradatafilename'])
 			else:
 				result = f'Invalid GPIO pin ({input_pin})'
 				allsky_shared.log(0, f'ERROR: {result}')
-				allsky_shared.deleteExtraData(metaData['extradatafilename'])
+				allsky_shared.deleteExtraData(self.meta_data['extradatafilename'])
 
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()            
@@ -150,10 +148,10 @@ def rain(params, event):
 
 def rain_cleanup():
 	moduleData = {
-	    "metaData": metaData,
+	    "metaData": ALLSKYRAIN.meta_data,
 	    "cleanup": {
 	        "files": {
-	            metaData['extradatafilename']
+	            ALLSKYRAIN.meta_data['extradatafilename']
 	        },
 	        "env": {}
 	    }

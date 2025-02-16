@@ -20,388 +20,389 @@ from pytz import timezone
 from astral.sun import sun, azimuth, elevation, night
 from astral import LocationInfo, Observer
 
-metaData = {
-	"name": "AllSky Solar System",
-	"description": "Produce data for Solar System objects",
-	"module": "allsky_solarsystem",
-	"version": "v1.0.1",
-	"testable": "true",
-	"centersettings": "false",    
-	"events": [
-	    "periodic",
-	    "day",
-	    "night"
-	],
-  	"extradatafilename": "allsky_solarsystem.json",
-	"experimental": "false",
-	"extradata": {   
-	    "values": {
-	        "AS_MOON_AZIMUTH": {
-	            "group": "Solar System",
-	            "type": "azimuth",
-	            "description": "The Moons azimuth"
-	        },
-	        "AS_MOON_ELEVATION": {
-	            "group": "Solar System",
-	            "type": "elevation",
-	            "description": "The Moons elevation"
-	        },
-	        "AS_MOON_VISIBLE": {
-	            "group": "Solar System",
-	            "type": "bool",
-	            "description": "Is the Moon visible"
-	        },
-	        "AS_MOON_ILLUMINATION": {
-	            "group": "Solar System",
-	            "type": "float",
-	            "description": "The Moons illumination %"
-	        },
-	        "AS_MOON_SYMBOL": {
-	            "group": "Solar System",
-	            "type": "string",
-	            "description": "The moon phase symbol (use moon ttf)"
-	        },
-	        "AS_MOON_RISE_TIME": {
-	            "group": "Solar System",
-	            "type": "timestamp",
-	            "description": "The moon rise timestamp"
-	        },
-	        "AS_MOON_SET_TIME": {
-	            "group": "Solar System",
-	            "type": "timestamp",
-	            "description": "The moon set timestamp"
-	        },
-	        "AS_MOON_NEW_TIME": {
-	            "group": "Solar System",
-	            "type": "timestamp",
-	            "description": "The next new moon timestamp"
-	        },
-	        "AS_MOON_FULL_TIME": {
-	            "group": "Solar System",
-	            "type": "timestamp",
-	            "description": "The next full moon timestamp"
-	        },
-	        "AS_SUN_DAWN": {
-	            "group": "Solar System",
-	            "type": "timestamp",
-	            "description": "The timestamp for Dawn"
-	        },
-	        "AS_SUN_SUNRISE": {
-	            "group": "Solar System",
-	            "type": "timestamp",
-	            "description": "The timestamp for Sun Rise"
-	        },
-	        "AS_SUN_NOON": {
-	            "group": "Solar System",
-	            "type": "timestamp",
-	            "description": "The timestamp for Noon"
-	        },
-	        "AS_SUN_SUNSET": {
-	            "group": "Solar System",
-	            "type": "timestamp",
-	            "description": "The timestamp for Sun Set"
-	        },
-	        "AS_SUN_DUSK": {
-	            "group": "Solar System",
-	            "type": "timestamp",
-	            "description": "The timestamp for Dusk"
-	        },
-	        "AS_SUN_AZIMUTH": {
-	            "group": "Solar System",
-	            "type": "azimuth",
-	            "description": "The azimuth of the Sun"
-	        },
-	        "AS_SUN_ELEVATION": {
-	            "group": "Solar System",
-	            "type": "elevation",
-	            "description": "The elevation of the Sun"
-	        },
-	        "AS_MERCURY_ELEVATION": {
-	            "group": "Solar System",
-	            "type": "elevation",
-	            "description": "The elevation of Mercury"
-	        },            
-	        "AS_MERCURY_AZIMUTH": {
-	            "group": "Solar System",
-	            "type": "azimuth",
-	            "description": "The AZIMUTH of Mercury"
-	        },
-	        "AS_MERCURY_VISIBLE": {
-	            "group": "Solar System",
-	            "type": "bool",
-	            "description": "Is Mercury visible"
-	        },
-	        "AS_VENUS_ELEVATION": {
-	            "group": "Solar System",
-	            "type": "elevation",
-	            "description": "The elevation of Venus"
-	        },
-	        "AS_VENUS_AZIMUTH": {
-	            "group": "Solar System",
-	            "type": "azimuth",
-	            "description": "The AZIMUTH of Venus"
-	        },
-	        "AS_VENUS_VISIBLE": {
-	            "group": "Solar System",
-	            "type": "bool",
-	            "description": "Is Venus visible"
-	        },
-	        "AS_MARS_ELEVATION": {
-	            "group": "Solar System",
-	            "type": "elevation",
-	            "description": "The elevation of Mars"
-	        },
-	        "AS_MARS_AZIMUTH": {
-	            "group": "Solar System",
-	            "type": "azimuth",
-	            "description": "The AZIMUTH of Mars"
-	        },
-	        "AS_MARS_VISIBLE": {
-	            "group": "Solar System",
-	            "type": "bool",
-	            "description": "Is Mars visible"
-	        },
-	        "AS_JUPITER_ELEVATION": {
-	            "group": "Solar System",
-	            "type": "elevation",
-	            "description": "The elevation of Jupiter"
-	        },
-	        "AS_JUPITER_AZIMUTH": {
-	            "group": "Solar System",
-	            "type": "azimuth",
-	            "description": "The AZIMUTH of Jupiter"
-	        },
-	        "AS_JUPITER_VISIBLE": {
-	            "group": "Solar System",
-	            "type": "bool",
-	            "description": "Is Mars Jupiter"
-	        },
-	        "AS_SATURN_ELEVATION": {
-	            "group": "Solar System",
-	            "type": "elevation",
-	            "description": "The elevation of Saturn"
-	        },
-	        "AS_SATURN_AZIMUTH": {
-	            "group": "Solar System",
-	            "type": "azimuth",
-	            "description": "The AZIMUTH of Saturn"
-	        },
-	        "AS_SATURN_VISIBLE": {
-	            "group": "Solar System",
-	            "type": "bool",
-	            "description": "Is Mars Saturn"
-	        },
-	        "AS_URANUS_ELEVATION": {
-	            "group": "Solar System",
-	            "type": "elevation",
-	            "description": "The elevation of Uranus"
-	        },
-	        "AS_URANUS_AZIMUTH": {
-	            "group": "Solar System",
-	            "type": "azimuth",
-	            "description": "The AZIMUTH of Uranus"
-	        },
-	        "AS_URANUS_VISIBLE": {
-	            "group": "Solar System",
-	            "type": "bool",
-	            "description": "Is Mars Uranus"
-	        },
-	        "AS_NEPTUNE_ELEVATION": {
-	            "group": "Solar System",
-	            "type": "elevation",
-	            "description": "The elevation of Neptune"
-	        },
-	        "AS_NEPTUNE_AZIMUTH": {
-	            "group": "Solar System",
-	            "type": "azimuth",
-	            "description": "The AZIMUTH of Neptune"
-	        },
-	        "AS_NEPTUNE_VISIBLE": {
-	            "group": "Solar System",
-	            "type": "bool",
-	            "description": "Is Mars Neptune"
-	        },
-	        "AS_PLUTO_ELEVATION": {
-	            "group": "Solar System",
-	            "type": "elevation",
-	            "description": "The elevation of Pluto"
-	        },
-	        "AS_PLUTO_AZIMUTH": {
-	            "group": "Solar System",
-	            "type": "azimuth",
-	            "description": "The AZIMUTH of Pluto"
-	        },
-	        "AS_PLUTO_VISIBLE": {
-	            "group": "Solar System",
-	            "type": "bool",
-	            "description": "Is Mars Pluto"
-	        }
-	    }
-	},    
-	"arguments": {
-	    "moonEnabled": "false",
-	    "moonElevation": "5",
-	    "sunEnabled": "false",
-	    "planetMercuryEnabled": "false",
-	    "planetVenusEnabled": "false",
-	    "planetMarsEnabled": "false",
-	    "planetJupiterEnabled": "false",
-	    "planetSaturnEnabled": "false",
-	    "planetUranusEnabled": "false",
-	    "planetNeptuneEnabled": "false",
-	    "planetPlutoEnabled": "false",
-	    "planetElevation": "5",
-	    "tles": "",
-	    "sat_min_elevation": 15
-	},
-	"argumentdetails": {
-	    "moonEnabled": {
-	        "required": "false",
-	        "description": "Enable the Moon",
-	        "help": "Enable calculation of Moon Data",
-	        "tab": "Moon",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }
-	    },
-	    "moonElevation": {
-	        "required": "false",
-	        "description": "Minimum elevation",
-	        "help": "Above this value the Moon will be considered visible",
-	        "tab": "Moon",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": -10,
-	            "max": 90,
-	            "step": 1
-	        }           
-	    },        
-	    "sunEnabled": {
-	        "required": "false",
-	        "description": "Enable the Sun",
-	        "help": "Enable calculation of Sun Data",
-	        "tab": "Sun",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }
-	    },
-	    "planetMercuryEnabled": {
-	        "required": "false",
-	        "description": "Enable Mercury",
-	        "tab": "Planets",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }
-	    },
-	    "planetVenusEnabled": {
-	        "required": "false",
-	        "description": "Enable Venus",
-	        "tab": "Planets",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }
-	    },
-	    "planetMarsEnabled": {
-	        "required": "false",
-	        "description": "Enable Mars",
-	        "tab": "Planets",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }
-	    },
-	    "planetJupiterEnabled": {
-	        "required": "false",
-	        "description": "Enable Jupiter",
-	        "tab": "Planets",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }
-	    },
-	    "planetSaturnEnabled": {
-	        "required": "false",
-	        "description": "Enable Saturn",
-	        "tab": "Planets",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }
-	    },
-	    "planetUranusEnabled": {
-	        "required": "false",
-	        "description": "Enable Uranus",
-	        "tab": "Planets",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }
-	    },
-	    "planetNeptuneEnabled": {
-	        "required": "false",
-	        "description": "Enable Neptune",
-	        "tab": "Planets",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }
-	    },
-	    "planetPlutoEnabled": {
-	        "required": "false",
-	        "description": "Enable Pluto",
-	        "tab": "Planets",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }
-	    },
-	    "planetElevation": {
-	        "required": "false",
-	        "description": "Minimum elevation",
-	        "help": "Above this value the planets will be considered visible",
-	        "tab": "Planets",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": -10,
-	            "max": 90,
-	            "step": 1
-	        }           
-	    },        
-	    "tles": {
-	        "required": "false",
-	        "description": "Norad Id's",
-	        "help": "List of NORAD Id's to calculate satellite positions for, satellite Id's can be found on the <a href=\"https://celestrak.org/satcat/search.php\" target=\"_blank\">Celestrak</a> website. See the documentaiton for more details",
-	        "tab": "Satellites"
-	    },
-	    "sat_min_elevation" : {
-	        "required": "true",
-	        "description": "Minimum Elevation",
-	        "help": "Satellites will only be classed as visible if above this elevation, in degrees and sunlit",
-	        "tab": "Satellites",                        
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 90,
-	            "step": 1
-	        }
-	    }         
-	},
-	"enabled": "false",
-	"businfo": [
-	],
-	"changelog": {
-	    "v1.0.0" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Initial Release"
-	        }
-	    ],
-	    "v1.0.1" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Updates for new variables system"
-	        }
-	    ]     
-	}
-}
-
 class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
+    
+	meta_data = {
+		"name": "AllSky Solar System",
+		"description": "Produce data for Solar System objects",
+		"module": "allsky_solarsystem",
+		"version": "v1.0.1",
+		"testable": "true",
+		"centersettings": "false",    
+		"events": [
+			"periodic",
+			"day",
+			"night"
+		],
+		"extradatafilename": "allsky_solarsystem.json",
+		"experimental": "false",
+		"extradata": {   
+			"values": {
+				"AS_MOON_AZIMUTH": {
+					"group": "Solar System",
+					"type": "azimuth",
+					"description": "The Moons azimuth"
+				},
+				"AS_MOON_ELEVATION": {
+					"group": "Solar System",
+					"type": "elevation",
+					"description": "The Moons elevation"
+				},
+				"AS_MOON_VISIBLE": {
+					"group": "Solar System",
+					"type": "bool",
+					"description": "Is the Moon visible"
+				},
+				"AS_MOON_ILLUMINATION": {
+					"group": "Solar System",
+					"type": "float",
+					"description": "The Moons illumination %"
+				},
+				"AS_MOON_SYMBOL": {
+					"group": "Solar System",
+					"type": "string",
+					"description": "The moon phase symbol (use moon ttf)"
+				},
+				"AS_MOON_RISE_TIME": {
+					"group": "Solar System",
+					"type": "timestamp",
+					"description": "The moon rise timestamp"
+				},
+				"AS_MOON_SET_TIME": {
+					"group": "Solar System",
+					"type": "timestamp",
+					"description": "The moon set timestamp"
+				},
+				"AS_MOON_NEW_TIME": {
+					"group": "Solar System",
+					"type": "timestamp",
+					"description": "The next new moon timestamp"
+				},
+				"AS_MOON_FULL_TIME": {
+					"group": "Solar System",
+					"type": "timestamp",
+					"description": "The next full moon timestamp"
+				},
+				"AS_SUN_DAWN": {
+					"group": "Solar System",
+					"type": "timestamp",
+					"description": "The timestamp for Dawn"
+				},
+				"AS_SUN_SUNRISE": {
+					"group": "Solar System",
+					"type": "timestamp",
+					"description": "The timestamp for Sun Rise"
+				},
+				"AS_SUN_NOON": {
+					"group": "Solar System",
+					"type": "timestamp",
+					"description": "The timestamp for Noon"
+				},
+				"AS_SUN_SUNSET": {
+					"group": "Solar System",
+					"type": "timestamp",
+					"description": "The timestamp for Sun Set"
+				},
+				"AS_SUN_DUSK": {
+					"group": "Solar System",
+					"type": "timestamp",
+					"description": "The timestamp for Dusk"
+				},
+				"AS_SUN_AZIMUTH": {
+					"group": "Solar System",
+					"type": "azimuth",
+					"description": "The azimuth of the Sun"
+				},
+				"AS_SUN_ELEVATION": {
+					"group": "Solar System",
+					"type": "elevation",
+					"description": "The elevation of the Sun"
+				},
+				"AS_MERCURY_ELEVATION": {
+					"group": "Solar System",
+					"type": "elevation",
+					"description": "The elevation of Mercury"
+				},            
+				"AS_MERCURY_AZIMUTH": {
+					"group": "Solar System",
+					"type": "azimuth",
+					"description": "The AZIMUTH of Mercury"
+				},
+				"AS_MERCURY_VISIBLE": {
+					"group": "Solar System",
+					"type": "bool",
+					"description": "Is Mercury visible"
+				},
+				"AS_VENUS_ELEVATION": {
+					"group": "Solar System",
+					"type": "elevation",
+					"description": "The elevation of Venus"
+				},
+				"AS_VENUS_AZIMUTH": {
+					"group": "Solar System",
+					"type": "azimuth",
+					"description": "The AZIMUTH of Venus"
+				},
+				"AS_VENUS_VISIBLE": {
+					"group": "Solar System",
+					"type": "bool",
+					"description": "Is Venus visible"
+				},
+				"AS_MARS_ELEVATION": {
+					"group": "Solar System",
+					"type": "elevation",
+					"description": "The elevation of Mars"
+				},
+				"AS_MARS_AZIMUTH": {
+					"group": "Solar System",
+					"type": "azimuth",
+					"description": "The AZIMUTH of Mars"
+				},
+				"AS_MARS_VISIBLE": {
+					"group": "Solar System",
+					"type": "bool",
+					"description": "Is Mars visible"
+				},
+				"AS_JUPITER_ELEVATION": {
+					"group": "Solar System",
+					"type": "elevation",
+					"description": "The elevation of Jupiter"
+				},
+				"AS_JUPITER_AZIMUTH": {
+					"group": "Solar System",
+					"type": "azimuth",
+					"description": "The AZIMUTH of Jupiter"
+				},
+				"AS_JUPITER_VISIBLE": {
+					"group": "Solar System",
+					"type": "bool",
+					"description": "Is Mars Jupiter"
+				},
+				"AS_SATURN_ELEVATION": {
+					"group": "Solar System",
+					"type": "elevation",
+					"description": "The elevation of Saturn"
+				},
+				"AS_SATURN_AZIMUTH": {
+					"group": "Solar System",
+					"type": "azimuth",
+					"description": "The AZIMUTH of Saturn"
+				},
+				"AS_SATURN_VISIBLE": {
+					"group": "Solar System",
+					"type": "bool",
+					"description": "Is Mars Saturn"
+				},
+				"AS_URANUS_ELEVATION": {
+					"group": "Solar System",
+					"type": "elevation",
+					"description": "The elevation of Uranus"
+				},
+				"AS_URANUS_AZIMUTH": {
+					"group": "Solar System",
+					"type": "azimuth",
+					"description": "The AZIMUTH of Uranus"
+				},
+				"AS_URANUS_VISIBLE": {
+					"group": "Solar System",
+					"type": "bool",
+					"description": "Is Mars Uranus"
+				},
+				"AS_NEPTUNE_ELEVATION": {
+					"group": "Solar System",
+					"type": "elevation",
+					"description": "The elevation of Neptune"
+				},
+				"AS_NEPTUNE_AZIMUTH": {
+					"group": "Solar System",
+					"type": "azimuth",
+					"description": "The AZIMUTH of Neptune"
+				},
+				"AS_NEPTUNE_VISIBLE": {
+					"group": "Solar System",
+					"type": "bool",
+					"description": "Is Mars Neptune"
+				},
+				"AS_PLUTO_ELEVATION": {
+					"group": "Solar System",
+					"type": "elevation",
+					"description": "The elevation of Pluto"
+				},
+				"AS_PLUTO_AZIMUTH": {
+					"group": "Solar System",
+					"type": "azimuth",
+					"description": "The AZIMUTH of Pluto"
+				},
+				"AS_PLUTO_VISIBLE": {
+					"group": "Solar System",
+					"type": "bool",
+					"description": "Is Mars Pluto"
+				}
+			}
+		},    
+		"arguments": {
+			"moonEnabled": "false",
+			"moonElevation": "5",
+			"sunEnabled": "false",
+			"planetMercuryEnabled": "false",
+			"planetVenusEnabled": "false",
+			"planetMarsEnabled": "false",
+			"planetJupiterEnabled": "false",
+			"planetSaturnEnabled": "false",
+			"planetUranusEnabled": "false",
+			"planetNeptuneEnabled": "false",
+			"planetPlutoEnabled": "false",
+			"planetElevation": "5",
+			"tles": "",
+			"sat_min_elevation": 15
+		},
+		"argumentdetails": {
+			"moonEnabled": {
+				"required": "false",
+				"description": "Enable the Moon",
+				"help": "Enable calculation of Moon Data",
+				"tab": "Moon",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"moonElevation": {
+				"required": "false",
+				"description": "Minimum elevation",
+				"help": "Above this value the Moon will be considered visible",
+				"tab": "Moon",
+				"type": {
+					"fieldtype": "spinner",
+					"min": -10,
+					"max": 90,
+					"step": 1
+				}           
+			},        
+			"sunEnabled": {
+				"required": "false",
+				"description": "Enable the Sun",
+				"help": "Enable calculation of Sun Data",
+				"tab": "Sun",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"planetMercuryEnabled": {
+				"required": "false",
+				"description": "Enable Mercury",
+				"tab": "Planets",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"planetVenusEnabled": {
+				"required": "false",
+				"description": "Enable Venus",
+				"tab": "Planets",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"planetMarsEnabled": {
+				"required": "false",
+				"description": "Enable Mars",
+				"tab": "Planets",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"planetJupiterEnabled": {
+				"required": "false",
+				"description": "Enable Jupiter",
+				"tab": "Planets",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"planetSaturnEnabled": {
+				"required": "false",
+				"description": "Enable Saturn",
+				"tab": "Planets",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"planetUranusEnabled": {
+				"required": "false",
+				"description": "Enable Uranus",
+				"tab": "Planets",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"planetNeptuneEnabled": {
+				"required": "false",
+				"description": "Enable Neptune",
+				"tab": "Planets",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"planetPlutoEnabled": {
+				"required": "false",
+				"description": "Enable Pluto",
+				"tab": "Planets",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"planetElevation": {
+				"required": "false",
+				"description": "Minimum elevation",
+				"help": "Above this value the planets will be considered visible",
+				"tab": "Planets",
+				"type": {
+					"fieldtype": "spinner",
+					"min": -10,
+					"max": 90,
+					"step": 1
+				}           
+			},        
+			"tles": {
+				"required": "false",
+				"description": "Norad Id's",
+				"help": "List of NORAD Id's to calculate satellite positions for, satellite Id's can be found on the <a href=\"https://celestrak.org/satcat/search.php\" target=\"_blank\">Celestrak</a> website. See the documentaiton for more details",
+				"tab": "Satellites"
+			},
+			"sat_min_elevation" : {
+				"required": "true",
+				"description": "Minimum Elevation",
+				"help": "Satellites will only be classed as visible if above this elevation, in degrees and sunlit",
+				"tab": "Satellites",                        
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 90,
+					"step": 1
+				}
+			}         
+		},
+		"enabled": "false",
+		"businfo": [
+		],
+		"changelog": {
+			"v1.0.0" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Initial Release"
+				}
+			],
+			"v1.0.1" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Updates for new variables system"
+				}
+			]     
+		}
+	}
+    
 	_overlay_folder = None
 	_overlay_tle_folder = None
 	_tmp_folder = None
@@ -438,8 +439,8 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		self._extra_data = {}
 
 	def _saveExtraData(self):
-		allsky_shared.log(4, f'INFO: Saving {metaData["extradatafilename"]}')
-		allsky_shared.saveExtraData(metaData['extradatafilename'], self._extra_data, metaData["module"], metaData["extradata"], self._custom_fields)
+		allsky_shared.log(4, f'INFO: Saving {self.meta_data["extradatafilename"]}')
+		allsky_shared.saveExtraData(self.meta_data['extradatafilename'], self._extra_data, self.meta_data["module"], self.meta_data["extradata"], self._custom_fields)
 
 	def _convert_ephem_date(self, ephem_date):
 		date_tuple = ephem_date.tuple()
@@ -881,10 +882,10 @@ def solarsystem(params, event):
 
 def solarsystem_cleanup():
 	moduleData = {
-	    "metaData": metaData,
+	    "metaData": ALLSKYSOLARSYSTEM.meta_data,
 	    "cleanup": {
 	        "files": {
-	            metaData['extradatafilename']
+	            ALLSKYSOLARSYSTEM.meta_data['extradatafilename']
 	        },
 	        "env": {}
 	    }

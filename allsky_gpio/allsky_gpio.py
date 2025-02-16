@@ -9,74 +9,72 @@ import allsky_shared as allsky_shared
 from allsky_base import ALLSKYMODULEBASE
 import numpy as np
 import board
+import sys
 from digitalio import DigitalInOut, Direction, Pull
 
-metaData = {
-	"name": "Sets a GPIO Pin",
-	"description": "Sets a GPIO Pin",
-	"version": "v1.0.0",
-	"module": "allsky_gpio",
-	"testable": "true",
-	"centersettings": "false", 
-	"events": [
-	    "daynight",
-	    "nightday"
-	],
-	"experimental": "false",
-	"extradatafilename": "allsky_gpio.json", 
- 	"extradata": {
-		"values": {
-			"AS_GPIO_PIN_STATE": {
-				"name": "${GPIO_PIN_STATE}",
-				"format": "",
-				"sample": "",                
-				"group": "Gpio",
-				"description": "GPIO Pin Status",
-				"type": "bool"
-			}
-		}
-	},  
-	"arguments":{
-	    "gpio": 0,
-	    "state": 0
-	},
-	"argumentdetails": {
-	    "gpio": {
-	        "required": "false",
-	        "description": "GPIO Pin",
-	        "help": "",
-	        "type": {
-	            "fieldtype": "gpio"
-	        }             
-	    },
-	    "state": {
-	        "required": "false",
-	        "description": "Pin State",
-	        "help": "",
-	        "type": {
-				"fieldtype": "checkbox"
-	        }             
-	    }                     
-	},
-	"enabled": "false",
-	"changelog": {
-		"v1.0.0" : [
-			{
-				"author": "Alex Greenland",
-				"authorurl": "https://github.com/allskyteam",
-				"changes": [
-					"Initial version",
-					"Converted to new module format"
-				]
-			}
-		]   
-	}           
-}
-
 class ALLSKYGPIO(ALLSKYMODULEBASE):
-	def __init__(self, params, event):
-		self.params = params
-		self.event = event
+
+	meta_data = {
+		"name": "Sets a GPIO Pin",
+		"description": "Sets a GPIO Pin",
+		"version": "v1.0.0",
+		"module": "allsky_gpio",
+		"testable": "true",
+		"centersettings": "false", 
+		"events": [
+			"daynight",
+			"nightday"
+		],
+		"experimental": "false",
+		"extradatafilename": "allsky_gpio.json", 
+		"extradata": {
+			"values": {
+				"AS_GPIO_PIN_STATE": {
+					"name": "${GPIO_PIN_STATE}",
+					"format": "",
+					"sample": "",                
+					"group": "Gpio",
+					"description": "GPIO Pin Status",
+					"type": "bool"
+				}
+			}
+		},  
+		"arguments":{
+			"gpio": 0,
+			"state": 0
+		},
+		"argumentdetails": {
+			"gpio": {
+				"required": "false",
+				"description": "GPIO Pin",
+				"help": "",
+				"type": {
+					"fieldtype": "gpio"
+				}             
+			},
+			"state": {
+				"required": "false",
+				"description": "Pin State",
+				"help": "",
+				"type": {
+					"fieldtype": "checkbox"
+				}             
+			}                     
+		},
+		"enabled": "false",
+		"changelog": {
+			"v1.0.0" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": [
+						"Initial version",
+						"Converted to new module format"
+					]
+				}
+			]   
+		}           
+	}
 
 	def run(self):
 		try:
@@ -91,7 +89,7 @@ class ALLSKYGPIO(ALLSKYMODULEBASE):
 				pin.value = gpio_state
 				extra_data = {}
 				extra_data['AS_GPIO_PIN_STATE'] = gpio_state 						
-				allsky_shared.saveExtraData(metaData['extradatafilename'], extra_data, metaData['extradata'])
+				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['extradata'])
 
 				result = f'INFO: GPIO pin {gpio_pin} set to {gpio_state}'
 				allsky_shared.log(4, f'INFO: {result}')
@@ -113,10 +111,10 @@ def gpio(params, event):
 
 def gpio_cleanup():
 	moduleData = {
-	    "metaData": metaData,
+	    "metaData": ALLSKYGPIO.meta_data,
 	    "cleanup": {
 	        "files": {
-	            metaData['extradatafilename']
+	            ALLSKYGPIO.meta_data['extradatafilename']
 	        },
 	        "env": {}
 	    }

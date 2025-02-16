@@ -13,218 +13,219 @@ from allsky_base import ALLSKYMODULEBASE
 import sys
 from wunderground_pws import WUndergroundAPI, units
 
-metaData = {
-	"name": "WeatherUnderground",
-	"description": "Gets weather data from the WeatherUnderground service",
-	"module": "allsky_weatherunderground",
-	"version": "v1.0.1",   
-	"events": [
-		"day",
-		"night",
-	    "periodic"
-	],
- 	"centersettings": "false",
-	"testable": "true",
-	"extradatafilename": "allsky_weatherunderground.json",
-	"extradata": {              
-	    "values": {
-	        "AS_WUSTATIONID": {
-	            "name": "${WUSTATIONID}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "WU Station ID",
-	            "type": "string"
-	        },
-	        "AS_WUELEVATION": {
-	            "name": "${WUELEVATION}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "WU Station Elevation",
-	            "type": "number"
-	        },
-	        "AS_WUQNH": {
-	            "name": "${WUELEVATION}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "WU Atmospheric pressure at mean sea level",
-	            "type": "number"
-	        },
-	        "AS_WUQFE": {
-	            "name": "${WUELEVATION}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "WU Atmospheric pressure at station",
-	            "type": "number"
-	        },                              
-	        "AS_WUOBSTIME": {
-	            "name": "${WUOBSTIME}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "WU Observation Date/Time (Local)",
-	            "type": "string"
-	        },
-	        "AS_WURADIATION": {
-	            "name": "${WURADIATION}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "WU Solar Radiation",
-	            "type": "Number"
-	        },
-	        "AS_WUUV": {
-	            "name": "${WUUV}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "WU UV Level",
-	            "type": "Number"
-	        },
-	        "AS_WUTEMP": {
-	            "name": "${WUTEMP}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "WU Temperature",
-	            "type": "temperature"
-	        },
-	        "AS_WUHEATINDEX": {
-	            "name": "${WUHEATINDEX}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "WU Heat Index",
-	            "type": "temperature"
-	        },
-	        "AS_WUDEWPOINT": {
-	            "name": "${WUDEWPOINT}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "WU Dew Point",
-	            "type": "temperature"
-	        },
-	        "AS_WUWINDDIR": {
-	            "name": "${WUWINDDIR}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "WU Wind Direction",
-	            "type": "Azimuth"
-	        },
-	        "AS_WUWINDCARDINAL": {
-	            "name": "${WUWINDCARDINAL}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "WU Cardinal Wind Direction",
-	            "type": "string"
-	        },         
-	        "AS_WUWINDSPEED": {
-	            "name": "${WUWINDSPEED}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "WU Wind Speed",
-	            "type": "number"
-	        },
-	        "AS_WUWINDGUST": {
-	            "name": "${WUWINDGUST}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "WU Wind Gust",
-	            "type": "number"
-	        },                   
-	        "AS_WUWINDCHILL": {
-	            "name": "${WUWINDCHILL}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "WU Wind Chill",
-	            "type": "temperature"
-	        },
-	        "AS_WUPRECIPRATE": {
-	            "name": "${WUPRECIPRATE}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "WU Precipitation Rate",
-	            "type": "number"
-	        },
-	        "AS_WUPRECIPTOTAL": {
-	            "name": "${WUPRECIPTOTAL}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "WU Precipitation Total",
-	            "type": "number"
-	        }       
-		}
-	},
-	"arguments": {
-	    "apikey": "",
-	    "stationid": "",
-	    "period": 120,
-	    "units": "metric"
-	},
-	"argumentdetails": {
-	    "apikey": {
-	        "required": "true",
-	        "description": "API Key",
-         	"secret": "true",
-	        "help": "Your WeatherUnderground API key"         
-	    },
-	    "stationid": {
-	        "required": "true",
-	        "description": "Station ID",
-         	"secret": "true",
-	        "help": "Your WeatherUnderground station ID"
-	    },      
-	    "period" : {
-	        "required": "true",
-	        "description": "Read Every",
-	        "help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 60,
-	            "max": 1440,
-	            "step": 1
-	        }          
-	    },
-	    "units" : {
-	        "required": "false",
-	        "description": "Units",
-	        "help": "Units of measurement. SI, metric, imperial and hybrid",
-	        "type": {
-	            "fieldtype": "select",
-	            "values": "metric_si,metric,imperial,uk_hybrid"
-	        }                
-	    }        
-	},
-	"changelog": {
-	    "v1.0.0" : [
-	        {
-	            "author": "Michel Moriniaux",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Initial Release"
-	        }
-	    ],
-	    "v1.0.0": [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Updates for new module system"
-	        }
-	    ]     
-	}            
-}
-
 class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
+
+	meta_data = {
+		"name": "WeatherUnderground",
+		"description": "Gets weather data from the WeatherUnderground service",
+		"module": "allsky_weatherunderground",
+		"version": "v1.0.1",   
+		"events": [
+			"day",
+			"night",
+			"periodic"
+		],
+		"centersettings": "false",
+		"testable": "true",
+		"extradatafilename": "allsky_weatherunderground.json",
+		"extradata": {              
+			"values": {
+				"AS_WUSTATIONID": {
+					"name": "${WUSTATIONID}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "WU Station ID",
+					"type": "string"
+				},
+				"AS_WUELEVATION": {
+					"name": "${WUELEVATION}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "WU Station Elevation",
+					"type": "number"
+				},
+				"AS_WUQNH": {
+					"name": "${WUELEVATION}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "WU Atmospheric pressure at mean sea level",
+					"type": "number"
+				},
+				"AS_WUQFE": {
+					"name": "${WUELEVATION}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "WU Atmospheric pressure at station",
+					"type": "number"
+				},                              
+				"AS_WUOBSTIME": {
+					"name": "${WUOBSTIME}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "WU Observation Date/Time (Local)",
+					"type": "string"
+				},
+				"AS_WURADIATION": {
+					"name": "${WURADIATION}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "WU Solar Radiation",
+					"type": "Number"
+				},
+				"AS_WUUV": {
+					"name": "${WUUV}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "WU UV Level",
+					"type": "Number"
+				},
+				"AS_WUTEMP": {
+					"name": "${WUTEMP}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "WU Temperature",
+					"type": "temperature"
+				},
+				"AS_WUHEATINDEX": {
+					"name": "${WUHEATINDEX}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "WU Heat Index",
+					"type": "temperature"
+				},
+				"AS_WUDEWPOINT": {
+					"name": "${WUDEWPOINT}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "WU Dew Point",
+					"type": "temperature"
+				},
+				"AS_WUWINDDIR": {
+					"name": "${WUWINDDIR}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "WU Wind Direction",
+					"type": "Azimuth"
+				},
+				"AS_WUWINDCARDINAL": {
+					"name": "${WUWINDCARDINAL}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "WU Cardinal Wind Direction",
+					"type": "string"
+				},         
+				"AS_WUWINDSPEED": {
+					"name": "${WUWINDSPEED}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "WU Wind Speed",
+					"type": "number"
+				},
+				"AS_WUWINDGUST": {
+					"name": "${WUWINDGUST}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "WU Wind Gust",
+					"type": "number"
+				},                   
+				"AS_WUWINDCHILL": {
+					"name": "${WUWINDCHILL}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "WU Wind Chill",
+					"type": "temperature"
+				},
+				"AS_WUPRECIPRATE": {
+					"name": "${WUPRECIPRATE}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "WU Precipitation Rate",
+					"type": "number"
+				},
+				"AS_WUPRECIPTOTAL": {
+					"name": "${WUPRECIPTOTAL}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "WU Precipitation Total",
+					"type": "number"
+				}       
+			}
+		},
+		"arguments": {
+			"apikey": "",
+			"stationid": "",
+			"period": 120,
+			"units": "metric"
+		},
+		"argumentdetails": {
+			"apikey": {
+				"required": "true",
+				"description": "API Key",
+				"secret": "true",
+				"help": "Your WeatherUnderground API key"         
+			},
+			"stationid": {
+				"required": "true",
+				"description": "Station ID",
+				"secret": "true",
+				"help": "Your WeatherUnderground station ID"
+			},      
+			"period" : {
+				"required": "true",
+				"description": "Read Every",
+				"help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
+				"type": {
+					"fieldtype": "spinner",
+					"min": 60,
+					"max": 1440,
+					"step": 1
+				}          
+			},
+			"units" : {
+				"required": "false",
+				"description": "Units",
+				"help": "Units of measurement. SI, metric, imperial and hybrid",
+				"type": {
+					"fieldtype": "select",
+					"values": "metric_si,metric,imperial,uk_hybrid"
+				}                
+			}        
+		},
+		"changelog": {
+			"v1.0.0" : [
+				{
+					"author": "Michel Moriniaux",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Initial Release"
+				}
+			],
+			"v1.0.0": [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Updates for new module system"
+				}
+			]     
+		}            
+	}
+
 
 	_extra_data = {}
 
@@ -259,7 +260,7 @@ class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
 		api_key = self.get_param('apikey', '', str)
 		station_id = self.get_param('stationid', '', str)
 		requested_units = self.get_param('units', 'metric', str)
-		module = metaData['module']
+		module = self.meta_data['module']
 		
 		if requested_units == 'metric':
 			unit = units.METRIC_UNITS
@@ -281,8 +282,8 @@ class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
 							wu = WUndergroundAPI(api_key=api_key, default_station_id=station_id, units=unit)
 							response = wu.current()['observations'][0]
 							self._process_result(requested_units, response)
-							allsky_shared.saveExtraData(metaData['extradatafilename'], self._extra_data, metaData['module'], metaData['extradata'])
-							result = f"Data acquired and written to extra data file {metaData['extradatafilename']}"
+							allsky_shared.saveExtraData(self.meta_data['extradatafilename'], self._extra_data, self.meta_data['module'], self.meta_data['extradata'])
+							result = f"Data acquired and written to extra data file {self.meta_data['extradatafilename']}"
 							allsky_shared.log(4, f'INFO: {result}')
 						except Exception as e:
 							eType, eObject, eTraceback = sys.exc_info()
@@ -313,10 +314,10 @@ def weatherunderground(params, event):
 
 def weatherunderground_cleanup():
 	moduleData = {
-	    "metaData": metaData,
+	    "metaData": ALLSKYWEATHERUNDERGROUND.meta_data,
 	    "cleanup": {
 	        "files": {
-	            metaData['extradatafilename']
+	            ALLSKYWEATHERUNDERGROUND.meta_data['extradatafilename']
 	        },
 	        "env": {}
 	    }

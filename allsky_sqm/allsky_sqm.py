@@ -18,113 +18,113 @@ import cv2
 import os
 import math
 
-metaData = {
-	"name": "Sky Quality",
-	"description": "Calculates sky quality",
-	"module": "allsky_sqm",
-	"version": "v1.0.1",
-	"events": [
-		"night"
-	],
-	"experimental": "true",
-	"centersettings": "false",
-	"testable": "true", 
-	"extradatafilename": "allsky_sqm.json", 
-	"extradata": {
-		"values": {
-			"AS_SQM": {
-				"name": "${SQM}",
-				"format": "",
-				"sample": "",
-				"group": "Environment",
-				"description": "Sky Quality",
-				"type": "number"
-			}
-		}                         
-	},    
-	"arguments":{
-		"mask": "",
-		"roi": "",
-		"debug": "false",
-		"debugimage": "",
-		"roifallback": 5,
-		"formula": "21.53 + (-0.03817 * weightedSqmAvg)"
-	},
-	"argumentdetails": {
-		"mask" : {
-			"required": "false",
-			"description": "Mask Path",
-			"help": "The name of the image mask. This mask is applied prior to calculating the sky quality",
-			"type": {
-				"fieldtype": "image"
-			}
-		},
-		"roi": {
-			"required": "false",
-			"description": "Region of Interest",
-			"help": "The area of the image to check for sky quality. Format is x1,y1,x2,y2",
-			"type": {
-				"fieldtype": "roi"
-			}
-		},
-		"roifallback" : {
-			"required": "false",
-			"description": "Fallback %",
-			"help": "If no ROI is set then this % of the image, from the center will be used",
-			"type": {
-				"fieldtype": "spinner",
-				"min": 1,
-				"max": 100,
-				"step": 1
-			}
-		},
-		"formula": {
-			"required": "false",
-			"description": "Adjustment Forumla",
-			"help": "Formula to adjust the read mean value, default can be a good starting point. This forumla can use only Pythons inbuilt maths functions and basic mathematical operators. Please see the documentation for more details of the formula variables available"
-		},
-		"debug" : {
-			"required": "false",
-			"description": "Enable debug mode",
-			"help": "If selected each stage of the detection will generate images in the allsky tmp debug folder",
-			"tab": "Debug",
-			"type": {
-				"fieldtype": "checkbox"
-			}
-		},
-		"debugimage" : {
-			"required": "false",
-			"description": "Debug Image",
-			"help": "Image to use for debugging. DO NOT set this unless you know what you are doing",
-			"tab": "Debug"
-		}
-	},
-	"enabled": "false",
-	"changelog": {
-		"v1.0.0" : [
-			{
-				"author": "Alex Greenland",
-				"authorurl": "https://github.com/allskyteam",
-				"changes": [
-					"Initial Release",
-					"Portions of this code are from indi-allsky https://github.com/aaronwmorris/indi-allsky"
-				]
-			}
-		],
-		"v1.0.1" : [
-			{
-				"author": "Damian Grocholski (Mr-Groch)",
-				"authorurl": "https://github.com/Mr-Groch",
-				"changes": [
-					"Use of weightedSqmAvg inspired by indi-allsky (https://github.com/aaronwmorris/indi-allsky)",
-					"Added example default formula"
-				]
-			}
-		]                                                         
-	}    
-}
-
 class ALLSKYSQM(ALLSKYMODULEBASE):
+
+	meta_data = {
+		"name": "Sky Quality",
+		"description": "Calculates sky quality",
+		"module": "allsky_sqm",
+		"version": "v1.0.1",
+		"events": [
+			"night"
+		],
+		"experimental": "true",
+		"centersettings": "false",
+		"testable": "true", 
+		"extradatafilename": "allsky_sqm.json", 
+		"extradata": {
+			"values": {
+				"AS_SQM": {
+					"name": "${SQM}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "Sky Quality",
+					"type": "number"
+				}
+			}                         
+		},    
+		"arguments":{
+			"mask": "",
+			"roi": "",
+			"debug": "false",
+			"debugimage": "",
+			"roifallback": 5,
+			"formula": "21.53 + (-0.03817 * weightedSqmAvg)"
+		},
+		"argumentdetails": {
+			"mask" : {
+				"required": "false",
+				"description": "Mask Path",
+				"help": "The name of the image mask. This mask is applied prior to calculating the sky quality",
+				"type": {
+					"fieldtype": "image"
+				}
+			},
+			"roi": {
+				"required": "false",
+				"description": "Region of Interest",
+				"help": "The area of the image to check for sky quality. Format is x1,y1,x2,y2",
+				"type": {
+					"fieldtype": "roi"
+				}
+			},
+			"roifallback" : {
+				"required": "false",
+				"description": "Fallback %",
+				"help": "If no ROI is set then this % of the image, from the center will be used",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 1,
+					"max": 100,
+					"step": 1
+				}
+			},
+			"formula": {
+				"required": "false",
+				"description": "Adjustment Forumla",
+				"help": "Formula to adjust the read mean value, default can be a good starting point. This forumla can use only Pythons inbuilt maths functions and basic mathematical operators. Please see the documentation for more details of the formula variables available"
+			},
+			"debug" : {
+				"required": "false",
+				"description": "Enable debug mode",
+				"help": "If selected each stage of the detection will generate images in the allsky tmp debug folder",
+				"tab": "Debug",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"debugimage" : {
+				"required": "false",
+				"description": "Debug Image",
+				"help": "Image to use for debugging. DO NOT set this unless you know what you are doing",
+				"tab": "Debug"
+			}
+		},
+		"enabled": "false",
+		"changelog": {
+			"v1.0.0" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": [
+						"Initial Release",
+						"Portions of this code are from indi-allsky https://github.com/aaronwmorris/indi-allsky"
+					]
+				}
+			],
+			"v1.0.1" : [
+				{
+					"author": "Damian Grocholski (Mr-Groch)",
+					"authorurl": "https://github.com/Mr-Groch",
+					"changes": [
+						"Use of weightedSqmAvg inspired by indi-allsky (https://github.com/aaronwmorris/indi-allsky)",
+						"Added example default formula"
+					]
+				}
+			]                                                         
+		}    
+	}
     
 	def _add_internals(self, allowed_name):
 		internals = {'AS_BIN', 'AS_EXPOSURE_US', 'AS_GAIN', 'AS_MEAN'}
@@ -160,7 +160,6 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 		debug_image = self.get_param('debugimage', '', str, True)
 		roi_fallback = self.get_param('roifallback', 5, int)
        
-
 		if debug_image != "":
 			image = cv2.imread(debug_image)
 			if image is None:
@@ -176,7 +175,7 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 			maskPath = os.path.join(allsky_shared.get_environment_variable('ALLSKY_OVERLAY'), 'images', mask)
 			image_mask = cv2.imread(maskPath,cv2.IMREAD_GRAYSCALE)
 			if debug:
-				allsky_shared.write_debug_image(metaData['module'], 'image-mask.png', image_mask)
+				allsky_shared.write_debug_image(self.meta_data['module'], 'image-mask.png', image_mask)
 
 		if len(image.shape) == 2:
 			gray_image = image
@@ -187,7 +186,7 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 			if gray_image.shape == image_mask.shape:
 				gray_image = cv2.bitwise_and(src1=gray_image, src2=image_mask)
 				if debug:
-					allsky_shared.write_debug_image(metaData['module'], 'masked-image.png', gray_image)
+					allsky_shared.write_debug_image(self.meta_data['module'], 'masked-image.png', gray_image)
 			else:
 				allsky_shared.log(0, 'ERROR: Source image and mask dimensions do not match')
 
@@ -212,7 +211,7 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 		cropped_image = gray_image[y1:y2, x1:x2]
 
 		if debug:
-			allsky_shared.write_debug_image(metaData['module'], 'cropped-image.png', cropped_image)
+			allsky_shared.write_debug_image(self.meta_data['module'], 'cropped-image.png', cropped_image)
 
 		max_exposure_s = allsky_shared.asfloat(allsky_shared.get_setting('nightmaxautoexposure')) / 1000
 		exposure_s = allsky_shared.asfloat(allsky_shared.get_environment_variable('AS_EXPOSURE_US')) / 1000 / 1000
@@ -239,7 +238,7 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 			allsky_shared.log(1, f'INFO: {result}')
 
 		extra_data['AS_SQM'] = sqm
-		allsky_shared.saveExtraData(metaData['extradatafilename'], extra_data, metaData['module'], metaData['extradata'])
+		allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 
 		return result
 
@@ -251,11 +250,11 @@ def sqm(params, event):
     
 def sqm_cleanup():
     moduleData = {
-        "metaData": metaData,
+        "metaData": ALLSKYSQM.meta_data,
         "cleanup": {
             "files": {},
             "env": {
-                metaData['extradatafilename']
+                ALLSKYSQM.meta_data['extradatafilename']
             }
         }
     }

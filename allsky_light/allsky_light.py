@@ -15,191 +15,189 @@ import busio
 import adafruit_tsl2591
 import adafruit_tsl2561
 
-metaData = {
-	"name": "AllSky Light Meter",
-	"description": "Estimates sky brightness",
-	"module": "allsky_light",
-	"version": "v1.0.3",
- 	"centersettings": "false",
-	"testable": "true",    
-	"events": [
-		"day",
-		"night",
-	    "periodic"
-	],
-	"experimental": "false",
-	"extradatafilename": "allsky_light.json",  
- 	"extradata": {
-	    "values": {
-	        "AS_LIGHTLUX": {
-	            "name": "${LIGHTLUX}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "Lux level",
-	            "type": "Number"
-	        },
-	        "AS_LIGHTBORTLE": {
-	            "name": "${LIGHTBORTLE}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "Approximate Bortle level",
-	            "type": "Number"
-	        }           
-	    }                         
-	},  
-	"arguments":{
-	    "type": "",
-	    "i2caddress": "",
-	    "tsl2591gain": "25x",
-	    "tsl2591integration": "100ms",
-	    "tsl2561gain": "Low",
-	    "tsl2561integration": "0"
-	},
-	"argumentdetails": {
-	    "type" : {
-	        "required": "false",
-	        "description": "Sensor Type",
-	        "help": "The type of sensor that is being used.",
-	        "tab": "Sensor",         
-	        "type": {
-	            "fieldtype": "select",
-	            "values": "None,TSL2591,TSL2561",
-	            "default": "None"
-	        }                
-	    },        
-	    "i2caddress": {
-	        "required": "false",
-	        "description": "I2C Address",
-	        "tab": "Sensor",         
-	        "help": "Override the standard i2c address for the sensor. NOTE: This value must be hex i.e. 0x76",
-	        "type": {
-	            "fieldtype": "i2c"
-	        }         
-	    },
-	    "tsl2591gain" : {
-	        "required": "false",
-	        "description": "TSL2591 Gain",
-	        "help": "The gain for the TSL2591 sensor.",
-	        "tab": "Sensor",         
-	        "type": {
-	            "fieldtype": "select",
-	            "values": "Low,Med,High,Max",
-	            "default": "Low"
-	        },
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"TSL2591"
-				]
-			}                       
-	    },
-	    "tsl2591integration" : {
-	        "required": "false",
-	        "description": "TSL2591 Integration time",
-	        "help": "The integration time for the TSL2591 sensor.",
-	        "tab": "Sensor",         
-	        "type": {
-	            "fieldtype": "select",
-	            "values": "100ms,200ms,300ms,400ms,500ms,600ms",
-	            "default": "100ms"
-	        },
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"TSL2591"
-				]
-			}                
-	    },
-	    "tsl2561gain" : {
-	        "required": "false",
-	        "description": "TSL2561 Gain",
-	        "help": "The gain for the TSL2561 sensor.",
-	        "tab": "Sensor",         
-	        "type": {
-	            "fieldtype": "select",
-	            "values": "0|Low,1|High",
-	            "default": "Low"
-	        },
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"TSL2561"
-				]
-			}                
-	    },
-	    "tsl2561integration" : {
-	        "required": "false",
-	        "description": "TSL2561 Integration time",
-	        "help": "The integration time for the TSL2561 sensor.",
-	        "tab": "Sensor",         
-	        "type": {
-	            "fieldtype": "select",
-	            "values": "0|13.7ms,1|101ms,2|402ms",
-	            "default": "0"
-	        },
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"TSL2561"
-				]
-			}                
-	    }                                                                                           
-	},
-	"enabled": "false",
-	"businfo": [
-	    "i2c"
-	],
-	"changelog": {
-	    "v1.0.0" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Initial Release"
-	        }
-	    ],
-	    "v1.0.1" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": [
-	                "Added extra error handling",
-	                "Added ability to change the extra data filename",
-	                "Added changelog to metadata"
-	            ]
-	        }
-	    ],
-	    "v1.0.2" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": [
-	                "Fixed error where i2c address was not passed to python modules",
-	                "Added additional error handling"
-	            ]
-	        }
-	    ],
-	    "v1.0.3" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": [
-	                "Refactored for new module system",
-	                "Changed formulae for lux to sqm"
-	            ]
-	        }
-	    ]                                               
-	}           
-}
-
 class ALLSKYLIGHT(ALLSKYMODULEBASE):
-	params = []
-	event = ''
+
+	meta_data = {
+		"name": "AllSky Light Meter",
+		"description": "Estimates sky brightness",
+		"module": "allsky_light",
+		"version": "v1.0.3",
+		"centersettings": "false",
+		"testable": "true",    
+		"events": [
+			"day",
+			"night",
+			"periodic"
+		],
+		"experimental": "false",
+		"extradatafilename": "allsky_light.json",  
+		"extradata": {
+			"values": {
+				"AS_LIGHTLUX": {
+					"name": "${LIGHTLUX}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "Lux level",
+					"type": "Number"
+				},
+				"AS_LIGHTBORTLE": {
+					"name": "${LIGHTBORTLE}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "Approximate Bortle level",
+					"type": "Number"
+				}           
+			}                         
+		},  
+		"arguments":{
+			"type": "",
+			"i2caddress": "",
+			"tsl2591gain": "25x",
+			"tsl2591integration": "100ms",
+			"tsl2561gain": "Low",
+			"tsl2561integration": "0"
+		},
+		"argumentdetails": {
+			"type" : {
+				"required": "false",
+				"description": "Sensor Type",
+				"help": "The type of sensor that is being used.",
+				"tab": "Sensor",         
+				"type": {
+					"fieldtype": "select",
+					"values": "None,TSL2591,TSL2561",
+					"default": "None"
+				}                
+			},        
+			"i2caddress": {
+				"required": "false",
+				"description": "I2C Address",
+				"tab": "Sensor",         
+				"help": "Override the standard i2c address for the sensor. NOTE: This value must be hex i.e. 0x76",
+				"type": {
+					"fieldtype": "i2c"
+				}         
+			},
+			"tsl2591gain" : {
+				"required": "false",
+				"description": "TSL2591 Gain",
+				"help": "The gain for the TSL2591 sensor.",
+				"tab": "Sensor",         
+				"type": {
+					"fieldtype": "select",
+					"values": "Low,Med,High,Max",
+					"default": "Low"
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"TSL2591"
+					]
+				}                       
+			},
+			"tsl2591integration" : {
+				"required": "false",
+				"description": "TSL2591 Integration time",
+				"help": "The integration time for the TSL2591 sensor.",
+				"tab": "Sensor",         
+				"type": {
+					"fieldtype": "select",
+					"values": "100ms,200ms,300ms,400ms,500ms,600ms",
+					"default": "100ms"
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"TSL2591"
+					]
+				}                
+			},
+			"tsl2561gain" : {
+				"required": "false",
+				"description": "TSL2561 Gain",
+				"help": "The gain for the TSL2561 sensor.",
+				"tab": "Sensor",         
+				"type": {
+					"fieldtype": "select",
+					"values": "0|Low,1|High",
+					"default": "Low"
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"TSL2561"
+					]
+				}                
+			},
+			"tsl2561integration" : {
+				"required": "false",
+				"description": "TSL2561 Integration time",
+				"help": "The integration time for the TSL2561 sensor.",
+				"tab": "Sensor",         
+				"type": {
+					"fieldtype": "select",
+					"values": "0|13.7ms,1|101ms,2|402ms",
+					"default": "0"
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"TSL2561"
+					]
+				}                
+			}                                                                                           
+		},
+		"enabled": "false",
+		"businfo": [
+			"i2c"
+		],
+		"changelog": {
+			"v1.0.0" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Initial Release"
+				}
+			],
+			"v1.0.1" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": [
+						"Added extra error handling",
+						"Added ability to change the extra data filename",
+						"Added changelog to metadata"
+					]
+				}
+			],
+			"v1.0.2" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": [
+						"Fixed error where i2c address was not passed to python modules",
+						"Added additional error handling"
+					]
+				}
+			],
+			"v1.0.3" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": [
+						"Refactored for new module system",
+						"Changed formulae for lux to sqm"
+					]
+				}
+			]                                               
+		}           
+	}
  
 	def __read_TSL2591(self):
 		sensor = None
@@ -302,7 +300,6 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
     		
 	def run(self):
 		result = ''
-		self.debugmode = self.get_param('ALLSKYTESTMODE', False, bool)  
   
 		sensor = self.get_param('type', 'none', str, True).lower()
 		if sensor != "none":
@@ -319,7 +316,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 					extra_data = {}
 					extra_data['AS_LIGHTLUX'] = lux
 					extra_data['AS_LIGHTBORTLE'] = bortle
-					allsky_shared.save_extra_data(metaData['extradatafilename'], extra_data, metaData['module'], metaData['extradata'])
+					allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
      
 					result = f'Lux {lux}, Bortle {bortle}'
 					allsky_shared.log(4, f"INFO: {result}")		
@@ -328,11 +325,11 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 					result = f'Failed to calculate sqm or nelm, lux = {lux}, line {eTraceback.tb_lineno} {e}'
 					allsky_shared.log(0, f'ERROR: {result}')
 			else:
-				allsky_shared.deleteExtraData(metaData['extradatafilename'])
+				allsky_shared.deleteExtraData(self.meta_data['extradatafilename'])
 				result = f'Error reading {sensor}'
 				allsky_shared.log(0, f'ERROR: {result}')
 		else:
-			allsky_shared.deleteExtraData(metaData['extradatafilename'])
+			allsky_shared.deleteExtraData(self.meta_data['extradatafilename'])
 			result = 'No sensor defined'
 			allsky_shared.log(0, f'ERROR: {result}')
 			
@@ -346,10 +343,10 @@ def light(params, event):
 
 def light_cleanup():
 	moduleData = {
-	    "metaData": metaData,
+	    "metaData": ALLSKYLIGHT.meta_data,
 	    "cleanup": {
 	        "files": {
-	            metaData['extradatafilename']
+	            ALLSKYLIGHT.meta_data['extradatafilename']
 	        },
 	        "env": {}
 	    }

@@ -17,140 +17,139 @@ from urllib.request import urlopen
 from urllib.error import HTTPError, URLError
 from socket import timeout
 
-metaData = {
-	"name": "Telescope postion marker",
-	"description": "Mark the current telescope postion retreived from ASCOM Remote Server in the image",
-	"module": "allsky_telescopemarker",
-	"version": "v1.0.1",
-	"centersettings": "false",
-	"testable": "true",   
-	"events": [
-	    "night",
-	    "day"
-	],
-	"experimental": "true", 
-	"arguments":{
-	    "observer_lat": "48.58",
-	    "observer_lon": "8.0",
-	    "observer_height": "130",
-	    "image_lat": "48.58",
-	    "image_lon": "8.0",
-	    "image_height": "132",
-	    "image_flip": "None",
-	    "camera_azimuth": "160.0",
-	    "margin": "60",
-	    "telescope_marker_radius": "30",
-	    "telescope_marker_width": "5",
-	    "telescope_marker_color": "(0,0,255)",
-	    "telescope_server": "http://192.168.178.109:11111",
-	    "telescope_alt": "/api/v1/telescope/0/altitude",
-	    "telescope_az": "/api/v1/telescope/0/azimuth",
-	    "telescope_default": "(0.0,0.0)"
-	},
-	"argumentdetails": {
-	    "telescope_marker_radius": {
-	        "required": "false",
-	        "description": "Telescope marker radius",
-	        "help": "Size of the telescope marker in pixels, defaults to 30px"
-	    },
-	    "telescope_marker_width": {
-	        "required": "false",
-	        "description": "Telescope marker width",
-	        "help": "Size of the telescope marker in pixels, defaults to 5px"
-	    },
-	    "telescope_marker_color": {
-	        "required": "false",
-	        "description": "Telescope marker color",
-	        "help": "The colour to use for the marker",
-	        "type": {
-	            "fieldtype": "colour"
-	        }          
-	    },     
-		"observer_position": {
-      		"description": "Telescope's position",
-			"help": "Define telescope postion, use current Allsky position if left empty",
-			"tab": "Telescope",
-			"lat": {
-				"id": "observer_lat"
-			},
-			"lon": {
-				"id": "observer_lon"				
-			},
-			"height": {
-				"id": "observer_height"				
-			},
-	        "type": {
-	            "fieldtype": "position"
-	        }     
-		},
-	    "image_flip": {
-	        "required": "true",
-	        "description": "Flip x,y coordinates",
-	        "help": "Flip coordinates to match sensor/lens output and AllSky settings",
-			"tab": "Allsky",                     
-	        "type": {
-	            "fieldtype": "select",
-	            "values": "None,Horizontal,Vertical,Both",
-	            "default": "None"
-	        }     
-	    },
-	    "camera_azimuth": {
-	        "required": "false",
-	        "description": "Allsky's sensor azimuth orentiation",
-			"tab": "Allsky",                     
-	        "help": "Define allsky sensor azimuth, use 0° (top is pointing north in circular fisheye image) if left empty"
-	    },
-	    "margin": {
-	        "required": "false",
-	        "description": "Allsky's image border",
-			"tab": "Allsky",                     
-	        "help": "Margin from squared image to horizon fisheye lense in pixels, defaults to 0 px"
-	    },
-	    "telescope_alt": {
-	        "required": "true",
-			"tab": "Ascom",          
-	        "description": "Telescope server altitude API url",
-	        "help": "API query URL of the ASCOM Remote Server for the telescope altitude (https://ascom-standards.org/api/#/Telescope%20Specific%20Methods)",
-	        "type": {
-	            "fieldtype": "url"
-	        }          
-	    },
-	    "telescope_az": {
-	        "required": "true",
-			"tab": "Ascom",          
-	        "description": "Telescope server altitude API url",
-	        "help": "API query URL of the ASCOM Remote Server for the telescope azimuth (https://ascom-standards.org/api/#/Telescope%20Specific%20Methods)",
-	        "type": {
-	            "fieldtype": "url"
-	        }         
-	    },
-	    "telescope_default": {
-	        "required": "false",
-			"tab": "Ascom",          
-	        "description": "Telescope fallback position",
-	        "help": "Default telescope position if ASCOM Remote Server query fails. Defaults to [(0.0,0.0)]"
-	    }             
-	},
-	"changelog": {
-	    "v0.1" : [
-	        {
-	            "author": "Frank Hirsch",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Initial Test"
-	        }
-	    ],
-	    "v1.0.1" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Updates for new module system"
-	        }
-	    ]                                            
-	}            
-}
-
-
 class ALLSKYTELESCOPEMARKER(ALLSKYMODULEBASE):
+
+	meta_data = {
+		"name": "Telescope postion marker",
+		"description": "Mark the current telescope postion retreived from ASCOM Remote Server in the image",
+		"module": "allsky_telescopemarker",
+		"version": "v1.0.1",
+		"centersettings": "false",
+		"testable": "true",   
+		"events": [
+			"night",
+			"day"
+		],
+		"experimental": "true", 
+		"arguments":{
+			"observer_lat": "48.58",
+			"observer_lon": "8.0",
+			"observer_height": "130",
+			"image_lat": "48.58",
+			"image_lon": "8.0",
+			"image_height": "132",
+			"image_flip": "None",
+			"camera_azimuth": "160.0",
+			"margin": "60",
+			"telescope_marker_radius": "30",
+			"telescope_marker_width": "5",
+			"telescope_marker_color": "(0,0,255)",
+			"telescope_server": "http://192.168.178.109:11111",
+			"telescope_alt": "/api/v1/telescope/0/altitude",
+			"telescope_az": "/api/v1/telescope/0/azimuth",
+			"telescope_default": "(0.0,0.0)"
+		},
+		"argumentdetails": {
+			"telescope_marker_radius": {
+				"required": "false",
+				"description": "Telescope marker radius",
+				"help": "Size of the telescope marker in pixels, defaults to 30px"
+			},
+			"telescope_marker_width": {
+				"required": "false",
+				"description": "Telescope marker width",
+				"help": "Size of the telescope marker in pixels, defaults to 5px"
+			},
+			"telescope_marker_color": {
+				"required": "false",
+				"description": "Telescope marker color",
+				"help": "The colour to use for the marker",
+				"type": {
+					"fieldtype": "colour"
+				}          
+			},     
+			"observer_position": {
+				"description": "Telescope's position",
+				"help": "Define telescope postion, use current Allsky position if left empty",
+				"tab": "Telescope",
+				"lat": {
+					"id": "observer_lat"
+				},
+				"lon": {
+					"id": "observer_lon"				
+				},
+				"height": {
+					"id": "observer_height"				
+				},
+				"type": {
+					"fieldtype": "position"
+				}     
+			},
+			"image_flip": {
+				"required": "true",
+				"description": "Flip x,y coordinates",
+				"help": "Flip coordinates to match sensor/lens output and AllSky settings",
+				"tab": "Allsky",                     
+				"type": {
+					"fieldtype": "select",
+					"values": "None,Horizontal,Vertical,Both",
+					"default": "None"
+				}     
+			},
+			"camera_azimuth": {
+				"required": "false",
+				"description": "Allsky's sensor azimuth orentiation",
+				"tab": "Allsky",                     
+				"help": "Define allsky sensor azimuth, use 0° (top is pointing north in circular fisheye image) if left empty"
+			},
+			"margin": {
+				"required": "false",
+				"description": "Allsky's image border",
+				"tab": "Allsky",                     
+				"help": "Margin from squared image to horizon fisheye lense in pixels, defaults to 0 px"
+			},
+			"telescope_alt": {
+				"required": "true",
+				"tab": "Ascom",          
+				"description": "Telescope server altitude API url",
+				"help": "API query URL of the ASCOM Remote Server for the telescope altitude (https://ascom-standards.org/api/#/Telescope%20Specific%20Methods)",
+				"type": {
+					"fieldtype": "url"
+				}          
+			},
+			"telescope_az": {
+				"required": "true",
+				"tab": "Ascom",          
+				"description": "Telescope server altitude API url",
+				"help": "API query URL of the ASCOM Remote Server for the telescope azimuth (https://ascom-standards.org/api/#/Telescope%20Specific%20Methods)",
+				"type": {
+					"fieldtype": "url"
+				}         
+			},
+			"telescope_default": {
+				"required": "false",
+				"tab": "Ascom",          
+				"description": "Telescope fallback position",
+				"help": "Default telescope position if ASCOM Remote Server query fails. Defaults to [(0.0,0.0)]"
+			}             
+		},
+		"changelog": {
+			"v0.1" : [
+				{
+					"author": "Frank Hirsch",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Initial Test"
+				}
+			],
+			"v1.0.1" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Updates for new module system"
+				}
+			]                                            
+		}            
+	}
     
 	def _get_telescope_position(self, telescope_alt, telescope_az, telescope_default):
 		"""

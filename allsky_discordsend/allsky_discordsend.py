@@ -8,182 +8,179 @@ from discord import SyncWebhook, File
 from urllib.parse import urlparse
 from io import BytesIO
 
-metaData = {
-	"name": "Discord",
-	"description": "Posts to a Discord server",
-	"version": "v1.0.3",
-	"pythonversion": "3.9.0",
-	"centersettings": "false",
-	"testable": "true", 
-	"module": "allsky_discordsend",    
-	"events": [
-	    "day",
-	    "night",
-	    "nightday"
-	],
-	"experimental": "false",    
-	"arguments":{
-	    "dayimage": "false",
-	    "dayimageannotated" : "true",
-	    "dayimageurl": "",
-	    "daycount": 5,
-	    "nightimage": "false",
-	    "nightimageannotated" : "true",
-	    "nightimageurl": "",
-	    "nightcount": 5,
-	    "startrails": "false",
-	    "startrailsimageurl": "",
-	    "keogram": "false",
-	    "keogramimageurl": "",
-	    "timelapse": "false",
-	    "timelapseimageurl": ""
-	},
-	"argumentdetails": {
-	    "dayimage" : {
-	        "required": "false",
-	        "description": "Post Day time Images",
-	        "help": "Post daytime images to the Discord Server",
-	        "tab": "Day Time",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }          
-	    },
-	    "dayimageannotated" : {
-	        "description": "Send Annotated Image",
-	        "help": "Send the image after the overlay has been added. The discord module must be after the overlay module in the flow",
-	        "tab": "Day Time",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }          
-	    },        
-	    "daycount" : {
-	        "required": "false",
-	        "description": "Daytime Count",
-	        "help": "Send every (this number) frame to Discord. This is to prevent flooding the discord channels",
-	        "tab": "Day Time",            
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 1,
-	            "max": 100,
-	            "step": 1
-	        }
-	    },        
-	    "dayimageurl": {
-	        "required": "false",
-	        "tab": "Day Time",            
-	        "description": "The webhook url for day time images"
-	    }, 
-	    "nightimage" : {
-	        "required": "false",
-	        "description": "Post Night time Images",
-	        "help": "Post Nighttime images to the Discord Server",
-	        "tab": "Night Time",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }          
-	    },
-	    "nightimageannotated" : {
-	        "description": "Send Annotated Image",
-	        "help": "Send the image after the overlay has been added. The discord module must be after the overlay module in the flow",
-	        "tab": "Night Time",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }          
-	    },          
-	    "nightcount" : {
-	        "required": "false",
-	        "description": "Nighttime Count",
-	        "help": "Send every (this number) frame to Discord. This is to prevent flooding the discord channels",
-	        "tab": "Night Time",            
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 1,
-	            "max": 100,
-	            "step": 1
-	        }
-	    },         
-	    "nightimageurl": {
-	        "required": "false",
-	        "tab": "Night Time",           
-	        "description": "The webhook url for night time images"
-	    },  
-
-	    "startrails" : {
-	        "required": "false",
-	        "description": "Post Star Trails Images",
-	        "help": "Post Star Trails images to the Discord Server",
-	        "tab": "Star Trails",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }          
-	    },
-	    "startrailsimageurl": {
-	        "required": "false",
-	        "tab": "Star Trails",           
-	        "description": "The webhook url for Star Trails images"
-	    },  
-
-
-	    "keogram" : {
-	        "required": "false",
-	        "description": "Post Keograms Images",
-	        "help": "Post Keograms images to the Discord Server",
-	        "tab": "Keograms",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }          
-	    },
-	    "keogramimageurl": {
-	        "required": "false",
-	        "tab": "Keograms",           
-	        "description": "The webhook url for Star Keograms"
-	    },  
-
-	    "timelapse" : {
-	        "required": "false",
-	        "description": "Post Timelapse videos",
-	        "help": "Post Timelapse videos to the Discord Server",
-	        "tab": "Timelapse",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }          
-	    },
-	    "timelapseimageurl": {
-	        "required": "false",
-	        "tab": "Timelapse",           
-	        "description": "The webhook url for Timelapses"
-	    }      
-	},
-	"enabled": "false",
-	"changelog": {
-	    "v1.0.0" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Initial Release"
-	        }
-	    ],
-	    "v1.0.1" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Issue #161 - Send annotated image"
-	        }
-	    ],
-	    "v1.0.3" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Updated for new module systen"
-	        }
-	    ]                                        
-	}              
-}
-
-
 class ALLSKYDISCORD(ALLSKYMODULEBASE):
-	params = []
-	event = ''
+
+	meta_data = {
+		"name": "Discord",
+		"description": "Posts to a Discord server",
+		"version": "v1.0.3",
+		"pythonversion": "3.9.0",
+		"centersettings": "false",
+		"testable": "true", 
+		"module": "allsky_discordsend",    
+		"events": [
+			"day",
+			"night",
+			"nightday"
+		],
+		"experimental": "false",    
+		"arguments":{
+			"dayimage": "false",
+			"dayimageannotated" : "true",
+			"dayimageurl": "",
+			"daycount": 5,
+			"nightimage": "false",
+			"nightimageannotated" : "true",
+			"nightimageurl": "",
+			"nightcount": 5,
+			"startrails": "false",
+			"startrailsimageurl": "",
+			"keogram": "false",
+			"keogramimageurl": "",
+			"timelapse": "false",
+			"timelapseimageurl": ""
+		},
+		"argumentdetails": {
+			"dayimage" : {
+				"required": "false",
+				"description": "Post Day time Images",
+				"help": "Post daytime images to the Discord Server",
+				"tab": "Day Time",
+				"type": {
+					"fieldtype": "checkbox"
+				}          
+			},
+			"dayimageannotated" : {
+				"description": "Send Annotated Image",
+				"help": "Send the image after the overlay has been added. The discord module must be after the overlay module in the flow",
+				"tab": "Day Time",
+				"type": {
+					"fieldtype": "checkbox"
+				}          
+			},        
+			"daycount" : {
+				"required": "false",
+				"description": "Daytime Count",
+				"help": "Send every (this number) frame to Discord. This is to prevent flooding the discord channels",
+				"tab": "Day Time",            
+				"type": {
+					"fieldtype": "spinner",
+					"min": 1,
+					"max": 100,
+					"step": 1
+				}
+			},        
+			"dayimageurl": {
+				"required": "false",
+				"tab": "Day Time",            
+				"description": "The webhook url for day time images"
+			}, 
+			"nightimage" : {
+				"required": "false",
+				"description": "Post Night time Images",
+				"help": "Post Nighttime images to the Discord Server",
+				"tab": "Night Time",
+				"type": {
+					"fieldtype": "checkbox"
+				}          
+			},
+			"nightimageannotated" : {
+				"description": "Send Annotated Image",
+				"help": "Send the image after the overlay has been added. The discord module must be after the overlay module in the flow",
+				"tab": "Night Time",
+				"type": {
+					"fieldtype": "checkbox"
+				}          
+			},          
+			"nightcount" : {
+				"required": "false",
+				"description": "Nighttime Count",
+				"help": "Send every (this number) frame to Discord. This is to prevent flooding the discord channels",
+				"tab": "Night Time",            
+				"type": {
+					"fieldtype": "spinner",
+					"min": 1,
+					"max": 100,
+					"step": 1
+				}
+			},         
+			"nightimageurl": {
+				"required": "false",
+				"tab": "Night Time",           
+				"description": "The webhook url for night time images"
+			},  
+
+			"startrails" : {
+				"required": "false",
+				"description": "Post Star Trails Images",
+				"help": "Post Star Trails images to the Discord Server",
+				"tab": "Star Trails",
+				"type": {
+					"fieldtype": "checkbox"
+				}          
+			},
+			"startrailsimageurl": {
+				"required": "false",
+				"tab": "Star Trails",           
+				"description": "The webhook url for Star Trails images"
+			},  
+
+
+			"keogram" : {
+				"required": "false",
+				"description": "Post Keograms Images",
+				"help": "Post Keograms images to the Discord Server",
+				"tab": "Keograms",
+				"type": {
+					"fieldtype": "checkbox"
+				}          
+			},
+			"keogramimageurl": {
+				"required": "false",
+				"tab": "Keograms",           
+				"description": "The webhook url for Star Keograms"
+			},  
+
+			"timelapse" : {
+				"required": "false",
+				"description": "Post Timelapse videos",
+				"help": "Post Timelapse videos to the Discord Server",
+				"tab": "Timelapse",
+				"type": {
+					"fieldtype": "checkbox"
+				}          
+			},
+			"timelapseimageurl": {
+				"required": "false",
+				"tab": "Timelapse",           
+				"description": "The webhook url for Timelapses"
+			}      
+		},
+		"enabled": "false",
+		"changelog": {
+			"v1.0.0" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Initial Release"
+				}
+			],
+			"v1.0.1" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Issue #161 - Send annotated image"
+				}
+			],
+			"v1.0.3" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Updated for new module systen"
+				}
+			]                                        
+		}              
+	}
 
 	def __cv2_discord_file(self, img, file_name):
 		img_encode = cv2.imencode('.png', img)[1]

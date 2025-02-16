@@ -4,166 +4,6 @@ from allsky_base import ALLSKYMODULEBASE
 import sys
 from pms7003 import Pms7003Sensor, PmsSensorException
 
-metaData = {
-	"name": "Air Quality Monitor",
-	"description": "Monitors air quality using a pms5003, pms7003 or pmsa003",
-	"module": "allsky_pmsx003",
-	"version": "v1.0.2",
-	"events": [
-	    "periodic",
-	    "day",
-	    "night"
-	],
-	"experimental": "false",
-	"centersettings": "false",
-	"testable": "true",
-	"extradatafilename": "allsky_pmsx003.json",
-	"extradata": {
-	    "values": {
-	        "AS_PM1_0CF1": {
-	            "name": "${PM1_0CF1}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "PM1.0 concentration in μg/m3 (corrected to standard conditions)",
-	            "type": "number"
-	        },
-	        "AS_PM2_5CF1": {
-	            "name": "${PM2_5CF1}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "PM2.5 concentration in μg/m3 (corrected to standard conditions)",
-	            "type": "number"
-	        },
-	        "AS_PM10CF1": {
-	            "name": "${PM10CF1}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "PM10 concentration in μg/m3 (corrected to standard conditions)",
-	            "type": "number"
-	        },
-	        "AS_PM1_0": {
-	            "name": "${PM1_0}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "PM1.0 concentration in μg/m3 (under atmospheric conditions)",
-	            "type": "number"
-	        },
-	        "AS_PM2_5": {
-	            "name": "${PM2_5}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "PM2.5 concentration in μg/m3 (under atmospheric conditions)",
-	            "type": "number"
-	        },
-	        "AS_PM10": {
-	            "name": "${PM10}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "PM10 concentration in μg/m3 (under atmospheric conditions)",
-	            "type": "number"
-	        },
-	        "AS_N0_3": {
-	            "name": "${N0_3}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "Number of particles with diameter greater than 0.3 μm (in 100 ml of air)",
-	            "type": "number"
-	        },
-	        "AS_N0_5": {
-	            "name": "${N0_5}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "Number of particles with diameter greater than 0.5 μm (in 100 ml of air)",
-	            "type": "number"
-	        },
-	        "AS_N1_0": {
-	            "name": "${N1_0}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "Number of particles with diameter greater than 1.0 μm (in 100 ml of air)",
-	            "type": "number"
-	        },
-	        "AS_N2_5": {
-	            "name": "${N2_5}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "Number of particles with diameter greater than 2.5 μm (in 100 ml of air)",
-	            "type": "number"
-	        },
-	        "AS_N5_0": {
-	            "name": "${N5_0}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "Number of particles with diameter greater than 5.0 μm (in 100 ml of air)",
-	            "type": "number"
-	        },
-	        "AS_N10": {
-	            "name": "${N10}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "Number of particles with diameter greater than 10 μm (in 100 ml of air)",
-	            "type": "number"
-	        },
-	        "AS_AQI": {
-	            "name": "${AQI}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "Air quality index",
-	            "type": "number"
-	        },
-	        "AS_AQI_TEXT": {
-	            "name": "${AQI_TEXT}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "Air quality index, Human Readable",
-	            "type": "string"
-	        }                                    
-	    }                         
-	},
-	"arguments":{
-		"serialport": "serial0"
-	    
-	},
-	"argumentdetails": {
-	    "serialport": {
-	        "required": "false",
-	        "description": "Serial port",
-	        "tab": "Home",
-	        "help": "The serial port the sensor is connected to",
-	        "type": {
-	            "fieldtype": "ajaxselect",
-				"url": "includes/moduleutil.php?request=SerialPorts",
-				"placeholder": "Select a serial port"
-	        }         
-	    }
-	},
-	"businfo": [
-	],    
-	"changelog": {
-	    "v1.0.0" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Initial Release"
-	        }
-	    ]                                                         
-	}
-}
-
 class ALLSKYPMSX003(ALLSKYMODULEBASE):
 	'''
 	pm1_0cf1 - PM1.0 concentration in μg/m3 (corrected to standard conditions)
@@ -181,6 +21,166 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
  
 	Air quality index calculations from https://en.wikipedia.org/wiki/Air_quality_index#Computing_the_AQI
 	'''
+
+	meta_data = {
+		"name": "Air Quality Monitor",
+		"description": "Monitors air quality using a pms5003, pms7003 or pmsa003",
+		"module": "allsky_pmsx003",
+		"version": "v1.0.2",
+		"events": [
+			"periodic",
+			"day",
+			"night"
+		],
+		"experimental": "false",
+		"centersettings": "false",
+		"testable": "true",
+		"extradatafilename": "allsky_pmsx003.json",
+		"extradata": {
+			"values": {
+				"AS_PM1_0CF1": {
+					"name": "${PM1_0CF1}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "PM1.0 concentration in μg/m3 (corrected to standard conditions)",
+					"type": "number"
+				},
+				"AS_PM2_5CF1": {
+					"name": "${PM2_5CF1}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "PM2.5 concentration in μg/m3 (corrected to standard conditions)",
+					"type": "number"
+				},
+				"AS_PM10CF1": {
+					"name": "${PM10CF1}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "PM10 concentration in μg/m3 (corrected to standard conditions)",
+					"type": "number"
+				},
+				"AS_PM1_0": {
+					"name": "${PM1_0}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "PM1.0 concentration in μg/m3 (under atmospheric conditions)",
+					"type": "number"
+				},
+				"AS_PM2_5": {
+					"name": "${PM2_5}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "PM2.5 concentration in μg/m3 (under atmospheric conditions)",
+					"type": "number"
+				},
+				"AS_PM10": {
+					"name": "${PM10}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "PM10 concentration in μg/m3 (under atmospheric conditions)",
+					"type": "number"
+				},
+				"AS_N0_3": {
+					"name": "${N0_3}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "Number of particles with diameter greater than 0.3 μm (in 100 ml of air)",
+					"type": "number"
+				},
+				"AS_N0_5": {
+					"name": "${N0_5}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "Number of particles with diameter greater than 0.5 μm (in 100 ml of air)",
+					"type": "number"
+				},
+				"AS_N1_0": {
+					"name": "${N1_0}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "Number of particles with diameter greater than 1.0 μm (in 100 ml of air)",
+					"type": "number"
+				},
+				"AS_N2_5": {
+					"name": "${N2_5}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "Number of particles with diameter greater than 2.5 μm (in 100 ml of air)",
+					"type": "number"
+				},
+				"AS_N5_0": {
+					"name": "${N5_0}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "Number of particles with diameter greater than 5.0 μm (in 100 ml of air)",
+					"type": "number"
+				},
+				"AS_N10": {
+					"name": "${N10}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "Number of particles with diameter greater than 10 μm (in 100 ml of air)",
+					"type": "number"
+				},
+				"AS_AQI": {
+					"name": "${AQI}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "Air quality index",
+					"type": "number"
+				},
+				"AS_AQI_TEXT": {
+					"name": "${AQI_TEXT}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "Air quality index, Human Readable",
+					"type": "string"
+				}                                    
+			}                         
+		},
+		"arguments":{
+			"serialport": "serial0"
+			
+		},
+		"argumentdetails": {
+			"serialport": {
+				"required": "false",
+				"description": "Serial port",
+				"tab": "Home",
+				"help": "The serial port the sensor is connected to",
+				"type": {
+					"fieldtype": "ajaxselect",
+					"url": "includes/moduleutil.php?request=SerialPorts",
+					"placeholder": "Select a serial port"
+				}         
+			}
+		},
+		"businfo": [
+		],    
+		"changelog": {
+			"v1.0.0" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Initial Release"
+				}
+			]                                                         
+		}
+	}
 
 	_AQI_DATA = (
 		(0, 50),
@@ -263,8 +263,8 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 		
 			extra_data['AS_AQI'] = air_quality_index
 			extra_data['AS_AQI_TEXT'] = air_quality_index_text
-			allsky_shared.saveExtraData(metaData['extradatafilename'], extra_data, metaData['module'], metaData['extradata'])
-			result = f'Sensor Data read and written the the {metaData["extradatafilename"]} extra data file'
+			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+			result = f'Sensor Data read and written the the {self.meta_data["extradatafilename"]} extra data file'
 			allsky_shared.log(4, f'INFO: {result}')
 		except PmsSensorException:
 			result = 'Cannot connect to the sensor'
@@ -284,10 +284,10 @@ def pmsx003(params, event):
     
 def pmsx003_cleanup():
 	module_data = {
-	    "metaData": metaData,
+	    "metaData": ALLSKYPMSX003.meta_data,
 	    "cleanup": {
 	        "files": {
-	            metaData['extradatafilename']
+	            ALLSKYPMSX003.meta_data['extradatafilename']
 	        },
 	        "env": {}
 	    }

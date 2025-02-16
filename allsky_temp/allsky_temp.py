@@ -26,1543 +26,1541 @@ from meteocalc import dew_point
 from digitalio import DigitalInOut, Direction, Pull
 from DS18B20dvr.DS18B20 import DS18B20
 	
-metaData = {
-	"name": "Environment Monitor",
-	"description": "Reads upto 3 environment sensors",
-	"module": "allsky_temp",
-	"version": "v1.0.2",
-	"events": [
-	    "periodic",
-	    "day",
-	    "night"
-	],
-	"experimental": "false",
-	"centersettings": "false",
-	"testable": "true",
-	"extradatafilename": "allsky_temp.json",
-	"extradata": {
-	    "info": {
-	        "count": 4,
-	        "firstblank": "true"
-	    },
-	    "values": {
-	        "AS_GPIOSTATE${COUNT}": {
-	            "name": "${GPIOSTATE${COUNT}}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "State of the ${AS_TEMPSENSORNAME${COUNT}} gpio pin",
-	            "type": "gpio"
-	        },              
-	        "AS_TEMPSENSOR${COUNT}": {
-	            "name": "${TEMPSENSOR${COUNT}}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "${AS_TEMPSENSORNAME${COUNT}} Sensor type",
-	            "type": "string"
-	        },
-	        "AS_TEMPSENSORNAME${COUNT}": {
-	            "name": "${TEMPSENSORNAME${COUNT}}",
-	            "format": "",
-	            "sample": "",                 
-	            "group": "Environment",
-	            "description": "Sensor ${COUNT} name ${AS_TEMPSENSORNAME${COUNT}}",
-	            "type": "string"
-	        },
-	        "AS_TEMP${COUNT}": {
-	            "name": "${TEMP${COUNT}}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "Temperature from ${AS_TEMPSENSORNAME${COUNT}}",
-	            "type": "temperature"
-	        },
-	        "AS_DEW${COUNT}": {
-	            "name": "${DEW${COUNT}}",
-	            "format": "",
-	            "sample": "",                 
-	            "group": "Environment",
-	            "description": "Dewpoint from ${AS_TEMPSENSORNAME${COUNT}}",
-	            "type": "temperature"
-	        },
-	        "AS_HUMIDITY${COUNT}": {
-	            "name": "${HUMIDITY${COUNT}}",
-	            "format": "",
-	            "sample": "",                  
-	            "group": "Environment",
-	            "description": "Humidity from ${AS_TEMPSENSORNAME${COUNT}}",
-	            "type": "float"
-	        },
-	        "AS_PRESSURE${COUNT}": {
-	            "name": "${PRESSURE${COUNT}}",
-	            "format": "",
-	            "sample": "",                 
-	            "group": "Environment",
-	            "description": "Pressure from ${AS_TEMPSENSORNAME${COUNT}}",
-	            "type": "float"
-	        },
-	        "AS_RELHUMIDITY${COUNT}": {
-	            "name": "${RELHUMIDITY${COUNT}}",
-	            "format": "",
-	            "sample": "",                
-	            "group": "Environment",
-	            "description": "Relative Humidity from ${AS_TEMPSENSORNAME${COUNT}}",
-	            "type": "temperature"
-	        },
-	        "AS_ALTITUDE${COUNT}": {
-	            "name": "${ALTITUDE${COUNT}}",
-	            "format": "",
-	            "sample": "",                 
-	            "group": "Environment",
-	            "description": "Altitude from ${AS_TEMPSENSORNAME${COUNT}}",
-	            "type": "float"
-	        }
-	    }                         
-	},
-	"arguments":{
-	    "frequency": "0",
-	    "extradatafilename": "allskytemp.json",
-	    "units": "metric",
-
-	    "type": "None",
-	    "name": "Allsky",
-	    "inputpin": "",
-	    "i2caddress": "",
-	    "ds18b20address": "",
-	    "dhtxxretrycount": "2",
-	    "dhtxxdelay" : "500",
-	    "sht31heater": "False",
-	    "sht41mode": "0xE0",
-		"owapikey": "",        
-		"owfilename": "",        
-		"owperiod": "",        
-		"owunits": "",        
-		"owexpire": "",
-  
-	    "type1": "None",
-	    "name1": "",
-	    "inputpin1": "",
-	    "i2caddress1": "",
-	    "ds18b20address1": "",
-	    "dhtxxretrycount1": "2",
-	    "dhtxxdelay1" : "500",
-	    "sht31heater1": "False",
-	    "sht41mode": "0xE0",
-	    "temp1": "",
-	    "gpio1": "",
-	    "gpioon1": "On",
-	    "gpiooff1": "Off",
-		"owapikey1": "",        
-		"owfilename1": "",        
-		"owperiod1": "",        
-		"owunits1": "",        
-		"owexpire1": "",  
-	    
-	    "type2": "None",
-	    "name2": "",
-	    "inputpin2": "",
-	    "i2caddress2": "",
-	    "ds18b20address2": "",
-	    "dhtxxretrycount2": "2",
-	    "dhtxxdelay2" : "500",
-	    "sht31heater2": "False",
-	    "sht41mode": "0xE0",     
-	    "temp2": "",
-	    "gpio2": "",
-	    "gpioon2": "On",
-	    "gpiooff2": "Off",
-		"owapikey2": "",        
-		"owfilename2": "",        
-		"owperiod2": "",        
-		"owunits2": "",        
-		"owexpire2": "",  
-	         
-	    "type3": "None",
-	    "name3": "",
-	    "inputpin3": "",
-	    "i2caddress3": "",
-	    "ds18b20address3": "",
-	    "dhtxxretrycount3": "2",
-	    "dhtxxdelay3" : "500",
-	    "sht31heater3": "False",
-	    "sht41mode": "0xE0",     
-	    "temp3": "",
-	    "gpio3": "",
-	    "gpioon3": "On",
-	    "gpiooff3": "Off",
-		"owapikey3": "",
-		"owfilename3": "",
-		"owperiod3": "",
-		"owunits3": "",
-		"owexpire3": ""
-	    
-	},
-	"argumentdetails": {
-		"notice" : {
-	        "tab": "Home",      
-			"message": "This module will provide centralised temperature, humidity and pressure data to other modules. This should be used in favour of dedicated sensors in any other modules which will be removed in a future release",
-	        "type": {
-	            "fieldtype": "text",
-	            "style": {
-	                "width": "full",
-					"alert": {
-						"class": "info"
-					}
-				}
-	        } 			
-		},        
-	    "frequency" : {
-	        "required": "false",
-	        "description": "Delay",
-	        "help": "The delay between sensor reads in seconds. Zero will disable this and run the check every time the periodic jobs run",
-	        "tab": "Home",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 1000,
-	            "step": 1
-	        }
-	    },
-	    "extradatafilename": {
-	        "required": "true",
-	        "description": "Extra Data Filename",
-	        "tab": "Home",
-	        "disabled": "true",
-	        "help": "The name of the file to create with the dew heater data for the overlay manager"
-	    },
-	    "units" : {
-	        "required": "false",
-	        "description": "Units",
-	        "help": "Units of measurement. standard, metric and imperial",
-	        "tab": "Home",            
-	        "type": {
-	            "fieldtype": "select",
-	            "values": "standard,metric,imperial"
-	        }                
-	    },
-	    "type" : {
-	        "required": "false",
-	        "description": "Sensor Type",
-	        "help": "The type of sensor that is being used.",
-	        "tab": "Core",
-	        "type": {
-	            "fieldtype": "select",
-	            "values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
-	            "default": "None"
-	        }
-	    },
-	    "name": {
-	        "required": "false",
-	        "description": "Name Of Sensor",
-	        "tab": "Core",
-	        "help": "The name of the sensor, will be added as a variable",
-	        "disabled": "true"            
-	    },        
-	    "inputpin": {
-	        "required": "false",
-	        "description": "Input Pin",
-	        "help": "The input pin for DHT type sensors, not required for i2c devices",
-	        "tab": "Core",
-	        "type": {
-	            "fieldtype": "gpio"
-	        },
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"DHT22",
-	            	"DHT11",
-	            	"AM2302"
-				]
-			}            
-	    },
-	    "i2caddress": {
-	        "required": "false",
-	        "description": "I2C Address",
-	        "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
-	        "tab": "Core",
-	        "type": {
-	            "fieldtype": "i2c"
-	        },
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-	            	"SHT4x",              
-	            	"BME280-I2C",
-	            	"HTU21",
-	             	"AHTx0"
-				]
-			}            
-	    },
-	    "ds18b20address": {
-	        "required": "false",
-	        "description": "DS18B20 Address",
-	        "tab": "Core",
-	        "help": "Filename in /sys/bus/w1/devices",
-	        "type": {
-	            "fieldtype": "ajaxselect",
-				"url": "includes/moduleutil.php?request=Onewire",
-				"placeholder": "Select a One Wire device"
-	        },         
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"DS18B20"
-				]
-			}             
-	    },        
-	    "dhtxxretrycount" : {
-	        "required": "false",
-	        "description": "Retry Count",
-	        "help": "The number of times to retry the DHTXX sensor read",
-	        "tab": "Core",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 5,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"DHT22",
-	            	"DHT11",
-	            	"AM2302"
-				]
-			}             
-	    },
-	    "dhtxxdelay" : {
-	        "required": "false",
-	        "description": "Delay",
-	        "help": "The delay between faild DBTXX sensor reads in milliseconds",
-	        "tab": "Core",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 5000,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"DHT22",
-	            	"DHT11",
-	            	"AM2302"
-				]
-			}             
-	    },
-	    "sht31heater" : {
-	        "required": "false",
-	        "description": "Enable SHT31 Heater",
-	        "help": "Enable the inbuilt heater on the SHT31",
-	        "tab": "Core",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        },
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31"        
-				]
-			}             
-	    },
-	    "sht41mode" : {
-	        "required": "false",
-	        "description": "SHT4x Power Mode",
-	        "help": "Sets the SHT4x power mode",
-	        "tab": "Core",
-	        "type": {
-	            "fieldtype": "select",
-				"values": "0xFD|No heater - high precision,0xF6|No heater - med precision,0xE0|No heater - low precision (Lowest Power Mode),0x39|High heat - 1 second (Highest Power Mode),0x32|High heat - 0.1 second,0x2F|Med heat - 1 second,0x24|Med heat - 0.1 second,0x1E|Low heat - 1 second, 0x15|Low heat - 0.1 second",
-	            "default": "None"
-	        },
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-					"SHT4x"
-				]
-			}             
-	    },     
-		"owtext": {
-			"message": "<b style='color: #ff0000'>IMPORTANT</b> Do not use this function and the OpenWeather API module as well. If you are using this function then please remove the OpenWeather Module as both create the same overlay data",
-	        "tab": "Core",
-	        "type": {
-	            "fieldtype": "text",
-	            "style": {
-	                "width": "full",
-					"alert": {
-						"class": "danger"
-					}
-				}
-	        },
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}              						
-		},
-	    "owapikey": {
-	        "required": "false",
-	        "description": "API Key",
-	        "tab": "Core",
-         	"secret": "true",         
-	        "help": "Your Open Weather Map API key.",
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}             
-	    },
-	    "owfilename": {
-	        "required": "false",
-	        "description": "Filename",
-	        "tab": "Core",            
-	        "help": "The name of the file that will be written to the allsky/tmp/extra directory",
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}                     
-	    },        
-	    "owperiod" : {
-	        "required": "false",
-	        "description": "Read Every",
-	        "help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
-	        "tab": "Core",            
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 60,
-	            "max": 1440,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}                       
-	    },       
-	    "owexpire" : {
-	        "required": "false",
-	        "description": "Expiry Time",
-	        "help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value",
-	        "tab": "Core",            
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 61,
-	            "max": 1500,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "type",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}                       
-	    },          
-		"noticecore" : {
-	        "tab": "Core",      
-			"message": "This sensor is used by Allksy for basic temperature information. The following Variables will be created<br>AS_TEMP - The temperature<br>AS_HUMIDITY - The Humidity<br>AS_DEWPOINT - the dew point<br>AS_PRESSURE - <Only if supported by the sensor> Barometric Pressure<br>AS_ALTITUDE - <Only if supported by the sensor> The altitude",
-	        "type": {
-	            "fieldtype": "text",
-	            "style": {
-	                "width": "full",
-					"alert": {
-						"class": "info"
-					}
-				}
-	        } 			
-		}, 
-	    "type1" : {
-	        "required": "false",
-	        "description": "Sensor Type",
-	        "help": "The type of sensor that is being used.",
-	        "tab": "Sensor 1",
-	        "type": {
-	            "fieldtype": "select",
-	            "values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
-	            "default": "None"
-	        }
-	    },
-	    "name1": {
-	        "required": "false",
-	        "description": "Name Of Sensor",
-	        "tab": "Sensor 1",
-	        "help": "The name of the sensor, will be added as a variable",
-	        "filters": {
-	            "filter": "type1",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-	                "DHT22",
-	                "DHT11",
-	                "AM2302",
-	                "BME280-I2C",
-	                "HTU21",
-	                "AHTx0",
-	                "DS18B20",
-	                "OpenWeather"
-				]
-			}            
-	    },        
-	    "inputpin1": {
-	        "required": "false",
-	        "description": "Input Pin",
-	        "help": "The input pin for DHT type sensors, not required for i2c devices",
-	        "tab": "Sensor 1",
-	        "type": {
-	            "fieldtype": "gpio"
-	        },
-	        "filters": {
-	            "filter": "type1",
-	            "filtertype": "show",
-	            "values": [
-	            	"DHT22",
-	            	"DHT11",
-	            	"AM2302"
-				]
-			}            
-	    },
-	    "i2caddress1": {
-	        "required": "false",
-	        "description": "I2C Address",
-	        "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
-	        "tab": "Sensor 1",
-	        "type": {
-	            "fieldtype": "i2c"
-	        },
-	        "filters": {
-	            "filter": "type1",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-					"SHT4x",
-	            	"BME280-I2C",
-	            	"HTU21",
-	             	"AHTx0"
-				]
-			}            
-	    },
-	    "ds18b20address1": {
-	        "required": "false",
-	        "description": "DS18B20 Address",
-	        "tab": "Sensor 1",
-	        "help": "Filename in /sys/bus/w1/devices",
-	        "type": {
-	            "fieldtype": "ajaxselect",
-				"url": "includes/moduleutil.php?request=Onewire",
-				"placeholder": "Select a One Wire device"
-	        },          
-	        "filters": {
-	            "filter": "type1",
-	            "filtertype": "show",
-	            "values": [
-	            	"DS18B20"
-				]
-			}             
-	    },        
-	    "dhtxxretrycount1" : {
-	        "required": "false",
-	        "description": "Retry Count",
-	        "help": "The number of times to retry the DHTXX sensor read",
-	        "tab": "Sensor 1",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 5,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "type1",
-	            "filtertype": "show",
-	            "values": [
-	            	"DHT22",
-	            	"DHT11",
-	            	"AM2302"
-				]
-			}             
-	    },
-	    "dhtxxdelay1" : {
-	        "required": "false",
-	        "description": "Delay",
-	        "help": "The delay between faild DBTXX sensor reads in milliseconds",
-	        "tab": "Sensor 1",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 5000,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "type1",
-	            "filtertype": "show",
-	            "values": [
-	            	"DHT22",
-	            	"DHT11",
-	            	"AM2302"
-				]
-			}             
-	    },
-	    "sht31heater1" : {
-	        "required": "false",
-	        "description": "Enable SHT31 Heater",
-	        "help": "Enable the inbuilt heater on the SHT31",
-	        "tab": "Sensor 1",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        },
-	        "filters": {
-	            "filter": "type1",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31"
-				]
-			}             
-	    },
-	    "sht41mode1" : {
-	        "required": "false",
-	        "description": "SHT4x Power Mode",
-	        "help": "Sets the SHT4x power mode",
-	        "tab": "Sensor 1",
-	        "type": {
-	            "fieldtype": "select",
-				"values": "0xFD|No heater - high precision,0xF6|No heater - med precision,0xE0|No heater - low precision (Lowest Power Mode),0x39|High heat - 1 second (Highest Power Mode),0x32|High heat - 0.1 second,0x2F|Med heat - 1 second,0x24|Med heat - 0.1 second,0x1E|Low heat - 1 second, 0x15|Low heat - 0.1 second",
-	            "default": "0xE0"
-	        },
-	        "filters": {
-	            "filter": "type1",
-	            "filtertype": "show",
-	            "values": [
-					"SHT4x"
-				]
-			}             
-	    },      
-		"owtext1": {
-			"message": "<b style='color: #ff0000'>IMPORTANT</b> Do not use this function and the OpenWeather API module as well. If you are using this function then please remove the OpenWeather Module as both create the same overlay data",
-	        "tab": "Sensor 1",
-	        "type": {
-	            "fieldtype": "text",
-	            "style": {
-	                "width": "full",
-					"alert": {
-						"class": "danger"
-					}
-				}
-	        },
-	        "filters": {
-	            "filter": "type1",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}              						
-		},
-	    "owapikey1": {
-	        "required": "false",
-	        "description": "API Key",
-			"secret": "true",         
-	        "tab": "Sensor 1",
-	        "help": "Your Open Weather Map API key.",
-	        "filters": {
-	            "filter": "type1",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}             
-	    },
-	    "owfilename1": {
-	        "required": "false",
-	        "description": "Filename",
-	        "tab": "Sensor 1",            
-	        "help": "The name of the file that will be written to the allsky/tmp/extra directory",
-	        "filters": {
-	            "filter": "type1",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}                     
-	    },        
-	    "owperiod1" : {
-	        "required": "false",
-	        "description": "Read Every",
-	        "help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
-	        "tab": "Sensor 1",            
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 60,
-	            "max": 1440,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "type1",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}                       
-	    },       
-	    "owexpire1" : {
-	        "required": "false",
-	        "description": "Expiry Time",
-	        "help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value",
-	        "tab": "Sensor 1",            
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 61,
-	            "max": 1500,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "type1",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}                       
-	    },                 
-	    "temp1" : {
-	        "required": "false",
-	        "description": "Max Temp",
-	        "help": "Above this temperature trigger the gpio pin",
-	        "tab": "Sensor 1",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 120,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "type1",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-					"SHT4x",
-	                "DHT22",
-	                "DHT11",
-	                "AM2302",
-	                "BME280-I2C",
-	                "HTU21",
-	                "AHTx0",
-	                "DS18B20",
-	                "OpenWeather"
-				]
-			}             
-	    },        
-	    "gpio1": {
-	        "required": "false",
-	        "description": "GPIO Pin",
-	        "help": "The GPIO pin to set high when the temp is above the Max Temp",
-	        "type": {
-	            "fieldtype": "gpio"
-	        },            
-	        "tab": "Sensor 1",
-	        "filters": {
-	            "filter": "type1",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-					"SHT4x",              
-	                "DHT22",
-	                "DHT11",
-	                "AM2302",
-	                "BME280-I2C",
-	                "HTU21",
-	                "AHTx0",
-	                "DS18B20",
-	                "OpenWeather"
-				]
-			}                      
-	    },
-	    "gpioon1": {
-	        "required": "false",
-	        "description": "GPIO On",
-	        "help": "The Label to use when the GPIO pin is high",
-	        "tab": "Sensor 1",
-	        "filters": {
-	            "filter": "type1",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-					"SHT4x",              
-	                "DHT22",
-	                "DHT11",
-	                "AM2302",
-	                "BME280-I2C",
-	                "HTU21",
-	                "AHTx0",
-	                "DS18B20",
-	                "OpenWeather"
-				]
-			}                      
-	    },
-	    "gpiooff1": {
-	        "required": "false",
-	        "description": "GPIO Off",
-	        "help": "The Label to use when the GPIO pin is low",
-	        "tab": "Sensor 1",
-	        "filters": {
-	            "filter": "type1",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-					"SHT4x",              
-	                "DHT22",
-	                "DHT11",
-	                "AM2302",
-	                "BME280-I2C",
-	                "HTU21",
-	                "AHTx0",
-	                "DS18B20",
-	                "OpenWeather"
-				]
-			}                    
-	    },                    
-	    "type2" : {
-	        "required": "false",
-	        "description": "Sensor Type",
-	        "help": "The type of sensor that is being used.",
-	        "tab": "Sensor 2",
-	        "type": {
-	            "fieldtype": "select",
-	            "values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
-	            "default": "None"
-	        }
-	    },
-	    "name2": {
-	        "required": "false",
-	        "description": "Name Of Sensor",
-	        "tab": "Sensor 2",
-	        "help": "The name of the sensor, will be added as a variable",
-	        "filters": {
-	            "filter": "type2",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-	                "DHT22",
-	                "DHT11",
-	                "AM2302",
-	                "BME280-I2C",
-	                "HTU21",
-	                "AHTx0",
-	                "DS18B20",
-	                "OpenWeather"
-				]
-			}            
-	    },        
-	    "inputpin2": {
-	        "required": "false",
-	        "description": "Input Pin",
-	        "help": "The input pin for DHT type sensors, not required for i2c devices",
-	        "tab": "Sensor 2",
-	        "type": {
-	            "fieldtype": "gpio"
-	        },
-	        "filters": {
-	            "filter": "type2",
-	            "filtertype": "show",
-	            "values": [
-	            	"DHT22",
-	            	"DHT11",
-	            	"AM2302"
-				]
-			}            
-	    },
-	    "i2caddress2": {
-	        "required": "false",
-	        "description": "I2C Address",
-	        "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
-	        "tab": "Sensor 2",
-	        "type": {
-	            "fieldtype": "i2c"
-	        },
-	        "filters": {
-	            "filter": "type2",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-					"SHT4x",
-	            	"BME280-I2C",
-	            	"HTU21",
-	             	"AHTx0"
-				]
-			}            
-	    },
-	    "ds18b20address2": {
-	        "required": "false",
-	        "description": "DS18B20 Address",
-	        "tab": "Sensor 2",
-	        "help": "Filename in /sys/bus/w1/devices",
-	        "type": {
-	            "fieldtype": "ajaxselect",
-				"url": "includes/moduleutil.php?request=Onewire",
-				"placeholder": "Select a One Wire device"
-	        },         
-	        "filters": {
-	            "filter": "type2",
-	            "filtertype": "show",
-	            "values": [
-	            	"DS18B20"
-				]
-			}             
-	    },        
-	    "dhtxxretrycount2" : {
-	        "required": "false",
-	        "description": "Retry Count",
-	        "help": "The number of times to retry the DHTXX sensor read",
-	        "tab": "Sensor 2",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 5,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "type2",
-	            "filtertype": "show",
-	            "values": [
-	            	"DHT22",
-	            	"DHT11",
-	            	"AM2302"
-				]
-			}             
-	    },
-	    "dhtxxdelay2" : {
-	        "required": "false",
-	        "description": "Delay",
-	        "help": "The delay between faild DBTXX sensor reads in milliseconds",
-	        "tab": "Sensor 2",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 5000,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "type2",
-	            "filtertype": "show",
-	            "values": [
-	            	"DHT22",
-	            	"DHT11",
-	            	"AM2302"
-				]
-			}             
-	    },
-	    "sht31heater2" : {
-	        "required": "false",
-	        "description": "Enable SHT31 Heater",
-	        "help": "Enable the inbuilt heater on the SHT31",
-	        "tab": "Sensor 2",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        },
-	        "filters": {
-	            "filter": "type2",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31"
-				]
-			}             
-	    },
-	    "sht41mode2" : {
-	        "required": "false",
-	        "description": "SHT4x Power Mode",
-	        "help": "Sets the SHT4x power mode",
-	        "tab": "Sensor 2",
-	        "type": {
-	            "fieldtype": "select",
-				"values": "0xFD|No heater - high precision,0xF6|No heater - med precision,0xE0|No heater - low precision (Lowest Power Mode),0x39|High heat - 1 second (Highest Power Mode),0x32|High heat - 0.1 second,0x2F|Med heat - 1 second,0x24|Med heat - 0.1 second,0x1E|Low heat - 1 second, 0x15|Low heat - 0.1 second",
-	            "default": "0xE0"
-	        },
-	        "filters": {
-	            "filter": "type2",
-	            "filtertype": "show",
-	            "values": [
-					"SHT4x"
-				]
-			}             
-	    },     
-		"owtext2": {
-			"message": "<b style='color: #ff0000'>IMPORTANT</b> Do not use this function and the OpenWeather API module as well. If you are using this function then please remove the OpenWeather Module as both create the same overlay data",
-	        "tab": "Sensor 2",
-	        "type": {
-	            "fieldtype": "text",
-	            "style": {
-	                "width": "full",
-					"alert": {
-						"class": "danger"
-					}
-				}
-	        },
-	        "filters": {
-	            "filter": "type2",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}              						
-		},
-	    "owapikey2": {
-	        "required": "false",
-	        "description": "API Key",
-			"secret": "true",         
-	        "tab": "Sensor 2",            
-	        "help": "Your Open Weather Map API key.",
-	        "filters": {
-	            "filter": "type2",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}             
-	    },
-	    "owfilename2": {
-	        "required": "false",
-	        "description": "Filename",
-	        "tab": "Sensor 2",            
-	        "help": "The name of the file that will be written to the allsky/tmp/extra directory",
-	        "filters": {
-	            "filter": "type2",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}                     
-	    },        
-	    "owperiod2" : {
-	        "required": "false",
-	        "description": "Read Every",
-	        "help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
-	        "tab": "Sensor 2",            
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 60,
-	            "max": 1440,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "type2",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}                       
-	    },       
-	    "owexpire2" : {
-	        "required": "false",
-	        "description": "Expiry Time",
-	        "help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value",
-	        "tab": "Sensor 2",            
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 61,
-	            "max": 1500,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "type2",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}                       
-	    },                 
-	    "temp2" : {
-	        "required": "false",
-	        "description": "Max Temp",
-	        "help": "Above this temperature trigger the gpio pin",
-	        "tab": "Sensor 2",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 120,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "type2",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-					"SHT4x",              
-	                "DHT22",
-	                "DHT11",
-	                "AM2302",
-	                "BME280-I2C",
-	                "HTU21",
-	                "AHTx0",
-	                "DS18B20",
-	                "OpenWeather"
-				]
-			}            
-	    },        
-	    "gpio2": {
-	        "required": "false",
-	        "description": "GPIO Pin",
-	        "help": "The GPIO pin to set high when the temp is above the Max Temp",
-	        "type": {
-	            "fieldtype": "gpio"
-	        },            
-	        "tab": "Sensor 2",
-	        "filters": {
-	            "filter": "type2",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-					"SHT4x",              
-	                "DHT22",
-	                "DHT11",
-	                "AM2302",
-	                "BME280-I2C",
-	                "HTU21",
-	                "AHTx0",
-	                "DS18B20",
-	                "OpenWeather"
-				]
-			}                     
-	    },
-	    "gpioon2": {
-	        "required": "false",
-	        "description": "GPIO On",
-	        "help": "The Label to use when the GPIO pin is high",
-	        "tab": "Sensor 2",
-	        "filters": {
-	            "filter": "type2",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-					"SHT4x",              
-	                "DHT22",
-	                "DHT11",
-	                "AM2302",
-	                "BME280-I2C",
-	                "HTU21",
-	                "AHTx0",
-	                "DS18B20",
-	                "OpenWeather"
-				]
-			}                     
-	    },
-	    "gpiooff2": {
-	        "required": "false",
-	        "description": "GPIO Off",
-	        "help": "The Label to use when the GPIO pin is low",
-	        "tab": "Sensor 2",
-	        "filters": {
-	            "filter": "type2",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-					"SHT4x",              
-	                "DHT22",
-	                "DHT11",
-	                "AM2302",
-	                "BME280-I2C",
-	                "HTU21",
-	                "AHTx0",
-	                "DS18B20",
-	                "OpenWeather"
-				]
-			}                    
-	    }, 
-	    "type3" : {
-	        "required": "false",
-	        "description": "Sensor Type",
-	        "help": "The type of sensor that is being used.",
-	        "tab": "Sensor 3",
-	        "type": {
-	            "fieldtype": "select",
-	            "values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
-	            "default": "None"
-	        }
-	    },
-	    "name3": {
-	        "required": "false",
-	        "description": "Name Of Sensor",
-	        "tab": "Sensor 3",
-	        "help": "The name of the sensor, will be added as a variable",
-	        "filters": {
-	            "filter": "type3",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-	                "DHT22",
-	                "DHT11",
-	                "AM2302",
-	                "BME280-I2C",
-	                "HTU21",
-	                "AHTx0",
-	                "DS18B20",
-	                "OpenWeather"
-				]
-			}            
-	    },        
-	    "inputpin3": {
-	        "required": "false",
-	        "description": "Input Pin",
-	        "help": "The input pin for DHT type sensors, not required for i2c devices",
-	        "tab": "Sensor 3",
-	        "type": {
-	            "fieldtype": "gpio"
-	        },
-	        "filters": {
-	            "filter": "type3",
-	            "filtertype": "show",
-	            "values": [
-	            	"DHT22",
-	            	"DHT11",
-	            	"AM2302"
-				]
-			}            
-	    },
-	    "i2caddress3": {
-	        "required": "false",
-	        "description": "I2C Address",
-	        "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
-	        "tab": "Sensor 3",
-	        "type": {
-	            "fieldtype": "i2c"
-	        },
-	        "filters": {
-	            "filter": "type3",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-					"SHT4x",
-	            	"BME280-I2C",
-	            	"HTU21",
-	             	"AHTx0"
-				]
-			}            
-	    },
-	    "ds18b20address3": {
-	        "required": "false",
-	        "description": "DS18B20 Address",
-	        "tab": "Sensor 3",
-	        "help": "Filename in /sys/bus/w1/devices",
-	        "type": {
-	            "fieldtype": "ajaxselect",
-				"url": "includes/moduleutil.php?request=Onewire",
-				"placeholder": "Select a One Wire device"
-	        },         
-	        "filters": {
-	            "filter": "type3",
-	            "filtertype": "show",
-	            "values": [
-	            	"DS18B20"
-				]
-			}             
-	    },        
-	    "dhtxxretrycount3" : {
-	        "required": "false",
-	        "description": "Retry Count",
-	        "help": "The number of times to retry the DHTXX sensor read",
-	        "tab": "Sensor 3",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 5,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "type3",
-	            "filtertype": "show",
-	            "values": [
-	            	"DHT22",
-	            	"DHT11",
-	            	"AM2302"
-				]
-			}             
-	    },
-	    "dhtxxdelay3" : {
-	        "required": "false",
-	        "description": "Delay",
-	        "help": "The delay between faild DBTXX sensor reads in milliseconds",
-	        "tab": "Sensor 3",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 5000,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "type3",
-	            "filtertype": "show",
-	            "values": [
-	            	"DHT22",
-	            	"DHT11",
-	            	"AM2302"
-				]
-			}             
-	    },
-	    "sht31heater3" : {
-	        "required": "false",
-	        "description": "Enable SHT31 Heater",
-	        "help": "Enable the inbuilt heater on the SHT31",
-	        "tab": "Sensor 3",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        },
-	        "filters": {
-	            "filter": "type3",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31"
-				]
-			}             
-	    },
-	    "sht41mode3" : {
-	        "required": "false",
-	        "description": "SHT4x Power Mode",
-	        "help": "Sets the SHT4x power mode",
-	        "tab": "Sensor 3",
-	        "type": {
-	            "fieldtype": "select",
-				"values": "0xFD|No heater - high precision,0xF6|No heater - med precision,0xE0|No heater - low precision (Lowest Power Mode),0x39|High heat - 1 second (Highest Power Mode),0x32|High heat - 0.1 second,0x2F|Med heat - 1 second,0x24|Med heat - 0.1 second,0x1E|Low heat - 1 second, 0x15|Low heat - 0.1 second",
-	            "default": "None"
-	        },
-	        "filters": {
-	            "filter": "type3",
-	            "filtertype": "show",
-	            "values": [
-					"SHT4x"
-				]
-			}             
-	    },     
-		"owtext3": {
-			"message": "<b style='color: #ff0000'>IMPORTANT</b> Do not use this function and the OpenWeather API module as well. If you are using this function then please remove the OpenWeather Module as both create the same overlay data",
-	        "tab": "Sensor 3",
-	        "type": {
-	            "fieldtype": "text",
-	            "style": {
-	                "width": "full",
-					"alert": {
-						"class": "danger"
-					}
-				}
-	        },
-	        "filters": {
-	            "filter": "type3",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}              						
-		},
-	    "owapikey3": {
-	        "required": "false",
-	        "description": "API Key",
-			"secret": "true",
-	        "tab": "Sensor 3",            
-	        "help": "Your Open Weather Map API key.",
-	        "filters": {
-	            "filter": "type3",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}             
-	    },
-	    "owfilename3": {
-	        "required": "false",
-	        "description": "Filename",
-	        "tab": "Sensor 3",            
-	        "help": "The name of the file that will be written to the allsky/tmp/extra directory",
-	        "filters": {
-	            "filter": "type3",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}                     
-	    },        
-	    "owperiod3" : {
-	        "required": "false",
-	        "description": "Read Every",
-	        "help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
-	        "tab": "Sensor 3",            
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 60,
-	            "max": 1440,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "type3",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}                       
-	    },       
-	    "owexpire3" : {
-	        "required": "false",
-	        "description": "Expiry Time",
-	        "help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value",
-	        "tab": "Sensor 3",            
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 61,
-	            "max": 1500,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "type3",
-	            "filtertype": "show",
-	            "values": [
-	            	"OpenWeather"
-				]
-			}                       
-	    },  
-	    "temp3" : {
-	        "required": "false",
-	        "description": "Max Temp",
-	        "help": "Above this temperature trigger the gpio pin",
-	        "tab": "Sensor 3",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 120,
-	            "step": 1
-	        },
-	        "filters": {
-	            "filter": "type3",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-					"SHT4x",              
-	                "DHT22",
-	                "DHT11",
-	                "AM2302",
-	                "BME280-I2C",
-	                "HTU21",
-	                "AHTx0",
-	                "DS18B20",
-	                "OpenWeather"
-				]
-			}            
-	    },        
-	    "gpio3": {
-	        "required": "false",
-	        "description": "GPIO Pin",
-	        "help": "The GPIO pin to set high when the temp is above the Max Temp",
-	        "type": {
-	            "fieldtype": "gpio"
-	        },            
-	        "tab": "Sensor 3",
-	        "filters": {
-	            "filter": "type3",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-					"SHT4x",              
-	                "DHT22",
-	                "DHT11",
-	                "AM2302",
-	                "BME280-I2C",
-	                "HTU21",
-	                "AHTx0",
-	                "DS18B20",
-	                "OpenWeather"
-				]
-			}                    
-	    },
-	    "gpioon3": {
-	        "required": "false",
-	        "description": "GPIO On",
-	        "help": "The Label to use when the GPIO pin is high",
-	        "tab": "Sensor 3",
-	        "filters": {
-	            "filter": "type3",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-					"SHT4x",              
-	                "DHT22",
-	                "DHT11",
-	                "AM2302",
-	                "BME280-I2C",
-	                "HTU21",
-	                "AHTx0",
-	                "DS18B20",
-	                "OpenWeather"
-				]
-			}                     
-	    },
-	    "gpiooff3": {
-	        "required": "false",
-	        "description": "GPIO Off",
-	        "help": "The Label to use when the GPIO pin is low",
-	        "tab": "Sensor 3",
-	        "filters": {
-	            "filter": "type3",
-	            "filtertype": "show",
-	            "values": [
-	            	"SHT31",
-					"SHT4x",              
-	                "DHT22",
-	                "DHT11",
-	                "AM2302",
-	                "BME280-I2C",
-	                "HTU21",
-	                "AHTx0",
-	                "DS18B20",
-	                "OpenWeather"
-				]
-			}                      
-	    }                                      
-	
-	},
-	"businfo": [
-	    "i2c"
-	],    
-	"changelog": {
-	    "v1.0.0" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Initial Release"
-	        }
-	    ],
-	    "v1.0.1" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Added DS1820"
-	        }
-	    ],
-	    "v1.0.2" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": [
-					"Add Openweather",
-					"Added new meta options for better structure in the module manager"
-				]
-	        }
-	    ]                                                          
-	}
-}
-
 class ALLSKYTEMP(ALLSKYMODULEBASE):
-	params = []
-	event = ''
+
+	meta_data = {
+		"name": "Environment Monitor",
+		"description": "Reads upto 3 environment sensors",
+		"module": "allsky_temp",
+		"version": "v1.0.2",
+		"events": [
+			"periodic",
+			"day",
+			"night"
+		],
+		"experimental": "false",
+		"centersettings": "false",
+		"testable": "true",
+		"extradatafilename": "allsky_temp.json",
+		"extradata": {
+			"info": {
+				"count": 4,
+				"firstblank": "true"
+			},
+			"values": {
+				"AS_GPIOSTATE${COUNT}": {
+					"name": "${GPIOSTATE${COUNT}}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "State of the ${AS_TEMPSENSORNAME${COUNT}} gpio pin",
+					"type": "gpio"
+				},              
+				"AS_TEMPSENSOR${COUNT}": {
+					"name": "${TEMPSENSOR${COUNT}}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "${AS_TEMPSENSORNAME${COUNT}} Sensor type",
+					"type": "string"
+				},
+				"AS_TEMPSENSORNAME${COUNT}": {
+					"name": "${TEMPSENSORNAME${COUNT}}",
+					"format": "",
+					"sample": "",                 
+					"group": "Environment",
+					"description": "Sensor ${COUNT} name ${AS_TEMPSENSORNAME${COUNT}}",
+					"type": "string"
+				},
+				"AS_TEMP${COUNT}": {
+					"name": "${TEMP${COUNT}}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "Temperature from ${AS_TEMPSENSORNAME${COUNT}}",
+					"type": "temperature"
+				},
+				"AS_DEW${COUNT}": {
+					"name": "${DEW${COUNT}}",
+					"format": "",
+					"sample": "",                 
+					"group": "Environment",
+					"description": "Dewpoint from ${AS_TEMPSENSORNAME${COUNT}}",
+					"type": "temperature"
+				},
+				"AS_HUMIDITY${COUNT}": {
+					"name": "${HUMIDITY${COUNT}}",
+					"format": "",
+					"sample": "",                  
+					"group": "Environment",
+					"description": "Humidity from ${AS_TEMPSENSORNAME${COUNT}}",
+					"type": "float"
+				},
+				"AS_PRESSURE${COUNT}": {
+					"name": "${PRESSURE${COUNT}}",
+					"format": "",
+					"sample": "",                 
+					"group": "Environment",
+					"description": "Pressure from ${AS_TEMPSENSORNAME${COUNT}}",
+					"type": "float"
+				},
+				"AS_RELHUMIDITY${COUNT}": {
+					"name": "${RELHUMIDITY${COUNT}}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "Relative Humidity from ${AS_TEMPSENSORNAME${COUNT}}",
+					"type": "temperature"
+				},
+				"AS_ALTITUDE${COUNT}": {
+					"name": "${ALTITUDE${COUNT}}",
+					"format": "",
+					"sample": "",                 
+					"group": "Environment",
+					"description": "Altitude from ${AS_TEMPSENSORNAME${COUNT}}",
+					"type": "float"
+				}
+			}                         
+		},
+		"arguments":{
+			"frequency": "0",
+			"extradatafilename": "allskytemp.json",
+			"units": "metric",
+
+			"type": "None",
+			"name": "Allsky",
+			"inputpin": "",
+			"i2caddress": "",
+			"ds18b20address": "",
+			"dhtxxretrycount": "2",
+			"dhtxxdelay" : "500",
+			"sht31heater": "False",
+			"sht41mode": "0xE0",
+			"owapikey": "",        
+			"owfilename": "",        
+			"owperiod": "",        
+			"owunits": "",        
+			"owexpire": "",
+	
+			"type1": "None",
+			"name1": "",
+			"inputpin1": "",
+			"i2caddress1": "",
+			"ds18b20address1": "",
+			"dhtxxretrycount1": "2",
+			"dhtxxdelay1" : "500",
+			"sht31heater1": "False",
+			"sht41mode": "0xE0",
+			"temp1": "",
+			"gpio1": "",
+			"gpioon1": "On",
+			"gpiooff1": "Off",
+			"owapikey1": "",        
+			"owfilename1": "",        
+			"owperiod1": "",        
+			"owunits1": "",        
+			"owexpire1": "",  
+			
+			"type2": "None",
+			"name2": "",
+			"inputpin2": "",
+			"i2caddress2": "",
+			"ds18b20address2": "",
+			"dhtxxretrycount2": "2",
+			"dhtxxdelay2" : "500",
+			"sht31heater2": "False",
+			"sht41mode": "0xE0",     
+			"temp2": "",
+			"gpio2": "",
+			"gpioon2": "On",
+			"gpiooff2": "Off",
+			"owapikey2": "",        
+			"owfilename2": "",        
+			"owperiod2": "",        
+			"owunits2": "",        
+			"owexpire2": "",  
+				
+			"type3": "None",
+			"name3": "",
+			"inputpin3": "",
+			"i2caddress3": "",
+			"ds18b20address3": "",
+			"dhtxxretrycount3": "2",
+			"dhtxxdelay3" : "500",
+			"sht31heater3": "False",
+			"sht41mode": "0xE0",     
+			"temp3": "",
+			"gpio3": "",
+			"gpioon3": "On",
+			"gpiooff3": "Off",
+			"owapikey3": "",
+			"owfilename3": "",
+			"owperiod3": "",
+			"owunits3": "",
+			"owexpire3": ""
+			
+		},
+		"argumentdetails": {
+			"notice" : {
+				"tab": "Home",      
+				"message": "This module will provide centralised temperature, humidity and pressure data to other modules. This should be used in favour of dedicated sensors in any other modules which will be removed in a future release",
+				"type": {
+					"fieldtype": "text",
+					"style": {
+						"width": "full",
+						"alert": {
+							"class": "info"
+						}
+					}
+				} 			
+			},        
+			"frequency" : {
+				"required": "false",
+				"description": "Delay",
+				"help": "The delay between sensor reads in seconds. Zero will disable this and run the check every time the periodic jobs run",
+				"tab": "Home",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 1000,
+					"step": 1
+				}
+			},
+			"extradatafilename": {
+				"required": "true",
+				"description": "Extra Data Filename",
+				"tab": "Home",
+				"disabled": "true",
+				"help": "The name of the file to create with the dew heater data for the overlay manager"
+			},
+			"units" : {
+				"required": "false",
+				"description": "Units",
+				"help": "Units of measurement. standard, metric and imperial",
+				"tab": "Home",            
+				"type": {
+					"fieldtype": "select",
+					"values": "standard,metric,imperial"
+				}                
+			},
+			"type" : {
+				"required": "false",
+				"description": "Sensor Type",
+				"help": "The type of sensor that is being used.",
+				"tab": "Core",
+				"type": {
+					"fieldtype": "select",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
+					"default": "None"
+				}
+			},
+			"name": {
+				"required": "false",
+				"description": "Name Of Sensor",
+				"tab": "Core",
+				"help": "The name of the sensor, will be added as a variable",
+				"disabled": "true"            
+			},        
+			"inputpin": {
+				"required": "false",
+				"description": "Input Pin",
+				"help": "The input pin for DHT type sensors, not required for i2c devices",
+				"tab": "Core",
+				"type": {
+					"fieldtype": "gpio"
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"DHT22",
+						"DHT11",
+						"AM2302"
+					]
+				}            
+			},
+			"i2caddress": {
+				"required": "false",
+				"description": "I2C Address",
+				"help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
+				"tab": "Core",
+				"type": {
+					"fieldtype": "i2c"
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",              
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0"
+					]
+				}            
+			},
+			"ds18b20address": {
+				"required": "false",
+				"description": "DS18B20 Address",
+				"tab": "Core",
+				"help": "Filename in /sys/bus/w1/devices",
+				"type": {
+					"fieldtype": "ajaxselect",
+					"url": "includes/moduleutil.php?request=Onewire",
+					"placeholder": "Select a One Wire device"
+				},         
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"DS18B20"
+					]
+				}             
+			},        
+			"dhtxxretrycount" : {
+				"required": "false",
+				"description": "Retry Count",
+				"help": "The number of times to retry the DHTXX sensor read",
+				"tab": "Core",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 5,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"DHT22",
+						"DHT11",
+						"AM2302"
+					]
+				}             
+			},
+			"dhtxxdelay" : {
+				"required": "false",
+				"description": "Delay",
+				"help": "The delay between faild DBTXX sensor reads in milliseconds",
+				"tab": "Core",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 5000,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"DHT22",
+						"DHT11",
+						"AM2302"
+					]
+				}             
+			},
+			"sht31heater" : {
+				"required": "false",
+				"description": "Enable SHT31 Heater",
+				"help": "Enable the inbuilt heater on the SHT31",
+				"tab": "Core",
+				"type": {
+					"fieldtype": "checkbox"
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"SHT31"        
+					]
+				}             
+			},
+			"sht41mode" : {
+				"required": "false",
+				"description": "SHT4x Power Mode",
+				"help": "Sets the SHT4x power mode",
+				"tab": "Core",
+				"type": {
+					"fieldtype": "select",
+					"values": "0xFD|No heater - high precision,0xF6|No heater - med precision,0xE0|No heater - low precision (Lowest Power Mode),0x39|High heat - 1 second (Highest Power Mode),0x32|High heat - 0.1 second,0x2F|Med heat - 1 second,0x24|Med heat - 0.1 second,0x1E|Low heat - 1 second, 0x15|Low heat - 0.1 second",
+					"default": "None"
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"SHT4x"
+					]
+				}             
+			},     
+			"owtext": {
+				"message": "<b style='color: #ff0000'>IMPORTANT</b> Do not use this function and the OpenWeather API module as well. If you are using this function then please remove the OpenWeather Module as both create the same overlay data",
+				"tab": "Core",
+				"type": {
+					"fieldtype": "text",
+					"style": {
+						"width": "full",
+						"alert": {
+							"class": "danger"
+						}
+					}
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}              						
+			},
+			"owapikey": {
+				"required": "false",
+				"description": "API Key",
+				"tab": "Core",
+				"secret": "true",         
+				"help": "Your Open Weather Map API key.",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}             
+			},
+			"owfilename": {
+				"required": "false",
+				"description": "Filename",
+				"tab": "Core",            
+				"help": "The name of the file that will be written to the allsky/tmp/extra directory",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}                     
+			},        
+			"owperiod" : {
+				"required": "false",
+				"description": "Read Every",
+				"help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
+				"tab": "Core",            
+				"type": {
+					"fieldtype": "spinner",
+					"min": 60,
+					"max": 1440,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}                       
+			},       
+			"owexpire" : {
+				"required": "false",
+				"description": "Expiry Time",
+				"help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value",
+				"tab": "Core",            
+				"type": {
+					"fieldtype": "spinner",
+					"min": 61,
+					"max": 1500,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}                       
+			},          
+			"noticecore" : {
+				"tab": "Core",      
+				"message": "This sensor is used by Allksy for basic temperature information. The following Variables will be created<br>AS_TEMP - The temperature<br>AS_HUMIDITY - The Humidity<br>AS_DEWPOINT - the dew point<br>AS_PRESSURE - <Only if supported by the sensor> Barometric Pressure<br>AS_ALTITUDE - <Only if supported by the sensor> The altitude",
+				"type": {
+					"fieldtype": "text",
+					"style": {
+						"width": "full",
+						"alert": {
+							"class": "info"
+						}
+					}
+				} 			
+			}, 
+			"type1" : {
+				"required": "false",
+				"description": "Sensor Type",
+				"help": "The type of sensor that is being used.",
+				"tab": "Sensor 1",
+				"type": {
+					"fieldtype": "select",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
+					"default": "None"
+				}
+			},
+			"name1": {
+				"required": "false",
+				"description": "Name Of Sensor",
+				"tab": "Sensor 1",
+				"help": "The name of the sensor, will be added as a variable",
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather"
+					]
+				}            
+			},        
+			"inputpin1": {
+				"required": "false",
+				"description": "Input Pin",
+				"help": "The input pin for DHT type sensors, not required for i2c devices",
+				"tab": "Sensor 1",
+				"type": {
+					"fieldtype": "gpio"
+				},
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"DHT22",
+						"DHT11",
+						"AM2302"
+					]
+				}            
+			},
+			"i2caddress1": {
+				"required": "false",
+				"description": "I2C Address",
+				"help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
+				"tab": "Sensor 1",
+				"type": {
+					"fieldtype": "i2c"
+				},
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0"
+					]
+				}            
+			},
+			"ds18b20address1": {
+				"required": "false",
+				"description": "DS18B20 Address",
+				"tab": "Sensor 1",
+				"help": "Filename in /sys/bus/w1/devices",
+				"type": {
+					"fieldtype": "ajaxselect",
+					"url": "includes/moduleutil.php?request=Onewire",
+					"placeholder": "Select a One Wire device"
+				},          
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"DS18B20"
+					]
+				}             
+			},        
+			"dhtxxretrycount1" : {
+				"required": "false",
+				"description": "Retry Count",
+				"help": "The number of times to retry the DHTXX sensor read",
+				"tab": "Sensor 1",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 5,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"DHT22",
+						"DHT11",
+						"AM2302"
+					]
+				}             
+			},
+			"dhtxxdelay1" : {
+				"required": "false",
+				"description": "Delay",
+				"help": "The delay between faild DBTXX sensor reads in milliseconds",
+				"tab": "Sensor 1",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 5000,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"DHT22",
+						"DHT11",
+						"AM2302"
+					]
+				}             
+			},
+			"sht31heater1" : {
+				"required": "false",
+				"description": "Enable SHT31 Heater",
+				"help": "Enable the inbuilt heater on the SHT31",
+				"tab": "Sensor 1",
+				"type": {
+					"fieldtype": "checkbox"
+				},
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"SHT31"
+					]
+				}             
+			},
+			"sht41mode1" : {
+				"required": "false",
+				"description": "SHT4x Power Mode",
+				"help": "Sets the SHT4x power mode",
+				"tab": "Sensor 1",
+				"type": {
+					"fieldtype": "select",
+					"values": "0xFD|No heater - high precision,0xF6|No heater - med precision,0xE0|No heater - low precision (Lowest Power Mode),0x39|High heat - 1 second (Highest Power Mode),0x32|High heat - 0.1 second,0x2F|Med heat - 1 second,0x24|Med heat - 0.1 second,0x1E|Low heat - 1 second, 0x15|Low heat - 0.1 second",
+					"default": "0xE0"
+				},
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"SHT4x"
+					]
+				}             
+			},      
+			"owtext1": {
+				"message": "<b style='color: #ff0000'>IMPORTANT</b> Do not use this function and the OpenWeather API module as well. If you are using this function then please remove the OpenWeather Module as both create the same overlay data",
+				"tab": "Sensor 1",
+				"type": {
+					"fieldtype": "text",
+					"style": {
+						"width": "full",
+						"alert": {
+							"class": "danger"
+						}
+					}
+				},
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}              						
+			},
+			"owapikey1": {
+				"required": "false",
+				"description": "API Key",
+				"secret": "true",         
+				"tab": "Sensor 1",
+				"help": "Your Open Weather Map API key.",
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}             
+			},
+			"owfilename1": {
+				"required": "false",
+				"description": "Filename",
+				"tab": "Sensor 1",            
+				"help": "The name of the file that will be written to the allsky/tmp/extra directory",
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}                     
+			},        
+			"owperiod1" : {
+				"required": "false",
+				"description": "Read Every",
+				"help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
+				"tab": "Sensor 1",            
+				"type": {
+					"fieldtype": "spinner",
+					"min": 60,
+					"max": 1440,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}                       
+			},       
+			"owexpire1" : {
+				"required": "false",
+				"description": "Expiry Time",
+				"help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value",
+				"tab": "Sensor 1",            
+				"type": {
+					"fieldtype": "spinner",
+					"min": 61,
+					"max": 1500,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}                       
+			},                 
+			"temp1" : {
+				"required": "false",
+				"description": "Max Temp",
+				"help": "Above this temperature trigger the gpio pin",
+				"tab": "Sensor 1",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 120,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather"
+					]
+				}             
+			},        
+			"gpio1": {
+				"required": "false",
+				"description": "GPIO Pin",
+				"help": "The GPIO pin to set high when the temp is above the Max Temp",
+				"type": {
+					"fieldtype": "gpio"
+				},            
+				"tab": "Sensor 1",
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",              
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather"
+					]
+				}                      
+			},
+			"gpioon1": {
+				"required": "false",
+				"description": "GPIO On",
+				"help": "The Label to use when the GPIO pin is high",
+				"tab": "Sensor 1",
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",              
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather"
+					]
+				}                      
+			},
+			"gpiooff1": {
+				"required": "false",
+				"description": "GPIO Off",
+				"help": "The Label to use when the GPIO pin is low",
+				"tab": "Sensor 1",
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",              
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather"
+					]
+				}                    
+			},                    
+			"type2" : {
+				"required": "false",
+				"description": "Sensor Type",
+				"help": "The type of sensor that is being used.",
+				"tab": "Sensor 2",
+				"type": {
+					"fieldtype": "select",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
+					"default": "None"
+				}
+			},
+			"name2": {
+				"required": "false",
+				"description": "Name Of Sensor",
+				"tab": "Sensor 2",
+				"help": "The name of the sensor, will be added as a variable",
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather"
+					]
+				}            
+			},        
+			"inputpin2": {
+				"required": "false",
+				"description": "Input Pin",
+				"help": "The input pin for DHT type sensors, not required for i2c devices",
+				"tab": "Sensor 2",
+				"type": {
+					"fieldtype": "gpio"
+				},
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"DHT22",
+						"DHT11",
+						"AM2302"
+					]
+				}            
+			},
+			"i2caddress2": {
+				"required": "false",
+				"description": "I2C Address",
+				"help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
+				"tab": "Sensor 2",
+				"type": {
+					"fieldtype": "i2c"
+				},
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0"
+					]
+				}            
+			},
+			"ds18b20address2": {
+				"required": "false",
+				"description": "DS18B20 Address",
+				"tab": "Sensor 2",
+				"help": "Filename in /sys/bus/w1/devices",
+				"type": {
+					"fieldtype": "ajaxselect",
+					"url": "includes/moduleutil.php?request=Onewire",
+					"placeholder": "Select a One Wire device"
+				},         
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"DS18B20"
+					]
+				}             
+			},        
+			"dhtxxretrycount2" : {
+				"required": "false",
+				"description": "Retry Count",
+				"help": "The number of times to retry the DHTXX sensor read",
+				"tab": "Sensor 2",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 5,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"DHT22",
+						"DHT11",
+						"AM2302"
+					]
+				}             
+			},
+			"dhtxxdelay2" : {
+				"required": "false",
+				"description": "Delay",
+				"help": "The delay between faild DBTXX sensor reads in milliseconds",
+				"tab": "Sensor 2",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 5000,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"DHT22",
+						"DHT11",
+						"AM2302"
+					]
+				}             
+			},
+			"sht31heater2" : {
+				"required": "false",
+				"description": "Enable SHT31 Heater",
+				"help": "Enable the inbuilt heater on the SHT31",
+				"tab": "Sensor 2",
+				"type": {
+					"fieldtype": "checkbox"
+				},
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"SHT31"
+					]
+				}             
+			},
+			"sht41mode2" : {
+				"required": "false",
+				"description": "SHT4x Power Mode",
+				"help": "Sets the SHT4x power mode",
+				"tab": "Sensor 2",
+				"type": {
+					"fieldtype": "select",
+					"values": "0xFD|No heater - high precision,0xF6|No heater - med precision,0xE0|No heater - low precision (Lowest Power Mode),0x39|High heat - 1 second (Highest Power Mode),0x32|High heat - 0.1 second,0x2F|Med heat - 1 second,0x24|Med heat - 0.1 second,0x1E|Low heat - 1 second, 0x15|Low heat - 0.1 second",
+					"default": "0xE0"
+				},
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"SHT4x"
+					]
+				}             
+			},     
+			"owtext2": {
+				"message": "<b style='color: #ff0000'>IMPORTANT</b> Do not use this function and the OpenWeather API module as well. If you are using this function then please remove the OpenWeather Module as both create the same overlay data",
+				"tab": "Sensor 2",
+				"type": {
+					"fieldtype": "text",
+					"style": {
+						"width": "full",
+						"alert": {
+							"class": "danger"
+						}
+					}
+				},
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}              						
+			},
+			"owapikey2": {
+				"required": "false",
+				"description": "API Key",
+				"secret": "true",         
+				"tab": "Sensor 2",            
+				"help": "Your Open Weather Map API key.",
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}             
+			},
+			"owfilename2": {
+				"required": "false",
+				"description": "Filename",
+				"tab": "Sensor 2",            
+				"help": "The name of the file that will be written to the allsky/tmp/extra directory",
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}                     
+			},        
+			"owperiod2" : {
+				"required": "false",
+				"description": "Read Every",
+				"help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
+				"tab": "Sensor 2",            
+				"type": {
+					"fieldtype": "spinner",
+					"min": 60,
+					"max": 1440,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}                       
+			},       
+			"owexpire2" : {
+				"required": "false",
+				"description": "Expiry Time",
+				"help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value",
+				"tab": "Sensor 2",            
+				"type": {
+					"fieldtype": "spinner",
+					"min": 61,
+					"max": 1500,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}                       
+			},                 
+			"temp2" : {
+				"required": "false",
+				"description": "Max Temp",
+				"help": "Above this temperature trigger the gpio pin",
+				"tab": "Sensor 2",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 120,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",              
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather"
+					]
+				}            
+			},        
+			"gpio2": {
+				"required": "false",
+				"description": "GPIO Pin",
+				"help": "The GPIO pin to set high when the temp is above the Max Temp",
+				"type": {
+					"fieldtype": "gpio"
+				},            
+				"tab": "Sensor 2",
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",              
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather"
+					]
+				}                     
+			},
+			"gpioon2": {
+				"required": "false",
+				"description": "GPIO On",
+				"help": "The Label to use when the GPIO pin is high",
+				"tab": "Sensor 2",
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",              
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather"
+					]
+				}                     
+			},
+			"gpiooff2": {
+				"required": "false",
+				"description": "GPIO Off",
+				"help": "The Label to use when the GPIO pin is low",
+				"tab": "Sensor 2",
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",              
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather"
+					]
+				}                    
+			}, 
+			"type3" : {
+				"required": "false",
+				"description": "Sensor Type",
+				"help": "The type of sensor that is being used.",
+				"tab": "Sensor 3",
+				"type": {
+					"fieldtype": "select",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
+					"default": "None"
+				}
+			},
+			"name3": {
+				"required": "false",
+				"description": "Name Of Sensor",
+				"tab": "Sensor 3",
+				"help": "The name of the sensor, will be added as a variable",
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather"
+					]
+				}            
+			},        
+			"inputpin3": {
+				"required": "false",
+				"description": "Input Pin",
+				"help": "The input pin for DHT type sensors, not required for i2c devices",
+				"tab": "Sensor 3",
+				"type": {
+					"fieldtype": "gpio"
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"DHT22",
+						"DHT11",
+						"AM2302"
+					]
+				}            
+			},
+			"i2caddress3": {
+				"required": "false",
+				"description": "I2C Address",
+				"help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
+				"tab": "Sensor 3",
+				"type": {
+					"fieldtype": "i2c"
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0"
+					]
+				}            
+			},
+			"ds18b20address3": {
+				"required": "false",
+				"description": "DS18B20 Address",
+				"tab": "Sensor 3",
+				"help": "Filename in /sys/bus/w1/devices",
+				"type": {
+					"fieldtype": "ajaxselect",
+					"url": "includes/moduleutil.php?request=Onewire",
+					"placeholder": "Select a One Wire device"
+				},         
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"DS18B20"
+					]
+				}             
+			},        
+			"dhtxxretrycount3" : {
+				"required": "false",
+				"description": "Retry Count",
+				"help": "The number of times to retry the DHTXX sensor read",
+				"tab": "Sensor 3",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 5,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"DHT22",
+						"DHT11",
+						"AM2302"
+					]
+				}             
+			},
+			"dhtxxdelay3" : {
+				"required": "false",
+				"description": "Delay",
+				"help": "The delay between faild DBTXX sensor reads in milliseconds",
+				"tab": "Sensor 3",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 5000,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"DHT22",
+						"DHT11",
+						"AM2302"
+					]
+				}             
+			},
+			"sht31heater3" : {
+				"required": "false",
+				"description": "Enable SHT31 Heater",
+				"help": "Enable the inbuilt heater on the SHT31",
+				"tab": "Sensor 3",
+				"type": {
+					"fieldtype": "checkbox"
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"SHT31"
+					]
+				}             
+			},
+			"sht41mode3" : {
+				"required": "false",
+				"description": "SHT4x Power Mode",
+				"help": "Sets the SHT4x power mode",
+				"tab": "Sensor 3",
+				"type": {
+					"fieldtype": "select",
+					"values": "0xFD|No heater - high precision,0xF6|No heater - med precision,0xE0|No heater - low precision (Lowest Power Mode),0x39|High heat - 1 second (Highest Power Mode),0x32|High heat - 0.1 second,0x2F|Med heat - 1 second,0x24|Med heat - 0.1 second,0x1E|Low heat - 1 second, 0x15|Low heat - 0.1 second",
+					"default": "None"
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"SHT4x"
+					]
+				}             
+			},     
+			"owtext3": {
+				"message": "<b style='color: #ff0000'>IMPORTANT</b> Do not use this function and the OpenWeather API module as well. If you are using this function then please remove the OpenWeather Module as both create the same overlay data",
+				"tab": "Sensor 3",
+				"type": {
+					"fieldtype": "text",
+					"style": {
+						"width": "full",
+						"alert": {
+							"class": "danger"
+						}
+					}
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}              						
+			},
+			"owapikey3": {
+				"required": "false",
+				"description": "API Key",
+				"secret": "true",
+				"tab": "Sensor 3",            
+				"help": "Your Open Weather Map API key.",
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}             
+			},
+			"owfilename3": {
+				"required": "false",
+				"description": "Filename",
+				"tab": "Sensor 3",            
+				"help": "The name of the file that will be written to the allsky/tmp/extra directory",
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}                     
+			},        
+			"owperiod3" : {
+				"required": "false",
+				"description": "Read Every",
+				"help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
+				"tab": "Sensor 3",            
+				"type": {
+					"fieldtype": "spinner",
+					"min": 60,
+					"max": 1440,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}                       
+			},       
+			"owexpire3" : {
+				"required": "false",
+				"description": "Expiry Time",
+				"help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value",
+				"tab": "Sensor 3",            
+				"type": {
+					"fieldtype": "spinner",
+					"min": 61,
+					"max": 1500,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"OpenWeather"
+					]
+				}                       
+			},  
+			"temp3" : {
+				"required": "false",
+				"description": "Max Temp",
+				"help": "Above this temperature trigger the gpio pin",
+				"tab": "Sensor 3",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 120,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",              
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather"
+					]
+				}            
+			},        
+			"gpio3": {
+				"required": "false",
+				"description": "GPIO Pin",
+				"help": "The GPIO pin to set high when the temp is above the Max Temp",
+				"type": {
+					"fieldtype": "gpio"
+				},            
+				"tab": "Sensor 3",
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",              
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather"
+					]
+				}                    
+			},
+			"gpioon3": {
+				"required": "false",
+				"description": "GPIO On",
+				"help": "The Label to use when the GPIO pin is high",
+				"tab": "Sensor 3",
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",              
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather"
+					]
+				}                     
+			},
+			"gpiooff3": {
+				"required": "false",
+				"description": "GPIO Off",
+				"help": "The Label to use when the GPIO pin is low",
+				"tab": "Sensor 3",
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",              
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather"
+					]
+				}                      
+			}                                      
+		
+		},
+		"businfo": [
+			"i2c"
+		],    
+		"changelog": {
+			"v1.0.0" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Initial Release"
+				}
+			],
+			"v1.0.1" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Added DS1820"
+				}
+			],
+			"v1.0.2" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": [
+						"Add Openweather",
+						"Added new meta options for better structure in the module manager"
+					]
+				}
+			]                                                          
+		}
+	}
 
 	def _create_cardinal(self, degrees):
 		try:
@@ -1708,7 +1706,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		api_key = self.get_param('owapikey' + sensor_number, '', str)
 		file_name = self.get_param('owfilename' + sensor_number, 'allsky_owdata.json', str, True)
 		units = self.get_param('units' + sensor_number, '', str)
-		module = metaData['module']
+		module = self.meta_data['module']
 
 		temperature = None
 		humidity = None
@@ -1717,7 +1715,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 		try:
 			should_run, diff = allsky_shared.shouldRun(module, period)
-			if should_run or self._debugmode:
+			if should_run or self.debug_mode:
 				if api_key != '':
 					if file_name != '':
 						lat = allsky_shared.getSetting('latitude')
@@ -2045,12 +2043,11 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		result = ''
 		extra_data = {}
 		self._run_interval = self.get_param('frequency', 60, int)  
-		self._debugmode = self.get_param('ALLSKYTESTMODE', False, bool)    
 
 		should_run, diff = allsky_shared.shouldRun('allskytemp', self._run_interval)      
 
 
-		if should_run or self._debugmode:
+		if should_run or self.debug_mode:
 			now = int(time.time())
 			allsky_shared.dbUpdate('allskytemp', now)
 			for sensor_number_itr in range(1,5):
@@ -2126,7 +2123,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						if altitude is not None:
 							extra_data["AS_ALTITUDE" + sensor_number] = altitude
 
-			allsky_shared.saveExtraData(metaData['extradatafilename'], extra_data, metaData['module'], metaData['extradata'])
+			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 
 		else:
 			result = 'Will run in {:.2f} seconds'.format(self._run_interval - diff)
@@ -2142,10 +2139,10 @@ def temp(params, event):
     
 def temp_cleanup():
 	module_data = {
-	    "metaData": metaData,
+	    "metaData": ALLSKYTEMP.meta_data,
 	    "cleanup": {
 	        "files": {
-	            metaData['extradatafilename']
+	            ALLSKYTEMP.meta_data['extradatafilename']
 	        },
 	        "env": {}
 	    }

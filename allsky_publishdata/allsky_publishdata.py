@@ -22,287 +22,288 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 import redis
 import sys
 
-metaData = {
-	"name": "AllSKY Redis/MQTT/REST/influxDB Data Publish",
-	"description": "Publish AllSKY data to Redis, MQTT, influxDB or REST",
-	"module": "allsky_publishdata",
-	"version": "v1.0.3",
-	"centersettings": "false",
-	"testable": "true", 
-	"events": [
-	    "day",
-	    "night",
-	    "periodic"
-	],
-	"experimental": "yes",
-	"arguments": {
-	    "extradata": "",
-		"influxEnabled": "false",
-		"influxhost": "",
-		"influxport": "8086",
-		"influxtoken": "",
-		"influxbucket": "",
-		"influxorg": "",
-		"influxtypes": "number,temperature",  
-	    "redisEnabled": "false",
-		"redisTimestamp": "true",
-		"redisDatabase": "0",
-	    "redisHost": "",
-	    "redisPort": "6379",
-	    "redisKey": "",
-	    "redisPassword": "",
-	    "mqttEnabled": "false",
-	    "mqttusesecure": "true",
-	    "mqttHost": "",
-	    "mqttPort": "1883",
-		"mqttQos": "2",
-	    "mqttloopdelay": "5",
-	    "mqttTopic": "",
-	    "mqttUsername": "",
-	    "mqttPassword": "",
-	    "postEnabled": "false",
-	    "postEndpoint": ""
-	},
-	"argumentdetails": {
-	    "extradata": {
-	        "required": "false",
-	        "description": "Extra data to export",
-	        "help": "Comma seperated list of additional variables to export to json",
-	        "tab": "General"
-	    },
-	    "extradata1": {
-	        "required": "false",
-	        "description": "Extra data to export",
-	        "help": "Comma seperated list of additional variables to export to json",
-	        "tab": "General",
-	        "type": {
-	            "fieldtype": "variable"
-	        }                             
-	    },
-	    "influxEnabled": {
-	        "required": "false",
-	        "description": "Publish to influx",
-	        "tab": "Influx",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }
-	    },     
-		"influxhostdetails": {
-      		"description": "Influx Host",
-			"help": "The url and port number of the influxdb host",
-			"tab": "Influx",
-			"url": {
-				"id": "influxhost"
-			},
-			"port": {
-				"id": "influxport"				
-			},
-	        "type": {
-	            "fieldtype": "host"
-	        }     
-		},      
-	    "influxtoken": {
-	        "required": "false",
-	        "description": "InfluxDB Access Token",
-	        "help": "InfluxDB user access token",
-			"secret": "true",         
-	        "tab": "Influx"             
-	    },       
-	    "influxbucket": {
-	        "required": "false",
-	        "description": "InfluxDB Bucket",
-	        "help": "Name of InfluxDB bucket",
-	        "tab": "Influx"       
-	    },
-	    "influxorg": {
-	        "required": "false",
-	        "description": "InfluxDB Organization",
-	        "help": "Name of the InfluxDB organization in which the database/bucket is located. Leave default (-) if you're using InfluxDB v1 default installation",
-	        "tab": "Influx"         
-	    },
-	    "influxtypes": {
-	        "required": "false",
-	        "description": "Data Types",
-	        "help": "Allsky datatypes that can be sent to influx",
-	        "tab": "Influx"     
-	    },     
-	    "redisEnabled": {
-	        "required": "false",
-	        "description": "Publish to Redis",
-	        "tab": "Redis",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }
-	    },
-	    "redisHost": {
-	        "required": "false",
-	        "description": "Address of the redis Host",
-	        "help": "Host",
-	        "tab": "Redis"          
-	    },
-	    "redisPort": {
-	        "required": "false",
-	        "description": "Redis Port",
-	        "help": "The port number for the redis server, fefaults to 6379",
-	        "tab": "Redis" 
-	    },
-	    "redisDatabase" : {
-	        "required": "false",
-	        "description": "Redis Database",
-	        "help": "Select the redis database (0-3) to publish to",
-	        "tab": "Redis",        
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 3,
-	            "step": 1
-	        }                     
-	    },     
-	    "redisTimestamp": {
-	        "required": "false",
-	        "description": "Use timestamp",
-	        "help": "Use the current timestamp as the redis key",         
-	        "tab": "Redis",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        } 
-	    },     
-	    "redisKey": {
-	        "required": "false",
-	        "description": "Redis Key",
-	        "help": "Use a specific redis key",          
-	        "tab": "Redis" 
-	    },
-	    "redisPassword": {
-	        "required": "false",
-	        "description": "Password for the redis server if required",
-	        "tab": "Redis",
-			"secret": "true"
-	    },
-	    "mqttEnabled": {
-	        "required": "false",
-	        "description": "Publish to MQTT",
-	        "tab": "MQTT",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }
-	    },
-	    "mqttusesecure": {
-	        "required": "false",
-	        "description": "Use Secure Connection",
-	        "tab": "MQTT",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        } 
-	    },     
-		"mqtthostdetails": {
-      		"description": "MQTT Host",
-			"help": "The url and port number of the mqtt host, 1883 for NON SSL or 8883 for SSL.",
-			"tab": "MQTT",
-			"url": {
-				"id": "mqttHost"
-			},
-			"port": {
-				"id": "mqttPort"				
-			},
-	        "type": {
-	            "fieldtype": "host"
-	        }     
-		},
-	    "mqttloopdelay": {
-	        "required": "false",
-	        "description": "Loop Delay(s)",
-	        "help": "The loop delay, only increase this if you experience issues with messages missing in the broker",
-	        "tab": "MQTT",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0.5,
-	            "max": 10,
-	            "step": 0.5
-	        }          
-	    },        
-	    "mqttTopic": {
-	        "required": "false",
-	        "description": "MQTT Topic",
-	        "tab": "MQTT" 
-	    },
-	    "mqttUsername": {
-	        "required": "false",
-	        "description": "Username",
-	        "tab": "MQTT" 
-	    },
-	    "mqttPassword": {
-	        "required": "false",
-	        "description": "Password",
-			"secret": "true",
-	        "tab": "MQTT" 
-	    },
-	    "postEnabled": {
-	        "required": "false",
-	        "description": "Publish to endpoint",
-	        "tab": "POST",
-	        "type": {
-	            "fieldtype": "checkbox"
-	        }
-	    },
-	    "postEndpoint": {
-	        "required": "false",
-	        "description": "POST endpoint",
-	        "help": "Host",
-	        "tab": "POST" 
-	    },
-	    "mqttQos": {
-	        "required": "false",
-	        "description": "MQTT QoS",
-	        "help": "0 - (At most once) No guarantee of delivery (fire and forget), 1 - (At least once) Ensures message is delivered at least once (may be duplicated), 2 - (Exactly once) Ensures message is delivered only once (most reliable, but slower).",
-	        "tab": "MQTT",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 0,
-	            "max": 2,
-	            "step": 1
-	        }          
-	    }
-	},
-	"changelog": {
-	    "v1.0.0" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Initial Release"
-	        }
-	    ],
-	    "v1.0.1" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": [
-	                "Fix MQTT SSL",
-	                "Add MQTT timeout"
-	            ]
-	        } 
-	    ],
-	    "v1.0.2" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Added module to periodic flow"
-	        }
-	    ],
-	    "v1.0.3" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes":[
-                 	"Set correct data types in json (Issue 129)",
-					"Added influxdb"
-				]
-	        }
-	    ]                                                         
-	}    
-}
-
 class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
+    
+	meta_data = {
+		"name": "AllSKY Redis/MQTT/REST/influxDB Data Publish",
+		"description": "Publish AllSKY data to Redis, MQTT, influxDB or REST",
+		"module": "allsky_publishdata",
+		"version": "v1.0.3",
+		"centersettings": "false",
+		"testable": "true", 
+		"events": [
+			"day",
+			"night",
+			"periodic"
+		],
+		"experimental": "yes",
+		"arguments": {
+			"extradata": "",
+			"influxEnabled": "false",
+			"influxhost": "",
+			"influxport": "8086",
+			"influxtoken": "",
+			"influxbucket": "",
+			"influxorg": "",
+			"influxtypes": "number,temperature",  
+			"redisEnabled": "false",
+			"redisTimestamp": "true",
+			"redisDatabase": "0",
+			"redisHost": "",
+			"redisPort": "6379",
+			"redisKey": "",
+			"redisPassword": "",
+			"mqttEnabled": "false",
+			"mqttusesecure": "true",
+			"mqttHost": "",
+			"mqttPort": "1883",
+			"mqttQos": "2",
+			"mqttloopdelay": "5",
+			"mqttTopic": "",
+			"mqttUsername": "",
+			"mqttPassword": "",
+			"postEnabled": "false",
+			"postEndpoint": ""
+		},
+		"argumentdetails": {
+			"extradata": {
+				"required": "false",
+				"description": "Extra data to export",
+				"help": "Comma seperated list of additional variables to export to json",
+				"tab": "General"
+			},
+			"extradata1": {
+				"required": "false",
+				"description": "Extra data to export",
+				"help": "Comma seperated list of additional variables to export to json",
+				"tab": "General",
+				"type": {
+					"fieldtype": "variable"
+				}                             
+			},
+			"influxEnabled": {
+				"required": "false",
+				"description": "Publish to influx",
+				"tab": "Influx",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},     
+			"influxhostdetails": {
+				"description": "Influx Host",
+				"help": "The url and port number of the influxdb host",
+				"tab": "Influx",
+				"url": {
+					"id": "influxhost"
+				},
+				"port": {
+					"id": "influxport"				
+				},
+				"type": {
+					"fieldtype": "host"
+				}     
+			},      
+			"influxtoken": {
+				"required": "false",
+				"description": "InfluxDB Access Token",
+				"help": "InfluxDB user access token",
+				"secret": "true",         
+				"tab": "Influx"             
+			},       
+			"influxbucket": {
+				"required": "false",
+				"description": "InfluxDB Bucket",
+				"help": "Name of InfluxDB bucket",
+				"tab": "Influx"       
+			},
+			"influxorg": {
+				"required": "false",
+				"description": "InfluxDB Organization",
+				"help": "Name of the InfluxDB organization in which the database/bucket is located. Leave default (-) if you're using InfluxDB v1 default installation",
+				"tab": "Influx"         
+			},
+			"influxtypes": {
+				"required": "false",
+				"description": "Data Types",
+				"help": "Allsky datatypes that can be sent to influx",
+				"tab": "Influx"     
+			},     
+			"redisEnabled": {
+				"required": "false",
+				"description": "Publish to Redis",
+				"tab": "Redis",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"redisHost": {
+				"required": "false",
+				"description": "Address of the redis Host",
+				"help": "Host",
+				"tab": "Redis"          
+			},
+			"redisPort": {
+				"required": "false",
+				"description": "Redis Port",
+				"help": "The port number for the redis server, fefaults to 6379",
+				"tab": "Redis" 
+			},
+			"redisDatabase" : {
+				"required": "false",
+				"description": "Redis Database",
+				"help": "Select the redis database (0-3) to publish to",
+				"tab": "Redis",        
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 3,
+					"step": 1
+				}                     
+			},     
+			"redisTimestamp": {
+				"required": "false",
+				"description": "Use timestamp",
+				"help": "Use the current timestamp as the redis key",         
+				"tab": "Redis",
+				"type": {
+					"fieldtype": "checkbox"
+				} 
+			},     
+			"redisKey": {
+				"required": "false",
+				"description": "Redis Key",
+				"help": "Use a specific redis key",          
+				"tab": "Redis" 
+			},
+			"redisPassword": {
+				"required": "false",
+				"description": "Password for the redis server if required",
+				"tab": "Redis",
+				"secret": "true"
+			},
+			"mqttEnabled": {
+				"required": "false",
+				"description": "Publish to MQTT",
+				"tab": "MQTT",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"mqttusesecure": {
+				"required": "false",
+				"description": "Use Secure Connection",
+				"tab": "MQTT",
+				"type": {
+					"fieldtype": "checkbox"
+				} 
+			},     
+			"mqtthostdetails": {
+				"description": "MQTT Host",
+				"help": "The url and port number of the mqtt host, 1883 for NON SSL or 8883 for SSL.",
+				"tab": "MQTT",
+				"url": {
+					"id": "mqttHost"
+				},
+				"port": {
+					"id": "mqttPort"				
+				},
+				"type": {
+					"fieldtype": "host"
+				}     
+			},
+			"mqttloopdelay": {
+				"required": "false",
+				"description": "Loop Delay(s)",
+				"help": "The loop delay, only increase this if you experience issues with messages missing in the broker",
+				"tab": "MQTT",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0.5,
+					"max": 10,
+					"step": 0.5
+				}          
+			},        
+			"mqttTopic": {
+				"required": "false",
+				"description": "MQTT Topic",
+				"tab": "MQTT" 
+			},
+			"mqttUsername": {
+				"required": "false",
+				"description": "Username",
+				"tab": "MQTT" 
+			},
+			"mqttPassword": {
+				"required": "false",
+				"description": "Password",
+				"secret": "true",
+				"tab": "MQTT" 
+			},
+			"postEnabled": {
+				"required": "false",
+				"description": "Publish to endpoint",
+				"tab": "POST",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"postEndpoint": {
+				"required": "false",
+				"description": "POST endpoint",
+				"help": "Host",
+				"tab": "POST" 
+			},
+			"mqttQos": {
+				"required": "false",
+				"description": "MQTT QoS",
+				"help": "0 - (At most once) No guarantee of delivery (fire and forget), 1 - (At least once) Ensures message is delivered at least once (may be duplicated), 2 - (Exactly once) Ensures message is delivered only once (most reliable, but slower).",
+				"tab": "MQTT",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 2,
+					"step": 1
+				}          
+			}
+		},
+		"changelog": {
+			"v1.0.0" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Initial Release"
+				}
+			],
+			"v1.0.1" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": [
+						"Fix MQTT SSL",
+						"Add MQTT timeout"
+					]
+				} 
+			],
+			"v1.0.2" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Added module to periodic flow"
+				}
+			],
+			"v1.0.3" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes":[
+						"Set correct data types in json (Issue 129)",
+						"Added influxdb"
+					]
+				}
+			]                                                         
+		}    
+	}
+    
 	_required_variables = {}
 	_all_variables = {}
 	_json_data = {}

@@ -14,250 +14,251 @@ import requests
 from meteocalc import heat_index
 from meteocalc import dew_point, Temp
 
-metaData = {
-	"name": "Open Weather Map",
-	"description": "Gets weather data from the Open Weather Map service",
-	"module": "allsky_openweathermap",
-	"version": "v1.0.2",
-	"centersettings": "false",
-	"testable": "true",
-	"extradatafilename": "allsky_openweathermap.json", 
-	"events": [
-		"day",
-		"night",
-	    "periodic"
-	],
- 	"extradata": {
-	    "values": {
-	        "AS_OWWEATHER": {
-	            "name": "${OWWEATHER}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "OW Weather Summary",
-	            "type": "string"
-	        },
-	        "AS_OWWEATHERDESCRIPTION": {
-	            "name": "${OWWEATHERDESCRIPTION}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "OW Weather Description",
-	            "type": "string"
-	        },
-	        "AS_OWTEMP": {
-	            "name": "${OWTEMP}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "OW Temperature",
-	            "type": "temperature"
-	        },
-	        "AS_OWDEWPOINT": {
-	            "name": "${OWDEWPOINT}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "OW Dew Point",
-	            "type": "temperature"
-	        },
-	        "AS_OWHEATINDEX": {
-	            "name": "${OWHEATINDEX}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "OW Heat Index",
-	            "type": "temperature"
-	        },                     
-	        "AS_OWTEMPFEELSLIKE": {
-	            "name": "${OWTEMPFEELSLIKE}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "OW Temperature Feels Like",
-	            "type": "temperature"
-	        },                                          
-	        "AS_OWTEMPMIN": {
-	            "name": "${OWTEMPMIN}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "OW Minimum Temperature",
-	            "type": "temperature"
-	        },
-	        "AS_OWTEMPMAX": {
-	            "name": "${OWTEMPMAX}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "OW Maximum Temperature",
-	            "type": "temperature"
-	        },
-	        "AS_OWPRESSURE": {
-	            "name": "${OWPRESSURE}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "OW Pressue",
-	            "type": "number"
-	        },
-	        "AS_OWHUMIDITY": {
-	            "name": "${OWHUMIDITY}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "OW Humidity",
-	            "type": "number"
-	        },
-	        "AS_OWWINDSPEED": {
-	            "name": "${OWWINDSPEED}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "OW Wind Speed",
-	            "type": "number"
-	        },
-	        "AS_OWWINDGUST": {
-	            "name": "${OWWINDGUST}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "OW Wind Gust",
-	            "type": "number"
-	        },         
-	        "AS_OWWINDDIRECTION": {
-	            "name": "${OWWINDDIRECTION}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "OW Wind Direction",
-	            "type": "azimuth"
-	        },
-	        "AS_OWWINDCARDINAL": {
-	            "name": "${OWWINDCARDINAL}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "OW Cardinal Wind Direction",
-	            "type": "azimuth"
-	        },
-	        "AS_OWCLOUDS": {
-	            "name": "${OWCLOUDS}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "OW Cloud Cover %",
-	            "type": "number"
-	        },
-	        "AS_OWRAIN1HR": {
-	            "name": "${OWRAIN1HR}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "OW mm of rain in the last hour",
-	            "type": "number"
-	        },
-	        "AS_OWRAIN3HR": {
-	            "name": "${OWRAIN3HR}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "OW mm of rain in the last hour",
-	            "type": "number"
-	        },
-	        "AS_OWSUNRISE": {
-	            "name": "${OWSUNRISE}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "OW Sunrise",
-	            "type": "string"
-	        },
-	        "AS_OWSUNSET": {
-	            "name": "${OWSUNSET}",
-	            "format": "",
-	            "sample": "",
-	            "group": "Environment",
-	            "description": "OW Sunrise",
-	            "type": "string"
-	        }                                                                                                              
-	    }                         
-	},
-	"arguments":{
-	    "apikey": "",
-	    "period": 120,
-	    "expire": 240,
-	    "units": "metric"
-	},
-	"argumentdetails": {
-	    "apikey": {
-	        "required": "true",
-	        "description": "API Key",
-         	"secret": "true",         
-	        "help": "Your Open Weather Map API key"         
-	    },      
-	    "period" : {
-	        "required": "true",
-	        "description": "Read Every",
-	        "help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 60,
-	            "max": 1440,
-	            "step": 1
-	        }          
-	    },
-	    "units" : {
-	        "required": "false",
-	        "description": "Units",
-	        "help": "Units of measurement. standard, metric and imperial",
-	        "type": {
-	            "fieldtype": "select",
-	            "values": "standard,metric,imperial"
-	        }                
-	    },        
-	    "expire" : {
-	        "required": "true",
-	        "description": "Expiry Time",
-	        "help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value",
-	        "type": {
-	            "fieldtype": "spinner",
-	            "min": 61,
-	            "max": 1500,
-	            "step": 1
-	        }          
-	    }                    
-	},
-	"changelog": {
-	    "v1.0.0" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Initial Release"
-	        }
-	    ],
-	    "v1.0.1" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": [
-	                "Added Cardinal wind direction",
-	                "Converted to f-strings",
-	                "Improved error handling"
-	            ]
-	        }
-	    ],
-	    "v1.0.2" : [
-	        {
-	            "author": "Alex Greenland",
-	            "authorurl": "https://github.com/allskyteam",
-	            "changes": "Updated for new module system"
-	        }
-	    ]                                               
-	}            
-}
-
 class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
+
+	meta_data = {
+		"name": "Open Weather Map",
+		"description": "Gets weather data from the Open Weather Map service",
+		"module": "allsky_openweathermap",
+		"version": "v1.0.2",
+		"centersettings": "false",
+		"testable": "true",
+		"extradatafilename": "allsky_openweathermap.json", 
+		"events": [
+			"day",
+			"night",
+			"periodic"
+		],
+		"extradata": {
+			"values": {
+				"AS_OWWEATHER": {
+					"name": "${OWWEATHER}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "OW Weather Summary",
+					"type": "string"
+				},
+				"AS_OWWEATHERDESCRIPTION": {
+					"name": "${OWWEATHERDESCRIPTION}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "OW Weather Description",
+					"type": "string"
+				},
+				"AS_OWTEMP": {
+					"name": "${OWTEMP}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "OW Temperature",
+					"type": "temperature"
+				},
+				"AS_OWDEWPOINT": {
+					"name": "${OWDEWPOINT}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "OW Dew Point",
+					"type": "temperature"
+				},
+				"AS_OWHEATINDEX": {
+					"name": "${OWHEATINDEX}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "OW Heat Index",
+					"type": "temperature"
+				},                     
+				"AS_OWTEMPFEELSLIKE": {
+					"name": "${OWTEMPFEELSLIKE}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "OW Temperature Feels Like",
+					"type": "temperature"
+				},                                          
+				"AS_OWTEMPMIN": {
+					"name": "${OWTEMPMIN}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "OW Minimum Temperature",
+					"type": "temperature"
+				},
+				"AS_OWTEMPMAX": {
+					"name": "${OWTEMPMAX}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "OW Maximum Temperature",
+					"type": "temperature"
+				},
+				"AS_OWPRESSURE": {
+					"name": "${OWPRESSURE}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "OW Pressue",
+					"type": "number"
+				},
+				"AS_OWHUMIDITY": {
+					"name": "${OWHUMIDITY}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "OW Humidity",
+					"type": "number"
+				},
+				"AS_OWWINDSPEED": {
+					"name": "${OWWINDSPEED}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "OW Wind Speed",
+					"type": "number"
+				},
+				"AS_OWWINDGUST": {
+					"name": "${OWWINDGUST}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "OW Wind Gust",
+					"type": "number"
+				},         
+				"AS_OWWINDDIRECTION": {
+					"name": "${OWWINDDIRECTION}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "OW Wind Direction",
+					"type": "azimuth"
+				},
+				"AS_OWWINDCARDINAL": {
+					"name": "${OWWINDCARDINAL}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "OW Cardinal Wind Direction",
+					"type": "azimuth"
+				},
+				"AS_OWCLOUDS": {
+					"name": "${OWCLOUDS}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "OW Cloud Cover %",
+					"type": "number"
+				},
+				"AS_OWRAIN1HR": {
+					"name": "${OWRAIN1HR}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "OW mm of rain in the last hour",
+					"type": "number"
+				},
+				"AS_OWRAIN3HR": {
+					"name": "${OWRAIN3HR}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "OW mm of rain in the last hour",
+					"type": "number"
+				},
+				"AS_OWSUNRISE": {
+					"name": "${OWSUNRISE}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "OW Sunrise",
+					"type": "string"
+				},
+				"AS_OWSUNSET": {
+					"name": "${OWSUNSET}",
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "OW Sunrise",
+					"type": "string"
+				}                                                                                                              
+			}                         
+		},
+		"arguments":{
+			"apikey": "",
+			"period": 120,
+			"expire": 240,
+			"units": "metric"
+		},
+		"argumentdetails": {
+			"apikey": {
+				"required": "true",
+				"description": "API Key",
+				"secret": "true",         
+				"help": "Your Open Weather Map API key"         
+			},      
+			"period" : {
+				"required": "true",
+				"description": "Read Every",
+				"help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
+				"type": {
+					"fieldtype": "spinner",
+					"min": 60,
+					"max": 1440,
+					"step": 1
+				}          
+			},
+			"units" : {
+				"required": "false",
+				"description": "Units",
+				"help": "Units of measurement. standard, metric and imperial",
+				"type": {
+					"fieldtype": "select",
+					"values": "standard,metric,imperial"
+				}                
+			},        
+			"expire" : {
+				"required": "true",
+				"description": "Expiry Time",
+				"help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 61,
+					"max": 1500,
+					"step": 1
+				}          
+			}                    
+		},
+		"changelog": {
+			"v1.0.0" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Initial Release"
+				}
+			],
+			"v1.0.1" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": [
+						"Added Cardinal wind direction",
+						"Converted to f-strings",
+						"Improved error handling"
+					]
+				}
+			],
+			"v1.0.2" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Updated for new module system"
+				}
+			]                                               
+		}            
+	}
+
 	_extra_data = {}
  
 	def _process_result(self, data, expires, units):
@@ -352,7 +353,7 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 		expire = self.get_param('expire', 240, int)
 		api_key = self.get_param('apikey', '', str)
 		requested_units = self.get_param('units', 'metric', str)
-		module = metaData['module']
+		module = self.meta_data['module']
   
 		try:
 			should_run, diff = allsky_shared.shouldRun(module, period)
@@ -368,8 +369,8 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 							if response.status_code == 200:
 								raw_data = response.json()
 								self._process_result(raw_data, expire, requested_units)
-								allsky_shared.saveExtraData(metaData['extradatafilename'], self._extra_data, metaData['module'], metaData['extradata'])
-								result = f"Data acquired and written to extra data file {metaData['extradatafilename']}"
+								allsky_shared.saveExtraData(self.meta_data['extradatafilename'], self._extra_data, self.meta_data['module'], self.meta_data['extradata'])
+								result = f"Data acquired and written to extra data file {self.meta_data['extradatafilename']}"
 								allsky_shared.log(1, f'INFO: {result}')
 							else:
 								result = f'Got error from Open Weather Map API. Response code {response.status_code}'
@@ -406,10 +407,10 @@ def openweathermap(params, event):
 
 def openweathermap_cleanup():
 	moduleData = {
-	    "metaData": metaData,
+	    "metaData": ALLSKYOPENWEATHERMAP.meta_data,
 	    "cleanup": {
 	        "files": {
-	            metaData['extradatafilename']
+	            ALLSKYOPENWEATHERMAP.meta_data['extradatafilename']
 	        },
 	        "env": {}
 	    }
