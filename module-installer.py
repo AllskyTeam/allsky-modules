@@ -15,32 +15,33 @@ from git import Repo
 from gpiozero import Device
 import importlib.util
 
+
 class ALLSKYMODULEINSTALLER:
-    _basePath = None
-    _destPath = None
-    _destPathDeps = None
-    _destPathInfo = None
-    _user = None
-    _moduleDirs = []
-    _modules = []
-    _checkList = []
+    base_path = None
+    dest_path = None
+    dest_path_deps = None
+    dest_path_info = None
+    user = None
+    module_dirs = []
+    modules = []
+    check_list = []
 
     def __init__(self):
-        self._basePath = os.path.dirname(os.path.realpath(__file__))
-        self._destPath = '/opt/allsky/modules'
-        self._destPathDeps = os.path.join(self._destPath,'dependencies')
-        self._destPathInfo = os.path.join(self._destPath,'info')
+        self.base_path = os.path.dirname(os.path.realpath(__file__))
+        self.dest_path = '/opt/allsky/modules'
+        self.dest_path_deps = os.path.join(self.dest_path, 'dependencies')
+        self.dest_path_info = os.path.join(self.dest_path, 'info')
 
-    def _checkInstalled(self, path):
+    def _check_installed(self, path):
         if os.path.exists(path):
             return True
         else:
             return False 
 
-    def _preChecks(self):
+    def _pre_checks(self):
         result = True
         
-        if not self._checkInstalled(self._destPath):
+        if not self._check_installed(self.dest_path):
             print('AllSky does not seem to be installed. The /opt/allsky directory does not exist. Please install AllSky before installing the modules')
             result = False
             
@@ -49,43 +50,43 @@ class ALLSKYMODULEINSTALLER:
             result = False
                 
         try:
-            self._user = os.getlogin()
+            self.user = os.getlogin()
         except:
             if 'LOGNAME' in os.environ:
-                self._user = os.environ['LOGNAME']
+                self.user = os.environ['LOGNAME']
             else:
                 print('Cannot determine user - Aborting')
                 result = False
                         
         return result  
 
-    def _readModules(self):
-        self._moduleDirs = [] 
+    def _read_modules(self):
+        self.module_dirs = [] 
         dirs = os.listdir()
         for dir in dirs:
-            if dir.startswith('allsky_'):
-                modulePath, scriptPath, moduleData, installedPath = self._getModuleData(dir)
+            if dir.startswith('allsky_') and not os.path.isfile(dir):
+                module_path, script_path, module_data, installed_path = self._get_module_data(dir)
                 installed = 'OFF'
-                if os.path.exists(installedPath):
+                if os.path.exists(installed_path):
                     installed = 'ON'
-                self._moduleDirs.append((dir,"",installed))
-                self._modules.append(dir)
+                self.module_dirs.append((dir, '', installed))
+                self.modules.append(dir)
 
-    def _displayInstallDialog(self):        
+    def _display_install_dialog(self):
         w = Whiptail(title='Select Modules', backtitle='AllSky Module Manager', height=20, width = 40)
-        self._checkList = w.checklist('Select the Modules To Install', self._moduleDirs)[0]
+        self.check_list = w.checklist('Select the Modules To Install', self.module_dirs)[0]
 
-    def _getModuleData(self, module):
-        modulePath = os.path.join(self._basePath, module)
-        scriptPath = os.path.join(self._basePath, module, module + '.py')
-        moduleData = self._readModuleMetaData(scriptPath)
-        installedPath = os.path.join(self._destPath,module + '.py')
-        
-        return modulePath, scriptPath, moduleData, installedPath
+    def _get_module_data(self, module):
+        module_path = os.path.join(self.base_path, module)
+        script_path = os.path.join(self.base_path, module, module + '.py')
+        module_data = self._read_module_meta_data(script_path)
+        installed_path = os.path.join(self.dest_path, module + '.py')
 
-    def _readModuleMetaData(self, modulePath):
+        return module_path, script_path, module_data, installed_path
 
-        f = open(modulePath,"r")
+    def _read_module_meta_data(self, module_path):
+
+        f = open(module_path, "r")
         rawLines = f.readlines()
 
         gotStart = False
@@ -105,26 +106,26 @@ class ALLSKYMODULEINSTALLER:
                     break
 
         try:
-            moduleData = json.loads(rawMeta)
+            module_data = json.loads(rawMeta)
         except:
-            moduleData = {}
+            module_data = {}
 
-        moduleData = self._fixModuleMetaData(moduleData)
-        
-        return moduleData
+        module_data = self._fix_module_meta_data(module_data)
+  
+        return module_data
 
-    def _checkPythonVersion(self, moduleData):
+    def _check_python_version(self, module_data):
         result = True
-        if moduleData is not None:
-            if 'pythonversion' in moduleData:
-                if version.parse(python_version()) < version.parse(moduleData['pythonversion']):
-                    print(f'This module requires Python version {moduleData["pythonversion"]} you have {python_version()} installed')
+        if module_data is not None:
+            if 'pythonversion' in module_data:
+                if version.parse(python_version()) < version.parse(module_data['pythonversion']):
+                    print(f'This module requires Python version {module_data["pythonversion"]} you have {python_version()} installed')
                     result = False
         return result
 
-    def _installPackages(self, module, modulePath):
+    def _install_packages(self, module, module_path):
         result = True
-        packagesPath = os.path.join(modulePath, 'packages.txt')
+        packagesPath = os.path.join(module_path, 'packages.txt')
         if os.path.exists(packagesPath):
             print('INFO: Installing package dependencies')
             with open(packagesPath, 'r') as fp:
@@ -136,11 +137,11 @@ class ALLSKYMODULEINSTALLER:
                         aptResult = subprocess.check_output(cmd, shell=True).decode('utf-8')
                     except Exception as e:
                         eType, eObject, eTraceback = sys.exc_info()
-                        print(f'ERROR: _installPackages failed on line {eTraceback.tb_lineno} - {e}')                        
+                        print(f'ERROR: _install_packages failed on line {eTraceback.tb_lineno} - {e}')                        
                         result = False
         
             if result:
-                packageDestPath = os.path.join(self._destPathDeps,module)
+                packageDestPath = os.path.join(self.dest_path_deps,module)
                 if not os.path.isdir(packageDestPath):
                     os.mkdir(packageDestPath)
                             
@@ -152,10 +153,10 @@ class ALLSKYMODULEINSTALLER:
                     
         return result                      
 
-    def _installPythonLibraries(self, module, modulePath):
+    def _install_python_libraries(self, module, module_path):
         result = True
-        requirementsPath = os.path.join(modulePath, 'requirements.txt')
-        logPath = os.path.join(modulePath, 'dependencies.log')
+        requirementsPath = os.path.join(module_path, 'requirements.txt')
+        logPath = os.path.join(module_path, 'dependencies.log')
         if os.path.exists(requirementsPath):
             print('INFO: Installing Python dependencies')
             pipResult = 0
@@ -163,7 +164,7 @@ class ALLSKYMODULEINSTALLER:
                 pipResult = os.system(f'pip3 install --no-warn-script-location -r {requirementsPath} > {logPath} 2>&1')
             except Exception as e:
                 eType, eObject, eTraceback = sys.exc_info()
-                print(f'ERROR: _installPythonLibraries failed on line {eTraceback.tb_lineno} - {e}')                        
+                print(f'ERROR: _install_python_libraries failed on line {eTraceback.tb_lineno} - {e}')                        
                 result = False
                          
             if pipResult != 0:
@@ -171,7 +172,7 @@ class ALLSKYMODULEINSTALLER:
                 result = False
 
             if result:
-                packageDestPath = os.path.join(self._destPathDeps,module)
+                packageDestPath = os.path.join(self.dest_path_deps,module)
                 if not os.path.isdir(packageDestPath):
                     os.mkdir(packageDestPath)
                         
@@ -183,57 +184,63 @@ class ALLSKYMODULEINSTALLER:
 
         return result
 
-    def _installDependencies(self, module, modulePath):
+    def _install_dependencies(self, module, module_path):
         result = False
-        
-        if self._installPackages(module, modulePath):
-            if self._installPythonLibraries(module, modulePath):
+
+        if self._install_packages(module, module_path):
+            if self._install_python_libraries(module, module_path):
                 result = True
-  
+
         return result
 
-    def _installModule(self, module, scriptPath, installedPath, modulePath):
+    def _install_module(self, module, script_path, installed_path, module_path):
         result = True
         print(f'INFO: Installing {module} module')
-        cmd = f'cp {scriptPath} {self._destPath}'
-        cpResult = os.system(cmd)
-        if cpResult == 0:
-            cmd = f'sudo chown {self._user}:www-data {installedPath}'
-            chownResult = os.system(cmd)
-            if chownResult != 0:
-                failed = f'Could not set permissions on {installedPath}\n\n'
+        cmd = f'cp {script_path} {self.dest_path}'
+        copy_result = os.system(cmd)
+        if copy_result == 0:
+            cmd = f'sudo chown {self.user}:www-data {installed_path}'
+            chown_result = os.system(cmd)
+            if chown_result != 0:
+                failed = f'Could not set permissions on {installed_path}\n\n'
                 result = False
         else:
-            failed = f'Could not copy module from {scriptPath} to {self._destPath}\n\n'
+            failed = f'Could not copy module from {script_path} to {self.dest_path}\n\n'
             result = False
 
         if result:
-            infoPath = os.path.join(modulePath, 'readme.txt')
-            if os.path.exists(infoPath):
-                packageInfoPath = os.path.join(self._destPathInfo,module)
-                if not os.path.isdir(packageInfoPath):
-                    os.makedirs(packageInfoPath, mode = 0o777, exist_ok = True)
+            info_path = os.path.join(module_path, 'readme.txt')
+            if os.path.exists(info_path):
+                package_info_path = os.path.join(self.dest_path_info,module)
+                if not os.path.isdir(package_info_path):
+                    os.makedirs(package_info_path, mode=0o777, exist_ok=True)
 
-                cmd = f'cp {infoPath} {packageInfoPath}'
+                cmd = f'cp {info_path} {package_info_path}'
                 os.system(cmd)
 
-            infoPath = os.path.join(modulePath, 'README.md')
-            if os.path.exists(infoPath):
-                packageInfoPath = os.path.join(self._destPathInfo,module)
-                if not os.path.isdir(packageInfoPath):
-                    os.makedirs(packageInfoPath, mode = 0o777, exist_ok = True)
+            info_path = os.path.join(module_path, 'README.md')
+            if os.path.exists(info_path):
+                package_info_path = os.path.join(self.dest_path_info,module)
+                if not os.path.isdir(package_info_path):
+                    os.makedirs(package_info_path, mode=0o777, exist_ok=True)
 
-                cmd = f'cp {infoPath} {packageInfoPath}'
+                cmd = f'cp {info_path} {package_info_path}'
                 os.system(cmd)
-                
+
+            directories = [entry for entry in os.listdir(module_path) if os.path.isdir(os.path.join(module_path, entry))]
+            for directory in directories:
+                source_directory = os.path.join(module_path, directory)
+                command = f'cp -ar {source_directory} {self.dest_path}'
+                os.system(command)
+
         return result
 
     def _install_module_data(self, module):
         result = True
-        data_dir = os.path.join(self._basePath, module, module.replace('allsky_', ''))
+        data_dir = os.path.join(self.base_path, module, module.replace('allsky_', ''))
         if Path(data_dir).is_dir():
             try:
-                shutil.copytree(data_dir, self._destPath)
+                shutil.copytree(data_dir, self.dest_path)
             except FileExistsError:
                 print('Destination directory already exists.')
                 result = False
@@ -243,21 +250,21 @@ class ALLSKYMODULEINSTALLER:
 
         return result
 
-    def _doInstall(self):
+    def _do_install(self):
         os.system('clear')
 
-        if not os.path.isdir(self._destPathDeps):
-            os.mkdir(self._destPathDeps)
+        if not os.path.isdir(self.dest_path_deps):
+            os.mkdir(self.dest_path_deps)
 
-        for module in self._checkList:
+        for module in self.check_list:
             title = f'Installing {module}'
             print(title)
             print('='*len(title))
 
-            modulePath, scriptPath, moduleData, installedPath = self._getModuleData(module)
-            if self._checkPythonVersion(moduleData):
-                if self._installDependencies(module, modulePath):
-                    if self._installModule(module, scriptPath, installedPath, modulePath):
+            module_path, script_path, module_data, installed_path = self._get_module_data(module)
+            if self._check_python_version(module_data):
+                if self._install_dependencies(module, module_path):
+                    if self._install_module(module, script_path, installed_path, module_path):
                         if self._install_module_data(module):
                             print(f'SUCCESS: Module "{module}" installed\n\n')
                         else:
@@ -265,60 +272,60 @@ class ALLSKYMODULEINSTALLER:
                     else:
                         print(f'ERROR: Module "{module}" failed to installed\n\n')
         self._check_gpio_status()
+
+    def _fix_module_meta_data(self, module_data):
         
-    def _fixModuleMetaData(self, moduleData):
-        
-        if 'experimental' not in moduleData:
-            moduleData['experimental'] = False
+        if 'experimental' not in module_data:
+            module_data['experimental'] = False
                     
-        if 'name' not in moduleData:
-            moduleData['name'] = 'Unknown'
+        if 'name' not in module_data:
+            module_data['name'] = 'Unknown'
             
-        if 'version' not in moduleData:
-            moduleData['version'] = 'Unknown'
+        if 'version' not in module_data:
+            module_data['version'] = 'Unknown'
 
-        if 'description' not in moduleData:
-            moduleData['description'] = ''
+        if 'description' not in module_data:
+            module_data['description'] = ''
 
-        if 'longdescription' not in moduleData:
-            moduleData['longdescription'] = ''
+        if 'longdescription' not in module_data:
+            module_data['longdescription'] = ''
 
-        if 'changelog' not in moduleData:
-            moduleData['changelog'] = {}
+        if 'changelog' not in module_data:
+            module_data['changelog'] = {}
 
-        return moduleData
-                                
-    def _displayModuleInfoDialog(self, moduleData, installedModuleData, modulePath, module):        
+        return module_data
+
+    def _display_module_info_dialog(self, module_data, installed_module_data, module_path, module):        
         data = ''
         newVersion = ''
-        if installedModuleData:
-            if version.parse(installedModuleData['version']) < version.parse(moduleData['version']):
+        if installed_module_data:
+            if version.parse(installed_module_data['version']) < version.parse(module_data['version']):
                 newVersion = 'New Version Available'
-        
-        data = f"{moduleData['name']}\n"
+
+        data = f"{module_data['name']}\n"
         data += f"{'-'*76}\n\n"
-        data += f"Description: {moduleData['description']}\n\n"
-        data += f"Version: {moduleData['version']} {newVersion}\n"
-        if installedModuleData:
+        data += f"Description: {module_data['description']}\n\n"
+        data += f"Version: {module_data['version']} {newVersion}\n"
+        if installed_module_data:
             data += "Installed: Yes\n"
         else:
             data += "Installed: No\n"
-            
-        if moduleData['experimental'] :
+
+        if module_data['experimental'] :
             data += "Experimental: Yes (This module may not be stable)\n"
         else:
             data += "Experimental: No\n"
 
         data += '\n\nReadme\n'
         data += f"{'-'*40}\n\n"  
-        readmeFile = os.path.join(modulePath, 'readme.txt')
+        readmeFile = os.path.join(module_path, 'readme.txt')
         if os.path.exists(readmeFile):
             f = open(readmeFile, 'r')
             readmeText = f.read()
             f.close()          
             data += readmeText
         else:
-            readmeFile = os.path.join(modulePath, 'README.md')
+            readmeFile = os.path.join(module_path, 'README.md')
             if os.path.exists(readmeFile):
                 f = open(readmeFile, 'r')
                 readmeText = f.read()
@@ -329,10 +336,10 @@ class ALLSKYMODULEINSTALLER:
                      
         data += '\n\nChangelog\n'
         data += f"{'-'*40}\n\n"
-        if moduleData['changelog']:
-            for moduleVersion in moduleData['changelog']:
+        if module_data['changelog']:
+            for moduleVersion in module_data['changelog']:
                 data += f"Version: {moduleVersion}\n"
-                changeList = moduleData['changelog'][moduleVersion]
+                changeList = module_data['changelog'][moduleVersion]
                 for change in changeList:
                     data += f"  Author: {change['author']}\n"
                     if type(change['changes']) == list:
@@ -355,38 +362,38 @@ class ALLSKYMODULEINSTALLER:
             msgbox = w.textbox(tempFileHandle.name)
         finally: 
             os.remove(tempFileName)                
-        
-    def _displayInfoListDialog(self):
+
+    def _display_info_list_dialog(self):
         done = False
-        
+
         while not done:
             w = Whiptail(title='Select Modules', backtitle='AllSky Module Manager', height=20, width = 40)
-            module, returnCode = w.radiolist('Select Module', self._modules)
-        
-            if returnCode != 1:
+            module, return_code = w.radiolist('Select Module', self.modules)
+
+            if return_code != 1:
                 if module:
                     module = module[0]
-                    modulePath, scriptPath, moduleData, installedPath = self._getModuleData(module)
+                    module_path, script_path, module_data, installed_path = self._get_module_data(module)
                     installed = False
-                    if os.path.exists(installedPath):
+                    if os.path.exists(installed_path):
                         installed = True
-                    moduleData = self._readModuleMetaData(scriptPath)
-                    
-                    installedModuleData = {}
-                    scriptPath = os.path.join(self._destPath, module + '.py')
-                    if os.path.exists(scriptPath):
-                        installedModuleData = self._readModuleMetaData(scriptPath)
-                            
-                    self._displayModuleInfoDialog(moduleData, installedModuleData, modulePath, module)
+                    module_data = self._read_module_meta_data(script_path)
+
+                    installed_module_data = {}
+                    script_path = os.path.join(self.dest_path, module + '.py')
+                    if os.path.exists(script_path):
+                        installed_module_data = self._read_module_meta_data(script_path)
+
+                    self._display_module_info_dialog(module_data, installed_module_data, module_path, module)
             else:
                 done = True
-        
-    def _displayModulesInfo(self):
-        self._readModules()
-        self._displayInfoListDialog()
+
+    def _display_modules_info(self):
+        self._read_modules()
+        self._display_info_list_dialog()
         pass
 
-    def _getI2Cevices(self, bus=None):
+    def _get_i2c_devices(self, bus=None):
 
         devices = []
         
@@ -403,8 +410,8 @@ class ALLSKYMODULEINSTALLER:
                 pass
                             
         return devices
-    
-    def _checkInternet(self):
+
+    def _check_internet(self):
         result = 'Yes'
         try:
             url('https://www.google.com/', timeout=3)
@@ -414,23 +421,23 @@ class ALLSKYMODULEINSTALLER:
         return result
 
     def _check_gpio_status(self):        
-        pi_version = self._getPiVersion()
+        pi_version = self._get_pi_version()
         if pi_version[0] == '5':
             print('INFO: Found the rpi.gpio module so uninstalling it\n\n')
             subprocess.run(['pip3', 'uninstall', '-y', 'rpi.gpio'], check=False)
         else:
             print(f'Pi version is "{pi_version}" so not modifying gpio libraries')
- 
+
     def _check_pip_package_installed(self, package_name):
         return importlib.util.find_spec(package_name) is not None
-    
-    def _getPiVersion(self):
+
+    def _get_pi_version(self):
         Device.ensure_pin_factory()
         piVersion = Device.pin_factory.board_info.model
 
         return piVersion
-                    
-    def _displaySystemChecks(self):
+
+    def _display_system_checks(self):
         configFile = '/boot/firmware/config.txt'
         if not os.path.exists(configFile):
             configFile = '/boot/config.txt'
@@ -444,9 +451,9 @@ class ALLSKYMODULEINSTALLER:
         
         i2cDevices = ''
         if i2cEnabled:
-            i2cDevices = self._getI2Cevices()
-        onlineStatus = self._checkInternet()
-        piVersion = self._getPiVersion()
+            i2cDevices = self._get_i2c_devices()
+        onlineStatus = self._check_internet()
+        piVersion = self._get_pi_version()
 
         try:
             allSkyInstalled = os.environ['ALLSKY_HOME']
@@ -477,43 +484,44 @@ class ALLSKYMODULEINSTALLER:
         finally: 
             os.remove(tempFileName)
         pass
-    
-    def _getGitBranch(self):
+
+    def _get_git_branch(self):
         local_branch = Repo().head.ref.name
         
         return local_branch
-    
+
     def run(self):
         done = False
         
-        gitBranch = self._getGitBranch()
+        git_branch = self._get_git_branch()
         
-        if gitBranch == 'dev':
+        if git_branch == 'dev':
             w = Whiptail(title='warning', backtitle='AllSky Module Manager', height=20, width=80)
             message = "You are using the dev branch of the Allsk extra modules.\nThis branch contains work that may not be complete nor fully tested\n\nUsage of this branch is entirely at your own risk"
-            msgbox = w.msgbox(message)
+            w.msgbox(message)
                 
         while not done:
             w = Whiptail(title='Main Menu', backtitle='AllSky Module Manager', height=20, width = 40)
-            menuOption, returnCode = w.menu('', ['Install/Remove Modules', 'Module Information', 'System Checks', 'Exit'])
+            menu_option, return_code = w.menu('', ['Install/Remove Modules', 'Module Information', 'System Checks', 'Exit'])
 
-            if returnCode == 0:
-                if menuOption == 'Exit':
+            if return_code == 0:
+                if menu_option == 'Exit':
                     done = True
-                if menuOption == 'Module Information':
-                    self._displayModulesInfo()
-                if menuOption == 'System Checks':
-                    self._displaySystemChecks()                    
-                if menuOption == 'Install/Remove Modules':
-                    if self._preChecks():
-                        self._readModules()
-                        self._displayInstallDialog()
-                        self._doInstall()            
+                if menu_option == 'Module Information':
+                    self._display_modules_info()
+                if menu_option == 'System Checks':
+                    self._display_system_checks()                    
+                if menu_option == 'Install/Remove Modules':
+                    if self._pre_checks():
+                        self._read_modules()
+                        self._display_install_dialog()
+                        self._do_install()
                     else:
                         sys.exit(0)
-            else :
+            else:
                 done = True
 
+
 if __name__ == '__main__':
-    moduleInstaller = ALLSKYMODULEINSTALLER()
-    moduleInstaller.run()
+    module_installer = ALLSKYMODULEINSTALLER()
+    module_installer.run()
