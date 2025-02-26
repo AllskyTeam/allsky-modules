@@ -17,6 +17,7 @@ import json
 import requests
 import time
 
+
 # Disable Numpy warnings
 np.seterr(all="ignore")
 
@@ -24,7 +25,7 @@ metaData = {
     "name": "AllSkyAI",
     "description": "Classify the current sky with ML. More info https://www.allskyai.com",
     "module": "allsky_ai",
-    "version": "v1.0.4",
+    "version": "v1.0.5",
     "events": [
         "day",
         "night"
@@ -37,7 +38,9 @@ metaData = {
         "use_account": "False",
         "account_auto_update": "False",
         "allsky_id": "",
-        "access_token": ""
+        "access_token": "",
+        "disable_upload": "False",
+        "upload_frequency": "600"
     },
     "argumentdetails": {
         "auto_update": {
@@ -63,7 +66,7 @@ metaData = {
         "contribute": {
             "required": "false",
             "description": "Contribute",
-            "help": "Contribute by uploading an image every 10th minute. This will be used to build a better generic model for everyone!",
+            "help": "Contribute by uploading an image every 10th minute. This will be used to build a better generic model for everyone! * Only applicable unless you have an account",
             "tab": "Contribute",
             "type": {
                 "fieldtype": "checkbox"
@@ -98,6 +101,27 @@ metaData = {
             "description": "Access Code",
             "help": "Access code, also found on AllSkyAI website",
             "tab": "AllSkyAI"
+        },
+        "disable_upload": {
+            "required": "false",
+            "description": "Disable Upload",
+            "help": "Will turn upload off",
+            "tab": "AllSkyAI",
+            "type": {
+                "fieldtype": "checkbox"
+            }
+        },
+        "upload_frequency" : {
+            "required": "true",
+            "description": "Upload Frequency",
+            "help": "How often should an image be uploaded",
+            "tab": "AllSkyAI",
+            "type": {
+                "fieldtype": "spinner",
+                "min": 10,
+                "max": 6000,
+                "step": 1
+            }          
         }
     },
     "enabled": "false",
@@ -262,7 +286,14 @@ def do_classification(camera_type=None):
 
     return data_json
 
-
+def empty_json():
+    data_json = dict()
+    data_json['AI_CLASSIFICATION'] = "None"
+    data_json['AI_CONFIDENCE'] = 0.00
+    data_json['AI_UTC'] = "None"
+    data_json['AI_INFERENCE'] = 0.00
+    
+    return data_json
 # -------------------------------------------------------------------------------------
 # API Functions
 # -------------------------------------------------------------------------------------
@@ -406,16 +437,28 @@ def current_milli_time():
     return round(time.time() * 1000)
 
 
-def check_time_elapsed(allsky_id, access_token):
-    if time.time() - (s.dbGet("allskyai_last_publish") / 1000) > 600:
-        s.log(1, f"Uploading image to AllSkyAI")
+def check_time_elapsed(allsky_id, access_token, upload_frequency, disable_upload):
+    if disable_upload:
+        s.log(1, f"AllSkyAI - Upload disabled")
+        return
+
+    elif time.time() - (s.dbGet("allskyai_last_publish") / 1000) > upload_frequency:
+        s.log(1, f"AllSkyAI - Uploading image")
         upload_image(allsky_id, access_token)
         s.dbUpdate("allskyai_last_publish", current_milli_time())
 
-
 # -------------------------------------------------------------------------------------
 
-def run(camera_type, contribute, auto_update, use_account, account_auto_update, allsky_id, access_token):
+def run(camera_type,
+        contribute,
+        auto_update,
+        use_account,
+        account_auto_update,
+        allsky_id,
+        access_token,
+        disable_upload,
+        upload_frequency
+        ):
     if use_account:
         s.log(1, "Using AllSkyAI account")
         if not allsky_id:
@@ -436,19 +479,23 @@ def run(camera_type, contribute, auto_update, use_account, account_auto_update, 
     if bool(result):
         s.saveExtraData("allskyai.json", result)
         s.log(1, f"AllSkyAI: {json.dumps(result)}")
+    else:
+        result = empty_json()
+        s.saveExtraData("allskyai.json", result)
+        s.log(1, f"AllSkyAI: {json.dumps(result)}")
 
     # Check elapsed time. We will only upload an image every 10 minutes
     if use_account:
         if not s.dbHasKey("allskyai_last_publish"):
             s.dbAdd("allskyai_last_publish", current_milli_time())
         else:
-            check_time_elapsed(allsky_id=allsky_id, access_token=access_token)
+            check_time_elapsed(allsky_id=allsky_id, access_token=access_token, upload_frequency=upload_frequency, disable_upload=disable_upload)
 
     elif contribute:
         if not s.dbHasKey("allskyai_last_publish"):
             s.dbAdd("allskyai_last_publish", current_milli_time())
         else:
-            check_time_elapsed(allsky_id=allsky_id, access_token=access_token)
+            check_time_elapsed(allsky_id=allsky_id, access_token=access_token, upload_frequency=600, disable_upload=False)
 
 
 # -------------------------------------------------------------------------------------
@@ -462,6 +509,8 @@ def ai(params, event):
     account_auto_update = params["account_auto_update"]
     allsky_id = params["allsky_id"]
     access_token = params["access_token"]
+    disable_upload = params["disable_upload"]
+    upload_frequency = int(params["upload_frequency"])
 
     if camera_type == "none":
         s.log(0, "ERROR: Camera type not set, check AllSkyAI settings...")
@@ -475,7 +524,9 @@ def ai(params, event):
             use_account=use_account,
             account_auto_update=account_auto_update,
             allsky_id=allsky_id,
-            access_token=access_token
+            access_token=access_token,
+            disable_upload=disable_upload,
+            upload_frequency=upload_frequency
             )
     elif s.TOD == "night":
         run(camera_type=camera_type,
@@ -484,7 +535,9 @@ def ai(params, event):
             use_account=use_account,
             account_auto_update=account_auto_update,
             allsky_id=allsky_id,
-            access_token=access_token
+            access_token=access_token,
+            disable_upload=disable_upload,
+            upload_frequency=upload_frequency
             )
 
     return "AllSkyAI executed!"
