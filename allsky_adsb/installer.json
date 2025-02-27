@@ -1,0 +1,10 @@
+{
+    "requirements": [
+        "unidecode"
+    ],
+    "packages": [
+    ],
+    "post-install": {
+        "run": "{install_data_dir}/tools/build_database.py" 
+    }
+}

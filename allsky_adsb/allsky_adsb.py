@@ -688,7 +688,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			except JSONDecodeError:
 				allsky_shared.log(4, f'The provided URL "{url}" is not returning JSON data')
 		else:
-			database_dir = '/opt/allsky/modules/adsb/adsb_data'
+			database_dir = '/opt/allsky/modules/moduledata/data/allsky_adsb/adsb_data'
 			if os.path.isdir(database_dir):
 				icao_key = icao[:2]
 				icao_file = f'{icao_key}.json'
@@ -843,10 +843,9 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 				else:
 					result = f'The latitude in the main Allsky settings is invalid "{lat}"'
 					allsky_shared.log(0, f'ERROR: {result}')
-     
-            	
+
 				if self._missing_adsb_data:
-					allsky_shared.log(4, f'ERROR: The aircarft database has not been initialised so no aircraft information available. Please check the adsb module documentation')
+					allsky_shared.log(4, 'ERROR: The aircarft database has not been initialised so no aircraft information available. Please check the adsb module documentation')
 
 				message = self.__get_warnings('excluded')
 				if message != '':
