@@ -413,8 +413,8 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 	_extra_data = {}
 	_custom_fields = {}
 
-	def _init_(self, params, event):
-		super()._init_(params, event)
+	def __init__(self, params, event):
+		super().__init__(params, event)
 		allsky_shared.setupForCommandLine()
 		self._overlay_folder = allsky_shared.getEnvironmentVariable('ALLSKY_OVERLAY')
 		self._tmp_folder = os.path.join(self._overlay_folder, 'tmp')
