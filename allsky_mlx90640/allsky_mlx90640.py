@@ -57,6 +57,7 @@ class ALLSKYMLX90640(ALLSKYMODULEBASE):
 		"arguments": {
 			"i2caddress": "",
 			"imagefilename": "ir.jpg",
+			"resize": "1",
 			"logdata": "False"
 		},
 		"argumentdetails": {
@@ -72,9 +73,21 @@ class ALLSKYMLX90640(ALLSKYMODULEBASE):
 			"imagefilename": {
 				"required": "false",
 				"description": "Image filename",
-				"tab": "Image",
+				"tab": "Sensor",
 				"help": "The filename to save the image as. NOTE: Does not need the path. The image will be saved in the overlay images folder"
 			},
+			"resize": {
+				"required": "false",
+				"description": "Resize Image",
+				"help": "Scales the captured image",
+				"tab": "Sensor",           
+				"type": {
+					"fieldtype": "spinner",
+					"min": 1,
+					"max": 100,
+					"step": 1
+				}
+			},			
 			"logdata": {
 				"required": "false",
 				"description": "Log Data",
@@ -115,6 +128,7 @@ class ALLSKYMLX90640(ALLSKYMODULEBASE):
 	_image_thumbnail_path = None
 	_frame = None
 	_i2c_address = ''
+	_scale = 1
 
 	def __init__(self, params, event):
 		super().__init__(params, event)
@@ -122,6 +136,7 @@ class ALLSKYMLX90640(ALLSKYMODULEBASE):
 		self._image_file_name = self.get_param('imagefilename', 'ir.jpg')
 		self._log_data = self.get_param('logdata', False, bool)
 		self._i2c_address = self.get_param('i2caddress', '')
+		self._scale = self.get_param('resize', 1, int)
 
 		allsky_overlay_folder = allsky_shared.get_environment_variable('ALLSKY_OVERLAY')
 		self._image_path = os.path.join(allsky_overlay_folder, 'images', self._image_file_name )
@@ -149,13 +164,8 @@ class ALLSKYMLX90640(ALLSKYMODULEBASE):
 		else:
 			mlx = adafruit_mlx90640.MLX90640(i2c)
 
-		#i2c = busio.I2C(board.SCL, board.SDA, frequency=800000)
-		#mlx = adafruit_mlx90640.MLX90640(i2c)
-
 		mlx.refresh_rate = adafruit_mlx90640.RefreshRate.REFRESH_2_HZ
-
 		self._frame = np.zeros((24, 32))
-
 		mlx.getFrame(self._frame.ravel())
 
 		# Normalize the data to 0-255 for OpenCV
@@ -167,9 +177,7 @@ class ALLSKYMLX90640(ALLSKYMODULEBASE):
 
 	def _save_images(self):
 		# Resize the image to make it clearer
-		#temp_image = cv2.resize(self._raw_image, (320, 240), interpolation=cv2.INTER_CUBIC)
-		#temp_image = cv2.resize(self._raw_image, (640, 480), interpolation=cv2.INTER_CUBIC)
-		temp_image = cv2.resize(self._raw_image, (640*2, 480*2), interpolation=cv2.INTER_CUBIC)
+		temp_image = cv2.resize(self._raw_image, (32*self._scale, 24*self._scale), interpolation=cv2.INTER_CUBIC)
 		cv2.imwrite(self._image_path, temp_image)		
 
 		width = self._raw_image.shape[1]

@@ -134,14 +134,14 @@ class ALLSKYTELESCOPEMARKER(ALLSKYMODULEBASE):
 			}             
 		},
 		"changelog": {
-			"v0.1" : [
+			"v0.1": [
 				{
 					"author": "Frank Hirsch",
 					"authorurl": "https://github.com/allskyteam",
 					"changes": "Initial Test"
 				}
 			],
-			"v1.0.1" : [
+			"v1.0.1": [
 				{
 					"author": "Alex Greenland",
 					"authorurl": "https://github.com/allskyteam",
@@ -229,6 +229,13 @@ class ALLSKYTELESCOPEMARKER(ALLSKYMODULEBASE):
 		telescope_marker_width = self.get_param('telescope_marker_width', 5, int) 
 		telescope_marker_color = self.get_param('telescope_marker_color', '255,0,0', str, True) 
   
+		if telescope_marker_color.startswith('('):
+			telescope_marker_color = ast.literal_eval(telescope_marker_color)
+		else:
+			temp_result = tuple(int(item) for item in telescope_marker_color.split(','))  # RGB to BGR for new colour picker
+			telescope_marker_color = (temp_result[2], temp_result[1], temp_result[0])
+
+
 		telescope_alt = self.get_param('telescope_alt', '', str, True) 
 		telescope_az = self.get_param('telescope_az', '', str, True) 
 
@@ -254,7 +261,15 @@ class ALLSKYTELESCOPEMARKER(ALLSKYMODULEBASE):
 			y = allsky_shared.image.shape[0] - y
 
 		# Draw a red circle to mark the position
+		print(f'x = {x}')
+		print(f'y = {y}')
+		print(f'xc = {x - int(telescope_marker_radius/2)}')
+		print(f'yc = {y - int(telescope_marker_radius/2)}')
+		print(f'marker rad = {telescope_marker_radius}')
+		print(f'marker col = {telescope_marker_color}')
+		print(f'marker wid = {telescope_marker_width}')
 		allsky_shared.image = cv2.circle(allsky_shared.image, (x - int(telescope_marker_radius/2), y - int(telescope_marker_radius/2)), telescope_marker_radius, telescope_marker_color, telescope_marker_width)
+		#allsky_shared.image = cv2.circle(allsky_shared.image, (500, 500), 100, (255,0,0), 5)
 		
 		# Save the image with the marked position
 		#cv2.imwrite(output_path, s)

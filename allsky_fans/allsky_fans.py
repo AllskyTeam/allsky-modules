@@ -13,12 +13,13 @@ dtoverlay=pwm-2chan
 '''
 import allsky_shared as allsky_shared
 from allsky_base import ALLSKYMODULEBASE
-from gpiozero import CPUTemperature
-from digitalio import DigitalInOut, Direction, Pull
+from gpiozero import Device, CPUTemperature, OutputDevice, DigitalOutputDevice, LED
+# from digitalio import DigitalInOut, Direction, Pull
 
 import sys
-from rpi_hardware_pwm import HardwarePWM, HardwarePWMException
-from gpiozero import Device
+#from rpi_hardware_pwm import HardwarePWM, HardwarePWMException
+import pigpio
+import lgpio
 
 class ALLSKYFANS(ALLSKYMODULEBASE):
     
@@ -255,34 +256,13 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			]       
 		}
 	}    
-    
+
 	_temperature = 0
 	_temperature_limit = 0
 	_fan_pin = 0
 	_invert_relay = False
 	_debugmode = False
-	_pwm_map = {
-		"4B": {
-			"enabled": "/sys/class/pwm/pwmchip0/pwm%CHANNEL%/enable",
-			"chip": 0,
-			"addresses": {
-				18: 0,
-				19: 1,
-				12: 0,
-				13: 1
-			}
-		},
-		"5B": {
-			"enabled": "/sys/class/pwm/pwmchip2/pwm%CHANNEL%/enable",
-			"chip": 2,
-			"addresses": {
-				18: 0,
-				19: 1,
-				12: 0,
-				13: 1
-			}
-		}
-	}
+	_pwm_map = ['4B', '5B']
 
 	def _get_cpu_temperature(self):
 		temp_c = 0
@@ -293,7 +273,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			exception_type, exception_object, exception_traceback = sys.exc_info()
 			result = f'Module _get_cpu_temperature - {exception_traceback.tb_lineno} - {e}'
 			allsky_shared.log(4, f'ERROR: {result}')   
-     
+
 		return temp_c
 
 	def _get_allsky_temperature(self):
@@ -309,29 +289,41 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		return temperature
 
 	def _turn_fan_on(self, fan_pin, invert_relay):
-		pin = DigitalInOut(fan_pin)
-		pin.switch_to_output()
-		
+		CHIP = 0  # Default GPIO chip
+
+		h = lgpio.gpiochip_open(CHIP)
+		lgpio.gpio_claim_output(h, fan_pin)
+
 		if invert_relay:
-			pin.value = 0
+			lgpio.gpio_write(h, fan_pin, 0)
 		else:
-			pin.value = 1
+			lgpio.gpio_write(h, fan_pin, 1)
+
+		lgpio.gpiochip_close(h)
 
 	def _turn_fan_off(self, fan_pin, invert_relay):
-		pin = DigitalInOut(fan_pin)
-		pin.switch_to_output()
+		CHIP = 0  # Default GPIO chip
+
+		h = lgpio.gpiochip_open(CHIP)
+		lgpio.gpio_claim_output(h, fan_pin)
 
 		if invert_relay:
-			pin.value = 1
+			lgpio.gpio_write(h, fan_pin, 1)
 		else:    
-			pin.value = 0
+			lgpio.gpio_write(h, fan_pin, 0)
+
+		lgpio.gpiochip_close(h)
 
 	def _display_status(self, value):
 		return 'On' if value else 'Off'
     
 	def _use_bool_fan_control(self):
 		error = False
-         
+
+		pi = pigpio.pi()
+		pi.set_PWM_dutycycle(self._fan_pin, 0)
+		pi.stop()
+  
 		if (self._temperature > self._temperature_limit):
 			self._turn_fan_on(self._fan_pin, self._invert_relay)
 			fan_status = True
@@ -342,48 +334,36 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			result = f'{self._temperature} is lower then set limit of {self._temperature_limit}, Fans are {self._display_status(fan_status)} via fan pin {self._fan_pin}'
 
 		return result, error
-     
+
 	def _use_pwm_fan_control(self):
 		pwm_min = self.get_param('pwmmin', 0, int)
-		pwm_max = self.get_param('pwmmax', 0, int)
+		pwm_max = self.get_param('pwmmax', 100, int)
 		result = ''
 		pwm_enabled = '0'
 		pwm_duty_cycle = 0
 		error = False
-  
+
 		try:
 			if self._fan_pin != 0:
 				Device.ensure_pin_factory()
 				pi_info = Device.pin_factory.board_info
 				model = pi_info.model
 				if model in self._pwm_map:
-					pwm_channel =  self._pwm_map[model]['addresses'][self._fan_pin]
-					enabled_file = self._pwm_map[model]['enabled']
-					chip = self._pwm_map[model]['chip']
-					enabled_file = enabled_file.replace('%CHANNEL%', str(pwm_channel))
-					try:
-						with open(enabled_file, 'r', encoding='utf-8') as file:
-							pwm_enabled = file.readline().strip()
-					except FileNotFoundError:
-						pwm_enabled = '0'
 
-					pwm = HardwarePWM(pwm_channel=pwm_channel, hz=60, chip=chip)
-					if pwm_enabled == '0':
-						pwm.start(0)
-						pwm.change_frequency(25_000)
-
-					if self._temperature <= pwm_min:
+					if self._temperature < pwm_min:
 						pwm_duty_cycle = 0
 					elif self._temperature > pwm_max:
-						pwm_duty_cycle = 100
+						pwm_duty_cycle = 255
 					else:
 						pwm_duty_cycle = int(((self._temperature - pwm_min) / (pwm_max - pwm_min)) * 100)
 
-					pwm.change_duty_cycle(pwm_duty_cycle)
-					
-					if pwm_duty_cycle == 0:
-						pwm.stop()
-		
+					self.debug_log(f'PWM Duty cycle calculate as {pwm_duty_cycle}')
+
+					pi = pigpio.pi()
+					pi.set_PWM_range(self._fan_pin, 100)
+					pi.set_PWM_frequency(self._fan_pin, 1_000)
+					pi.set_PWM_dutycycle(self._fan_pin, pwm_duty_cycle)
+
 					result = f'PWM duty cycle set to {pwm_duty_cycle} on pin {self._fan_pin}'
 				else:
 					result = f'Pi Model ({model}) is not supported for PWM'
@@ -391,10 +371,6 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			else:
 				result = 'PWM Pin is invalid'
 				allsky_shared.log(0, f'ERROR: {result}')
-		except HardwarePWMException as e:
-			result = f'There is a problem with the PWM hardware. Please refer to the module documentation for help - "{e}"'
-			allsky_shared.log(0, f'ERROR: {result}')
-			error = True
 		except Exception as e:
 			exception_type, exception_object, exception_traceback = sys.exc_info()
 			result = f'Module _use_pwm_fan_control - {exception_traceback.tb_lineno} - {e}'
@@ -431,7 +407,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 						if use_pwm:
 							result, pwm_duty_cycle, pwm_enabled, error = self._use_pwm_fan_control()
 						else:
-							self._fan_pin = allsky_shared.getGPIOPin(self._fan_pin)         
+							#self._fan_pin = allsky_shared.getGPIOPin(self._fan_pin)         
 							result, error = self._use_bool_fan_control()
 
 						if not error:
@@ -458,7 +434,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			exception_type, exception_object, exception_traceback = sys.exc_info()
 			result = f'Module run - {exception_traceback.tb_lineno} - {e}'
 			allsky_shared.log(4, f'ERROR: {result}')    
-     
+
 		if not error:
 			allsky_shared.log(4,f'INFO: {result}')
 
@@ -472,12 +448,12 @@ def fans(params, event):
 
 def fans_cleanup():
 	moduleData = {
-	    "metaData": ALLSKYFANS.meta_data,
-	    "cleanup": {
-	        "files": {
-	            ALLSKYFANS.meta_data['extradatafilename']
-	        },
-	        "env": {}
-	    }
+		"metaData": ALLSKYFANS.meta_data,
+		"cleanup": {
+			"files": {
+				ALLSKYFANS.meta_data['extradatafilename']
+			},
+			"env": {}
+		}
 	}
 	allsky_shared.cleanupModule(moduleData)

@@ -316,7 +316,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			self.calSunMoon(params)
 
 	def _readColor(self, input):
-		if input.count(' ') >=2:
+		if input.count(' ') >= 2:
 			result = tuple(int(item) for item in input.split(' '))  # Legacy GBR values
 		else:
 			temp_result = tuple(int(item) for item in input.split(','))  # RGB to BGR for new colour picker

@@ -18,7 +18,7 @@ class ALLSKYMODULEBASE:
 		Originally metaData was a global variable but has since been replaced by meta_data as 
 		a class variable. This code will set hte class variable if its not been defined from
 		the global variable if it is defined.
-  		'''
+		'''
 		if not hasattr(self, 'meta_data'):
 			if 'metaData' in globals():
 				self.meta_data = globals('metaData')
@@ -58,3 +58,7 @@ class ALLSKYMODULEBASE:
 				result = default
 
 		return result
+
+	def debug_log(self, message):
+		if self._debugmode:
+			print(message)
