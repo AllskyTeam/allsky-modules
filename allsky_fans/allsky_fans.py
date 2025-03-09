@@ -13,13 +13,10 @@ dtoverlay=pwm-2chan
 '''
 import allsky_shared as allsky_shared
 from allsky_base import ALLSKYMODULEBASE
-from gpiozero import Device, CPUTemperature, OutputDevice, DigitalOutputDevice, LED
-# from digitalio import DigitalInOut, Direction, Pull
-
 import sys
-#from rpi_hardware_pwm import HardwarePWM, HardwarePWMException
 import pigpio
 import lgpio
+from gpiozero import Device, CPUTemperature
 
 class ALLSKYFANS(ALLSKYMODULEBASE):
     
@@ -323,7 +320,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		pi = pigpio.pi()
 		pi.set_PWM_dutycycle(self._fan_pin, 0)
 		pi.stop()
-  
+
 		if (self._temperature > self._temperature_limit):
 			self._turn_fan_on(self._fan_pin, self._invert_relay)
 			fan_status = True
@@ -339,7 +336,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		pwm_min = self.get_param('pwmmin', 0, int)
 		pwm_max = self.get_param('pwmmax', 100, int)
 		result = ''
-		pwm_enabled = '0'
+		pwm_enabled = 0
 		pwm_duty_cycle = 0
 		error = False
 
@@ -363,6 +360,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					pi.set_PWM_range(self._fan_pin, 100)
 					pi.set_PWM_frequency(self._fan_pin, 1_000)
 					pi.set_PWM_dutycycle(self._fan_pin, pwm_duty_cycle)
+					pwm_enabled = 1
 
 					result = f'PWM duty cycle set to {pwm_duty_cycle} on pin {self._fan_pin}'
 				else:
@@ -407,7 +405,6 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 						if use_pwm:
 							result, pwm_duty_cycle, pwm_enabled, error = self._use_pwm_fan_control()
 						else:
-							#self._fan_pin = allsky_shared.getGPIOPin(self._fan_pin)         
 							result, error = self._use_bool_fan_control()
 
 						if not error:
@@ -416,10 +413,10 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 							extra_data['AS_FANS_TEMPERATURE'] = self._temperature
 							if use_pwm:
 								extra_data['AS_FANS_USE_PWM'] = True if use_pwm else False
-								extra_data['AS_FANS_PWM_ENABLED'] = True if pwm_enabled == '1' else False
+								extra_data['AS_FANS_PWM_ENABLED'] = True if pwm_enabled == 1 else False
 								extra_data['AS_FANS_PWM_DUTY_CYCLE'] = pwm_duty_cycle
 										
-							allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data["module"], self.meta_data["extradata"])
+							allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 						
 						allsky_shared.setLastRun(self.meta_data['module'])
 					else:
