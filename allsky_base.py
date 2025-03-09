@@ -48,9 +48,9 @@ class ALLSKYMODULEBASE:
 		try:
 			result = target_type(result)
 		except (ValueError, TypeError):
-			have_debug_mode = hasattr(allsky_shared, 'LOGLEVEL')
-			if have_debug_mode and allsky_shared.LOGLEVEL == 4:
-				allsky_shared.log(4, f'INFO: Cannot cast "{param}" to {target_type.__name__}, value [{result}]. Using default "{default}"')
+			#have_debug_mode = hasattr(allsky_shared, 'LOGLEVEL')
+			#if have_debug_mode and allsky_shared.LOGLEVEL == 4:
+			#	allsky_shared.log(4, f'INFO: Cannot cast "{param}" to {target_type.__name__}, value [{result}]. Using default "{default}"')
 			result = default
 	
 		if target_type == str and use_default_if_blank:

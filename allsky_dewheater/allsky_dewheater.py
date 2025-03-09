@@ -36,10 +36,10 @@ from adafruit_bme280 import basic as adafruit_bme280
 from adafruit_htu21d import HTU21D
 from meteocalc import heat_index
 from meteocalc import dew_point
-from digitalio import DigitalInOut, Direction, Pull
+import pigpio
 	
 class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
- 
+
 	meta_data = {
 		"name": "AllSky Dew Heater Control",
 		"description": "Controls a dew heater via a temperature and humidity sensor",
@@ -127,6 +127,14 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 					"group": "Dew Heater",
 					"description": "Dew Heater Altitude",
 					"type": "altitude"
+				},
+				"AS_DEWCONTROLPWMDUTYCYCLE": {
+					"name": "${DEWCONTROLPWMDUTYCYCLE}",
+					"format": "",
+					"sample": "",                   
+					"group": "Dew Heater",
+					"description": "Dew Heater Duty Cycle",
+					"type": "number"
 				}
 			}                         
 		},
@@ -154,7 +162,9 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			"expire": 240,
 			"filename": "openweather.json",
 			"units": "metric",
-			"daydisable": "False"                
+			"daydisable": "False",
+			"usepwm": "false",
+			"extrausepwm": "false"
 		},
 		"argumentdetails": {
 			"type" : {
@@ -424,6 +434,15 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 					"fieldtype": "gpio"
 				}
 			},
+			"usepwm" : {
+				"required": "false",
+				"description": "Use PWM",
+				"help": "Use PWM Heater control. Please see the module documentation BEFORE using this feature",
+				"tab": "Heater",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},   
 			"extrapin": {
 				"required": "false",
 				"description": "Extra Pin",
@@ -433,6 +452,15 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 					"fieldtype": "gpio"
 				}
 			},
+			"extrausepwm" : {
+				"required": "false",
+				"description": "Use PWM",
+				"help": "Use PWM Heater control on the extra pin. Please see the module documentation BEFORE using this feature",
+				"tab": "Heater",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},     
 			"heaterstartupstate" : {
 				"required": "false",
 				"description": "heater Startup State",
@@ -592,7 +620,10 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				{
 					"author": "Alex Greenland",
 					"authorurl": "https://github.com/allskyteam",
-					"changes": "Refactored for new module and variable system"
+					"changes": [
+						"Refactored for new module and variable system",
+						"Added PWM Control for heater pins"
+					]
 				}
 			]                                             
 		}
@@ -734,7 +765,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				result = None
 				
 		return result
-	                
+
 	def _get_openwaether_values(self, file_name):
 		temperature = None
 		humidity = None
@@ -1023,9 +1054,9 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		pressure = None
 		rel_humidity = None
 		altitude = None
-  
+
 		#TODO: Check this logic
-  
+
 		environment_data = allsky_shared.load_extra_data_file('allskytemp.json')
 		temperature = allsky_shared.get_allsky_variable('AS_TEMP')
 		humidity = allsky_shared.get_allsky_variable('AS_HUMIDITY')
@@ -1051,55 +1082,68 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 												
 		return temperature, humidity, pressure, rel_humidity, altitude
 
-	def _turn_heater_on(self, heater_pin, invert_relay, extra=False):
+	def _set_pwm_state(self, heater_pin, duty_cycle):
+		pi = pigpio.pi(show_errors=False)
+		if pi.connected:
+			pi.set_PWM_range(heater_pin, 100)
+			pi.set_PWM_frequency(heater_pin, 1_000)
+			pi.set_PWM_dutycycle(heater_pin, duty_cycle)
+
+	def _set_gpio_pin_state(self, state, invert_relay, heater_pin):
+
+		result = True
+		pi = pigpio.pi(show_errors=False)
+		if pi.connected:
+			if invert_relay:
+				state = not state
+			pi.set_mode(heater_pin, pigpio.OUTPUT)
+			pi.write(heater_pin, state)
+		else:
+			result = False
+
+		return result
+
+	def _turn_heater_on(self, heater_pin, invert_relay, extra=False, use_pwm=False, duty_cycle=0):
 		if extra:
 			type = 'Extra'
 		else:
 			type = 'Heater'
-			
-		result = f"Turning {type} on using pin {heater_pin}"
-		try:    
-			pin = DigitalInOut(heater_pin)
-			pin.switch_to_output()
 
-			if invert_relay:
-				pin.value = 0
+		if use_pwm:
+			result = f'Turning {type} on using pwm on pin {heater_pin}. Duty Cycle {duty_cycle:.2f}%'
+			allsky_shared.log(4, f'INFO: {result}')
+			self._set_pwm_state(heater_pin, duty_cycle)
+		else:
+			result = f'Turning {type} on using pin {heater_pin}'
+			if self._set_gpio_pin_state(1, invert_relay, heater_pin):
+				if not allsky_shared.db_has_key('dewheaterontime'):
+					now = int(time.time())
+					allsky_shared.db_add('dewheaterontime', now)
+				allsky_shared.log(1, f'INFO: {result}')
 			else:
-				pin.value = 1
+				result = f'ERROR: (Heater On) Failed to set Digital IO to output. Check pigpiod is running'
+				allsky_shared.log(0, result)
 
-			if not allsky_shared.db_has_key('dewheaterontime'):
-				now = int(time.time())
-				allsky_shared.db_add('dewheaterontime', now)
-			allsky_shared.log(1, f'INFO: {result}')
-		except Exception as e:    
-			eType, eObject, eTraceback = sys.exc_info()
-			result = f'ERROR: (Heater On) Failed to set Digital IO to output {eTraceback.tb_lineno} - {e}'
-			allsky_shared.log(0, result)
-
-	def _turn_heater_off(self, heater_pin, invert_relay, extra=False):
+	def _turn_heater_off(self, heater_pin, invert_relay, extra=False, use_pwm=False):
 		if extra:
 			type = 'Extra'
 		else:
 			type = 'Heater'
 						
-		result = f"Turning {type} off using pin {heater_pin}"
-		try:    
-			pin = DigitalInOut(heater_pin)
-			pin.direction = Direction.OUTPUT
-			
-			if invert_relay:
-				pin.value = 1
+
+		if use_pwm:
+			allsky_shared.log(4, f'INFO: Turning {type} off using pwm on pin {heater_pin}.')
+			self._set_pwm_state(heater_pin, 0)
+		else:  
+			result = f"Turning {type} off using pin {heater_pin}"
+			if self._set_gpio_pin_state(0, invert_relay, heater_pin):
+				if allsky_shared.db_has_key('dewheaterontime'):
+					allsky_shared.db_delete_key('dewheaterontime')
+				allsky_shared.log(1, f'INFO: {result}')
 			else:
-				pin.value = 0
-				
-			if allsky_shared.db_has_key('dewheaterontime'):
-				allsky_shared.db_delete_key('dewheaterontime')
-			allsky_shared.log(1, f'INFO: {result}')
-		except Exception as e:    
-			eType, eObject, eTraceback = sys.exc_info()
-			result = f'ERROR: (Heater Off) Failed to set Digital IO to output {eTraceback.tb_lineno} - {e}'
-			allsky_shared.log(0, result)
-	    
+				result = f'ERROR: (Heater Off) Failed to set Digital IO to output. Check pigpiod is running'
+				allsky_shared.log(0, result)
+
 	def _get_sensor_reading(self, sensor_type, input_pin, i2c_address, dhtxx_retry_count, dhtxx_delay, sht31_heater, solo_url, params):
 		temperature = None
 		humidity = None
@@ -1176,7 +1220,9 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		sht31_heater = self.get_param('sht31heater', False, bool)
 		solo_url = self.get_param('solourl', '', str)
 		daytime_disable = self.get_param('daydisable', True, bool)
-			
+		use_pwm = self.get_param('usepwm', False, bool)
+		extra_use_pwm = self.get_param('extrausepwm', False, bool)
+
 		tod = self._get_time_of_day(); 
 						
 		temperature = 0
@@ -1194,9 +1240,6 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			should_run, diff = allsky_shared.should_run('allskydew', frequency)    
 			if should_run or self.debug_mode:
 				if heater_pin != 0:
-					heater_pin = allsky_shared.get_gpio_pin(heater_pin)
-					if extra_pin !=0:
-						extra_pin = s.get_gpio_pin(extra_pin)
 					last_run_time = self._get_last_run_time()
 					if last_run_time is not None:
 						now = int(time.time())
@@ -1218,6 +1261,9 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 								rel_humidity = round(rel_humidity, 2)
 							if altitude is not None:
 								altitude = round(altitude, 0)
+        
+							self._debug_output(sensor_type, temperature, humidity, dew_point, heat_index, pressure, rel_humidity, altitude)
+        
 							if temperature is not None:
 								last_on_seconds = 0
 								if allsky_shared.db_has_key('dewheaterontime'):
@@ -1239,18 +1285,24 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 									heater = True
 								else:                           
 									if ((temperature - limit) <= dew_point):
-										self._turn_heater_on(heater_pin, invert_relay)
-										if extra_pin != 0:
-											self._turn_heater_on(extra_pin, invert_extra_pin)
-										heater = True
 										result = f'Temperature within limit temperature {temperature}, limit {limit}, dewPoint {dew_point}'
 										allsky_shared.log(1, f'INFO: {result}')
+										temp_dew_diff = abs(temperature - dew_point)
+										if temp_dew_diff > 10:
+											temp_dew_diff = 10
+
+										duty_cycle = round(temp_dew_diff * 10, 2)
+										self._turn_heater_on(heater_pin, invert_relay, False, use_pwm, duty_cycle)
+										if extra_pin != 0:
+											self._turn_heater_on(extra_pin, invert_extra_pin, True, extra_use_pwm, duty_cycle)
+										heater = True
 									else:
 										result = f'Temperature outside limit temperature {temperature}, limit {limit}, dewPoint {dew_point}'
 										allsky_shared.log(1, f'INFO: {result}')
-										self._turn_heater_off(heater_pin, invert_relay)
+										duty_cycle = 0
+										self._turn_heater_off(heater_pin, invert_relay, False, use_pwm)
 										if extra_pin != 0:
-											self._turn_heater_off(extra_pin, invert_extra_pin, True)
+											self._turn_heater_off(extra_pin, invert_extra_pin, True, use_pwm)
 										heater = False
 									
 								extraData = {}
@@ -1268,10 +1320,11 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 										extraData['AS_DEWCONTROLRELHUMIDITY'] = rel_humidity
 									if altitude is not None:
 										extraData['AS_DEWCONTROLALTITUDE'] = altitude
+								
+								if use_pwm:
+									extraData['AS_DEWCONTROLPWMDUTYCYCLE'] = duty_cycle
 
 								allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extraData, self.meta_data['module'], self.meta_data['extradata'])
-
-								self._debug_output(sensor_type, temperature, humidity, dew_point, heat_index, pressure, rel_humidity, altitude)
 
 							else:
 								result = "Failed to read sensor"
@@ -1333,12 +1386,12 @@ def dewheater(params, event):
     
 def dewheater_cleanup():
 	moduleData = {
-	    "metaData": ALLSKYDEWHEATER.meta_data,
-	    "cleanup": {
-	        "files": {
-	            ALLSKYDEWHEATER.meta_data["extradatafilename"]
-	        },
-	        "env": {}
-	    }
+		"metaData": ALLSKYDEWHEATER.meta_data,
+		"cleanup": {
+			"files": {
+				ALLSKYDEWHEATER.meta_data["extradatafilename"]
+			},
+			"env": {}
+		}
 	}
 	allsky_shared.cleanup_module(moduleData)

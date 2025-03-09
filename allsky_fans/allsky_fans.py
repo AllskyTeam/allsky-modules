@@ -15,8 +15,6 @@ import allsky_shared as allsky_shared
 from allsky_base import ALLSKYMODULEBASE
 import sys
 import pigpio
-import lgpio
-from gpiozero import Device, CPUTemperature
 
 class ALLSKYFANS(ALLSKYMODULEBASE):
     
@@ -102,7 +100,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			"sensor_type" : {
 				"required": "false",
 				"description": "Sensor Type",
-				"help": "The type of sensor that is being used.",
+				"help": "The type of sensor that is being used. 'internal' will read the cpu temperature of the PI. 'Allsky' will allow you to select an environment sensor from the 'Allsky Environment' module",
 				"tab": "Sensor",
 				"type": {
 					"fieldtype": "select",
@@ -149,7 +147,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			"period" : {
 				"required": "true",
 				"description": "Read Every",
-				"help": "Reads data every x seconds.",                
+				"help": "How frequently to read the temperature data, in seconds",                
 				"tab": "Sensor",
 				"type": {
 					"fieldtype": "spinner",
@@ -160,8 +158,8 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			},
 			"fanpin": {
 				"required": "false",
-				"description": "Fans Relay Pin",
-				"help": "The GPIO pin for the fan relay or PWM",
+				"description": "Fans Output Pin",
+				"help": "The GPIO pin for the fan or PWM",
 				"tab": "Sensor",
 				"type": {
 					"fieldtype": "gpio"
@@ -169,8 +167,8 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			},         
 			"invertrelay" : {
 				"required": "false",
-				"description": "Invert Relay",
-				"help": "Invert relay activation logic from pin HIGH to pin LOW",
+				"description": "Invert Output",
+				"help": "Invert the output.",
 				"tab": "Sensor",
 				"type": {
 					"fieldtype": "checkbox"
@@ -264,7 +262,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 	def _get_cpu_temperature(self):
 		temp_c = 0
 		try:
-			temp = CPUTemperature().temperature
+			temp = allsky_shared.get_pi_info(allsky_shared.Pi_INFO_CPU_TEMPERATURE)
 			temp_c = float(temp)
 		except Exception as e:
 			exception_type, exception_object, exception_traceback = sys.exc_info()
@@ -285,31 +283,24 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 
 		return temperature
 
-	def _turn_fan_on(self, fan_pin, invert_relay):
-		CHIP = 0  # Default GPIO chip
-
-		h = lgpio.gpiochip_open(CHIP)
-		lgpio.gpio_claim_output(h, fan_pin)
-
-		if invert_relay:
-			lgpio.gpio_write(h, fan_pin, 0)
+	def _set_gpio_pin_state(self, state):
+		result = True
+		pi = pigpio.pi(show_errors=False)
+		if pi.connected:
+			if self._invert_relay:
+				state = not state
+			pi.set_mode(self._fan_pin, pigpio.OUTPUT)
+			pi.write(self._fan_pin, state)
 		else:
-			lgpio.gpio_write(h, fan_pin, 1)
+			result = False
 
-		lgpio.gpiochip_close(h)
+		return result
 
-	def _turn_fan_off(self, fan_pin, invert_relay):
-		CHIP = 0  # Default GPIO chip
+	def _turn_fan_on(self):
+		return self._set_gpio_pin_state(1)
 
-		h = lgpio.gpiochip_open(CHIP)
-		lgpio.gpio_claim_output(h, fan_pin)
-
-		if invert_relay:
-			lgpio.gpio_write(h, fan_pin, 1)
-		else:    
-			lgpio.gpio_write(h, fan_pin, 0)
-
-		lgpio.gpiochip_close(h)
+	def _turn_fan_off(self):
+		return self._set_gpio_pin_state(0)
 
 	def _display_status(self, value):
 		return 'On' if value else 'Off'
@@ -317,18 +308,22 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 	def _use_bool_fan_control(self):
 		error = False
 
-		pi = pigpio.pi()
+		pi = pigpio.pi(show_errors=False)
 		pi.set_PWM_dutycycle(self._fan_pin, 0)
 		pi.stop()
 
 		if (self._temperature > self._temperature_limit):
-			self._turn_fan_on(self._fan_pin, self._invert_relay)
+			fan_result = self._turn_fan_on()
 			fan_status = True
 			result = f'{self._temperature} is higher then set limit of {self._temperature_limit}, Fans are {self._display_status(fan_status)} via fan pin {self._fan_pin}'
 		else:
-			self._turn_fan_off(self._fan_pin, self._invert_relay)
+			fan_result = self._turn_fan_off()
 			fan_status = False
 			result = f'{self._temperature} is lower then set limit of {self._temperature_limit}, Fans are {self._display_status(fan_status)} via fan pin {self._fan_pin}'
+
+		if not fan_result:
+			result = f'Failed to set the fan status check pigpiod is running'
+			error = True
 
 		return result, error
 
@@ -342,11 +337,8 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 
 		try:
 			if self._fan_pin != 0:
-				Device.ensure_pin_factory()
-				pi_info = Device.pin_factory.board_info
-				model = pi_info.model
+				model = allsky_shared.get_pi_info(allsky_shared.PI_INFO_MODEL)
 				if model in self._pwm_map:
-
 					if self._temperature < pwm_min:
 						pwm_duty_cycle = 0
 					elif self._temperature > pwm_max:
@@ -354,15 +346,17 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					else:
 						pwm_duty_cycle = int(((self._temperature - pwm_min) / (pwm_max - pwm_min)) * 100)
 
-					self.debug_log(f'PWM Duty cycle calculate as {pwm_duty_cycle}')
+					self.debug_log(f'INFO: PWM Duty cycle calculate as {pwm_duty_cycle}')
 
-					pi = pigpio.pi()
-					pi.set_PWM_range(self._fan_pin, 100)
-					pi.set_PWM_frequency(self._fan_pin, 1_000)
-					pi.set_PWM_dutycycle(self._fan_pin, pwm_duty_cycle)
-					pwm_enabled = 1
-
-					result = f'PWM duty cycle set to {pwm_duty_cycle} on pin {self._fan_pin}'
+					pi = pigpio.pi(show_errors=False)
+					if pi.connected:
+						pi.set_PWM_range(self._fan_pin, 100)
+						pi.set_PWM_frequency(self._fan_pin, 1_000)
+						pi.set_PWM_dutycycle(self._fan_pin, pwm_duty_cycle)
+						pwm_enabled = 1
+						result = f'PWM duty cycle set to {pwm_duty_cycle} on pin {self._fan_pin}'
+					else:
+						result = f'Failed to set the fan status check pigpiod is running'
 				else:
 					result = f'Pi Model ({model}) is not supported for PWM'
 					allsky_shared.log(0, f'ERROR: {result}')
