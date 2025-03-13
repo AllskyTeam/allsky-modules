@@ -646,7 +646,7 @@ class ALLSKYMODULEINSTALLER:
 
         if git_branch == 'dev':
             w = Whiptail(title='warning', backtitle='AllSky Module Manager', height=20, width=80)
-            message = "You are using the dev branch of the Allsk extra modules.\nThis branch contains work that may not be complete nor fully tested\n\nUsage of this branch is entirely at your own risk"
+            message = "You are using the dev branch of the Allsky extra modules.\nThis branch contains work that may not be complete nor fully tested\n\nUsage of this branch is entirely at your own risk"
             w.msgbox(message)
 
         while not done:

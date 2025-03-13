@@ -37,7 +37,9 @@ from adafruit_htu21d import HTU21D
 from meteocalc import heat_index
 from meteocalc import dew_point
 import pigpio
-	
+import time
+from datetime import datetime, timedelta
+
 class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 
 	meta_data = {
@@ -164,7 +166,10 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			"units": "metric",
 			"daydisable": "False",
 			"usepwm": "false",
-			"extrausepwm": "false"
+			"extrausepwm": "false",
+			"enabledebug": "False",
+			"debugtemperature": 0,
+			"debugdewpoint": 0
 		},
 		"argumentdetails": {
 			"type" : {
@@ -289,8 +294,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				"type": {
 					"fieldtype": "i2c"
 				}            
-			},
-			
+			},		
 			"sht31heater" : {
 				"required": "false",
 				"description": "Enable Heater",
@@ -307,7 +311,6 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 					"fieldtype": "checkbox"
 				}
 			},
-
 			"solourl": {
 				"required": "false",
 				"description": "URL from solo",
@@ -321,7 +324,6 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 					]
 				}            
 			},
-			
 			"owtext": {
 				"message": "<b style='color: #ff0000'>IMPORTANT</b> Do not use this function and the OpenWeather API module as well. If you are using this function then please remove the OpenWeather Module as both create the same overlay data",
 				"tab": "Sensor",
@@ -424,7 +426,6 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				},                       
 				"help": "The name of the file that will be written to the allsky/tmp/extra directory"         
 			},         
-
 			"heaterpin": {
 				"required": "false",
 				"description": "Heater Pin",
@@ -546,10 +547,61 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				"type": {
 					"fieldtype": "checkbox"
 				}
-			}     
-
-	
-							
+			},
+			"enabledebug" : {
+				"required": "false",
+				"description": "Set Debug Mode",
+				"help": "Enabling this will use the other values on this tab rather than values read from any sensor.",
+				"tab": "Debug",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"debugtemperature": {
+				"required": "false",
+				"description": "Temperature Value",
+				"help": "The Variable to use for the temperature",
+				"tab": "Debug",
+				"filters": {
+					"filter": "enabledebug",
+					"filtertype": "show",
+					"values": [
+						"enabledebug"
+					]
+				},            
+				"type": {
+					"fieldtype": "spinner",
+					"min": -100,
+					"max": 100,
+					"step": 1
+				}
+			},
+			"debugdewpoint": {
+				"required": "false",
+				"description": "Dewpoint value",
+				"help": "The Variable to use for the dew point",
+				"tab": "Debug",
+				"filters": {
+					"filter": "enabledebug",
+					"filtertype": "show",
+					"values": [
+						"enabledebug"
+					]
+				},            
+				"type": {
+					"fieldtype": "spinner",
+					"min": -100,
+					"max": 100,
+					"step": 1
+				}
+			},
+			"dewheatergraph": {
+				"required": "false",
+				"tab": "History",
+				"type": {
+					"fieldtype": "dewheatergraph"
+				}                                
+			}	   
 		},
 		"businfo": [
 			"i2c"
@@ -1200,6 +1252,12 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 
 	def _debug_output(self, sensor_type, temperature, humidity, dew_point, heat_index, pressure, rel_humidity, altitude):
 		allsky_shared.log(1, f'INFO: Sensor {sensor_type} read. Temperature {temperature} Humidity {humidity} Relative Humidity {rel_humidity} Dew Point {dew_point} Heat Index {heat_index} Pressure {pressure} Altitude {altitude}')
+
+	def _pwm_high_time(self, frequency, duty_cycle):
+		period = 1 / frequency
+		high_time = (duty_cycle / 100) * period
+		return high_time
+
 		
 	def run(self):    
 		result = ""
@@ -1222,6 +1280,9 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		daytime_disable = self.get_param('daydisable', True, bool)
 		use_pwm = self.get_param('usepwm', False, bool)
 		extra_use_pwm = self.get_param('extrausepwm', False, bool)
+		debug_mode = self.get_param('enabledebug', False, bool)
+		debug_temperature = self.get_param('debugtemperature', 0, int)
+		debug_dew_point = self.get_param('debugdewpoint', 0, int)
 
 		tod = self._get_time_of_day(); 
 						
@@ -1246,7 +1307,16 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 						lastRunSecs = now - last_run_time
 						if (lastRunSecs >= frequency) or self.debug_mode:
 							allsky_shared.db_update('dewheaterlastrun', now)
-							temperature, humidity, dew_point, heat_index, pressure, rel_humidity, altitude = self._get_sensor_reading(sensor_type, input_pin, i2c_address, dhtxx_retry_count, dhtxx_delay, sht31_heater, solo_url, self.params)
+							if not debug_mode:
+								temperature, humidity, dew_point, heat_index, pressure, rel_humidity, altitude = self._get_sensor_reading(sensor_type, input_pin, i2c_address, dhtxx_retry_count, dhtxx_delay, sht31_heater, solo_url, self.params)
+							else:
+								temperature = debug_temperature
+								dew_point = debug_dew_point
+								humidity = 0
+								heat_index = 0
+								pressure = 0
+								rel_humidity = 0
+								altitude = 0
 							if temperature is not None:
 								temperature = round(temperature, 2)
 							if humidity is not None:
@@ -1272,16 +1342,17 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 								if max_on_time != 0 and last_on_seconds >= max_on_time:
 									result = f'Heater was on longer than maximum allowed time {max_on_time}'
 									allsky_shared.log(1, f'INFO: {result}')
-									self._turn_heater_off(heater_pin, invert_relay)
+									self._turn_heater_off(heater_pin, invert_relay, False, use_pwm)
 									if extra_pin != 0:
-										self._turn_heater_off(extra_pin, invert_extra_pin, True)
+										self._turn_heater_off(extra_pin, invert_extra_pin, False, extra_use_pwm)
 									heater = False
 								elif force != 0 and temperature <= force:
-									result = 'Temperature below forced level {force}'
+									result = f'Temperature below forced level {force}'
 									allsky_shared.log(1, f'INFO: {result}')
-									self._turn_heater_on(heater_pin, invert_relay)
+									duty_cycle = 100         
+									self._turn_heater_on(heater_pin, invert_relay, False, use_pwm, duty_cycle)
 									if extra_pin != 0:
-										self._turn_heater_on(extra_pin, invert_extra_pin, True)
+										self._turn_heater_on(extra_pin, invert_extra_pin, True, extra_use_pwm, duty_cycle)
 									heater = True
 								else:                           
 									if ((temperature - limit) <= dew_point):
@@ -1322,9 +1393,32 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 										extraData['AS_DEWCONTROLALTITUDE'] = altitude
 								
 								if use_pwm:
+									high_time = self._pwm_high_time(1000, duty_cycle)
 									extraData['AS_DEWCONTROLPWMDUTYCYCLE'] = duty_cycle
 
 								allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extraData, self.meta_data['module'], self.meta_data['extradata'])
+
+								history_data = allsky_shared.load_extra_data_file('dewheaterhistory', 'json')
+								current_time = int(time.time())
+
+								heater_state = 0
+								if use_pwm:
+									heater_state = duty_cycle
+								else:
+									if heater:
+										heater_state = 100
+
+								history_data[current_time] = {
+									"heater": heater_state,
+									"temperature": temperature,
+									"dew_point": dew_point,
+									"humidity": humidity
+								}
+
+								cutoff_time = int(time.time()) - 86400
+								history_data = {ts: val for ts, val in history_data.items() if int(ts) > cutoff_time}
+        
+								allsky_shared.save_extra_data('dewheaterhistory', history_data)
 
 							else:
 								result = "Failed to read sensor"
