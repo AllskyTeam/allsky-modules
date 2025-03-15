@@ -10,7 +10,7 @@ from platform import python_version
 from packaging import version
 from urllib.request import urlopen as url
 from git import Repo
-from gpiozero import Device
+from gpiozero import pi_info
 import importlib.util
 
 class ALLSKYMODULEINSTALLER:
@@ -69,7 +69,7 @@ class ALLSKYMODULEINSTALLER:
                 self._moduleDirs.append((dir,"",installed))
                 self._modules.append(dir)
 
-    def _displayInstallDialog(self):        
+    def _displayInstallDialog(self):
         w = Whiptail(title='Select Modules', backtitle='AllSky Module Manager', height=20, width = 40)
         self._checkList = w.checklist('Select the Modules To Install', self._moduleDirs)[0]
         
@@ -119,7 +119,7 @@ class ALLSKYMODULEINSTALLER:
                     print(f'This module requires Python version {moduleData["pythonversion"]} you have {python_version()} installed')
                     result = False
         return result
-           
+
     def _installPackages(self, module, modulePath):
         result = True
         packagesPath = os.path.join(modulePath, 'packages.txt')
@@ -180,7 +180,7 @@ class ALLSKYMODULEINSTALLER:
                     result = False
 
         return result
-         
+
     def _installDependencies(self, module, modulePath):
         result = False
         
@@ -216,7 +216,7 @@ class ALLSKYMODULEINSTALLER:
                 os.system(cmd)
             
         return result
-                                               
+
     def _doInstall(self):
         os.system('clear')
         
@@ -259,7 +259,7 @@ class ALLSKYMODULEINSTALLER:
 
         return moduleData
                                 
-    def _displayModuleInfoDialog(self, moduleData, installedModuleData, modulePath, module):        
+    def _displayModuleInfoDialog(self, moduleData, installedModuleData, modulePath, module):
         data = ''
         newVersion = ''
         if installedModuleData:
@@ -290,7 +290,7 @@ class ALLSKYMODULEINSTALLER:
             data += readmeText
         else:
             data += 'No readme.txt file available'
-                     
+
         data += '\n\nChangelog\n'
         data += f"{'-'*40}\n\n"
         if moduleData['changelog']:
@@ -377,20 +377,20 @@ class ALLSKYMODULEINSTALLER:
         
         return result
 
-    def _check_gpio_status(self):        
+    def _check_gpio_status(self):
         pi_version = self._getPiVersion()
         if pi_version[0] == '5':
             print('INFO: Found the rpi.gpio module so uninstalling it\n\n')
             subprocess.run(['pip3', 'uninstall', '-y', 'rpi.gpio'], check=False)
         else:
             print(f'Pi version is "{pi_version}" so not modifying gpio libraries')
- 
+
     def _check_pip_package_installed(self, package_name):
         return importlib.util.find_spec(package_name) is not None
     
     def _getPiVersion(self):
-        Device.ensure_pin_factory()
-        piVersion = Device.pin_factory.board_info.model
+        info = pi_info()
+        piVersion = info.model
 
         return piVersion
                     
