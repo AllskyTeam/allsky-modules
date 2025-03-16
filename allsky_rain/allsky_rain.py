@@ -12,7 +12,6 @@ None
 import allsky_shared as allsky_shared
 from allsky_base import ALLSKYMODULEBASE
 import sys 
-from digitalio import DigitalInOut, Direction, Pull
 
 class ALLSKYRAIN(ALLSKYMODULEBASE):
 
@@ -98,32 +97,35 @@ class ALLSKYRAIN(ALLSKYMODULEBASE):
 		
 			if input_pin != 0:
 				try:
-					rainpin = allsky_shared.getGPIOPin(input_pin)
-					pin = DigitalInOut(rainpin)
-					pin_state = pin.value
-
-					if not invert_sensor:
-						if pin_state == 1:
-							result_state = 'Raining'
-							rain_flag = True
+					pin_state = allsky_shared.read_gpio_pin(input_pin)
+					if pin_state is not None:
+						if not invert_sensor:
+							if pin_state == 1:
+								result_state = 'Raining'
+								rain_flag = True
+							else:
+								result_state = 'Not Raining'
+								rain_flag = False
 						else:
-							result_state = 'Not Raining'
-							rain_flag = False
+							if pin_state == 1:
+								result_state = 'Not Raining'
+								rain_flag = False
+							else:
+								result_state = 'Raining'
+								rain_flag = True
+
+						extra_data = {}
+						extra_data['AS_RAINSTATE'] = result_state
+						extra_data['AS_ALLSKYRAINFLAG'] = rain_flag
+						allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+
+						result = f'Rain State: Its {result_state}'
+						allsky_shared.log(1, f'INFO: {result}')
 					else:
-						if pin_state == 1:
-							result_state = 'Not Raining'
-							rain_flag = False
-						else:
-							result_state = 'Raining'
-							rain_flag = True
+						result = f'Unable to read Rain sensor - Error reading gpio pin {input_pin}'
+						allsky_shared.log(0, f'ERROR: {result}')
+						allsky_shared.deleteExtraData(self.meta_data['extradatafilename'])
 
-					extra_data = {}
-					extra_data['AS_RAINSTATE'] = result_state
-					extra_data['AS_ALLSKYRAINFLAG'] = rain_flag
-					allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
-
-					result = f'Rain State: Its {result_state}'
-					allsky_shared.log(1, f'INFO: {result}')
 				except Exception as ex:
 					result = f'Unable to read Rain sensor {ex}'
 					allsky_shared.log(0, f'ERROR: {result}')
@@ -137,7 +139,7 @@ class ALLSKYRAIN(ALLSKYMODULEBASE):
 			eType, eObject, eTraceback = sys.exc_info()            
 			result = str(e)
 			allsky_shared.log(0, f'ERROR: Module rain failed on line {eTraceback.tb_lineno} - {e}')
-         			
+
 		return result
         
 def rain(params, event):
@@ -148,12 +150,12 @@ def rain(params, event):
 
 def rain_cleanup():
 	moduleData = {
-	    "metaData": ALLSKYRAIN.meta_data,
-	    "cleanup": {
-	        "files": {
-	            ALLSKYRAIN.meta_data['extradatafilename']
-	        },
-	        "env": {}
-	    }
+		"metaData": ALLSKYRAIN.meta_data,
+		"cleanup": {
+			"files": {
+				ALLSKYRAIN.meta_data['extradatafilename']
+			},
+			"env": {}
+		}
 	}
 	allsky_shared.cleanupModule(moduleData)

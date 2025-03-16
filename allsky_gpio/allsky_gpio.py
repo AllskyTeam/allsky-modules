@@ -10,7 +10,7 @@ from allsky_base import ALLSKYMODULEBASE
 import numpy as np
 import board
 import sys
-from digitalio import DigitalInOut, Direction, Pull
+import pigpio
 
 class ALLSKYGPIO(ALLSKYMODULEBASE):
 
@@ -82,17 +82,17 @@ class ALLSKYGPIO(ALLSKYMODULEBASE):
 			gpio_state = self.get_param('state', False, bool)
 
 			if gpio_pin is not 0:
-				pin = allsky_shared.get_gpio_pin_details(gpio_pin)
-				pin = DigitalInOut(pin)
-				pin.switch_to_output()
-				
-				pin.value = gpio_state
-				extra_data = {}
-				extra_data['AS_GPIO_PIN_STATE'] = gpio_state 						
-				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['extradata'])
+				result = allsky_shared.set_gpio_pin(gpio_pin, gpio_state)
+				if result:
+					extra_data = {}
+					extra_data['AS_GPIO_PIN_STATE'] = gpio_state 						
+					allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['extradata'])
 
-				result = f'INFO: GPIO pin {gpio_pin} set to {gpio_state}'
-				allsky_shared.log(4, f'INFO: {result}')
+					result = f'INFO: GPIO pin {gpio_pin} set to {gpio_state}'
+					allsky_shared.log(4, f'INFO: {result}')
+				else:
+					result = f'Filed to set gpio pin {gpio_pin} to {gpio_state}'
+					allsky_shared.log(4, f'ERROR: {result}')             
 			else:
 				result = f'GPIO pin is invalid'
 				allsky_shared.log(4, f'ERROR: {result}')     
@@ -111,12 +111,12 @@ def gpio(params, event):
 
 def gpio_cleanup():
 	moduleData = {
-	    "metaData": ALLSKYGPIO.meta_data,
-	    "cleanup": {
-	        "files": {
-	            ALLSKYGPIO.meta_data['extradatafilename']
-	        },
-	        "env": {}
-	    }
+		"metaData": ALLSKYGPIO.meta_data,
+		"cleanup": {
+			"files": {
+				ALLSKYGPIO.meta_data['extradatafilename']
+			},
+			"env": {}
+		}
 	}
 	allsky_shared.cleanupModule(moduleData)

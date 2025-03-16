@@ -36,7 +36,6 @@ from adafruit_bme280 import basic as adafruit_bme280
 from adafruit_htu21d import HTU21D
 from meteocalc import heat_index
 from meteocalc import dew_point
-import pigpio
 import time
 from datetime import datetime, timedelta
 
@@ -1135,23 +1134,15 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		return temperature, humidity, pressure, rel_humidity, altitude
 
 	def _set_pwm_state(self, heater_pin, duty_cycle):
-		pi = pigpio.pi(show_errors=False)
-		if pi.connected:
-			pi.set_PWM_range(heater_pin, 100)
-			pi.set_PWM_frequency(heater_pin, 1_000)
-			pi.set_PWM_dutycycle(heater_pin, duty_cycle)
+		result = allsky_shared.set_pwm(heater_pin, duty_cycle)
+
+		return result
 
 	def _set_gpio_pin_state(self, state, invert_relay, heater_pin):
+		if invert_relay:
+			state = not state
 
-		result = True
-		pi = pigpio.pi(show_errors=False)
-		if pi.connected:
-			if invert_relay:
-				state = not state
-			pi.set_mode(heater_pin, pigpio.OUTPUT)
-			pi.write(heater_pin, state)
-		else:
-			result = False
+		result = allsky_shared.set_gpio_pin(heater_pin, state)
 
 		return result
 
@@ -1257,8 +1248,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		period = 1 / frequency
 		high_time = (duty_cycle / 100) * period
 		return high_time
-
-		
+	
 	def run(self):    
 		result = ""
 		sensor_type = self.get_param('type', '', str)

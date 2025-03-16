@@ -414,7 +414,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 		found_aircraft = {}
 		result = ''
 
-		radius = self.__params['distance_limit']
+		radius = self.get_param('distance_limit', 50, int)
 
 		allsky_shared.log(4, 'INFO: Getting data from Airplanes Live Network')  
 		url = f'https://api.airplanes.live/v2/point/{observer_location[0]}/{observer_location[1]}/{radius}'
@@ -473,12 +473,12 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 		found_aircraft = {}
 		result = ''
 
-		lat_min = self.__params['opensky_lat_min']
-		lon_min = self.__params['opensky_lon_min']
-		lat_max = self.__params['opensky_lat_max']
-		lon_max = self.__params['opensky_lon_max']
-		username = self.__params['opensky_username'] if self.__params['opensky_username'] != '' else None
-		password = self.__params['opensky_password'] if self.__params['opensky_password'] != '' else None
+		lat_min = self.get_param('opensky_lat_min', 0, float)  
+		lon_min = self.get_param('opensky_lon_min', 0, float)  
+		lat_max = self.get_param('opensky_lat_max', 0, float)  
+		lon_max = self.get_param('opensky_lon_max', 0, float)  
+		username = self.get_param('opensky_username', None, str, True)
+		password = self.get_param('opensky_password', None, str, True)
 
 		url = f'https://opensky-network.org/api/states/all?lamin={lat_min}&lamax={lat_max}&lomin={lon_min}&lomax={lon_max}'
 		allsky_shared.log(4, 'INFO: Getting data from OpenSky Network')
@@ -526,7 +526,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 
 		found_aircraft = {}
 		result = ''
-		radius = self.__params['distance_limit']
+		radius = self.get_param('distance_limit', 50, int)
 
 		allsky_shared.log(4, 'INFO: Getting data from Adsb.fi Network')  
 		url = f'https://opendata.adsb.fi/api/v2/lat/{observer_location[0]}/lon/{observer_location[1]}/dist/{radius}'
