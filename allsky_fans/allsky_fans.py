@@ -32,8 +32,25 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		],
 		"enabled": "false",    
 		"experimental": "false",
-		"extradatafilename": "allsky_fans.json", 
+		"extradatafilename": "allsky_fans.json",
+		"graph": { 
+			"x": "timestamp",
+			"y": {
+				"left": [
+					"AS_FANS_TEMPERATURE1",
+					"FANS_TEMPERATURE2"
+				],
+				"right": [
+					"AS_FANS_PWM_DUTY_CYCLE1",
+					"AS_FANS_PWM_DUTY_CYCLE2"
+				]   
+			}
+		},
 		"extradata": {
+			"database": {
+				"enabled": "True",
+				"table": "allsky_fans"
+			},
 			"values": {
 				"AS_FANS_ENABLE1": {
 					"name": "${FANS_ENABLE1}",
@@ -438,8 +455,6 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					]
 				}         
 			}
-   
-   
 		},
 		"businfo": [
 			"i2c"
@@ -649,9 +664,9 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 									if use_pwm:
 										extra_data[f'AS_FANS_PWM_ENABLED{fan_number}'] = True if pwm_enabled == 1 else False
 										extra_data[f'AS_FANS_PWM_DUTY_CYCLE{fan_number}'] = pwm_duty_cycle
-			
-									allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
-																				
+									else:
+										extra_data[f'AS_FANS_PWM_DUTY_CYCLE{fan_number}'] = 100
+
 								allsky_shared.setLastRun(run_code)
 							else:
 								result = f'Failed to get temperature for fan {fan_number}'
@@ -671,6 +686,8 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			else:
 				allsky_shared.log(4,f'INFO: FAN {fan_number} skipped as its disabled')
 
+		if extra_data:
+			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 
 		return result
 

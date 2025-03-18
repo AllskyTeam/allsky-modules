@@ -47,6 +47,10 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"count": 4,
 				"firstblank": "true"
 			},
+			"database": {
+				"enabled": "True",
+				"table": "allsky_temp"
+			},   
 			"values": {
 				"AS_GPIOSTATE${COUNT}": {
 					"name": "${GPIOSTATE${COUNT}}",
@@ -2122,8 +2126,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 							extra_data["AS_RELHUMIDITY" + sensor_number] = rel_humidity
 						if altitude is not None:
 							extra_data["AS_ALTITUDE" + sensor_number] = altitude
-
-			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+			if extra_data:
+				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 
 		else:
 			result = 'Will run in {:.2f} seconds'.format(self._run_interval - diff)

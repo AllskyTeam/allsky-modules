@@ -64,6 +64,10 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		},   
 		"extradatafilename": "allsky_dew.json",   
 		"extradata": {
+			"database": {
+				"enabled": "True",
+				"table": "allsky_dewheater"
+			},
 			"values": {
 				"AS_DEWCONTROLSENSOR": {
 					"name": "${DEWCONTROLSENSOR}",
