@@ -417,10 +417,6 @@ class ALLSKYMODULEINSTALLER:
 
         return result
 
-    def _install_allsky_base(self):
-        source = os.path.join(self.base_path, 'allsky_base.py')
-        shutil.copy(source, self.dest_path)
-
     def _install_module(self, module):
         result = True
         print(f'INFO: Installing {module} module')
@@ -485,7 +481,6 @@ class ALLSKYMODULEINSTALLER:
                 if (result := self._check_python_version(module)):
                     if (result := self._install_dependencies(module)):
                         if (result := self._install_module(module)):
-                            self._install_allsky_base()
                             self._run_post_installaton(module)
                             print(f'SUCCESS: Module "{module}" installed\n\n')
                         else:
