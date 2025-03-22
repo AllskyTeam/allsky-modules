@@ -33,13 +33,58 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 		"experimental": "true",
 		"testable": "true",  
 		"centersettings": "false",
-		"extradatafilename": "allsky_adsb.json", 
+		"extradatafilename": "allsky_adsb.json",
+        "graph": {
+			"icon": "fa-solid fa-plane",
+			"title": "ADSB Aircraft",
+            "config": {
+                "chart": {
+                    "type": "spline",
+                    "zooming": {
+                        "type": "x"
+                    }
+                },
+                "title": {
+                    "text": "Aircraft"
+                },
+                "xAxis": {
+                    "type": "datetime",
+                    "dateTimeLabelFormats": {
+                        "day": "%Y-%m-%d",
+                        "hour": "%H:%M"
+                    }
+                },
+                "yAxis": [
+                    { 
+                        "title": {
+                            "text": "Total Aircraft"
+                        } 
+                    }
+                ]
+            },
+            "series": {
+                "heater": {
+					"name": "Total",
+                    "yAxis": "0",
+                    "variable": "AS_TOTAL_AIRCRAFT"                 
+                }
+			}
+        },  
 		"extradata": {
+			"database": {
+				"enabled": "True",
+				"table": "allsky_adsb"
+			},      
 			"info": {
 				"count": 20,
 				"firstblank": "false"
 			},
 			"values": {
+				"AS_TOTAL_AIRCRAFT": {
+					"group": "ADSB Data",
+					"type": "number",                
+					"description": "Total Aircraft"
+				},
 				"AS_AZIMUTH_AIRCRAFT${COUNT}": {
 					"group": "ADSB Data",
 					"type": "azimuth",                
@@ -335,7 +380,14 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 					"max": 20,
 					"step": 1
 				}
-			}                    
+			},
+			"graph": {
+				"required": "false",
+				"tab": "History",
+				"type": {
+					"fieldtype": "graph"
+				}
+			}                      
 		},
 		"businfo": [
 		],
@@ -832,6 +884,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 								else:
 									self.__add_warning('excluded', aircraft["flight"])
 							result = f'Wrote {counter} aircraft to extra data file allskyadsb.json'
+							extra_data['AS_TOTAL_AIRCRAFT'] = counter-1
 							allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 							allsky_shared.setLastRun(module)
 							allsky_shared.log(4,f'INFO: {result}')

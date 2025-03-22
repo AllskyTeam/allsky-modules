@@ -62,7 +62,65 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			"deprecated": "false",
 			"partial": "true"
 		},   
-		"extradatafilename": "allsky_dew.json",   
+		"extradatafilename": "allsky_dew.json",
+        "graph": {
+			"icon": "fa-solid fa-temperature-arrow-up",
+			"title": "Dew Heater",
+            "config": {
+                "chart": {
+                    "type": "spline",
+                    "zooming": {
+                        "type": "x"
+                    }
+                },
+                "title": {
+                    "text": "Temperature, Dew Point, Humidity, Duty Cycle"
+                },
+                "xAxis": {
+                    "type": "datetime",
+                    "dateTimeLabelFormats": {
+                        "day": "%Y-%m-%d",
+                        "hour": "%H:%M"
+                    }
+                },
+                "yAxis": [
+                    { 
+                        "title": {
+                            "text": "Temperature & Dew Point (°C)"
+                        } 
+                    },
+                    {
+                        "title": { 
+                            "text": "Humidity (%) & Duty Cycle (%)"
+                        }, 
+                        "opposite": "true"
+                    }
+                ]
+            },
+            "series": {
+                "heater": {
+					"name": "Heater",
+                    "yAxis": "0",
+                    "variable": "AS_DEWCONTROLPWMDUTYCYCLE"                 
+                },
+                "temperature": {
+					"name": "Temperature",
+                    "yAxis": "1",
+                    "variable": "AS_DEWCONTROLAMBIENT"
+                },
+                "dewpoint": {
+					"name": "Dew Point",                    
+                    "yAxis": "0",
+                    "variable": "AS_DEWCONTROLDEW"
+                },
+                "humidity": {
+					"name": "Humidity",                    
+                    "yAxis": "1",
+                    "variable": "AS_DEWCONTROLHUMIDITY"
+                }                
+            }
+        },
+
 		"extradata": {
 			"database": {
 				"enabled": "True",
@@ -598,12 +656,12 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 					"step": 1
 				}
 			},
-			"dewheatergraph": {
+			"graph": {
 				"required": "false",
 				"tab": "History",
 				"type": {
-					"fieldtype": "dewheatergraph"
-				}                                
+					"fieldtype": "graph"
+				}
 			}	   
 		},
 		"businfo": [
@@ -1373,7 +1431,12 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 								extraData = {}
 								if sensor_type == 'Allsky':
 									extraData['AS_DEWCONTROLHEATER'] = heater
+									extraData['AS_DEWCONTROLAMBIENT'] = temperature
+									extraData['AS_DEWCONTROLDEW'] = dew_point
+									extraData['AS_DEWCONTROLHUMIDITY'] = humidity
+									extraData['AS_DEWCONTROLPWMDUTYCYCLE'] = 100
 								else:
+									extraData['AS_DEWCONTROLPWMDUTYCYCLE'] = 100            
 									extraData['AS_DEWCONTROLSENSOR'] = sensor_type
 									extraData['AS_DEWCONTROLAMBIENT'] = temperature
 									extraData['AS_DEWCONTROLDEW'] = dew_point
@@ -1462,7 +1525,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 				
 			result = 'Dew control disabled during the day'
-			s.log(1, f"INFO: {result}")
+			allsky_shared.log(1, f"INFO: {result}")
 			
 		return result
 

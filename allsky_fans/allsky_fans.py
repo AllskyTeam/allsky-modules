@@ -33,19 +33,47 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		"enabled": "false",    
 		"experimental": "false",
 		"extradatafilename": "allsky_fans.json",
-		"graph": { 
-			"x": "timestamp",
-			"y": {
-				"left": [
-					"AS_FANS_TEMPERATURE1",
-					"FANS_TEMPERATURE2"
-				],
-				"right": [
-					"AS_FANS_PWM_DUTY_CYCLE1",
-					"AS_FANS_PWM_DUTY_CYCLE2"
-				]   
-			}
-		},
+        "graph": {
+            "icon": "fas fa-fan",
+            "title": "Fans",
+            "config": {
+                "chart": {
+                    "type": "spline",
+                    "zooming": {
+                        "type": "x"
+                    }
+                },
+                "title": {
+                    "text": "Fans"
+                },
+                "xAxis": {
+                    "type": "datetime",
+                    "dateTimeLabelFormats": {
+                        "day": "%Y-%m-%d",
+                        "hour": "%H:%M"
+                    }
+                },
+                "yAxis": [
+                    { 
+                        "title": {
+                            "text": "Fan Speed"
+                        } 
+                    }
+                ]
+            },
+            "series": {
+                "fan1speed": {
+					"name": "Fan 1",
+                    "yAxis": "0",
+                    "variable": "AS_FANS_PWM_DUTY_CYCLE1"                 
+                },
+                "fan2speed": {
+					"name": "Fan 2",
+                    "yAxis": "0",
+                    "variable": "AS_FANS_PWM_DUTY_CYCLE2"
+                }               
+            }
+        },
 		"extradata": {
 			"database": {
 				"enabled": "True",
@@ -454,7 +482,14 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 						"usepwm2"
 					]
 				}         
-			}
+			},
+			"graph": {
+				"required": "false",
+				"tab": "History",
+				"type": {
+					"fieldtype": "graph"
+				}
+			}	   
 		},
 		"businfo": [
 			"i2c"
