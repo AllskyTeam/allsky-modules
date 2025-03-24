@@ -63,63 +63,66 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			"partial": "true"
 		},   
 		"extradatafilename": "allsky_dew.json",
-        "graph": {
-			"icon": "fa-solid fa-temperature-arrow-up",
-			"title": "Dew Heater",
-            "config": {
-                "chart": {
-                    "type": "spline",
-                    "zooming": {
-                        "type": "x"
-                    }
-                },
-                "title": {
-                    "text": "Temperature, Dew Point, Humidity, Duty Cycle"
-                },
-                "xAxis": {
-                    "type": "datetime",
-                    "dateTimeLabelFormats": {
-                        "day": "%Y-%m-%d",
-                        "hour": "%H:%M"
-                    }
-                },
-                "yAxis": [
-                    { 
-                        "title": {
-                            "text": "Temperature & Dew Point (°C)"
-                        } 
-                    },
-                    {
-                        "title": { 
-                            "text": "Humidity (%) & Duty Cycle (%)"
-                        }, 
-                        "opposite": "true"
-                    }
-                ]
-            },
-            "series": {
-                "heater": {
-					"name": "Heater",
-                    "yAxis": "0",
-                    "variable": "AS_DEWCONTROLPWMDUTYCYCLE"                 
-                },
-                "temperature": {
-					"name": "Temperature",
-                    "yAxis": "1",
-                    "variable": "AS_DEWCONTROLAMBIENT"
-                },
-                "dewpoint": {
-					"name": "Dew Point",                    
-                    "yAxis": "0",
-                    "variable": "AS_DEWCONTROLDEW"
-                },
-                "humidity": {
-					"name": "Humidity",                    
-                    "yAxis": "1",
-                    "variable": "AS_DEWCONTROLHUMIDITY"
-                }                
-            }
-        },
+        "graphs": {
+            "chart1": {
+				"icon": "fa-solid fa-temperature-arrow-up",
+				"title": "Dew Heater",
+				"main": "true",    
+				"config": {
+					"chart": {
+						"type": "spline",
+						"zooming": {
+							"type": "x"
+						}
+					},
+					"title": {
+						"text": "Temperature, Dew Point, Humidity, Duty Cycle"
+					},
+					"xAxis": {
+						"type": "datetime",
+						"dateTimeLabelFormats": {
+							"day": "%Y-%m-%d",
+							"hour": "%H:%M"
+						}
+					},
+					"yAxis": [
+						{ 
+							"title": {
+								"text": "Temperature & Dew Point (°C)"
+							} 
+						},
+						{
+							"title": { 
+								"text": "Humidity (%) & Duty Cycle (%)"
+							}, 
+							"opposite": "true"
+						}
+					]
+				},
+				"series": {
+					"heater": {
+						"name": "Heater",
+						"yAxis": "0",
+						"variable": "AS_DEWCONTROLPWMDUTYCYCLE"                 
+					},
+					"temperature": {
+						"name": "Temperature",
+						"yAxis": "1",
+						"variable": "AS_DEWCONTROLAMBIENT"
+					},
+					"dewpoint": {
+						"name": "Dew Point",                    
+						"yAxis": "0",
+						"variable": "AS_DEWCONTROLDEW"
+					},
+					"humidity": {
+						"name": "Humidity",                    
+						"yAxis": "1",
+						"variable": "AS_DEWCONTROLHUMIDITY"
+					}                
+				}
+			}
+		},
 
 		"extradata": {
 			"database": {

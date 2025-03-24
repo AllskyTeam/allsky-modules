@@ -34,40 +34,43 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 		"testable": "true",  
 		"centersettings": "false",
 		"extradatafilename": "allsky_adsb.json",
-        "graph": {
-			"icon": "fa-solid fa-plane",
-			"title": "ADSB Aircraft",
-            "config": {
-                "chart": {
-                    "type": "spline",
-                    "zooming": {
-                        "type": "x"
-                    }
-                },
-                "title": {
-                    "text": "Aircraft"
-                },
-                "xAxis": {
-                    "type": "datetime",
-                    "dateTimeLabelFormats": {
-                        "day": "%Y-%m-%d",
-                        "hour": "%H:%M"
-                    }
-                },
-                "yAxis": [
-                    { 
-                        "title": {
-                            "text": "Total Aircraft"
-                        } 
-                    }
-                ]
-            },
-            "series": {
-                "heater": {
-					"name": "Total",
-                    "yAxis": "0",
-                    "variable": "AS_TOTAL_AIRCRAFT"                 
-                }
+        "graphs": {
+            "chart1": {
+				"icon": "fa-solid fa-plane",
+				"title": "ADSB Aircraft",
+				"main": "true",    
+				"config": {
+					"chart": {
+						"type": "spline",
+						"zooming": {
+							"type": "x"
+						}
+					},
+					"title": {
+						"text": "Aircraft"
+					},
+					"xAxis": {
+						"type": "datetime",
+						"dateTimeLabelFormats": {
+							"day": "%Y-%m-%d",
+							"hour": "%H:%M"
+						}
+					},
+					"yAxis": [
+						{ 
+							"title": {
+								"text": "Total Aircraft"
+							} 
+						}
+					]
+				},
+				"series": {
+					"heater": {
+						"name": "Total",
+						"yAxis": "0",
+						"variable": "AS_TOTAL_AIRCRAFT"                 
+					}
+				}
 			}
         },  
 		"extradata": {

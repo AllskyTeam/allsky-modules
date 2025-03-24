@@ -33,47 +33,134 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		"enabled": "false",    
 		"experimental": "false",
 		"extradatafilename": "allsky_fans.json",
-        "graph": {
-            "icon": "fas fa-fan",
-            "title": "Fans",
-            "config": {
-                "chart": {
-                    "type": "spline",
-                    "zooming": {
-                        "type": "x"
-                    }
-                },
-                "title": {
-                    "text": "Fans"
-                },
-                "xAxis": {
-                    "type": "datetime",
-                    "dateTimeLabelFormats": {
-                        "day": "%Y-%m-%d",
-                        "hour": "%H:%M"
-                    }
-                },
-                "yAxis": [
-                    { 
-                        "title": {
-                            "text": "Fan Speed"
-                        } 
-                    }
-                ]
+        "graphs": {
+            "guage1": {
+				"icon": "fa-solid fa-gauge",
+				"title": "Fan 1",
+				"config": {
+					"chart": {
+						"type": "gauge",
+						"plotBorderWidth": 0,
+						"height": "50%",
+						"plotBackgroundColor": "",
+						"plotBackgroundImage": ""
+					},
+					"title": {
+						"text": "Fan 1 Speed"
+					},
+					"pane": {
+						"startAngle": -90,
+						"endAngle": 89.9,
+						"center": ["50%", "75%"],
+						"size": "110%",
+						"background": ""
+					},
+					"yAxis": {
+						"min": 0,
+						"max": 100,
+						"tickPixelInterval": 72,
+						"tickPosition": "inside",
+						"tickColor": "#FFFFFF",
+						"tickLength": 20,
+						"tickWidth": 2,
+						"labels": {
+							"distance": 20,
+							"style": {
+								"fontSize": "14px"
+							}
+						},
+						"lineWidth": 0,
+						"plotBands": [{
+							"from": 0,
+							"to": 50,
+							"color": "#55BF3B",
+							"thickness": 20,
+							"borderRadius": "50%"
+						}, {
+							"from": 80,
+							"to": 100,
+							"color": "#DF5353",
+							"thickness": 20,
+							"borderRadius": "50%"
+						}, {
+							"from": 50,
+							"to": 80,
+							"color": "#DDDF0D",
+							"thickness": 20
+						}]
+					},
+					"series": [{
+						"name": "Speed",
+						"data": [80],
+						"tooltip": {
+							"valueSuffix": " km/h"
+						},
+						"dataLabels": {
+							"format": "{y} %",
+							"borderWidth": 0,
+							"color": "#333333",
+							"style": {
+								"fontSize": "16px"
+							}
+						},
+						"dial": {
+							"radius": "80%",
+							"backgroundColor": "gray",
+							"baseWidth": 12,
+							"baseLength": "0%",
+							"rearLength": "0%"
+						},
+						"pivot": {
+							"backgroundColor": "gray",
+							"radius": 6
+						}
+
+					}]        
+				}            
             },
-            "series": {
-                "fan1speed": {
-					"name": "Fan 1",
-                    "yAxis": "0",
-                    "variable": "AS_FANS_PWM_DUTY_CYCLE1"                 
-                },
-                "fan2speed": {
-					"name": "Fan 2",
-                    "yAxis": "0",
-                    "variable": "AS_FANS_PWM_DUTY_CYCLE2"
-                }               
-            }
-        },
+            "chart1": {
+				"icon": "fas fa-fan",
+				"title": "Fans",
+				"main": "true",    
+				"config": {
+					"chart": {
+						"type": "spline",
+						"zooming": {
+							"type": "x"
+						}
+					},
+					"title": {
+						"text": "Fans"
+					},
+					"xAxis": {
+						"type": "datetime",
+						"dateTimeLabelFormats": {
+							"day": "%Y-%m-%d",
+							"hour": "%H:%M"
+						}
+					},
+					"yAxis": [
+						{ 
+							"title": {
+								"text": "Fan Speed"
+							} 
+						}
+					]
+				},
+				"series": {
+					"fan1speed": {
+						"name": "Fan 1",
+						"yAxis": "0",
+						"variable": "AS_FANS_PWM_DUTY_CYCLE1"                 
+					},
+					"fan2speed": {
+						"name": "Fan 2",
+						"yAxis": "0",
+						"variable": "AS_FANS_PWM_DUTY_CYCLE2"
+					}               
+				}
+			}
+		},
 		"extradata": {
 			"database": {
 				"enabled": "True",
