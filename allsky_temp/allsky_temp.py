@@ -20,6 +20,7 @@ import adafruit_sht31d
 import adafruit_sht4x
 import adafruit_dht
 import adafruit_ahtx0
+import adafruit_scd30
 from adafruit_bme280 import basic as adafruit_bme280
 from adafruit_htu21d import HTU21D
 from meteocalc import dew_point
@@ -42,6 +43,86 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		"centersettings": "false",
 		"testable": "true",
 		"extradatafilename": "allsky_temp.json",
+		"graphs": {
+			"chart1": {
+				"icon": "fas fa-temperature-half",
+				"title": "Environment",
+				"main": "true",    
+				"config": {
+					"chart": {
+						"type": "spline",
+						"zooming": {
+							"type": "x"
+						}
+					},
+					"title": {
+						"text": "Environment"
+					},
+					"xAxis": {
+						"type": "datetime",
+						"dateTimeLabelFormats": {
+							"day": "%Y-%m-%d",
+							"hour": "%H:%M"
+						}
+					},
+					"yAxis": [
+						{ 
+							"title": {
+								"text": "Temperature"
+							} 
+						},
+						{ 
+							"title": {
+								"text": "Humidity"
+							},
+							"opposite": "true"       
+						}      
+					]
+				},
+				"series": {
+					"coretemp": {
+						"name": "Core Temp",
+						"yAxis": "0",
+						"variable": "AS_TEMP"                 
+					},
+					"corehumidity": {
+						"name": "Core Humdity",
+						"yAxis": "1",
+						"variable": "AS_HUMIDITY"
+					},
+					"temp1": {
+						"name": "Temp 1",
+						"yAxis": "0",
+						"variable": "AS_TEMP1"
+					},
+					"humidity1": {
+						"name": "Humdity 1",
+						"yAxis": "1",
+						"variable": "AS_HUMIDITY1"
+					},
+					"temp2": {
+						"name": "Temp 2",
+						"yAxis": "0",
+						"variable": "AS_TEMP2"
+					},
+					"humidity2": {
+						"name": "Humdity 2",
+						"yAxis": "1",
+						"variable": "AS_HUMIDITY2"
+					},
+					"temp3": {
+						"name": "Temp 3",
+						"yAxis": "0",
+						"variable": "AS_TEMP3"
+					},
+					"humidity3": {
+						"name": "Humdity 3",
+						"yAxis": "1",
+						"variable": "AS_HUMIDITY4"
+					} 
+				}
+			}
+		},
 		"extradata": {
 			"info": {
 				"count": 4,
@@ -51,7 +132,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"enabled": "True",
 				"table": "allsky_temp"
 			},   
-			"values": {
+			"values": {       
 				"AS_GPIOSTATE${COUNT}": {
 					"name": "${GPIOSTATE${COUNT}}",
 					"format": "",
@@ -123,7 +204,15 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					"group": "Environment",
 					"description": "Altitude from ${AS_TEMPSENSORNAME${COUNT}}",
 					"type": "float"
-				}
+				},
+				"AS_CO2${COUNT}": {
+					"name": "${CO2${COUNT}}",
+					"format": "",
+					"sample": "",                 
+					"group": "Environment",
+					"description": "Co2 from ${AS_TEMPSENSORNAME${COUNT}}",
+					"type": "number"
+				}    
 			}                         
 		},
 		"arguments":{
@@ -254,7 +343,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Core",
 				"type": {
 					"fieldtype": "select",
-					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,OpenWeather",
 					"default": "None"
 				}
 			},
@@ -299,7 +388,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"SHT4x",              
 						"BME280-I2C",
 						"HTU21",
-						"AHTx0"
+						"AHTx0",
+						"SCD30"
 					]
 				}            
 			},
@@ -502,7 +592,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Sensor 1",
 				"type": {
 					"fieldtype": "select",
-					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,OpenWeather",
 					"default": "None"
 				}
 			},
@@ -523,6 +613,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"HTU21",
 						"AHTx0",
 						"DS18B20",
+						"SCD30",
 						"OpenWeather"
 					]
 				}            
@@ -561,7 +652,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"SHT4x",
 						"BME280-I2C",
 						"HTU21",
-						"AHTx0"
+						"AHTx0",
+						"SCD30"
 					]
 				}            
 			},
@@ -768,7 +860,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"HTU21",
 						"AHTx0",
 						"DS18B20",
-						"OpenWeather"
+						"OpenWeather",
+						"SCD30"
 					]
 				}             
 			},        
@@ -793,7 +886,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"HTU21",
 						"AHTx0",
 						"DS18B20",
-						"OpenWeather"
+						"OpenWeather",
+						"SCD30"
 					]
 				}                      
 			},
@@ -815,7 +909,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"HTU21",
 						"AHTx0",
 						"DS18B20",
-						"OpenWeather"
+						"OpenWeather",
+						"SCD30"
 					]
 				}                      
 			},
@@ -837,7 +932,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"HTU21",
 						"AHTx0",
 						"DS18B20",
-						"OpenWeather"
+						"OpenWeather",
+						"SCD30"
 					]
 				}                    
 			},                    
@@ -848,7 +944,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Sensor 2",
 				"type": {
 					"fieldtype": "select",
-					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,OpenWeather",
 					"default": "None"
 				}
 			},
@@ -869,6 +965,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"HTU21",
 						"AHTx0",
 						"DS18B20",
+						"SCD30",
 						"OpenWeather"
 					]
 				}            
@@ -907,7 +1004,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"SHT4x",
 						"BME280-I2C",
 						"HTU21",
-						"AHTx0"
+						"AHTx0",
+						"SCD30"
 					]
 				}            
 			},
@@ -1114,7 +1212,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"HTU21",
 						"AHTx0",
 						"DS18B20",
-						"OpenWeather"
+						"OpenWeather",
+						"SCD30"
 					]
 				}            
 			},        
@@ -1139,7 +1238,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"HTU21",
 						"AHTx0",
 						"DS18B20",
-						"OpenWeather"
+						"OpenWeather",
+						"SCD30"
 					]
 				}                     
 			},
@@ -1161,7 +1261,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"HTU21",
 						"AHTx0",
 						"DS18B20",
-						"OpenWeather"
+						"OpenWeather",
+						"SCD30"
 					]
 				}                     
 			},
@@ -1183,7 +1284,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"HTU21",
 						"AHTx0",
 						"DS18B20",
-						"OpenWeather"
+						"OpenWeather",
+						"SCD30"
 					]
 				}                    
 			}, 
@@ -1194,7 +1296,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Sensor 3",
 				"type": {
 					"fieldtype": "select",
-					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,OpenWeather",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,OpenWeather",
 					"default": "None"
 				}
 			},
@@ -1215,7 +1317,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"HTU21",
 						"AHTx0",
 						"DS18B20",
-						"OpenWeather"
+						"OpenWeather",
+						"SCD30"
 					]
 				}            
 			},        
@@ -1253,7 +1356,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"SHT4x",
 						"BME280-I2C",
 						"HTU21",
-						"AHTx0"
+						"AHTx0",
+						"SCD30"
 					]
 				}            
 			},
@@ -1460,7 +1564,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"HTU21",
 						"AHTx0",
 						"DS18B20",
-						"OpenWeather"
+						"OpenWeather",
+						"SCD30"
 					]
 				}            
 			},        
@@ -1485,7 +1590,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"HTU21",
 						"AHTx0",
 						"DS18B20",
-						"OpenWeather"
+						"OpenWeather",
+						"SCD30"
 					]
 				}                    
 			},
@@ -1507,7 +1613,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"HTU21",
 						"AHTx0",
 						"DS18B20",
-						"OpenWeather"
+						"OpenWeather",
+						"SCD30"
 					]
 				}                     
 			},
@@ -1529,11 +1636,18 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"HTU21",
 						"AHTx0",
 						"DS18B20",
-						"OpenWeather"
+						"OpenWeather",
+						"SCD30"
 					]
 				}                      
-			}                                      
-		
+			},                                   
+			"graph": {
+				"required": "false",
+				"tab": "History",
+				"type": {
+					"fieldtype": "graph"
+				}
+			}			
 		},
 		"businfo": [
 			"i2c"
@@ -1970,7 +2084,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			sht41_mode = int(sht41_mode_code, 16)
 		except Exception as e:
 			pass
-   
+
 		if i2c_address != "":
 			try:
 				i2c_address_int = int(i2c_address, 16)
@@ -1994,6 +2108,39 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 		return temperature, humidity
 
+	def _read_scd30(self, sensor_number):
+		temperature = None
+		humidity = None
+		co2 = None
+
+		i2c_address = self.get_param('i2caddress' + sensor_number, '', str)
+    
+		if i2c_address != "":
+			try:
+				i2c_address_int = int(i2c_address, 16)
+			except Exception as e:
+				result = f'Address {i2c_address} is not a valid i2c address'
+				allsky_shared.log(0, f'ERROR: {result}')
+					
+		try:
+			i2c = board.I2C()
+			if i2c_address != '':
+				sensor = adafruit_scd30.SCD30(i2c, 0, i2c_address_int)
+			else:
+				sensor = adafruit_scd30.SCD30(i2c)
+
+			if sensor.data_available:
+				co2 = sensor.CO2
+				temperature = sensor.temperature
+				humidity = sensor.relative_humidity
+
+		except Exception as e:
+			eType, eObject, eTraceback = sys.exc_info()
+			allsky_shared.log(4, f'ERROR: Module _read_scd30 failed on line {eTraceback.tb_lineno} - {e}')
+
+		return temperature, humidity, co2
+
+
 	def _get_sensor_reading(self, sensor_type, sensor_number):
 		temperature = None
 		humidity = None
@@ -2001,6 +2148,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		pressure = None
 		rel_humidity = None
 		altitude = None
+		co2 = None
 
 		if sensor_type == 'SHT31':
 			temperature, humidity = self._read_sht31(sensor_number)
@@ -2016,6 +2164,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			temperature, humidity = self._read_ahtx0(sensor_number)
 		elif sensor_type == 'DS18B20':
 			temperature, humidity = self._read_ds18B20(sensor_number)
+		elif sensor_type == 'SCD30':
+			temperature, humidity, co2 = self._read_scd30(sensor_number)
 		elif sensor_type == 'OpenWeather':
 			temperature, humidity, pressure, the_dew_point = self._read_open_weather(sensor_number)        
 		else:
@@ -2038,10 +2188,10 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					temperature = (temperature * (9/5)) + 32
 					allsky_shared.log(4, 'INFO: Converted temperature ONLY to F')
 					
-		return temperature, humidity, the_dew_point, pressure, rel_humidity, altitude
+		return temperature, humidity, the_dew_point, pressure, rel_humidity, altitude, co2
 
-	def _debug_output(self, sensor_type, temperature, humidity, the_dew_point, pressure, rel_humidity, altitude):
-		allsky_shared.log(4,f'INFO: Sensor {sensor_type} read. Temperature {temperature} Humidity {humidity} Relative Humidity {rel_humidity} Dew Point {the_dew_point} Pressure {pressure} Altitude {altitude}')
+	def _debug_output(self, sensor_type, temperature, humidity, the_dew_point, pressure, rel_humidity, altitude, co2):
+		allsky_shared.log(4,f'INFO: Sensor {sensor_type} read. Temperature {temperature} Humidity {humidity} Relative Humidity {rel_humidity} Dew Point {the_dew_point} Pressure {pressure} Altitude {altitude} Co2 {co2}')
 
 	def run(self):
 		result = ''
@@ -2074,8 +2224,9 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					temperature = 0
 					humidity = 0
 					the_dew_point = 0
+					co2 = 0
 
-					temperature, humidity, the_dew_point, pressure, rel_humidity, altitude = self._get_sensor_reading(sensor_type, sensor_number)
+					temperature, humidity, the_dew_point, pressure, rel_humidity, altitude, co2 = self._get_sensor_reading(sensor_type, sensor_number)
 					if temperature is not None:
 						temperature = round(temperature, 2)
 					if humidity is not None:
@@ -2088,7 +2239,9 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						rel_humidity = round(rel_humidity, 2)
 					if altitude is not None:
 						altitude = round(altitude, 0)
-					self._debug_output(sensor_type, temperature, humidity, the_dew_point, pressure, rel_humidity, altitude)
+					if co2 is not None:
+						co2 = round(co2, 0)      
+					self._debug_output(sensor_type, temperature, humidity, the_dew_point, pressure, rel_humidity, altitude, co2)
 
 					if sensor_number != '':
 						gpio_value = False
@@ -2117,15 +2270,17 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 							extra_data['AS_GPIOSTATE' + sensor_number] = gpio_value
 						extra_data['AS_TEMPSENSOR' + sensor_number] = str(sensor_type)
 						extra_data['AS_TEMPSENSORNAME' + sensor_number] = name
-						extra_data['AS_TEMP' + sensor_number] = str(temperature)
-						extra_data['AS_DEW' + sensor_number] = str(the_dew_point)
-						extra_data['AS_HUMIDITY' + sensor_number] = str(humidity)
+						extra_data['AS_TEMP' + sensor_number] = temperature
+						extra_data['AS_DEW' + sensor_number] = the_dew_point
+						extra_data['AS_HUMIDITY' + sensor_number] = humidity
 						if pressure is not None:
 							extra_data["AS_PRESSURE" + sensor_number] = pressure
 						if rel_humidity is not None:
 							extra_data["AS_RELHUMIDITY" + sensor_number] = rel_humidity
 						if altitude is not None:
 							extra_data["AS_ALTITUDE" + sensor_number] = altitude
+						if co2 is not None:
+							extra_data["AS_CO2" + sensor_number] = co2       
 			if extra_data:
 				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 
@@ -2143,12 +2298,12 @@ def temp(params, event):
     
 def temp_cleanup():
 	module_data = {
-	    "metaData": ALLSKYTEMP.meta_data,
-	    "cleanup": {
-	        "files": {
-	            ALLSKYTEMP.meta_data['extradatafilename']
-	        },
-	        "env": {}
-	    }
+		"metaData": ALLSKYTEMP.meta_data,
+		"cleanup": {
+			"files": {
+				ALLSKYTEMP.meta_data['extradatafilename']
+			},
+			"env": {}
+		}
 	}
 	allsky_shared.cleanupModule(module_data)

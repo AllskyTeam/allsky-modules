@@ -36,7 +36,65 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 		"centersettings": "false",
 		"testable": "true",
 		"extradatafilename": "allsky_pmsx003.json",
+        "graphs": {
+            "chart1": {
+				"icon": "fas fa-scale-balanced",
+				"title": "Air Quality",
+				"main": "true",    
+				"config": {
+					"chart": {
+						"type": "spline",
+						"zooming": {
+							"type": "x"
+						}
+					},
+					"title": {
+						"text": "Fans"
+					},
+					"xAxis": {
+						"type": "datetime",
+						"dateTimeLabelFormats": {
+							"day": "%Y-%m-%d",
+							"hour": "%H:%M"
+						}
+					},
+					"yAxis": [
+						{ 
+							"title": {
+								"text": "Particle Count"
+							} 
+						}
+					]
+				},
+				"series": {
+					"1um": {
+						"name": "1um",
+						"yAxis": "0",
+						"variable": "AS_N1_0"                 
+					},
+					"25um": {
+						"name": "2.5um",
+						"yAxis": "0",
+						"variable": "AS_N2_5"
+					},
+					"5um": {
+						"name": "5um",
+						"yAxis": "0",
+						"variable": "AS_N5_0"
+					},
+					"10um": {
+						"name": "10um",
+						"yAxis": "0",
+						"variable": "AS_N10"
+					}           
+				}
+			}
+		},  
 		"extradata": {
+			"database": {
+				"enabled": "True",
+				"table": "allsky_airquality"
+			},      
 			"values": {
 				"AS_PM1_0CF1": {
 					"name": "${PM1_0CF1}",
@@ -167,6 +225,13 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 					"url": "includes/moduleutil.php?request=SerialPorts",
 					"placeholder": "Select a serial port"
 				}         
+			},
+			"graph": {
+				"required": "false",
+				"tab": "History",
+				"type": {
+					"fieldtype": "graph"
+				}
 			}
 		},
 		"businfo": [
