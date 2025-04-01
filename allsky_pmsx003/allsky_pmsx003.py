@@ -40,6 +40,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
             "chart1": {
 				"icon": "fas fa-scale-balanced",
 				"title": "Air Quality",
+				"group": "Environment",    
 				"main": "true",    
 				"config": {
 					"chart": {

@@ -38,37 +38,37 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
             "chart1": {
 				"icon": "fa-solid fa-plane",
 				"title": "ADSB Aircraft",
+				"group": "ADSB",    
 				"main": "true",    
 				"config": {
-					"chart": {
-						"type": "spline",
-						"zooming": {
-							"type": "x"
-						}
-					},
 					"title": {
 						"text": "Aircraft"
 					},
-					"xAxis": {
-						"type": "datetime",
-						"dateTimeLabelFormats": {
-							"day": "%Y-%m-%d",
-							"hour": "%H:%M"
+					"tooltip": {
+						"trigger": "axis",
+						"axisPointer": {
+							"type": "cross"
 						}
 					},
-					"yAxis": [
-						{ 
-							"title": {
-								"text": "Total Aircraft"
-							} 
-						}
-					]
+					"legend": {
+						"show": "true"
+					},
+					"xAxis": {
+						"type": "time"
+					},
+					"yAxis": {
+						"type": "value"
+					},
+					"animation": "false"
 				},
 				"series": {
 					"heater": {
 						"name": "Total",
 						"yAxis": "0",
-						"variable": "AS_TOTAL_AIRCRAFT"                 
+						"type": "line",
+                        "smooth": "true",
+                        "connectNulls": "false",      
+						"variable": "AS_TOTAL_AIRCRAFT"
 					}
 				}
 			}

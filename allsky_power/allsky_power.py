@@ -28,6 +28,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 			"chart1": {
 				"icon": "fas fa-bolt",
 				"title": "Power",
+				"group": "Power",    
 				"main": "true",    
 				"config": {
 					"chart": {

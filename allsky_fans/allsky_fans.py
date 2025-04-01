@@ -37,6 +37,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
             "guage1": {
 				"icon": "fa-solid fa-gauge",
 				"title": "Fan 1",
+				"group": "Environment",    
 				"config": {
 					"chart": {
 						"type": "gauge",
@@ -121,6 +122,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
             "chart1": {
 				"icon": "fas fa-fan",
 				"title": "Fans",
+				"group": "Environment",    
 				"main": "true",    
 				"config": {
 					"chart": {

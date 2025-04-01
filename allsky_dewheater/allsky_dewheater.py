@@ -67,6 +67,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
             "chart1": {
 				"icon": "fa-solid fa-temperature-arrow-up",
 				"title": "Dew Heater",
+				"group": "Environment",    
 				"main": "true",    
 				"config": {
 					"chart": {
