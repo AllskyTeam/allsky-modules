@@ -57,7 +57,15 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 						"type": "time"
 					},
 					"yAxis": {
-						"type": "value"
+						"type": "value",
+						"splitLine": {
+							"show": "true",
+							"lineStyle": {
+								"width": 1,
+								"color": "#444",
+								"type": "dashed"
+							}
+						}
 					},
 					"animation": "false"
 				},
@@ -65,7 +73,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 					"heater": {
 						"name": "Total",
 						"yAxis": "0",
-						"type": "line",
+						"type": "bar",
                         "smooth": "true",
                         "connectNulls": "false",      
 						"variable": "AS_TOTAL_AIRCRAFT"

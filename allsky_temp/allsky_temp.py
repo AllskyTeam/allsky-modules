@@ -46,13 +46,14 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		"graphs": {
 			"chart1": {
 				"icon": "fas fa-temperature-half",
-				"title": "Environment",
+				"title": "Temperature",
 				"group": "Environment",    
 				"main": "true",    
 				"config": {
 					"title": {
-						"text": "Environment"
+						"text": "Temperature"
 					},
+					"color": ["#ff5722", "#4caf50"],
 					"tooltip": {
 						"trigger": "axis",
 						"axisPointer": {
@@ -70,79 +71,123 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 							"title": {
 								"text": "Temperature"
 							},
-							"alignTicks": "true"
-						},
-						{ 
-							"title": {
-								"text": "Humidity"
-							},
-							"alignTicks": "true",
-							"opposite": "true"       
-						}      
+							"min": "dataMin",
+							"max": "dataMax",
+							"splitLine": {
+								"show": "true",
+								"lineStyle": {
+									"width": 1,
+									"color": "#444",
+									"type": "dashed"
+								}
+							}
+						}   
 					]
 				},
 				"series": {
 					"coretemp": {
 						"name": "Core Temp",
-						"yAxisIndex": 0,
 						"type": "line",
                         "smooth": "true",
                         "connectNulls": "false",
+						"sampling": "lttb",
 						"variable": "AS_TEMP"                 
-					},
-					"corehumidity": {
-						"name": "Core Humdity",
-						"yAxisIndex": 1,
-						"type": "line",
-                        "smooth": "true",
-                        "connectNulls": "false",
-						"variable": "AS_HUMIDITY"
 					},
 					"temp1": {
 						"name": "Temp 1",
-						"yAxisIndex": 0,
 						"type": "line",
                         "smooth": "true",
                         "connectNulls": "false",
+						"sampling": "lttb",
 						"variable": "AS_TEMP1"
-					},
-					"humidity1": {
-						"name": "Humdity 1",
-						"yAxisIndex": 1,
-						"type": "line",
-                        "smooth": "true",
-                        "connectNulls": "false",
-						"variable": "AS_HUMIDITY1"
 					},
 					"temp2": {
 						"name": "Temp 2",
-						"yAxisIndex": 0,
 						"type": "line",
                         "smooth": "true",
                         "connectNulls": "false",
+						"sampling": "lttb",
 						"variable": "AS_TEMP2"
-					},
-					"humidity2": {
-						"name": "Humdity 2",
-						"yAxisIndex": 1,
-						"type": "line",
-                        "smooth": "true",
-                        "connectNulls": "false",
-						"variable": "AS_HUMIDITY2"
 					},
 					"temp3": {
 						"name": "Temp 3",
-						"yAxisIndex": 0,
 						"type": "line",
                         "smooth": "true",
                         "connectNulls": "false",
+						"sampling": "lttb",
 						"variable": "AS_TEMP3"
+					}
+				}
+			},
+			"chart2": {
+				"icon": "fas fa-percent",
+				"title": "Humidity",
+				"group": "Environment",    
+				"main": "true",    
+				"config": {
+					"title": {
+						"text": "Humidity"
+					},
+					"tooltip": {
+						"trigger": "axis",
+						"axisPointer": {
+							"type": "cross"
+						}
+					},
+					"legend": {
+						"show": "true"
+					},
+					"xAxis": {
+						"type": "time"
+					},
+					"yAxis": [
+						{ 
+							"title": {
+								"text": "Humidity"
+							},
+							"min": "dataMin",
+							"max": "dataMax",
+							"splitLine": {
+								"show": "true",
+								"lineStyle": {
+									"width": 1,
+									"color": "#444",
+									"type": "dashed"
+								}
+							}
+						}   
+					]
+				},
+				"series": {
+					"corehumidity": {
+						"name": "Core Humdity",
+						"type": "line",
+                        "smooth": "true",
+                        "connectNulls": "false",
+						"sampling": "lttb",
+						"variable": "AS_HUMIDITY"
+					},
+					"humidity1": {
+						"name": "Humdity 1",
+						"type": "line",
+                        "smooth": "true",
+                        "connectNulls": "false",
+						"sampling": "lttb",
+						"variable": "AS_HUMIDITY1"
+					},
+					"humidity2": {
+						"name": "Humdity 2",
+						"type": "line",
+                        "smooth": "true",
+                        "connectNulls": "false",
+						"sampling": "lttb",
+						"variable": "AS_HUMIDITY2"
 					},
 					"humidity3": {
 						"name": "Humdity 3",
-						"yAxisIndex": 1,
 						"type": "line",
                         "smooth": "true",
+						"sampling": "lttb",
                         "connectNulls": "false",
 						"variable": "AS_HUMIDITY4"
 					} 
