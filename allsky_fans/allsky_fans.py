@@ -34,134 +34,195 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		"experimental": "false",
 		"extradatafilename": "allsky_fans.json",
         "graphs": {
-            "guage1": {
-				"icon": "fa-solid fa-gauge",
-				"title": "Fan 1",
-				"group": "Environment",    
-				"config": {
-					"chart": {
-						"type": "gauge",
-						"plotBorderWidth": 0,
-						"height": "50%",
-						"plotBackgroundColor": "",
-						"plotBackgroundImage": ""
-					},
-					"title": {
-						"text": "Fan 1 Speed"
-					},
-					"pane": {
-						"startAngle": -90,
-						"endAngle": 89.9,
-						"center": ["50%", "75%"],
-						"size": "110%",
-						"background": ""
-					},
-					"yAxis": {
-						"min": 0,
-						"max": 100,
-						"tickPixelInterval": 72,
-						"tickPosition": "inside",
-						"tickColor": "#FFFFFF",
-						"tickLength": 20,
-						"tickWidth": 2,
-						"labels": {
-							"distance": 20,
-							"style": {
-								"fontSize": "14px"
-							}
-						},
-						"lineWidth": 0,
-						"plotBands": [{
-							"from": 0,
-							"to": 50,
-							"color": "#55BF3B",
-							"thickness": 20,
-							"borderRadius": "50%"
-						}, {
-							"from": 80,
-							"to": 100,
-							"color": "#DF5353",
-							"thickness": 20,
-							"borderRadius": "50%"
-						}, {
-							"from": 50,
-							"to": 80,
-							"color": "#DDDF0D",
-							"thickness": 20
-						}]
-					},
-					"series": [{
-						"name": "Speed",
-						"data": [80],
-						"tooltip": {
-							"valueSuffix": " km/h"
-						},
-						"dataLabels": {
-							"format": "{y} %",
-							"borderWidth": 0,
-							"color": "#333333",
-							"style": {
-								"fontSize": "16px"
-							}
-						},
-						"dial": {
-							"radius": "80%",
-							"backgroundColor": "gray",
-							"baseWidth": 12,
-							"baseLength": "0%",
-							"rearLength": "0%"
-						},
-						"pivot": {
-							"backgroundColor": "gray",
-							"radius": 6
-						}
-
-					}]        
-				}            
-            },
             "chart1": {
-				"icon": "fas fa-fan",
+				"icon": "fas fa-chart-line",
 				"title": "Fans",
 				"group": "Environment",    
-				"main": "true",    
+				"main": "true",
+				"animation": "false",    
 				"config": {
-					"chart": {
-						"type": "spline",
-						"zooming": {
-							"type": "x"
+					"title": {
+						"text": "Fan Speed"
+					},
+					"tooltip": {
+						"trigger": "axis",
+						"axisPointer": {
+							"type": "cross"
 						}
 					},
-					"title": {
-						"text": "Fans"
+					"legend": {
+						"show": "true"
 					},
 					"xAxis": {
-						"type": "datetime",
-						"dateTimeLabelFormats": {
-							"day": "%Y-%m-%d",
-							"hour": "%H:%M"
-						}
+						"type": "time"
 					},
 					"yAxis": [
 						{ 
 							"title": {
 								"text": "Fan Speed"
-							} 
-						}
+							},
+							"mina": "dataMin",
+							"maxa": "dataMax",
+							"splitLine": {
+								"show": "true",
+								"lineStyle": {
+									"width": 1,
+									"color": "#444",
+									"type": "dashed"
+								}
+							}
+						}   
 					]
 				},
 				"series": {
 					"fan1speed": {
 						"name": "Fan 1",
-						"yAxis": "0",
+						"type": "line",
+                        "smooth": "true",
+                        "connectNulls": "false",
+						"sampling": "lttb",
+						"animation": "false",      
 						"variable": "AS_FANS_PWM_DUTY_CYCLE1"                 
 					},
 					"fan2speed": {
 						"name": "Fan 2",
-						"yAxis": "0",
+						"type": "line",
+                        "smooth": "true",
+                        "connectNulls": "false",
+						"sampling": "lttb",
+						"animation": "false",
 						"variable": "AS_FANS_PWM_DUTY_CYCLE2"
 					}               
 				}
-			}
+			},
+            "guage1": {
+				"icon": "fa-solid fa-gauge",
+				"title": "Fan 1",
+				"group": "Environment",    
+				"main": "true",
+				"type": "gauge",
+				"config": {
+					"series": [
+					{
+						"type": "gauge",
+						"startAngle": 180,
+						"endAngle": 0,
+						"radius": "95%",
+						"animation": "false",
+						"axisLine": {
+							"lineStyle": {
+								"width": 30,
+								"color": [
+									[0.3, "#22ff22"],
+									[0.7, "#ffbb00"],
+									[1, "#fd666d"]
+								]
+							}
+						},
+						"pointer": {
+							"itemStyle": {
+								"color": "auto"
+							}
+						},
+						"axisTick": {
+							"distance": -30,
+							"length": 8,
+							"lineStyle": {
+								"color": "#fff",
+								"width": 2
+							}
+						},
+						"splitLine": {
+							"distance": -30,
+							"length": 30,
+							"lineStyle": {
+								"color": "#fff",
+								"width": 4
+							}
+						},
+						"axisLabel": {
+							"color": "inherit",
+							"distance": 40,
+							"fontSize": 20
+						},
+						"detail": {
+							"valueAnimation": "true",
+							"formatter": "{value}",
+							"color": "inherit"
+						},
+						"data": [
+							{
+								"value": "AS_FANS_PWM_DUTY_CYCLE1"
+							}
+						]
+					}
+					]				
+				}
+			},
+            "guage2": {
+				"icon": "fa-solid fa-gauge",
+				"title": "Fan 2",
+				"group": "Environment",    
+				"main": "true",
+				"type": "gauge",
+				"config": {
+					"series": [
+					{
+						"type": "gauge",
+						"startAngle": 180,
+						"endAngle": 0,
+						"radius": "95%",
+						"animation": "false",
+						"axisLine": {
+							"lineStyle": {
+								"width": 30,
+								"color": [
+									[0.3, "#22ff22"],
+									[0.7, "#ffbb00"],
+									[1, "#fd666d"]
+								]
+							}
+						},
+						"pointer": {
+							"itemStyle": {
+								"color": "auto"
+							}
+						},
+						"axisTick": {
+							"distance": -30,
+							"length": 8,
+							"lineStyle": {
+								"color": "#fff",
+								"width": 2
+							}
+						},
+						"splitLine": {
+							"distance": -30,
+							"length": 30,
+							"lineStyle": {
+								"color": "#fff",
+								"width": 4
+							}
+						},
+						"axisLabel": {
+							"color": "inherit",
+							"distance": 40,
+							"fontSize": 20
+						},
+						"detail": {
+							"valueAnimation": "true",
+							"formatter": "{value}",
+							"color": "inherit"
+						},
+						"data": [
+							{
+								"value": "AS_FANS_PWM_DUTY_CYCLE2"
+							}
+						]
+					}
+					]				
+				}
+			}                       
 		},
 		"extradata": {
 			"database": {

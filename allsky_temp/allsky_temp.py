@@ -47,7 +47,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"chart1": {
 				"icon": "fas fa-temperature-half",
 				"title": "Temperature",
-				"group": "Environment",    
+				"group": "Environment",
+				"animation": "false",    
 				"main": "true",    
 				"config": {
 					"title": {
@@ -91,6 +92,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
                         "smooth": "true",
                         "connectNulls": "false",
 						"sampling": "lttb",
+						"animation": "false",
 						"variable": "AS_TEMP"                 
 					},
 					"temp1": {
@@ -99,6 +101,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
                         "smooth": "true",
                         "connectNulls": "false",
 						"sampling": "lttb",
+						"animation": "false",
 						"variable": "AS_TEMP1"
 					},
 					"temp2": {
@@ -107,6 +110,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
                         "smooth": "true",
                         "connectNulls": "false",
 						"sampling": "lttb",
+						"animation": "false",
 						"variable": "AS_TEMP2"
 					},
 					"temp3": {
@@ -115,6 +119,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
                         "smooth": "true",
                         "connectNulls": "false",
 						"sampling": "lttb",
+						"animation": "false",
 						"variable": "AS_TEMP3"
 					}
 				}
@@ -124,6 +129,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"title": "Humidity",
 				"group": "Environment",    
 				"main": "true",    
+				"animation": "false",    
 				"config": {
 					"title": {
 						"text": "Humidity"
@@ -165,6 +171,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
                         "smooth": "true",
                         "connectNulls": "false",
 						"sampling": "lttb",
+						"animation": "false",
 						"variable": "AS_HUMIDITY"
 					},
 					"humidity1": {
@@ -173,6 +180,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
                         "smooth": "true",
                         "connectNulls": "false",
 						"sampling": "lttb",
+						"animation": "false",
 						"variable": "AS_HUMIDITY1"
 					},
 					"humidity2": {
@@ -181,6 +189,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
                         "smooth": "true",
                         "connectNulls": "false",
 						"sampling": "lttb",
+						"animation": "false",
 						"variable": "AS_HUMIDITY2"
 					},
 					"humidity3": {
@@ -189,6 +198,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
                         "smooth": "true",
 						"sampling": "lttb",
                         "connectNulls": "false",
+						"animation": "false",
 						"variable": "AS_HUMIDITY4"
 					} 
 				}
