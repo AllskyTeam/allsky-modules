@@ -34,195 +34,237 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		"experimental": "false",
 		"extradatafilename": "allsky_fans.json",
         "graphs": {
-            "chart1": {
+			"chart1": {
 				"icon": "fas fa-chart-line",
-				"title": "Fans",
-				"group": "Environment",    
-				"main": "true",
-				"animation": "false",    
+				"title": "Fan Speed",
+				"group": "Hardware",
+				"main": "true",    
 				"config": {
-					"title": {
-						"text": "Fan Speed"
-					},
-					"tooltip": {
-						"trigger": "axis",
-						"axisPointer": {
-							"type": "cross"
+					"chart": {
+						"type": "spline",
+						"zooming": {
+							"type": "x"
 						}
 					},
-					"legend": {
-						"show": "true"
+					"title": {
+						"text": "Fans"
 					},
 					"xAxis": {
-						"type": "time"
+						"type": "datetime",
+						"dateTimeLabelFormats": {
+							"day": "%Y-%m-%d",
+							"hour": "%H:%M"
+						}
+					},
+					"plotOptions": {
+						"series": {
+							"animation": "false"
+						}
 					},
 					"yAxis": [
 						{ 
 							"title": {
 								"text": "Fan Speed"
-							},
-							"mina": "dataMin",
-							"maxa": "dataMax",
-							"splitLine": {
-								"show": "true",
-								"lineStyle": {
-									"width": 1,
-									"color": "#444",
-									"type": "dashed"
-								}
-							}
-						}   
+							} 
+						}
 					]
 				},
 				"series": {
 					"fan1speed": {
 						"name": "Fan 1",
-						"type": "line",
-                        "smooth": "true",
-                        "connectNulls": "false",
-						"sampling": "lttb",
-						"animation": "false",      
+						"yAxis": 0,
 						"variable": "AS_FANS_PWM_DUTY_CYCLE1"                 
 					},
 					"fan2speed": {
 						"name": "Fan 2",
-						"type": "line",
-                        "smooth": "true",
-                        "connectNulls": "false",
-						"sampling": "lttb",
-						"animation": "false",
+						"yAxis": 0,
 						"variable": "AS_FANS_PWM_DUTY_CYCLE2"
 					}               
 				}
 			},
             "guage1": {
 				"icon": "fa-solid fa-gauge",
-				"title": "Fan 1",
-				"group": "Environment",    
-				"main": "true",
+				"title": "Fan 1 Speed",
+				"group": "Hardware",
 				"type": "gauge",
 				"config": {
-					"series": [
-					{
+					"chart": {
 						"type": "gauge",
-						"startAngle": 180,
-						"endAngle": 0,
-						"radius": "95%",
-						"animation": "false",
-						"axisLine": {
-							"lineStyle": {
-								"width": 30,
-								"color": [
-									[0.3, "#22ff22"],
-									[0.7, "#ffbb00"],
-									[1, "#fd666d"]
-								]
+						"plotBorderWidth": 0,
+						"height": "50%",
+						"plotBackgroundColor": "",
+						"plotBackgroundImage": ""
+					},
+					"title": {
+						"text": "Fan 1 Speed"
+					},
+					"pane": {
+						"startAngle": -90,
+						"endAngle": 89.9,
+						"center": ["50%", "75%"],
+						"size": "110%",
+						"background": ""
+					},
+					"plotOptions": {
+						"series": {
+							"animation": "false"
+						}
+					},
+					"yAxis": {
+						"min": 0,
+						"max": 100,
+						"tickPixelInterval": 72,
+						"tickPosition": "inside",
+						"tickColor": "#FFFFFF",
+						"tickLength": 20,
+						"tickWidth": 2,
+						"labels": {
+							"distance": 20,
+							"style": {
+								"fontSize": "14px"
 							}
 						},
-						"pointer": {
-							"itemStyle": {
-								"color": "auto"
+						"lineWidth": 0,
+						"plotBands": [{
+							"from": 0,
+							"to": 70,
+							"color": "#55BF3B",
+							"thickness": 20
+						}, {
+							"from": 60,
+							"to": 80,
+							"color": "#DDDF0D",
+							"thickness": 20
+						}, {
+							"from": 80,
+							"to": 100,
+							"color": "#DF5353",
+							"thickness": 20
+						}]
+					},
+					"series": [{
+						"name": "Speed",
+						"data": "AS_FANS_PWM_DUTY_CYCLE1",
+						"tooltip": {
+							"valueSuffix": " %"
+						},
+						"dataLabels": {
+							"format": "{y} %",
+							"borderWidth": 0,
+							"color": "#333333",
+							"style": {
+								"fontSize": "16px"
 							}
 						},
-						"axisTick": {
-							"distance": -30,
-							"length": 8,
-							"lineStyle": {
-								"color": "#fff",
-								"width": 2
-							}
+					"plotOptions": {
+						"series": {
+							"animation": "false"
+						}
+					},
+						"dial": {
+							"radius": "80%",
+							"backgroundColor": "gray",
+							"baseWidth": 12,
+							"baseLength": "0%",
+							"rearLength": "0%"
 						},
-						"splitLine": {
-							"distance": -30,
-							"length": 30,
-							"lineStyle": {
-								"color": "#fff",
-								"width": 4
-							}
-						},
-						"axisLabel": {
-							"color": "inherit",
-							"distance": 40,
-							"fontSize": 20
-						},
-						"detail": {
-							"valueAnimation": "true",
-							"formatter": "{value}",
-							"color": "inherit"
-						},
-						"data": [
-							{
-								"value": "AS_FANS_PWM_DUTY_CYCLE1"
-							}
-						]
-					}
-					]				
-				}
-			},
+						"pivot": {
+							"backgroundColor": "gray",
+							"radius": 6
+						}
+
+					}]        
+				}            
+            },
             "guage2": {
 				"icon": "fa-solid fa-gauge",
-				"title": "Fan 2",
-				"group": "Environment",    
-				"main": "true",
+				"title": "Fan 2 Speed",
+				"group": "Hardware",
 				"type": "gauge",
 				"config": {
-					"series": [
-					{
+					"chart": {
 						"type": "gauge",
-						"startAngle": 180,
-						"endAngle": 0,
-						"radius": "95%",
-						"animation": "false",
-						"axisLine": {
-							"lineStyle": {
-								"width": 30,
-								"color": [
-									[0.3, "#22ff22"],
-									[0.7, "#ffbb00"],
-									[1, "#fd666d"]
-								]
+						"plotBorderWidth": 0,
+						"height": "50%",
+						"plotBackgroundColor": "",
+						"plotBackgroundImage": ""
+					},
+					"title": {
+						"text": "Fan 2 Speed"
+					},
+					"pane": {
+						"startAngle": -90,
+						"endAngle": 89.9,
+						"center": ["50%", "75%"],
+						"size": "110%",
+						"background": ""
+					},
+					"plotOptions": {
+						"series": {
+							"animation": "false"
+						}
+					},
+					"yAxis": {
+						"min": 0,
+						"max": 100,
+						"tickPixelInterval": 72,
+						"tickPosition": "inside",
+						"tickColor": "#FFFFFF",
+						"tickLength": 20,
+						"tickWidth": 2,
+						"labels": {
+							"distance": 20,
+							"style": {
+								"fontSize": "14px"
 							}
 						},
-						"pointer": {
-							"itemStyle": {
-								"color": "auto"
+						"lineWidth": 0,
+						"plotBands": [{
+							"from": 0,
+							"to": 70,
+							"color": "#55BF3B",
+							"thickness": 20
+						}, {
+							"from": 60,
+							"to": 80,
+							"color": "#DDDF0D",
+							"thickness": 20
+						}, {
+							"from": 80,
+							"to": 100,
+							"color": "#DF5353",
+							"thickness": 20
+						}]
+					},
+					"series": [{
+						"name": "Speed",
+						"data": "AS_FANS_PWM_DUTY_CYCLE2",
+						"tooltip": {
+							"valueSuffix": " %"
+						},
+						"dataLabels": {
+							"format": "{y} %",
+							"borderWidth": 0,
+							"color": "#333333",
+							"style": {
+								"fontSize": "16px"
 							}
 						},
-						"axisTick": {
-							"distance": -30,
-							"length": 8,
-							"lineStyle": {
-								"color": "#fff",
-								"width": 2
-							}
+						"dial": {
+							"radius": "80%",
+							"backgroundColor": "gray",
+							"baseWidth": 12,
+							"baseLength": "0%",
+							"rearLength": "0%"
 						},
-						"splitLine": {
-							"distance": -30,
-							"length": 30,
-							"lineStyle": {
-								"color": "#fff",
-								"width": 4
-							}
-						},
-						"axisLabel": {
-							"color": "inherit",
-							"distance": 40,
-							"fontSize": 20
-						},
-						"detail": {
-							"valueAnimation": "true",
-							"formatter": "{value}",
-							"color": "inherit"
-						},
-						"data": [
-							{
-								"value": "AS_FANS_PWM_DUTY_CYCLE2"
-							}
-						]
-					}
-					]				
-				}
-			}                       
+						"pivot": {
+							"backgroundColor": "gray",
+							"radius": 6
+						}
+
+					}]        
+				}            
+            }
 		},
 		"extradata": {
 			"database": {

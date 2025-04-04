@@ -36,46 +36,44 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 		"extradatafilename": "allsky_adsb.json",
         "graphs": {
             "chart1": {
-				"icon": "fa-solid fa-plane",
+				"icon": "fa-solid fa-chart-line",
 				"title": "ADSB Aircraft",
 				"group": "ADSB",    
 				"main": "true",    
 				"config": {
-					"title": {
-						"text": "Aircraft"
-					},
-					"tooltip": {
-						"trigger": "axis",
-						"axisPointer": {
-							"type": "cross"
+					"chart": {
+						"type": "spline",
+						"animation": "false",
+						"zooming": {
+							"type": "x"
 						}
 					},
-					"legend": {
-						"show": "true"
+					"plotOptions": {
+						"series": {
+							"animation": "false"
+						}
+					},
+					"title": {
+						"text": "Total Aircraft"
 					},
 					"xAxis": {
-						"type": "time"
-					},
-					"yAxis": {
-						"type": "value",
-						"splitLine": {
-							"show": "true",
-							"lineStyle": {
-								"width": 1,
-								"color": "#444",
-								"type": "dashed"
-							}
+						"type": "datetime",
+						"dateTimeLabelFormats": {
+							"day": "%Y-%m-%d",
+							"hour": "%H:%M"
 						}
 					},
-					"animation": "false"
+					"yAxis": [
+						{ 
+							"title": {
+								"text": "Total"
+							} 
+						}
+					]
 				},
 				"series": {
 					"heater": {
 						"name": "Total",
-						"yAxis": "0",
-						"type": "bar",
-                        "smooth": "true",
-                        "connectNulls": "false",      
 						"variable": "AS_TOTAL_AIRCRAFT"
 					}
 				}

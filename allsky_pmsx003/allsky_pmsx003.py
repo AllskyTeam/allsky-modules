@@ -40,7 +40,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
             "chart1": {
 				"icon": "fas fa-scale-balanced",
 				"title": "Air Quality",
-				"group": "Environment",    
+				"group": "Environment",
 				"main": "true",    
 				"config": {
 					"chart": {
@@ -49,8 +49,13 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 							"type": "x"
 						}
 					},
+					"plotOptions": {
+						"series": {
+							"animation": "false"
+						}
+					},
 					"title": {
-						"text": "Fans"
+						"text": "Air Quality"
 					},
 					"xAxis": {
 						"type": "datetime",
@@ -70,22 +75,22 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 				"series": {
 					"1um": {
 						"name": "1um",
-						"yAxis": "0",
+						"yAxis": 0,
 						"variable": "AS_N1_0"                 
 					},
 					"25um": {
 						"name": "2.5um",
-						"yAxis": "0",
+						"yAxis": 0,
 						"variable": "AS_N2_5"
 					},
 					"5um": {
 						"name": "5um",
-						"yAxis": "0",
+						"yAxis": 0,
 						"variable": "AS_N5_0"
 					},
 					"10um": {
 						"name": "10um",
-						"yAxis": "0",
+						"yAxis": 0,
 						"variable": "AS_N10"
 					}           
 				}

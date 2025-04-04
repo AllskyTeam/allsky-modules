@@ -26,9 +26,9 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 		"experimental": "false",
 		"graphs": {
 			"chart1": {
-				"icon": "fas fa-bolt",
-				"title": "Power",
-				"group": "Power",    
+				"icon": "fas fa-chart-line",
+				"title": "Power Usage",
+				"group": "Hardware",    
 				"main": "true",    
 				"config": {
 					"chart": {
@@ -39,6 +39,11 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					},
 					"title": {
 						"text": "Power"
+					},
+					"plotOptions": {
+						"series": {
+							"animation": "false"
+						}
 					},
 					"xAxis": {
 						"type": "datetime",
@@ -53,17 +58,27 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 								"text": "Voltage"
 							} 
 						}
-					]
+					],
+					"lang": {
+						"noData": "No data available"
+					},
+					"noData": {
+						"style": {
+							"fontWeight": "bold",
+							"fontSize": "16px",
+							"color": "#666"
+						}
+					}
 				},
 				"series": {
 					"c1voltage": {
 						"name": "Channel 1",
-						"yAxis": "0",
+						"yAxis": 0,
 						"variable": "AS_POWER_VOLTAGE1"                 
 					},
 					"c2voltage": {
 						"name": "Channel 2",
-						"yAxis": "0",
+						"yAxis": 0,
 						"variable": "AS_POWER_VOLTAGE2"
 					}               
 				}

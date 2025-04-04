@@ -45,163 +45,90 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		"extradatafilename": "allsky_temp.json",
 		"graphs": {
 			"chart1": {
-				"icon": "fas fa-temperature-half",
-				"title": "Temperature",
+				"icon": "fas fa-chart-line",
+				"title": "Temperatures/Humidity",
 				"group": "Environment",
 				"animation": "false",    
-				"main": "true",    
+				"main": "true",
 				"config": {
-					"title": {
-						"text": "Temperature"
-					},
-					"color": ["#ff5722", "#4caf50"],
-					"tooltip": {
-						"trigger": "axis",
-						"axisPointer": {
-							"type": "cross"
+					"chart": {
+						"type": "spline",
+						"animation": "false",
+						"zooming": {
+							"type": "x"
 						}
 					},
-					"legend": {
-						"show": "true"
+					"plotOptions": {
+						"series": {
+							"animation": "false"
+						}
+					},
+					"title": {
+						"text": "Temperature / Humidity"
 					},
 					"xAxis": {
-						"type": "time"
+						"type": "datetime",
+						"dateTimeLabelFormats": {
+							"day": "%Y-%m-%d",
+							"hour": "%H:%M"
+						}
 					},
 					"yAxis": [
 						{ 
 							"title": {
 								"text": "Temperature"
+							} 
+						},
+						{ 
+							"title": {
+								"text": "Humidity"
 							},
-							"min": "dataMin",
-							"max": "dataMax",
-							"splitLine": {
-								"show": "true",
-								"lineStyle": {
-									"width": 1,
-									"color": "#444",
-									"type": "dashed"
-								}
-							}
-						}   
+							"opposite": "true"       
+						}      
 					]
 				},
 				"series": {
 					"coretemp": {
 						"name": "Core Temp",
-						"type": "line",
-                        "smooth": "true",
-                        "connectNulls": "false",
-						"sampling": "lttb",
-						"animation": "false",
+						"yAxis": 0,
 						"variable": "AS_TEMP"                 
+					},
+					"corehumidity": {
+						"name": "Core Humdity",
+						"yAxis": 1,
+						"variable": "AS_HUMIDITY"
 					},
 					"temp1": {
 						"name": "Temp 1",
-						"type": "line",
-                        "smooth": "true",
-                        "connectNulls": "false",
-						"sampling": "lttb",
-						"animation": "false",
+						"yAxis": 0,
 						"variable": "AS_TEMP1"
-					},
-					"temp2": {
-						"name": "Temp 2",
-						"type": "line",
-                        "smooth": "true",
-                        "connectNulls": "false",
-						"sampling": "lttb",
-						"animation": "false",
-						"variable": "AS_TEMP2"
-					},
-					"temp3": {
-						"name": "Temp 3",
-						"type": "line",
-                        "smooth": "true",
-                        "connectNulls": "false",
-						"sampling": "lttb",
-						"animation": "false",
-						"variable": "AS_TEMP3"
-					}
-				}
-			},
-			"chart2": {
-				"icon": "fas fa-percent",
-				"title": "Humidity",
-				"group": "Environment",    
-				"main": "true",    
-				"animation": "false",    
-				"config": {
-					"title": {
-						"text": "Humidity"
-					},
-					"tooltip": {
-						"trigger": "axis",
-						"axisPointer": {
-							"type": "cross"
-						}
-					},
-					"legend": {
-						"show": "true"
-					},
-					"xAxis": {
-						"type": "time"
-					},
-					"yAxis": [
-						{ 
-							"title": {
-								"text": "Humidity"
-							},
-							"min": "dataMin",
-							"max": "dataMax",
-							"splitLine": {
-								"show": "true",
-								"lineStyle": {
-									"width": 1,
-									"color": "#444",
-									"type": "dashed"
-								}
-							}
-						}   
-					]
-				},
-				"series": {
-					"corehumidity": {
-						"name": "Core Humdity",
-						"type": "line",
-                        "smooth": "true",
-                        "connectNulls": "false",
-						"sampling": "lttb",
-						"animation": "false",
-						"variable": "AS_HUMIDITY"
 					},
 					"humidity1": {
 						"name": "Humdity 1",
-						"type": "line",
-                        "smooth": "true",
-                        "connectNulls": "false",
-						"sampling": "lttb",
-						"animation": "false",
+						"yAxis": 1,
 						"variable": "AS_HUMIDITY1"
+					},
+					"temp2": {
+						"name": "Temp 2",
+						"yAxis": 0,
+						"variable": "AS_TEMP2"
 					},
 					"humidity2": {
 						"name": "Humdity 2",
-						"type": "line",
-                        "smooth": "true",
-                        "connectNulls": "false",
-						"sampling": "lttb",
-						"animation": "false",
+						"yAxis": 1,
 						"variable": "AS_HUMIDITY2"
+					},
+					"temp3": {
+						"name": "Temp 3",
+						"yAxis": 0,
+						"variable": "AS_TEMP3"
 					},
 					"humidity3": {
 						"name": "Humdity 3",
-						"type": "line",
-                        "smooth": "true",
-						"sampling": "lttb",
-                        "connectNulls": "false",
-						"animation": "false",
+						"yAxis": 1,
 						"variable": "AS_HUMIDITY4"
 					} 
-				}
+				}    
 			}
 		},
 		"extradata": {
