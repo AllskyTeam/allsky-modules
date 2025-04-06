@@ -78,7 +78,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					},
 					"c2voltage": {
 						"name": "Channel 2",
-						"yAxis": 0,
+						"yAxis": 1,
 						"variable": "AS_POWER_VOLTAGE2"
 					}               
 				}

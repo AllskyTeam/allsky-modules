@@ -21,12 +21,13 @@ import adafruit_sht4x
 import adafruit_dht
 import adafruit_ahtx0
 import adafruit_scd30
+import bme680
 from adafruit_bme280 import basic as adafruit_bme280
 from adafruit_htu21d import HTU21D
 from meteocalc import dew_point
 from digitalio import DigitalInOut, Direction, Pull
 from DS18B20dvr.DS18B20 import DS18B20
-	
+
 class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 	meta_data = {
@@ -65,6 +66,16 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					},
 					"title": {
 						"text": "Temperature / Humidity"
+					},
+					"lang": {
+						"noData": "No data available"
+					},
+					"noData": {
+						"style": {
+							"fontWeight": "bold",
+							"fontSize": "16px",
+							"color": "#666"
+						}
 					},
 					"xAxis": {
 						"type": "datetime",
@@ -351,7 +362,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Core",
 				"type": {
 					"fieldtype": "select",
-					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,OpenWeather",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather",
 					"default": "None"
 				}
 			},
@@ -397,7 +408,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"BME280-I2C",
 						"HTU21",
 						"AHTx0",
-						"SCD30"
+						"SCD30",
+						"BME680"
 					]
 				}            
 			},
@@ -600,7 +612,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Sensor 1",
 				"type": {
 					"fieldtype": "select",
-					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,OpenWeather",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather",
 					"default": "None"
 				}
 			},
@@ -622,6 +634,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"AHTx0",
 						"DS18B20",
 						"SCD30",
+						"BME680",
 						"OpenWeather"
 					]
 				}            
@@ -661,7 +674,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"BME280-I2C",
 						"HTU21",
 						"AHTx0",
-						"SCD30"
+						"SCD30",
+						"BME680"
 					]
 				}            
 			},
@@ -869,7 +883,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"AHTx0",
 						"DS18B20",
 						"OpenWeather",
-						"SCD30"
+						"SCD30",
+						"BME680"
 					]
 				}             
 			},        
@@ -895,7 +910,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"AHTx0",
 						"DS18B20",
 						"OpenWeather",
-						"SCD30"
+						"SCD30",
+						"BME680"
 					]
 				}                      
 			},
@@ -918,7 +934,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"AHTx0",
 						"DS18B20",
 						"OpenWeather",
-						"SCD30"
+						"SCD30",
+						"BME680"
 					]
 				}                      
 			},
@@ -941,7 +958,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"AHTx0",
 						"DS18B20",
 						"OpenWeather",
-						"SCD30"
+						"SCD30",
+						"BME680"
 					]
 				}                    
 			},                    
@@ -952,7 +970,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Sensor 2",
 				"type": {
 					"fieldtype": "select",
-					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,OpenWeather",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather",
 					"default": "None"
 				}
 			},
@@ -974,6 +992,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"AHTx0",
 						"DS18B20",
 						"SCD30",
+						"BME680",
 						"OpenWeather"
 					]
 				}            
@@ -1013,7 +1032,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"BME280-I2C",
 						"HTU21",
 						"AHTx0",
-						"SCD30"
+						"SCD30",
+						"BME680"
 					]
 				}            
 			},
@@ -1221,7 +1241,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"AHTx0",
 						"DS18B20",
 						"OpenWeather",
-						"SCD30"
+						"SCD30",
+						"BME680"
 					]
 				}            
 			},        
@@ -1247,7 +1268,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"AHTx0",
 						"DS18B20",
 						"OpenWeather",
-						"SCD30"
+						"SCD30",
+						"BME680"
 					]
 				}                     
 			},
@@ -1270,7 +1292,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"AHTx0",
 						"DS18B20",
 						"OpenWeather",
-						"SCD30"
+						"SCD30",
+						"BME680"
 					]
 				}                     
 			},
@@ -1293,7 +1316,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"AHTx0",
 						"DS18B20",
 						"OpenWeather",
-						"SCD30"
+						"SCD30",
+						"BME680"
 					]
 				}                    
 			}, 
@@ -1304,7 +1328,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Sensor 3",
 				"type": {
 					"fieldtype": "select",
-					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,OpenWeather",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather",
 					"default": "None"
 				}
 			},
@@ -1326,7 +1350,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"AHTx0",
 						"DS18B20",
 						"OpenWeather",
-						"SCD30"
+						"SCD30",
+						"BME680"
 					]
 				}            
 			},        
@@ -1365,7 +1390,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"BME280-I2C",
 						"HTU21",
 						"AHTx0",
-						"SCD30"
+						"SCD30",
+						"BME680"
 					]
 				}            
 			},
@@ -1573,7 +1599,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"AHTx0",
 						"DS18B20",
 						"OpenWeather",
-						"SCD30"
+						"SCD30",
+						"BME680"
 					]
 				}            
 			},        
@@ -1599,7 +1626,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"AHTx0",
 						"DS18B20",
 						"OpenWeather",
-						"SCD30"
+						"SCD30",
+						"BME680"
 					]
 				}                    
 			},
@@ -1622,7 +1650,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"AHTx0",
 						"DS18B20",
 						"OpenWeather",
-						"SCD30"
+						"SCD30",
+						"BME680"
 					]
 				}                     
 			},
@@ -1645,7 +1674,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"AHTx0",
 						"DS18B20",
 						"OpenWeather",
-						"SCD30"
+						"SCD30",
+						"BME680"
 					]
 				}                      
 			},                                   
@@ -2010,6 +2040,41 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 		return temperature, humidity
 
+	def _read_bme680(self, sensor_number):
+		temperature = None
+		humidity = None
+		pressure = None
+
+		i2c_address = self.get_param('i2caddress' + sensor_number, '', str)
+
+		try:
+			if i2c_address != "":
+				try:
+					i2c_address_int = int(i2c_address, 16)
+				except Exception as e:
+					eType, eObject, eTraceback = sys.exc_info()
+					allsky_shared.log(0, f'ERROR: Module read_bme680 failed on line {eTraceback.tb_lineno} - {e}')
+
+			if i2c_address != "":
+				sensor = bme680.BME680(i2c_address_int)
+			else:
+				sensor = bme680.BME680()
+
+			sensor.set_humidity_oversample(bme680.OS_2X)
+			sensor.set_pressure_oversample(bme680.OS_4X)
+			sensor.set_temperature_oversample(bme680.OS_8X)
+			sensor.set_filter(bme680.FILTER_SIZE_3)
+
+			if sensor.get_sensor_data():
+				temperature = sensor.data.temperature
+				humidity = sensor.data.humidity
+				pressure = sensor.data.pressure
+		except Exception as e:
+			eType, eObject, eTraceback = sys.exc_info()
+			allsky_shared.log(0, f'ERROR: Module read_bme680 failed on line {eTraceback.tb_lineno} - {e}')
+    
+		return temperature, humidity, pressure
+
 	def _read_bme280_i2c(self, sensor_number):
 		temperature = None
 		humidity = None
@@ -2017,14 +2082,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		relHumidity = None
 		altitude = None
 
-		i2c_address = self.get_param('i2caddress' + sensor_number, '', str)
-		if i2c_address != "":
-			try:
-				i2c_address_int = int(i2c_address, 16)
-			except Exception as e:
-				result = 'Address {i2c_address} is not a valid i2c address'
-				allsky_shared.log(0,"ERROR: {}".format(result))
-	
+		i2c_address = self.get_param('i2caddress' + sensor_number, '', str)	
 		if i2c_address != "":
 			try:
 				i2c_address_int = int(i2c_address, 16)
@@ -2148,7 +2206,6 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 		return temperature, humidity, co2
 
-
 	def _get_sensor_reading(self, sensor_type, sensor_number):
 		temperature = None
 		humidity = None
@@ -2175,7 +2232,9 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		elif sensor_type == 'SCD30':
 			temperature, humidity, co2 = self._read_scd30(sensor_number)
 		elif sensor_type == 'OpenWeather':
-			temperature, humidity, pressure, the_dew_point = self._read_open_weather(sensor_number)        
+			temperature, humidity, pressure, the_dew_point = self._read_open_weather(sensor_number)
+		elif sensor_type == 'BME680':
+			temperature, humidity, pressure = self._read_bme680(sensor_number) 
 		else:
 			allsky_shared.log(0, 'ERROR: No sensor type defined')
 

@@ -14,6 +14,7 @@ import board
 import busio
 import adafruit_tsl2591
 import adafruit_tsl2561
+from adafruit_ltr390 import LTR390, MeasurementDelay, Resolution, Gain
 
 class ALLSKYLIGHT(ALLSKYMODULEBASE):
 
@@ -30,8 +31,73 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 			"periodic"
 		],
 		"experimental": "false",
-		"extradatafilename": "allsky_light.json",  
+		"extradatafilename": "allsky_light.json",
+		"graphs": {
+			"chart1": {
+				"icon": "fa-solid fa-chart-line",
+				"title": "Light",
+				"group": "Environment",
+				"main": "true",
+				"config": {
+					"chart": {
+						"type": "spline",
+						"zooming": {
+							"type": "x"
+						}
+					},
+					"title": {
+						"text": "Light"
+					},
+					"xAxis": {
+						"type": "datetime",
+						"dateTimeLabelFormats": {
+							"day": "%Y-%m-%d",
+							"hour": "%H:%M"
+						}
+					},
+					"yAxis": [
+						{ 
+							"title": {
+								"text": "LUX level"
+							} 
+						},
+						{
+							"title": { 
+								"text": "Bortle"
+							}, 
+							"opposite": "true"
+						}
+					],
+					"lang": {
+						"noData": "No data available"
+					},
+					"noData": {
+						"style": {
+							"fontWeight": "bold",
+							"fontSize": "16px",
+							"color": "#666"
+						}
+					}
+				},
+				"series": {
+					"exposure": {
+						"name": "LUX level",
+						"yAxis": 0,
+						"variable": "AS_LIGHTLUX"                 
+					},
+					"gain": {
+						"name": "Bortle",
+						"yAxis": 1,
+						"variable": "AS_LIGHTBORTLE"
+					}               
+				}
+			}
+		}, 
 		"extradata": {
+			"database": {
+				"enabled": "True",
+				"table": "allsky_light"
+			}, 
 			"values": {
 				"AS_LIGHTLUX": {
 					"name": "${LIGHTLUX}",
@@ -57,7 +123,10 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 			"tsl2591gain": "25x",
 			"tsl2591integration": "100ms",
 			"tsl2561gain": "Low",
-			"tsl2561integration": "0"
+			"tsl2561integration": "0",
+			"ltr390resolution": "Default",
+			"ltr390gain": "Default",
+			"ltr390measurementdelay": "Default"
 		},
 		"argumentdetails": {
 			"type" : {
@@ -67,7 +136,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				"tab": "Sensor",         
 				"type": {
 					"fieldtype": "select",
-					"values": "None,TSL2591,TSL2561",
+					"values": "None,TSL2591,TSL2561,LTR390",
 					"default": "None"
 				}                
 			},        
@@ -78,7 +147,16 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				"help": "Override the standard i2c address for the sensor. NOTE: This value must be hex i.e. 0x76",
 				"type": {
 					"fieldtype": "i2c"
-				}         
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"TSL2591",
+						"TSL2561",
+						"LTR390"
+					]
+				}       
 			},
 			"tsl2591gain" : {
 				"required": "false",
@@ -151,7 +229,61 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 						"TSL2561"
 					]
 				}                
-			}                                                                                           
+			},
+			"ltr390resolution" : {
+				"required": "false",
+				"tab": "Sensor",
+				"description": "Sensor Resoluton",
+				"help": "The resolution of the internal ADC",
+				"type": {
+					"fieldtype": "select",
+					"values": "Default,13Bit,16Bit,17Bit,18Bit,19Bit,20Bit",
+					"default": "None"
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"LTR390"
+					]
+				}                  
+			},
+			"ltr390gain" : {
+				"required": "false",
+				"tab": "Sensor",         
+				"description": "Gain",
+				"help": "ALS and UVS gain range",
+				"type": {
+					"fieldtype": "select",
+					"values": "Default,1x,3x,6x,9x,18x",
+					"default": "None"
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"LTR390"
+					]
+				}                 
+			},
+			"ltr390measurementdelay" : {
+				"required": "false",
+				"tab": "Sensor",         
+				"description": "Delay",
+				"help": "Delay between measurements, useful for power saving",
+				"type": {
+					"fieldtype": "select",
+					"values": "Default,25ms,50ms,100ms,200ms,500ms,1000ms,2000ms",
+					"default": "None"
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"LTR390"
+					]
+				}               
+			}  
 		},
 		"enabled": "false",
 		"businfo": [
@@ -198,7 +330,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 			]                                               
 		}           
 	}
- 
+
 	def __read_TSL2591(self):
 		sensor = None
 		i2c = board.I2C()
@@ -275,8 +407,90 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				lux = 0
 
 		allsky_shared.log(4, f'TSL2561 read values - lux {lux}, infrared {infrared}, visible {visible}')
-   
+
 		return lux, infrared, visible
+
+	def _read_ltr390(self):
+		i2c_address = self.get_param('i2caddress', '', str, True)
+		resolution = self.get_param('ltr390resolution', '', str, True)
+		measurement_delay = self.get_param('ltr390measurementdelay', '', str, True)
+		gain = self.get_param('ltr390gain', '', str, True)
+
+		uvs = None
+		light = None
+		uvi = None
+		lux = None
+		ok = True
+
+		if i2c_address != "":
+			try:
+				i2c_address_int = int(i2c_address, 16)
+			except:
+				result = f"Address {i2c_address} is not a valid i2c address"
+				allsky_shared.log(0,f"ERROR: {result}")
+				ok = False
+
+		if ok:
+			try:
+				i2c = board.I2C()
+				if i2c_address != "":
+					ltr = LTR390(i2c, i2c_address_int)
+				else:
+					ltr = LTR390(i2c)
+
+				if resolution != "" and resolution != "Default":
+					if resolution == "13Bit":
+						ltr.resolution = Resolution.RESOLUTION_13BIT
+					if resolution == "16Bit":
+						ltr.resolution = Resolution.RESOLUTION_16BIT
+					if resolution == "17Bit":
+						ltr.resolution = Resolution.RESOLUTION_17BIT
+					if resolution == "18Bit":
+						ltr.resolution = Resolution.RESOLUTION_18BIT
+					if resolution == "19Bit":
+						ltr.resolution = Resolution.RESOLUTION_19BIT
+					if resolution == "20Bit":
+						ltr.resolution = Resolution.RESOLUTION_20BIT
+						
+				if gain != "" and gain != "Default":
+					if gain == "1x":
+						ltr.gain = Gain.GAIN_1X
+					if gain == "3x":
+						ltr.gain = Gain.GAIN_3X
+					if gain == "6x":
+						ltr.gain = Gain.GAIN_6X
+					if gain == "9x":
+						ltr.gain = Gain.GAIN_9X
+					if gain == "18x":
+						ltr.gain = Gain.GAIN_18X
+
+				if measurement_delay != "" and measurement_delay != "Default":
+					if measurement_delay == "25ms":
+						ltr.measurement_delay = MeasurementDelay.DELAY_25MS
+					if measurement_delay == "50ms":
+						ltr.measurement_delay = MeasurementDelay.DELAY_50MS
+					if measurement_delay == "100ms":
+						ltr.measurement_delay = MeasurementDelay.DELAY_100MS
+					if measurement_delay == "200ms":
+						ltr.measurement_delay = MeasurementDelay.DELAY_200MS
+					if measurement_delay == "500ms":
+						ltr.measurement_delay = MeasurementDelay.DELAY_500MS
+					if measurement_delay == "1000ms":
+						ltr.measurement_delay = MeasurementDelay.DELAY_1000MS
+					if measurement_delay == "2000ms":
+						ltr.measurement_delay = MeasurementDelay.DELAY_2000MS
+
+				uvs = ltr.uvs
+				light = ltr.light
+				uvi = ltr.uvi
+				lux = ltr.lux
+    
+				return lux, 0, light
+
+			except Exception as e:
+				eType, eObject, eTraceback = sys.exc_info()
+				result = f"Module light (ltr390) failed on line {eTraceback.tb_lineno} - {e}"
+				allsky_shared.log(1, f"ERROR: {result}")
 
 	def __lux_to_bortle(self, lux):
 		if lux <= 0.1:
@@ -297,10 +511,10 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 			return 8  # Suburban/urban
 		else:
 			return 9  # Inner-city sky
-    		
+
 	def run(self):
 		result = ''
-  
+
 		sensor = self.get_param('type', 'none', str, True).lower()
 		if sensor != "none":
 			if sensor == "tsl2591":
@@ -308,16 +522,19 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 
 			if sensor == "tsl2561":
 				lux, infrared, visible = self.__read_TSL2561()
-					
+			
+			if sensor == "ltr390":
+				lux, infrared, visible = self._read_ltr390()
+
 			if lux is not None:
 				try:
 					bortle = self.__lux_to_bortle(lux)
-     
+
 					extra_data = {}
 					extra_data['AS_LIGHTLUX'] = lux
 					extra_data['AS_LIGHTBORTLE'] = bortle
 					allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
-     
+
 					result = f'Lux {lux}, Bortle {bortle}'
 					allsky_shared.log(4, f"INFO: {result}")		
 				except Exception as e:
@@ -343,12 +560,12 @@ def light(params, event):
 
 def light_cleanup():
 	moduleData = {
-	    "metaData": ALLSKYLIGHT.meta_data,
-	    "cleanup": {
-	        "files": {
-	            ALLSKYLIGHT.meta_data['extradatafilename']
-	        },
-	        "env": {}
-	    }
+		"metaData": ALLSKYLIGHT.meta_data,
+		"cleanup": {
+			"files": {
+				ALLSKYLIGHT.meta_data['extradatafilename']
+			},
+			"env": {}
+		}
 	}
 	allsky_shared.cleanupModule(moduleData)

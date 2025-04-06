@@ -57,6 +57,16 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 					"title": {
 						"text": "Air Quality"
 					},
+					"lang": {
+						"noData": "No data available"
+					},
+					"noData": {
+						"style": {
+							"fontWeight": "bold",
+							"fontSize": "16px",
+							"color": "#666"
+						}
+					},
 					"xAxis": {
 						"type": "datetime",
 						"dateTimeLabelFormats": {

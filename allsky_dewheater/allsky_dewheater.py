@@ -79,6 +79,16 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 					"title": {
 						"text": "Temperature, Dew Point, Humidity, Duty Cycle"
 					},
+					"lang": {
+						"noData": "No data available"
+					},
+					"noData": {
+						"style": {
+							"fontWeight": "bold",
+							"fontSize": "16px",
+							"color": "#666"
+						}
+					},
 					"xAxis": {
 						"type": "datetime",
 						"dateTimeLabelFormats": {
@@ -103,22 +113,22 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				"series": {
 					"heater": {
 						"name": "Heater",
-						"yAxis": "0",
+						"yAxis": 0,
 						"variable": "AS_DEWCONTROLPWMDUTYCYCLE"                 
 					},
 					"temperature": {
 						"name": "Temperature",
-						"yAxis": "1",
+						"yAxis": 1,
 						"variable": "AS_DEWCONTROLAMBIENT"
 					},
 					"dewpoint": {
 						"name": "Dew Point",                    
-						"yAxis": "0",
+						"yAxis": 0,
 						"variable": "AS_DEWCONTROLDEW"
 					},
 					"humidity": {
 						"name": "Humidity",                    
-						"yAxis": "1",
+						"yAxis": 1,
 						"variable": "AS_DEWCONTROLHUMIDITY"
 					}                
 				}

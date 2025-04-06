@@ -110,6 +110,16 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 							"animation": "false"
 						}
 					},
+					"lang": {
+						"noData": "No data available"
+					},
+					"noData": {
+						"style": {
+							"fontWeight": "bold",
+							"fontSize": "16px",
+							"color": "#666"
+						}
+					},
 					"yAxis": {
 						"min": 0,
 						"max": 100,
