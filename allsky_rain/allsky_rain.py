@@ -27,8 +27,57 @@ class ALLSKYRAIN(ALLSKYMODULEBASE):
 			"night",
 			"periodic"
 		],
-		"extradatafilename": "allsky_rain.json", 
+		"extradatafilename": "allsky_rain.json",
+        "graphs": {
+			"chart1": {
+				"icon": "fas fa-chart-line",
+				"title": "Rain State",
+				"group": "Environment",
+				"main": "true",    
+				"config": {
+					"chart": {
+						"type": "spline",
+						"zooming": {
+							"type": "x"
+						}
+					},
+					"title": {
+						"text": "Rain State"
+					},
+					"xAxis": {
+						"type": "datetime",
+						"dateTimeLabelFormats": {
+							"day": "%Y-%m-%d",
+							"hour": "%H:%M"
+						}
+					},
+					"plotOptions": {
+						"series": {
+							"animation": "false"
+						}
+					},
+					"yAxis": [
+						{ 
+							"title": {
+								"text": "Raining"
+							} 
+						}
+					]
+				},
+				"series": {
+					"rain": {
+						"name": "Rain State",
+						"yAxis": 0,
+						"variable": "AS_ALLSKYRAINFLAGINT"                 
+					}           
+				}
+			}
+		},
 		"extradata": {
+			"database": {
+				"enabled": "True",
+				"table": "allsky_rain"
+			},
 			"values": {
 				"AS_RAINSTATE": {
 					"name": "${RAINSTATE}",
@@ -45,7 +94,15 @@ class ALLSKYRAIN(ALLSKYMODULEBASE):
 					"group": "Environment",
 					"description": "Rain state boolean",
 					"type": "bool"
-				}         
+				},
+				"AS_ALLSKYRAINFLAGINT": {
+					"name": "${ALLSKYRAINFLAGINT}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "Rain state integer",
+					"type": "number"
+				}
 			}                         
 		},
 		"arguments":{
@@ -68,7 +125,14 @@ class ALLSKYRAIN(ALLSKYMODULEBASE):
 				"type": {
 					"fieldtype": "checkbox"
 				}               
-			}             
+			},
+			"graph": {
+				"required": "false",
+				"tab": "History",
+				"type": {
+					"fieldtype": "graph"
+				}
+			}            
 		},
 		"changelog": {
 			"v1.0.0" : [
@@ -117,6 +181,8 @@ class ALLSKYRAIN(ALLSKYMODULEBASE):
 						extra_data = {}
 						extra_data['AS_RAINSTATE'] = result_state
 						extra_data['AS_ALLSKYRAINFLAG'] = rain_flag
+						extra_data['AS_ALLSKYRAINFLAGINT'] = int(bool(rain_flag))
+      
 						allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 
 						result = f'Rain State: Its {result_state}'

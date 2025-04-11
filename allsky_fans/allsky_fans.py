@@ -14,7 +14,7 @@ dtoverlay=pwm-2chan
 import allsky_shared as allsky_shared
 from allsky_base import ALLSKYMODULEBASE
 import sys
-import pigpio
+
 
 class ALLSKYFANS(ALLSKYMODULEBASE):
     
@@ -770,15 +770,10 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		return temperature
 
 	def _set_gpio_pin_state(self, state):
-		result = True
-		pi = pigpio.pi(show_errors=False)
-		if pi.connected:
-			if self._invert_relay:
-				state = not state
-			pi.set_mode(self._fan_pin, pigpio.OUTPUT)
-			pi.write(self._fan_pin, state)
-		else:
-			result = False
+		if self._invert_relay:
+			state = not state
+			
+		result = allsky_shared.set_gpio_pin(self._fan_pin, state)
 
 		return result
 
@@ -790,13 +785,11 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 
 	def _display_status(self, value):
 		return 'On' if value else 'Off'
-    
+
 	def _use_bool_fan_control(self):
 		error = False
 		state = False
-		pi = pigpio.pi(show_errors=False)
-		pi.set_PWM_dutycycle(self._fan_pin, 0)
-		pi.stop()
+		allsky_shared.stop_pwm(self._fan_pin)
 
 		if (self._temperature > self._temperature_limit):
 			fan_result = self._turn_fan_on()

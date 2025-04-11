@@ -7,10 +7,7 @@ https://github.com/thomasjacquin/allsky
 '''
 import allsky_shared as allsky_shared
 from allsky_base import ALLSKYMODULEBASE
-import numpy as np
-import board
 import sys
-import pigpio
 
 class ALLSKYGPIO(ALLSKYMODULEBASE):
 
