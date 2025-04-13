@@ -417,7 +417,10 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			"pwmmin2": 0,
 			"pwmmax2": 100,
 			"limitInternal2": 60,
-			"temperature2": "AS_TEMP"
+			"temperature2": "AS_TEMP",
+
+			"enabledataage": "false",
+			"dataage": "0"
 		},
 		"argumentdetails": {
 			"enable1" : {
@@ -682,6 +685,34 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					"filtertype": "show",
 					"values": [
 						"usepwm2"
+					]
+				}         
+			},
+			"enabledataage" : {
+				"required": "false",
+				"description": "Custom Data Expiry",
+				"help": "Enable custom data expiry. This will overrides the default in the module manager",
+				"tab": "Data Control",
+    			"type": {
+					"fieldtype": "checkbox"
+				}
+			},  
+			"dataage" : {
+				"required": "false",
+				"description": "Data Age",
+				"help": "After this number of seconds if the module data is not updated it will be removed.",
+				"tab": "Data Control",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 60000,
+					"step": 1
+				},
+				"filters": {
+					"filter": "enabledataage",
+					"filtertype": "show",
+					"values": [
+						"enabledataage"
 					]
 				}         
 			},
