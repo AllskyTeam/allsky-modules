@@ -132,6 +132,64 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 						"variable": "AS_DEWCONTROLHUMIDITY"
 					}                
 				}
+			},
+			"guageheater": {
+				"icon": "fa-solid fa-toggle-on",
+				"title": "Heater",
+				"group": "Environment",
+				"type": "gauge",
+				"config": {
+					"chart": {
+						"type": "solidgauge"
+					},
+					"title": {
+						"text": "System Status",
+						"style": {
+							"fontSize": "18px"
+						}
+					},
+					"pane": {
+						"center": ["50%", "85%"],
+						"size": "100%",
+						"startAngle": -90,
+						"endAngle": 90,
+						"background": {
+							"backgroundColor": "#EEE",
+							"innerRadius": "60%",
+							"outerRadius": "100%",
+							"shape": "arc"
+						}
+					},
+					"tooltip": {
+						"enabled": "false"
+					},
+					"yAxis": {
+						"min": 0,
+						"max": 1,
+						"stops": [
+							[0, "#DF5353"],
+							[1, "#55BF3B"]
+						],
+						"lineWidth": 0,
+						"tickWidth": 0,
+						"labels": {
+							"enabled": "false"
+						}
+					},
+					"plotOptions": {
+						"solidgauge": {
+							"dataLabels": {
+								"y": -20,
+								"borderWidth": 0,
+								"useHTML": "true"
+							}
+						}
+					},
+					"series": [{
+						"name": "Status",
+						"data": [1]
+					}]
+				}           
 			}
 		},
 

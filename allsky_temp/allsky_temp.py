@@ -198,7 +198,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					"sample": "",                  
 					"group": "Environment",
 					"description": "Humidity from ${AS_TEMPSENSORNAME${COUNT}}",
-					"type": "float"
+					"type": "number"
 				},
 				"AS_PRESSURE${COUNT}": {
 					"name": "${PRESSURE${COUNT}}",
@@ -206,7 +206,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Environment",
 					"description": "Pressure from ${AS_TEMPSENSORNAME${COUNT}}",
-					"type": "float"
+					"type": "number"
 				},
 				"AS_RELHUMIDITY${COUNT}": {
 					"name": "${RELHUMIDITY${COUNT}}",
@@ -222,7 +222,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Environment",
 					"description": "Altitude from ${AS_TEMPSENSORNAME${COUNT}}",
-					"type": "float"
+					"type": "number"
 				},
 				"AS_CO2${COUNT}": {
 					"name": "${CO2${COUNT}}",

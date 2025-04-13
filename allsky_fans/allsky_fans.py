@@ -336,7 +336,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Fan",
 					"description": "Fan 1 PWM Duty Cycle",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_FANS_ENABLE2": {
 					"name": "${FANS_ENABLE2}",
@@ -392,7 +392,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Fan",
 					"description": "Fan 2 PWM Duty Cycle",
-					"type": "Number"
+					"type": "number"
 				}
 			}
 		}, 

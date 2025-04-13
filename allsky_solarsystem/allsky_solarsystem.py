@@ -55,7 +55,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				},
 				"AS_MOON_ILLUMINATION": {
 					"group": "Solar System",
-					"type": "float",
+					"type": "number",
 					"description": "The Moons illumination %"
 				},
 				"AS_MOON_SYMBOL": {

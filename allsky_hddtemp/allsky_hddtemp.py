@@ -25,12 +25,181 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 		"experimental": "true",
 		"centersettings": "false",
 		"testable": "true",
-		"extradatafilename": "allsky_hddtemp.json",   
-		"extradata": {
-			"info": {
-				"count": 4,
-				"firstblank": "true"
+		"extradatafilename": "allsky_hddtemp.json",
+        "graphs": {
+            "hddtemp": {
+				"icon": "fa-solid fa-chart-line",
+				"title": "HDD Temp",
+				"group": "Hardware",
+				"main": "true",
+				"config": {
+					"chart": {
+						"type": "spline",
+						"zooming": {
+							"type": "x"
+						}
+					},
+					"title": {
+						"text": "HDD Temp"
+					},
+					"plotOptions": {
+						"series": {
+							"animation": "false"
+						}
+					},
+					"xAxis": {
+						"type": "datetime",
+						"dateTimeLabelFormats": {
+							"day": "%Y-%m-%d",
+							"hour": "%H:%M"
+						}
+					},
+					"yAxis": [
+						{ 
+							"title": {
+								"text": "Temp"
+							} 
+						}
+					],
+					"lang": {
+						"noData": "No data available"
+					},
+					"noData": {
+						"style": {
+							"fontWeight": "bold",
+							"fontSize": "16px",
+							"color": "#666"
+						}
+					}
+				},
+				"series": {
+					"hdda": {
+						"name": "sda Temp",
+						"yAxis": 0,
+						"variable": "AS_HDDSDATEMP"                 
+					},
+					"hddb": {
+						"name": "sdb Temp",
+						"yAxis": 0,
+						"variable": "AS_HDDSDBTEMP"                 
+					},
+					"hddc": {
+						"name": "sdc Temp",
+						"yAxis": 0,
+						"variable": "AS_HDDSDCTEMP"                 
+					} 
+				}
 			},
+            "guagehdda": {
+				"icon": "fa-solid fa-gauge",
+				"title": "HDA Temp",
+				"group": "Hardware",
+				"type": "gauge",
+				"config": {
+					"chart": {
+						"type": "gauge",
+						"plotBorderWidth": 0,
+						"height": "50%",
+						"plotBackgroundColor": "",
+						"plotBackgroundImage": ""
+					},
+					"title": {
+						"text": "HDA Temp"
+					},
+					"pane": {
+						"startAngle": -90,
+						"endAngle": 89.9,
+						"center": ["50%", "75%"],
+						"size": "110%",
+						"background": ""
+					},
+					"plotOptions": {
+						"series": {
+							"animation": "false"
+						}
+					},
+					"lang": {
+						"noData": "No data available"
+					},
+					"noData": {
+						"style": {
+							"fontWeight": "bold",
+							"fontSize": "16px",
+							"color": "#666"
+						}
+					},
+					"yAxis": {
+						"min": 0,
+						"max": 100,
+						"tickPixelInterval": 72,
+						"tickPosition": "inside",
+						"tickColor": "#FFFFFF",
+						"tickLength": 20,
+						"tickWidth": 2,
+						"labels": {
+							"distance": 20,
+							"style": {
+								"fontSize": "14px"
+							}
+						},
+						"lineWidth": 0,
+						"plotBands": [{
+							"from": 0,
+							"to": 70,
+							"color": "#55BF3B",
+							"thickness": 20
+						}, {
+							"from": 60,
+							"to": 80,
+							"color": "#DDDF0D",
+							"thickness": 20
+						}, {
+							"from": 80,
+							"to": 100,
+							"color": "#DF5353",
+							"thickness": 20
+						}]
+					},
+					"series": [{
+						"name": "Temperature",
+						"data": "AS_HDDSDATEMP",
+						"tooltip": {
+							"valueSuffix": ""
+						},
+						"dataLabels": {
+							"format": "{y}",
+							"borderWidth": 0,
+							"color": "#333333",
+							"style": {
+								"fontSize": "16px"
+							}
+						},
+					"plotOptions": {
+						"series": {
+							"animation": "false"
+						}
+					},
+						"dial": {
+							"radius": "80%",
+							"backgroundColor": "gray",
+							"baseWidth": 12,
+							"baseLength": "0%",
+							"rearLength": "0%"
+						},
+						"pivot": {
+							"backgroundColor": "gray",
+							"radius": 6
+						}
+
+					}]        
+				}            
+            }
+		},   
+		"extradata": {
+			"database": {
+				"enabled": "True",
+				"table": "allsky_hddtemp"
+			},   
 			"values": {
 				"AS_HDDSDATEMP": {
 					"format": "",
@@ -129,7 +298,14 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 				"type": {
 					"fieldtype": "colour"             
 				}       
-			}
+			},
+			"graph": {
+				"required": "false",
+				"tab": "History",
+				"type": {
+					"fieldtype": "graph"
+				}
+			} 
 		},
 		"enabled": "false",
 		"changelog": {
@@ -193,12 +369,12 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 							if self._use_colour:
 								colour = self._ok_colour if temp <= self._ok_temp else self._bad_colour
 								extra_data[hdd_name] = {
-									'value': str(temp),
+									'value': float(temp),
 									'fill': colour
 								}
 								allsky_shared.log(4, f'INFO: Temperature of {name} is {temp}C, using colour ({colour}), max is {self._ok_temp}C')
 							else:
-								extra_data[hdd_name] = str(temp)
+								extra_data[hdd_name] = float(temp)
 								allsky_shared.log(4, f'INFO: Temperature of {name} is {temp}')
 						else:
 							result = f'No temperature data available for {name}'
@@ -209,12 +385,12 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 							if self._use_colour:
 								colour = self._ok_colour if temp_max <= self._ok_temp else self._bad_colour
 								extra_data[hdd_name] = {
-									'value': str(temp_max),
+									'value': float(temp_max),
 									'fill': colour
 								}
 								allsky_shared.log(4, f'INFO: Max temperature of {name} is {temp_max}C, using colour ({colour}), max is {self._ok_temp}C')
 							else:
-								extra_data[hdd_name] = str(temp_max)
+								extra_data[hdd_name] = float(temp_max)
 								allsky_shared.log(4, f'INFO: Max temperature of {name} is {temp}')
 						else:
 							result1 = f'No max temperature data available for {name}'

@@ -42,7 +42,7 @@ class ALLSKYCLOUD(ALLSKYMODULEBASE):
 					"sample": "",                
 					"group": "Cloud",
 					"description": "Ambient Temperature",
-					"type": "float"
+					"type": "number"
 				},              
 				"AS_CLOUDSKY": {
 					"name": "${CLOUDSKY}",
@@ -50,7 +50,7 @@ class ALLSKYCLOUD(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Clous",
 					"description": "Sky Temperature",
-					"type": "float"
+					"type": "number"
 				},
 				"AS_CLOUDCOVER": {
 					"name": "${CLOUDCOVER}",
@@ -66,7 +66,7 @@ class ALLSKYCLOUD(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Cloud",
 					"description": "Cloud cover percentage",
-					"type": "float"
+					"type": "number"
 				}
 			}                         
 		},     
