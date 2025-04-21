@@ -1,5 +1,6 @@
 import sys
 import board
+import datetime
 import allsky_shared as s
 from barbudor_ina3221.full import *
 
