@@ -29,6 +29,11 @@ The module contains the following options
 ```
 
 ### Release info
+### V.1.0.5
+* Added disable upload option
+* Added Upload Frequency Option
+* A default ExtraData file is saved for overlay variables consitency
+
 ### V.1.0.4
 * BRG to RGB while reading from `s.image`
 
