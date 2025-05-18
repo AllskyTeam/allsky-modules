@@ -15,8 +15,7 @@ metaData = {
         "nightday",
         "daynight"
     ],
-    "experimental": "false",
-    
+    "experimental": "false",  
     "arguments":{
         "SMTPSERVER": "smtp.gmail.com",
         "SMTPPORT" : "587",
@@ -36,7 +35,7 @@ metaData = {
         },
         "SMTPPORT" : {
             "required": "true",
-            "description": "gmail SMTP server port",
+            "description": "SMTP server port",
             "help": "",
             "tab": "Gmail Setup"
         },
@@ -49,45 +48,44 @@ metaData = {
         "EMAILPASSWORD": {
             "required": "true",
             "tab": "Gmail Setup",            
-            "description": "App Passsword"
+            "description": "App Passsword",
+            "tab": "Gmail Setup"
         }, 
-        "recipientemail" : {
+        "recipientEmail" : {
             "required": "TRUE",
-            "description": "recipient email adressess",
+            "description": "Recipient email adressess",
             "help": "",
-            "tab": "Gmail Setup"             
+            "tab": "Notification Setup"             
         },
         "startrails" : {
             "required": "false",
-            "description": "Post Star Trails Images",
+            "description": "Send Star Trails Image",
             "help": "Post Star Trails images to the Discord Server",
-            "tab": "Gmail Setup",
+            "tab": "Notification Setup",
             "type": {
                 "fieldtype": "checkbox"
             }          
         }, 
         "keogram" : {
             "required": "false",
-            "description": "Post Keograms Images",
+            "description": "Send Keogram Image",
             "help": "Post Keograms images to the Discord Server",
-            "tab": "Gmail Setup",
+            "tab": "Notification Setup",
             "type": {
                 "fieldtype": "checkbox"
             }          
         }, 
         "timelapse" : {
             "required": "false",
-            "description": "Post Timelapse videos",
+            "description": "Send Timelapse video",
             "help": "Post Timelapse videos to the Discord Server",
-            "tab": "Gmail Setup",
+            "tab": "Notification Setup",
             "type": {
                 "fieldtype": "checkbox"
             }          
         }
     },
-    
     "enabled": "false",
-    
     "changelog": {
         "v0.1" : [
             {
@@ -107,13 +105,12 @@ def gmailsend(params, event):
     #EMAIL_PASSWORD = "pbdt dcll qzup cswp"  # Use an App Password (not your actual Gmail password)
     #RECIPIENT_EMAIL = "jkc523@duck.com"  # Replace with recipient email
 
-
     # Gmail SMTP configuration
     SMTP_SERVER = params['SMTPSERVER'] #"smtp.gmail.com"
     SMTP_PORT = params['SMTPPORT']
     EMAIL_ADDRESS = params['EMAILADDRESS']         # Replace with your Gmail address
     EMAIL_PASSWORD = params['EMAILPASSWORD']       # Use an App Password (not your actual Gmail password)
-    RECIPIENT_EMAIL = params['recipientemail']     # Replace with recipient email
+    RECIPIENT_EMAIL = params['recipientEmail']     # Replace with recipient email
 
     # Get yesterday's date in YYYYMMDD format
     yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y%m%d")
@@ -148,7 +145,7 @@ def gmailsend(params, event):
             server.starttls()  # Secure connection
             server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
             server.send_message(msg)
-        result = ("Email sent successfully")
+        result = "Email sent successfully"
     except Exception as e:
         result = (f"Error sending email: {e}")
     
