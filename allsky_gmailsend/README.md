@@ -4,9 +4,8 @@
 | ------------ | ------------ |
 | **Status**   | Experimental |
 | **Level**    | Intermediate |
-| **Runs In**  | endofnight   |
+| **Runs In**  | endofnight <br>end of day   |
 |||
-
 This module allows for automatically emailing nightly Stratrails and keogram images from a Gmail account. 
 
 **Prerequisites:**
@@ -15,7 +14,6 @@ A Google Account with MFA enabled and an app password.
 The app password is a 16-digit passcode that gives the script permission to access your Google Account in order to send email.  DO NOT SHARE your App Password.
 
 (App passwords can only be used with accounts that have 2-Step Verification turned on.)
-
 
 Please see [Sign in with app passwords](https://support.google.com/accounts/answer/185833?hl=en) for details on how to setup an App Password.
 
