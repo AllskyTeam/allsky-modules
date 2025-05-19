@@ -16,17 +16,17 @@ metaData = {
     ],
     "experimental": "false",  
     "arguments":{
-        "smtpServer": "smtp.gmail.com",
-        "smtpPort" : "587",
-        "emailAddress": "your_email@gmail.com", 
-        "emailPassword": "your_app_password",
         "recipientEmail": "recipient@example.com",
         "subjectText":"Last night's Allsky images",
         "subjectDate":"true",
-        "messageBody":"Attached are last night's Allsky camera images",
+        "messageBody":"Attached are last night's Allsky camera images.",
         "startrails": "false",
         "keogram": "false",
-        "timelapse": "false"
+        "timelapse": "false",
+        "emailAddress": "your_email@gmail.com", 
+        "emailPassword": "your_app_password",
+        "smtpServer": "smtp.gmail.com",
+        "smtpPort" : "587"
     },
     "argumentdetails": { 
         "recipientEmail" : {
@@ -92,9 +92,9 @@ metaData = {
         "emailPassword": {
             "required": "true",        
             "description": "Sender Google App Password",
-            "help": "(NOT your gmail login password. Get this from your google acocunt's security settings.",
+            "help": "(NOT your gmail login password. Get this from your google account's security settings.",
             "tab": "Gmail Account Setup"
-        }
+        },
         "smtpServer" : {
             "required": "true",
             "description": "gmail SMTP server address",
