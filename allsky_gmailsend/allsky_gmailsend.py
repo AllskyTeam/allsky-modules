@@ -6,61 +6,60 @@ from email.message import EmailMessage
 
 metaData = {
     "name": "Send with Gmail",
-    "description": "emails nightly images to email recipients.",
+    "description": "emails nightly images to email recipients",
     "version": "v0.1",
     "pythonversion": "3.9.0",
     "module": "allsky_gmailsend",    
     "events": [
-        "periodic",
         "nightday",
-        "daynight"
+        "periodic"
     ],
     "experimental": "false",  
     "arguments":{
-        "SMTPSERVER": "smtp.gmail.com",
-        "SMTPPORT" : "587",
-        "EMAILADDRESS": "your_email@gmail.com", 
-        "EMAILPASSWORD": "your_app_password",
-        "recipientemail": "recipient@example.com",
+        "smtpServer": "smtp.gmail.com",
+        "smtpPort" : "587",
+        "emailAddress": "your_email@gmail.com", 
+        "emailPassword": "your_app_password",
+        "recipientEmail": "recipient@example.com",
+        "subjectText":"Last night's Allsky images",
+        "subjectDate":"true",
+        "messageBody":"Attached are last night's Allsky camera images",
         "startrails": "false",
         "keogram": "false",
         "timelapse": "false"
     },
-    "argumentdetails": {
-        "SMTPSERVER" : {
-            "required": "true",
-            "description": "gmail SMTP server address",
-            "help": "",
-            "tab": "Gmail Setup",          
-        },
-        "SMTPPORT" : {
-            "required": "true",
-            "description": "SMTP server port",
-            "help": "",
-            "tab": "Gmail Setup"
-        },
-        "EMAILADDRESS" : {
-            "required": "true",
-            "description": "sender account email address",
-            "help": "",
-            "tab": "Gmail Setup"   
-        },        
-        "EMAILPASSWORD": {
-            "required": "true",
-            "tab": "Gmail Setup",            
-            "description": "App Passsword",
-            "tab": "Gmail Setup"
-        }, 
+    "argumentdetails": { 
         "recipientEmail" : {
-            "required": "TRUE",
-            "description": "Recipient email adressess",
+            "required": "true",
+            "description": "Recipient email adresess",
+            "help": "only enter one email address",
+            "tab": "Notification Setup"             
+        },
+        "subjectText" : {
+            "required": "true",
+            "description": "Email Subject Line",
             "help": "",
+            "tab": "Notification Setup"             
+        },
+        "subjectDate" : {
+            "required": "false",
+            "description": "Append date to Subject line",
+            "help": "eg: Last night's Allsky images - 20250401",
+            "tab": "Notification Setup",
+            "type": {
+                "fieldtype": "checkbox"
+            }                
+        },
+        "messageBody" : {
+            "required": "true",
+            "description": "Email Message Text",
+            "help": "Any message body text you want to include.  File names will be appended to this text.",
             "tab": "Notification Setup"             
         },
         "startrails" : {
             "required": "false",
-            "description": "Send Star Trails Image",
-            "help": "Post Star Trails images to the Discord Server",
+            "description": "Attach Star Trails",
+            "help": "",
             "tab": "Notification Setup",
             "type": {
                 "fieldtype": "checkbox"
@@ -68,8 +67,8 @@ metaData = {
         }, 
         "keogram" : {
             "required": "false",
-            "description": "Send Keogram Image",
-            "help": "Post Keograms images to the Discord Server",
+            "description": "Attach Keogram",
+            "help": "",
             "tab": "Notification Setup",
             "type": {
                 "fieldtype": "checkbox"
@@ -77,12 +76,36 @@ metaData = {
         }, 
         "timelapse" : {
             "required": "false",
-            "description": "Send Timelapse video",
-            "help": "Post Timelapse videos to the Discord Server",
+            "description": "Attach Timelapse",
+            "help": "",
             "tab": "Notification Setup",
             "type": {
                 "fieldtype": "checkbox"
             }          
+        },
+        "emailAddress" : {
+            "required": "true",
+            "description": "Sender email address",
+            "help": "",
+            "tab": "Gmail Account Setup"   
+        },        
+        "emailPassword": {
+            "required": "true",        
+            "description": "Sender Google App Password",
+            "help": "(NOT your gmail login password. Get this from your google acocunt's security settings.",
+            "tab": "Gmail Account Setup"
+        }
+        "smtpServer" : {
+            "required": "true",
+            "description": "gmail SMTP server address",
+            "help": "you should not need to change this",
+            "tab": "Gmail Account Setup"          
+        },
+        "smtpPort" : {
+            "required": "true",
+            "description": "SMTP server port",
+            "help": "you should not need to change this",
+            "tab": "Gmail Account Setup"
         }
     },
     "enabled": "false",
@@ -99,54 +122,63 @@ metaData = {
 
 def gmailsend(params, event):
     # Gmail SMTP configuration
-    #SMTP_SERVER = "smtp.gmail.com"
-    #SMTP_PORT = 587
-    #EMAIL_ADDRESS = "kcottingham@gmail.com"  # Replace with your Gmail address
-    #EMAIL_PASSWORD = "pbdt dcll qzup cswp"  # Use an App Password (not your actual Gmail password)
-    #RECIPIENT_EMAIL = "jkc523@duck.com"  # Replace with recipient email
-
-    # Gmail SMTP configuration
-    SMTP_SERVER = params['SMTPSERVER'] #"smtp.gmail.com"
-    SMTP_PORT = params['SMTPPORT']
-    EMAIL_ADDRESS = params['EMAILADDRESS']         # Replace with your Gmail address
-    EMAIL_PASSWORD = params['EMAILPASSWORD']       # Use an App Password (not your actual Gmail password)
-    RECIPIENT_EMAIL = params['recipientEmail']     # Replace with recipient email
-
+    smtpServer = params['smtpServer']
+    smtpPort = params['smtpPort']
+    emailAddress = params['emailAddress']
+    emailPassword = params['emailPassword']
+    recipientEmail = params['recipientEmail']
+    subjectText = params['subjectText']
+    subjectDate = params['subjectDate']
+    messageBody = params['messageBody']
+    startrails = params['startrails']
+    keogram = params['keogram']
+    timelapse = params['timelapse']
+    
+    result = "starting"
+    
     # Get yesterday's date in YYYYMMDD format
     yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y%m%d")
 
     # Get user's home directory dynamically
     home_dir = os.path.expanduser("~")
 
-    # Define file paths relative to the user's home directory
-    file_paths = [
-        os.path.join(home_dir, f"allsky/images/{yesterday}/startrails/startrails-{yesterday}.jpg"),
-        os.path.join(home_dir, f"allsky/images/{yesterday}/keogram/keogram-{yesterday}.jpg")
-    ]
-
     # Create email message
     msg = EmailMessage()
-    msg["Subject"] = f"Last night’s startrails and keogram: {yesterday}"
-    msg["From"] = EMAIL_ADDRESS
-    msg["To"] = RECIPIENT_EMAIL
-    msg.set_content(f"Attached are the Allsky images from last night: \n{os.path.basename(file_paths[0])}\n{os.path.basename(file_paths[1])}")
-
-    # Attach files
-    for file_path in file_paths:
+    msg["From"] = emailAddress
+    msg["To"] = recipientEmail
+    
+    if subjectDate:
+        msg["Subject"] = (subjectText + f" - {yesterday}")     
+    else: 
+        msg["Subject"] = subjectText
+    
+    msg.set_content(
+        f"{messageBody}"
+    )
+    
+    # Attach Files as required
+    if startrails:
+        file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/startrails/startrails-{yesterday}.jpg")
         if os.path.exists(file_path):
+            msg.set_content(msg.get_content() + f"\n{os.path.basename(file_path)}")
             with open(file_path, "rb") as f:
-                msg.add_attachment(f.read(), maintype="image", subtype="jpeg", filename=os.path.basename(file_path))
-        #else:
-        #    print(f"Warning: File not found - {file_path}")
+                msg.add_attachment(f.read(), maintype="image", subtype="jpeg", filename=os.path.basename(file_path))          
+               
+    if keogram:
+        file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/keogram/keogram-{yesterday}.jpg")
+        if os.path.exists(file_path):
+            msg.set_content(msg.get_content() + f"\n{os.path.basename(file_path)}")
+            with open(file_path, "rb") as f:
+                msg.add_attachment(f.read(), maintype="image", subtype="jpeg", filename=os.path.basename(file_path))          
 
     # Send email via Gmail SMTP
     try:
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+        with smtplib.SMTP(smtpServer, smtpPort) as server:
             server.starttls()  # Secure connection
-            server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+            server.login(emailAddress, emailPassword)
             server.send_message(msg)
         result = "Email sent successfully"
     except Exception as e:
-        result = (f"Error sending email: {e}")
+        result = f"Error sending email: {e}"
     
     return result
