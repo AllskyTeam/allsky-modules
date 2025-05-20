@@ -10,7 +10,7 @@ metaData = {
     "description": "emails nightly images to email recipients",
     "version": "v0.1",
     "pythonversion": "3.9.0",
-    "module": "allsky_gmailsend-2",    
+    "module": "allsky_gmailsend2",    
     "events": [
         "nightday",
         "periodic"
@@ -121,8 +121,8 @@ metaData = {
     }              
 }
 
-def gmailsend-2(params, event):
-    # Gmail SMTP configuration
+def gmailsend2(params, event):
+    # Gmail SMTP configuration and parameters
     smtpServer = params['smtpServer']
     smtpPort = params['smtpPort']
     emailAddress = params['emailAddress']
@@ -143,7 +143,7 @@ def gmailsend-2(params, event):
     # Get user's home directory dynamically
     home_dir = os.path.expanduser("~")
 
-    # Create email message
+    # Initialize emailmessage details
     msg = EmailMessage()
     msg["From"] = emailAddress
     msg["To"] = recipientEmail
@@ -153,16 +153,14 @@ def gmailsend-2(params, event):
     else:
         msg["Subject"] = subjectText
     
-    # Set the main body content
-    msg.set_content(messageBody)
-    
-    # Initialize total attachment size
+    # Initialize total attachment size (max is 25MB for gmail)
     total_attachment_size = 0
     max_attachment_size = 25 * 1024 * 1024
 
     # Function to attach files dynamically
     def attach_file(file_path):
         nonlocal total_attachment_size
+        nonlocal messageBody
         
         if os.path.exists(file_path):
             mime_type, _ = mimetypes.guess_type(file_path)
@@ -170,9 +168,12 @@ def gmailsend-2(params, event):
   
             file_size = os.path.getsize(file_path)
             if total_attachment_size + file_size > max_attachment_size:
-                msg.add_alternative(f"{os.path.basename(file_path)} too large to attach: ({file_size}).", subtype='plain')
+                msg.add_alternative(f"{os.path.basename(file_path)} too large to attach {file_size}", subtype='plain')
+                messageBody += f"\n{os.path.basename(file_path)} too large to attach: {file_size}"
                 return f"Error: Total attachment size exceeds 25MB limit. File not attached: {file_path}\n"
-  
+
+            messageBody += f"\n{os.path.basename(file_path)}  {file_size}"
+            
             try:
                 with open(file_path, "rb") as f:
                     msg.add_attachment(f.read(), maintype=maintype, subtype=subtype, filename=os.path.basename(file_path))
@@ -181,7 +182,7 @@ def gmailsend-2(params, event):
             except Exception as e:
                 return f"Error attaching file: {e}\n"
 
-    # Attach Files 
+    # Check which files to attach
     if startrails:
         file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/startrails/startrails-{yesterday}.jpg")
         result += attach_file(file_path)
@@ -193,8 +194,11 @@ def gmailsend-2(params, event):
     if timelapse:
         file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/allsky-{yesterday}.mp4")
         result += attach_file(file_path)
-       
-    # Send email via Gmail SMTP
+
+    # Set the main body content with the attachment details
+    msg.set_content(messageBody)
+    
+    # Send email via Gmail SMTP / TLS
     try:
         with smtplib.SMTP(smtpServer, smtpPort) as server:
             server.starttls()  # Secure connection
