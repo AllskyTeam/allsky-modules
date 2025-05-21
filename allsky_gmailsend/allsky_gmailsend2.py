@@ -20,7 +20,7 @@ metaData = {
         "recipientEmail": "recipient@example.com",
         "subjectText": "Last night's Allsky images",
         "subjectDate": "true",
-        "messageBody": "Attached are last night's Allsky camera images.",
+        "message_body": "Attached are last night's Allsky camera images.",
         "startrails": "false",
         "keogram": "false",
         "timelapse": "false",
@@ -51,7 +51,7 @@ metaData = {
                 "fieldtype": "checkbox"
             }                
         },
-        "messageBody": {
+        "message_body": {
             "required": "true",
             "description": "Email Message Text",
             "help": "Any message body text you want to include. File names will be appended to this text.",
@@ -130,7 +130,7 @@ def gmailsend2(params, event):
     recipientEmail = params['recipientEmail']
     subjectText = params['subjectText']
     subjectDate = params['subjectDate']
-    messageBody = params['messageBody']
+    message_body = params['message_body']
     startrails = params['startrails']
     keogram = params['keogram']
     timelapse = params['timelapse']
@@ -156,55 +156,77 @@ def gmailsend2(params, event):
     # Initialize total attachment size (max is 25MB for gmail)
     total_attachment_size = 0
     max_attachment_size = 25 * 1024 * 1024
+    file_paths = []
+    valid_file_paths = []
 
-    # Function to attach files dynamically
-    def attach_file(file_path):
+    # Function to validate and attach files dynamically
+    def check_files(file_paths):
         nonlocal total_attachment_size
-        nonlocal messageBody
+        nonlocal message_body
+        nonlocal valid_file_paths
+        nonlocal result
+    
+        # First loop: build message_body and filter files
+        valid_file_paths.clear()
+        for file_path in file_paths:
+            if os.path.exists(file_path):
+                file_size = os.path.getsize(file_path)
+                file_sizeMb = file_size / 1024 / 1024
+                total_attachment_size += file_size
+                if total_attachment_size + file_size > max_attachment_size:
+                    message_body += f"\n{os.path.basename(file_path)} too large to attach: {file_sizeMb}mb"
+                    result += f"Error: Total attachment size exceeds 25MB limit. File not attached: {file_path}\n"
+                else:
+                    message_body += f"\n{os.path.basename(file_path)}  {file_sizeMb}mb"
+                    valid_file_paths.append(file_path)
+            else:
+                result += f"Error: File does not exist: {file_path}\n"
+        return result
         
-        if os.path.exists(file_path):
-            mime_type, _ = mimetypes.guess_type(file_path)
-            maintype, subtype = mime_type.split('/')
-  
-            file_size = os.path.getsize(file_path)
-            if total_attachment_size + file_size > max_attachment_size:
-                msg.add_alternative(f"{os.path.basename(file_path)} too large to attach {file_size}", subtype='plain')
-                messageBody += f"\n{os.path.basename(file_path)} too large to attach: {file_size}"
-                return f"Error: Total attachment size exceeds 25MB limit. File not attached: {file_path}\n"
+    def attach_files(attach_files):
+        nonlocal valid_file_paths
+        nonlocal result
 
-            messageBody += f"\n{os.path.basename(file_path)}  {file_size}"
-            
+        # Second loop: attach valid files
+        for file_path in attach_files:
             try:
+                mime_type, _ = mimetypes.guess_type(file_path)
+                maintype, subtype = mime_type.split('/')
                 with open(file_path, "rb") as f:
                     msg.add_attachment(f.read(), maintype=maintype, subtype=subtype, filename=os.path.basename(file_path))
-                    total_attachment_size += file_size
-                    return f"Attached: {file_path}\n"
+                    result += f"Attached: {file_path}\n"
             except Exception as e:
-                return f"Error attaching file: {e}\n"
+                result += f"Error attaching file: {e}\n"
+        return result
 
-    # Check which files to attach
+    # Check user file selections
     if startrails:
         file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/startrails/startrails-{yesterday}.jpg")
-        result += attach_file(file_path)
-     
+        file_paths.append(file_path)
+        
     if keogram:
         file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/keogram/keogram-{yesterday}.jpg")
-        result += attach_file(file_path)
-       
+        file_paths.append(file_path)
+        
     if timelapse:
         file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/allsky-{yesterday}.mp4")
-        result += attach_file(file_path)
-
-    # Set the main body content with the attachment details
-    msg.set_content(messageBody)
+        file_paths.append(file_path)
     
+    # validate file paths and file size
+    result +=check_files(file_paths)
+    
+    # Set the main body content with the attachment details BEFORE attaching files
+    msg.set_content(message_body)
+    
+    #attach the valid files
+    result += attach_files(valid_file_paths)
+
     # Send email via Gmail SMTP / TLS
     try:
         with smtplib.SMTP(smtpServer, smtpPort) as server:
             server.starttls()  # Secure connection
             server.login(emailAddress, emailPassword)
             server.send_message(msg)
-            server.quit()
         result = "Email sent successfully"
     except Exception as e:
         result = f"Error sending email: {e}"
