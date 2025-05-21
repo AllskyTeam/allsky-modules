@@ -171,13 +171,13 @@ def gmailsend2(params, event):
         for file_path in file_paths:
             if os.path.exists(file_path):
                 file_size = os.path.getsize(file_path)
-                file_sizeMb = file_size / 1024 / 1024
+                file_size_mb = round(file_size / 1024 / 1024,1)
                 total_attachment_size += file_size
-                if total_attachment_size + file_size > max_attachment_size:
-                    message_body += f"\n{os.path.basename(file_path)} too large to attach: {file_sizeMb}mb"
+                if total_attachment_size > max_attachment_size:
+                    message_body += f"\n{os.path.basename(file_path)} too large to attach: ({file_size_mb}mb)"
                     result += f"Error: Total attachment size exceeds 25MB limit. File not attached: {file_path}\n"
                 else:
-                    message_body += f"\n{os.path.basename(file_path)}  {file_sizeMb}mb"
+                    message_body += f"\n{os.path.basename(file_path)}  ({file_size_mb}mb)"
                     valid_file_paths.append(file_path)
             else:
                 result += f"Error: File does not exist: {file_path}\n"
