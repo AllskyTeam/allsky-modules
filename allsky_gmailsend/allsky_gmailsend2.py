@@ -6,8 +6,8 @@ from email.message import EmailMessage
 import mimetypes
 
 metaData = {
-    "name": "Send with Gmail 2",
-    "description": "emails nightly images to email recipients",
+    "name": "Send with Gmail",
+    "description": "Emails nightly images to email recipients",
     "version": "v0.1",
     "pythonversion": "3.9.0",
     "module": "allsky_gmailsend2",    
@@ -17,96 +17,100 @@ metaData = {
     ],
     "experimental": "false",  
     "arguments": {
-        "recipientEmail": "recipient@example.com",
-        "subjectText": "Last night's Allsky images",
-        "subjectDate": "true",
+        "recipient_email": "recipient@example.com",
+        "email_subject_text": "Last night's Allsky images",
+        "email_subject_date": "true",
         "message_body": "Attached are last night's Allsky camera images.",
-        "startrails": "false",
-        "keogram": "false",
-        "timelapse": "false",
-        "emailAddress": "your_email@gmail.com", 
-        "emailPassword": "your_app_password",
-        "smtpServer": "smtp.gmail.com",
-        "smtpPort": "587"
+        "startrails": "Yes",
+        "keogram": "No",
+        "timelapse": "No",
+        "sender_email_address": "your_email@gmail.com", 
+        "sender_email_password": "your_app_password",
+        "smtp_server": "smtp.gmail.com",
+        "smtp_port": "587"
     },
     "argumentdetails": { 
-        "recipientEmail": {
+        "recipient_email": {
             "required": "true",
             "description": "Recipient email addresses",
             "help": "only enter one email address",
-            "tab": "Notification Setup"             
+            "tab": "Daily Notification Setup"             
         },
-        "subjectText": {
+        "email_subject_text": {
             "required": "true",
             "description": "Email Subject Line",
             "help": "",
-            "tab": "Notification Setup"             
+            "tab": "Daily Notification Setup"             
         },
-        "subjectDate": {
+        "email_subject_date": {
             "required": "false",
             "description": "Append date to Subject line",
             "help": "eg: Last night's Allsky images - 20250401",
-            "tab": "Notification Setup",
+            "tab": "Daily Notification Setup",
             "type": {
-                "fieldtype": "checkbox"
-            }                
+                "fieldtype": "select",
+                "values": "No,Yes"
+            }              
         },
         "message_body": {
             "required": "true",
             "description": "Email Message Text",
             "help": "Any message body text you want to include. File names will be appended to this text.",
-            "tab": "Notification Setup"             
+            "tab": "Daily Notification Setup"             
         },
         "startrails": {
             "required": "false",
             "description": "Attach Star Trails",
             "help": "",
-            "tab": "Notification Setup",
+            "tab": "Daily Notification Setup",
             "type": {
-                "fieldtype": "checkbox"
-            }          
+                "fieldtype": "select",
+                "values": "No,Yes"
+            }
         }, 
         "keogram": {
             "required": "false",
             "description": "Attach Keogram",
             "help": "",
-            "tab": "Notification Setup",
+            "tab": "Daily Notification Setup",
             "type": {
-                "fieldtype": "checkbox"
-            }          
+                "fieldtype": "select",
+                "values": "No,Yes"
+            }
         }, 
         "timelapse": {
             "required": "false",
             "description": "Attach Timelapse",
             "help": "",
-            "tab": "Notification Setup",
+            "tab": "Daily Notification Setup",
             "type": {
-                "fieldtype": "checkbox"
-            }          
+                "fieldtype": "select",
+                "values": "No,Yes,Yes - in separate email"
+            }
         },
-        "emailAddress": {
+        "sender_email_address": {
             "required": "true",
             "description": "Sender email address",
             "help": "",
-            "tab": "Gmail Account Setup"   
+            "tab": "Gmail Sender Account Setup"   
         },        
-        "emailPassword": {
+        "sender_email_password": {
             "required": "true",        
             "description": "Sender Google App Password",
             "help": "(NOT your gmail login password. Get this from your google account's security settings.",
-            "tab": "Gmail Account Setup"
+            "tab": "Gmail Sender Account Setup"
         },
-        "smtpServer": {
+        "smtp_server": {
             "required": "true",
             "description": "gmail SMTP server address",
-            "help": "you should not need to change this",
-            "tab": "Gmail Account Setup"          
+            "help": "You should not need to change this",
+            "tab": "Gmail Sender Account Setup"          
         },
-        "smtpPort": {
+        "smtp_port": {
             "required": "true",
             "description": "SMTP server port",
-            "help": "you should not need to change this",
-            "tab": "Gmail Account Setup"
+            "help": "You should not need to change this",
+            "tab": "Gmail Sender Account Setup"
         }
     },
     "enabled": "false",
@@ -123,20 +127,21 @@ metaData = {
 
 def gmailsend2(params, event):
     # Gmail SMTP configuration and parameters
-    smtpServer = params['smtpServer']
-    smtpPort = params['smtpPort']
-    emailAddress = params['emailAddress']
-    emailPassword = params['emailPassword']
-    recipientEmail = params['recipientEmail']
-    subjectText = params['subjectText']
-    subjectDate = params['subjectDate']
+    smtp_server = params['smtp_server']
+    smtp_port = params['smtp_port']
+    sender_email_address = params['sender_email_address']
+    sender_email_password = params['sender_email_password']
+    recipient_email = params['recipient_email']
+    email_subject_text = params['email_subject_text']
+    email_subject_date = params['email_subject_date']
     message_body = params['message_body']
     startrails = params['startrails']
     keogram = params['keogram']
     timelapse = params['timelapse']
     
     result = "starting"
-    
+    send_email = False
+
     # Get yesterday's date in YYYYMMDD format
     yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y%m%d")
 
@@ -145,30 +150,31 @@ def gmailsend2(params, event):
 
     # Initialize emailmessage details
     msg = EmailMessage()
-    msg["From"] = emailAddress
-    msg["To"] = recipientEmail
+    msg["From"] = sender_email_address
+    msg["To"] = recipient_email
     
-    if subjectDate:
-        msg["Subject"] = f"{subjectText} - {yesterday}"
+    if email_subject_date == "Yes":
+        msg["Subject"] = f"{email_subject_text} - {yesterday}"
     else:
-        msg["Subject"] = subjectText
+        msg["Subject"] = email_subject_text
     
     # Initialize total attachment size (max is 25MB for gmail)
     total_attachment_size = 0
     max_attachment_size = 25 * 1024 * 1024
     file_paths = []
+    file_paths_video = []
     valid_file_paths = []
 
-    # Function to validate and attach files dynamically
-    def check_files(file_paths):
+    def validate_files(the_file_paths):
+        # Function to validate files
         nonlocal total_attachment_size
         nonlocal message_body
         nonlocal valid_file_paths
-        nonlocal result
+        #nonlocal result
     
-        # First loop: build message_body and filter files
+        # build message_body and filter files
         valid_file_paths.clear()
-        for file_path in file_paths:
+        for file_path in the_file_paths:
             if os.path.exists(file_path):
                 file_size = os.path.getsize(file_path)
                 file_size_mb = round(file_size / 1024 / 1024,1)
@@ -183,9 +189,9 @@ def gmailsend2(params, event):
                 result += f"Error: File does not exist: {file_path}\n"
         return result
         
-    def attach_files(attach_files):
-        nonlocal valid_file_paths
-        nonlocal result
+    def attach_files(the_email_msg, attach_files):
+        # Function to attach files to the email
+        #nonlocal result
 
         # Second loop: attach valid files
         for file_path in attach_files:
@@ -193,42 +199,74 @@ def gmailsend2(params, event):
                 mime_type, _ = mimetypes.guess_type(file_path)
                 maintype, subtype = mime_type.split('/')
                 with open(file_path, "rb") as f:
-                    msg.add_attachment(f.read(), maintype=maintype, subtype=subtype, filename=os.path.basename(file_path))
+                    the_email_msg.add_attachment(f.read(), maintype=maintype, subtype=subtype, filename=os.path.basename(file_path))
                     result += f"Attached: {file_path}\n"
             except Exception as e:
                 result += f"Error attaching file: {e}\n"
         return result
 
+    def send_email_now(the_email_msg):
+        # Function to send email via Gmail SMTP / TLS
+        try:
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.starttls()  # Secure connection
+                server.login(sender_email_address, sender_email_password)
+                server.send_message(the_email_msg)
+            result = "Email sent successfully"
+        except Exception as e:
+            result = f"Error sending email: {e}"
+        return result
+
     # Check user file selections
-    if startrails:
+    if startrails == "Yes":
         file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/startrails/startrails-{yesterday}.jpg")
         file_paths.append(file_path)
+        send_email = True
         
-    if keogram:
+    if keogram == "Yes":
         file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/keogram/keogram-{yesterday}.jpg")
         file_paths.append(file_path)
-        
-    if timelapse:
+        send_email = True
+
+    if timelapse == "Yes":
         file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/allsky-{yesterday}.mp4")
         file_paths.append(file_path)
-    
-    # validate file paths and file size
-    result +=check_files(file_paths)
-    
-    # Set the main body content with the attachment details BEFORE attaching files
-    msg.set_content(message_body)
-    
-    #attach the valid files
-    result += attach_files(valid_file_paths)
+        send_email = True
 
-    # Send email via Gmail SMTP / TLS
-    try:
-        with smtplib.SMTP(smtpServer, smtpPort) as server:
-            server.starttls()  # Secure connection
-            server.login(emailAddress, emailPassword)
-            server.send_message(msg)
-        result = "Email sent successfully"
-    except Exception as e:
-        result = f"Error sending email: {e}"
+    if send_email:
+        # validate file paths and file size
+        result += validate_files(file_paths)
+    
+        # Set the main body content with the attachment details BEFORE attaching files
+        msg.set_content(message_body)
+    
+        #attach the valid files
+        result += attach_files(msg, valid_file_paths)
+
+        # send the email
+        result += send_email_now(msg)
+
+    # if user wants timelapse separate
+    if timelapse == "Yes - in separate email":
+        file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/allsky-{yesterday}.mp4")
+        file_paths_video.append(file_path)
+
+        message_body = params['message_body']
+        #message_body = f"Here is your video\n"
+
+        msg_video = EmailMessage()
+        msg_video["From"] = sender_email_address
+        msg_video["To"] = recipient_email
+        msg_video["Subject"] = msg["Subject"]
+        
+        # validate file paths and file size
+        result +=validate_files(file_paths_video)
+        # Set the main body content with the attachment details BEFORE attaching files
+        msg_video.set_content(message_body)
+        #attach the valid files
+        result += attach_files(msg_video, valid_file_paths)
+        # send the email
+        result += send_email_now(msg_video)    
+
     
     return result
