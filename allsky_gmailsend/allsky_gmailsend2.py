@@ -17,29 +17,29 @@ metaData = {
     ],
     "experimental": "false",  
     "arguments": {
-        "recipient_email": "recipient@example.com",
+        "recipient_email": "",
         "email_subject_text": "Last night's Allsky images",
         "email_subject_date": "true",
         "message_body": "Attached are last night's Allsky camera images.",
         "startrails": "Yes",
         "keogram": "No",
         "timelapse": "No",
-        "sender_email_address": "your_email@gmail.com", 
-        "sender_email_password": "your_app_password",
+        "sender_email_address": "", 
+        "sender_email_password": "",
         "smtp_server": "smtp.gmail.com",
         "smtp_port": "587"
     },
     "argumentdetails": { 
         "recipient_email": {
             "required": "true",
-            "description": "Recipient email addresses",
-            "help": "only enter one email address",
+            "description": "Recipient email address(es)",
+            "help": "Separate with a comma if more than one.  eg. AAA@mail.com,BBB@mail.com",
             "tab": "Daily Notification Setup"             
         },
         "email_subject_text": {
             "required": "true",
             "description": "Email Subject Line",
-            "help": "",
+            "help": "No characters like backslash or quote marks",
             "tab": "Daily Notification Setup"             
         },
         "email_subject_date": {
@@ -139,38 +139,15 @@ def gmailsend2(params, event):
     keogram = params['keogram']
     timelapse = params['timelapse']
     
-    result = "starting"
+    result = ""
     send_email = False
-
-    # Get yesterday's date in YYYYMMDD format
-    yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y%m%d")
-
-    # Get user's home directory dynamically
-    home_dir = os.path.expanduser("~")
-
-    # Initialize emailmessage details
-    msg = EmailMessage()
-    msg["From"] = sender_email_address
-    msg["To"] = recipient_email
-    
-    if email_subject_date == "Yes":
-        msg["Subject"] = f"{email_subject_text} - {yesterday}"
-    else:
-        msg["Subject"] = email_subject_text
-    
-    # Initialize total attachment size (max is 25MB for gmail)
-    total_attachment_size = 0
-    max_attachment_size = 25 * 1024 * 1024
-    file_paths = []
-    file_paths_video = []
-    valid_file_paths = []
 
     def validate_files(the_file_paths):
         # Function to validate files
         nonlocal total_attachment_size
         nonlocal message_body
         nonlocal valid_file_paths
-        #nonlocal result
+        nonlocal result
     
         # build message_body and filter files
         valid_file_paths.clear()
@@ -191,9 +168,8 @@ def gmailsend2(params, event):
         
     def attach_files(the_email_msg, attach_files):
         # Function to attach files to the email
-        #nonlocal result
+        nonlocal result
 
-        # Second loop: attach valid files
         for file_path in attach_files:
             try:
                 mime_type, _ = mimetypes.guess_type(file_path)
@@ -217,6 +193,29 @@ def gmailsend2(params, event):
             result = f"Error sending email: {e}"
         return result
 
+    # Get yesterday's date in YYYYMMDD format
+    yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y%m%d")
+
+    # Get user's home directory dynamically
+    home_dir = os.path.expanduser("~")
+
+    # Initialize email message details
+    msg = EmailMessage()
+    msg["From"] = sender_email_address
+    msg["To"] = recipient_email
+    
+    if email_subject_date == "Yes":
+        msg["Subject"] = f"{email_subject_text} - {yesterday}"
+    else:
+        msg["Subject"] = email_subject_text
+    
+    # Initialize total attachment size (max is 25MB for gmail)
+    total_attachment_size = 0
+    max_attachment_size = 25 * 1024 * 1024
+    file_paths = []
+    file_paths_video = []
+    valid_file_paths = []
+
     # Check user file selections
     if startrails == "Yes":
         file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/startrails/startrails-{yesterday}.jpg")
@@ -236,24 +235,21 @@ def gmailsend2(params, event):
     if send_email:
         # validate file paths and file size
         result += validate_files(file_paths)
-    
-        # Set the main body content with the attachment details BEFORE attaching files
+        # Set the main body content details BEFORE attaching files
         msg.set_content(message_body)
-    
         #attach the valid files
         result += attach_files(msg, valid_file_paths)
-
         # send the email
         result += send_email_now(msg)
 
-    # if user wants timelapse separate
+    # if user wants timelapse sent separately
     if timelapse == "Yes - in separate email":
         file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/allsky-{yesterday}.mp4")
         file_paths_video.append(file_path)
 
+        # reuse same base message body
         message_body = params['message_body']
-        #message_body = f"Here is your video\n"
-
+        
         msg_video = EmailMessage()
         msg_video["From"] = sender_email_address
         msg_video["To"] = recipient_email
@@ -261,12 +257,11 @@ def gmailsend2(params, event):
         
         # validate file paths and file size
         result +=validate_files(file_paths_video)
-        # Set the main body content with the attachment details BEFORE attaching files
+        # Set main body content BEFORE attaching files
         msg_video.set_content(message_body)
         #attach the valid files
         result += attach_files(msg_video, valid_file_paths)
         # send the email
         result += send_email_now(msg_video)    
-
     
     return result
