@@ -39,4 +39,4 @@ Please see [Sign in with app passwords](https://support.google.com/accounts/answ
 **Notes:**
 Gmail has a maximum attachment limit of 25MB.  Please ensure your files will be less that that limit.  You may have to modify timelapse creation options if that file is too large and you wish to send it via email.
 
-This should be the last module in your 'selected modules' as it can take a minute or two to complete depending on the strength of your Pi's connection and the size of the files to be attached.
+This module can take a minute or two to complete depending on your Pi's internet connection and the size of the files to be attached.  Therefore it may make sense for this to be the last madule to run in your 'selected modules'
