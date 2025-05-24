@@ -187,7 +187,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 					},
 					"series": [{
 						"name": "Status",
-						"data": [1]
+						"data": "AS_DEWCONTROLHEATERINT"
 					}]
 				}           
 			}
@@ -238,6 +238,14 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 					"group": "Dew Heater",
 					"description": "Dew Heater Status",
 					"type": "gpio"
+				},
+				"AS_DEWCONTROLHEATERINT": {
+					"name": "${DEWCONTROLHEATERINT}",
+					"format": "",
+					"sample": "",                 
+					"group": "Dew Heater",
+					"description": "Dew Heater Status (int)",
+					"type": "number"
 				},
 				"AS_DEWCONTROLPRESSURE": {
 					"name": "${DEWCONTROLPRESSURE}",
@@ -1503,6 +1511,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 								extraData = {}
 								if sensor_type == 'Allsky':
 									extraData['AS_DEWCONTROLHEATER'] = heater
+									extraData['AS_DEWCONTROLHEATERINT'] = 1 if heater else 0
 									extraData['AS_DEWCONTROLAMBIENT'] = temperature
 									extraData['AS_DEWCONTROLDEW'] = dew_point
 									extraData['AS_DEWCONTROLHUMIDITY'] = humidity
@@ -1514,6 +1523,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 									extraData['AS_DEWCONTROLDEW'] = dew_point
 									extraData['AS_DEWCONTROLHUMIDITY'] = humidity
 									extraData['AS_DEWCONTROLHEATER'] = heater
+									extraData['AS_DEWCONTROLHEATERINT'] = 1 if heater else 0
 									if pressure is not None:
 										extraData['AS_DEWCONTROLPRESSURE'] = pressure
 									if rel_humidity is not None:
