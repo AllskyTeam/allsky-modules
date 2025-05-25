@@ -1,4 +1,4 @@
-# AllSky Gmail Send Module
+# AllSky Email Send Module
 
 |||
 | ------------ | ------------ |
@@ -7,13 +7,14 @@
 | **Runs In**  | endofnight <br>end of day   |
 |||
 
-This module allows for automatically emailing nightly startrails, keogram, and timelapse images from a Gmail account each morning. 
+This module allows for automatically emailing nightly startrails, keogram, and timelapse images from a Gmail (or SMTP) account each morning. 
 Timelapse can be sent in a separate email from the other images if required or desired (eg. due to file size).
 
 **Prerequisites:**
 A Google Account with MFA enabled and an app password.
+or an SMTP email server/service
 
-The app password is a 16-digit passcode that gives the script permission to access your Google Account in order to send email.
+For Gmail, the app password is a 16-digit passcode that gives the script permission to access your Google Account in order to send email.
 Please see [Sign in with app passwords](https://support.google.com/accounts/answer/185833?hl=en) for details on how to setup an App Password.
 
 
@@ -30,9 +31,9 @@ Please see [Sign in with app passwords](https://support.google.com/accounts/answ
 ||||
 | **Gmail Sender Account Setup**|||
 | Sender email address          | Sending account Gmail address      | Required |
-| Sender Google App Password    | From google security settings |Required|
-| SMTP Server                   | You should not need to change this|Preset|
-| SMTP Port                     | You should not need to change this|Preset|
+| Password / Google App Password    | From google security settings |Required|
+| SMTP Server                   | Preset for Gmail|Preset|
+| SMTP Port                     | Preset for Gmail|Preset|
 ||||
 ----------------------
 

@@ -6,11 +6,11 @@ from email.message import EmailMessage
 import mimetypes
 
 metaData = {
-    "name": "Send with Gmail",
+    "name": "Send with SMTP / Gmail",
     "description": "Emails nightly images to email recipients",
     "version": "v0.1",
     "pythonversion": "3.9.0",
-    "module": "allsky_gmailsend2",    
+    "module": "allsky_emailsend",    
     "events": [
         "nightday",
         "periodic"
@@ -92,30 +92,30 @@ metaData = {
             "required": "true",
             "description": "Sender email address",
             "help": "",
-            "tab": "Gmail Sender Account Setup"   
+            "tab": "Sender SMTP Setup"   
         },        
         "sender_email_password": {
             "required": "true",        
-            "description": "Sender Google App Password",
-            "help": "(NOT your gmail login password. Get this from your google account's security settings.",
-            "tab": "Gmail Sender Account Setup"
+            "description": "Password / Google App Password",
+            "help": "(NOT your gmail login password. For Gmail, get this from your google account's security settings.",
+            "tab": "Sender SMTP Setup"
         },
         "smtp_server": {
             "required": "true",
-            "description": "gmail SMTP server address",
-            "help": "You should not need to change this",
-            "tab": "Gmail Sender Account Setup"          
+            "description": "SMTP server address",
+            "help": "Only change if not using Gmail",
+            "tab": "Sender SMTP Setup"          
         },
         "smtp_port": {
             "required": "true",
             "description": "SMTP server port",
-            "help": "You should not need to change this",
-            "tab": "Gmail Sender Account Setup"
+            "help": "Only change if not using Gmail",
+            "tab": "Sender SMTP Setup"
         }
     },
     "enabled": "false",
     "changelog": {
-        "v0.1": [
+        "v1.0": [
             {
                 "author": "Kentner Cottingham",
                 "authorurl": "https://github.com/NiteRide",
@@ -125,7 +125,7 @@ metaData = {
     }              
 }
 
-def gmailsend2(params, event):
+def emailsend(params, event):
     # Gmail SMTP configuration and parameters
     smtp_server = params['smtp_server']
     smtp_port = params['smtp_port']
@@ -188,9 +188,9 @@ def gmailsend2(params, event):
                 server.starttls()  # Secure connection
                 server.login(sender_email_address, sender_email_password)
                 server.send_message(the_email_msg)
-            result = "Email sent successfully"
+            result = f"\nEmail sent successfully"
         except Exception as e:
-            result = f"Error sending email: {e}"
+            result = f"\nError sending email: {e}"
         return result
 
     # Get yesterday's date in YYYYMMDD format
