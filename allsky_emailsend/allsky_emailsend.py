@@ -125,7 +125,7 @@ metaData = {
     }              
 }
 
-# Function that validates files
+# Function to validate files to attach
 def validate_files(the_file_paths, total_attachment_size, max_attachment_size, message_body, valid_file_paths):
     result = ""
     valid_file_paths.clear()
@@ -144,7 +144,7 @@ def validate_files(the_file_paths, total_attachment_size, max_attachment_size, m
             result += f"Error: File does not exist: {file_path}\n"
     return result, total_attachment_size, message_body
 
-# Function that attaches valid files to the email
+# Function to attach valid files to the email
 def attach_files(the_email_msg, attach_files):
     result = ""
     for file_path in attach_files:
@@ -158,7 +158,7 @@ def attach_files(the_email_msg, attach_files):
             result += f"Error attaching file: {e}\n"
     return result
 
-# Function that sends email via Gmail SMTP / TLS
+# Function to send email via Gmail SMTP / TLS
 def send_email_now(the_email_msg, smtp_server, smtp_port, sender_email_address, sender_email_password):
     result = ""
     try:
@@ -171,7 +171,7 @@ def send_email_now(the_email_msg, smtp_server, smtp_port, sender_email_address, 
         result = f"\nError sending email: {e}"
     return result
 
-# Main function
+# Main Module Function
 def emailsend(params, event):
     # Gmail SMTP configuration and parameters
     smtp_server = params['smtp_server']
@@ -192,8 +192,12 @@ def emailsend(params, event):
     # Get yesterday's date in YYYYMMDD format
     yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y%m%d")
 
-    # Get user's home directory dynamically
+    # Get user's home directory
     home_dir = os.path.expanduser("~")
+    
+    # get image file extension from allsky user settings      
+    full_file_name = s.getSetting('filename')
+    _, file_ext = os.path.splitext(full_file_name)
 
     # Initialize email message details
     msg = EmailMessage()
@@ -208,29 +212,29 @@ def emailsend(params, event):
     # Initialize total attachment size (max is 25MB for gmail)
     max_attachment_size = 25 * 1024 * 1024
     total_attachment_size = 0
-    file_paths = []
+    file_paths_images = []
     file_paths_video = []
-    valid_file_paths = []
+    valid_file_paths = []  
 
     # Check user file selections
     if startrails == "Yes":
-        file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/startrails/startrails-{yesterday}.jpg")
-        file_paths.append(file_path)
+        file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/startrails/startrails-{yesterday}{file_ext}")
+        file_paths_images.append(file_path)
         send_email = True
         
     if keogram == "Yes":
-        file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/keogram/keogram-{yesterday}.jpg")
-        file_paths.append(file_path)
+        file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/keogram/keogram-{yesterday}{file_ext}")
+        file_paths_images.append(file_path)
         send_email = True
 
     if timelapse == "Yes":
         file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/allsky-{yesterday}.mp4")
-        file_paths.append(file_path)
+        file_paths_images.append(file_path)
         send_email = True
 
     if send_email:
         # Validate file paths and file size
-        validation_result, total_attachment_size, message_body = validate_files(file_paths, total_attachment_size, max_attachment_size, message_body, valid_file_paths)
+        validation_result, total_attachment_size, message_body = validate_files(file_paths_images, total_attachment_size, max_attachment_size, message_body, valid_file_paths)
         result += validation_result
         # Set the main body content details BEFORE attaching files
         msg.set_content(message_body)
