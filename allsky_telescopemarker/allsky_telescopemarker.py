@@ -25,7 +25,8 @@ class ALLSKYTELESCOPEMARKER(ALLSKYMODULEBASE):
 		"module": "allsky_telescopemarker",
 		"version": "v1.0.1",
 		"centersettings": "false",
-		"testable": "true",   
+		"testable": "true",
+		"group": "Image Adjustments",   
 		"events": [
 			"night",
 			"day"

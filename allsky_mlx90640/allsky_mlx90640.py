@@ -28,6 +28,7 @@ class ALLSKYMLX90640(ALLSKYMODULEBASE):
 		"centersettings": "false",
 		"version": "v1.0.2",
 		"extradatafilename": "allsky_mlx906040.json",
+		"group": "Data Sensor",
 		"extradata": {
 			"values": {
 				"AS_MLX906040MIN": {

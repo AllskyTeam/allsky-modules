@@ -17,7 +17,8 @@ class ALLSKYDISCORD(ALLSKYMODULEBASE):
 		"pythonversion": "3.9.0",
 		"centersettings": "false",
 		"testable": "true", 
-		"module": "allsky_discordsend",    
+		"module": "allsky_discordsend",
+		"group": "Data Export", 
 		"events": [
 			"day",
 			"night",

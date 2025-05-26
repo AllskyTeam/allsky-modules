@@ -40,6 +40,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"day",
 			"night"
 		],
+		"group": "Data Sensor",
 		"experimental": "false",
 		"centersettings": "false",
 		"testable": "true",

@@ -26,6 +26,7 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 		"centersettings": "false",
 		"testable": "true",
 		"extradatafilename": "allsky_hddtemp.json",
+		"group": "Hardware",
         "graphs": {
             "hddtemp": {
 				"icon": "fa-solid fa-chart-line",

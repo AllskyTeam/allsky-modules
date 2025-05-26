@@ -23,7 +23,8 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 		"version": "v1.0.0",
 		"module": "allsky_gps", 
 		"centersettings": "false",
-		"testable": "true",   
+		"testable": "true",
+		"group": "Data Sensor", 
 		"events": [
 			"day",
 			"night",

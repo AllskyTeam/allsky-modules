@@ -17,7 +17,8 @@ class ALLSKYGPIO(ALLSKYMODULEBASE):
 		"version": "v1.0.0",
 		"module": "allsky_gpio",
 		"testable": "true",
-		"centersettings": "false", 
+		"centersettings": "false",
+		"group": "Hardware Control", 
 		"events": [
 			"daynight",
 			"nightday"

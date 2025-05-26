@@ -30,7 +30,8 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 		"module": "allsky_publishdata",
 		"version": "v1.0.3",
 		"centersettings": "false",
-		"testable": "true", 
+		"testable": "true",
+		"group": "Data Export",
 		"events": [
 			"day",
 			"night",

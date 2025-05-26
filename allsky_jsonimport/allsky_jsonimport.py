@@ -12,6 +12,7 @@ class ALLSKYJSONIMPORT(ALLSKYMODULEBASE):
 		"version": "v1.0.1",
 		"testable": "true",
 		"centersettings": "false", 
+		"group": "Data Capture",
 		"events": [
 			"day",
 			"night",

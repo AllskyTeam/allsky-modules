@@ -20,7 +20,8 @@ metaData = {
 	"module": "allsky_mqttsubscribe",
 	"version": "v1.0.0",
 	"centersettings": "false",
-	"testable": "true", 
+	"testable": "true",
+ 	"group": "Data Export",
 	"events": [
 		"day",
 		"night",

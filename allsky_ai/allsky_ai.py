@@ -34,6 +34,7 @@ class ALLSKYAI(ALLSKYMODULEBASE):
 		"version": "v1.0.4",
 		"extradatafilename": "allsky_ai.json",
 		"centersettings": "false",
+		"group": "Image Analysis",
 		"extradata": {
 			"values": {
 				"AI_CLASSIFICATION": {

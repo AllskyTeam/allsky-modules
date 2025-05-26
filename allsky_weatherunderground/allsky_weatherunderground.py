@@ -25,6 +25,7 @@ class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
 			"night",
 			"periodic"
 		],
+		"group": "Data Capture",
 		"centersettings": "false",
 		"testable": "true",
 		"extradatafilename": "allsky_weatherunderground.json",

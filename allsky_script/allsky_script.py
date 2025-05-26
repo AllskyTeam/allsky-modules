@@ -24,7 +24,8 @@ class ALLSKYSCRIPT(ALLSKYMODULEBASE):
 			"nightday",
 			"periodic"
 		],
-		"experimental": "false",    
+		"experimental": "false",
+		"group": "Allsky Control", 
 		"arguments":{
 			"scriptlocation": "",
 			"useshell": "false"

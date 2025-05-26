@@ -21,7 +21,8 @@ class ALLSKYRAIN(ALLSKYMODULEBASE):
 		"module": "allsky_rain",
 		"centersettings": "false",
 		"testable": "true", 
-		"version": "v1.0.1",      
+		"version": "v1.0.1", 
+		"group": "Data Sensor",     
 		"events": [
 			"day",
 			"night",

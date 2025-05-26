@@ -33,6 +33,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		"enabled": "false",    
 		"experimental": "false",
 		"extradatafilename": "allsky_fans.json",
+		"group": "Environment Control",
         "graphs": {
 			"chart1": {
 				"icon": "fas fa-chart-line",

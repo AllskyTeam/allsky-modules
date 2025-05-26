@@ -15,6 +15,7 @@ metaData = {
 	"events": [
 		"periodic"
 	],
+	"group": "Data Capture",
 	"deprecation": {
 		"fromversion": "v2024.12.06_01",
 		"removein": "v2024.12.06_01",

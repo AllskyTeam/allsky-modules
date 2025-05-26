@@ -33,6 +33,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 		"centersettings": "false",	
 		"version": "v0.6",
 		"module": "allsky_lightgraph",
+		"group": "Image Adjustments",
 		"arguments": {
 			"border_color": "30 190 40",
 			"light_color": "240 240 240",

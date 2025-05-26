@@ -22,7 +22,8 @@ metaData = {
 		"night",
 		"periodic"
 	],
-	"experimental": "false",    
+	"experimental": "false",
+	"group": "Data Sensor",
 	"deprecation": {
 		"fromversion": "v2024.12.06_01",
 		"removein": "v2024.12.06_01",

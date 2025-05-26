@@ -21,7 +21,8 @@ class ALLSKYBORDER(ALLSKYMODULEBASE):
 		"name": "Add Border",
 		"description": "Expands a captured image adding a border",
 		"module": "allsky_border",
-		"version": "v1.0.1",      
+		"version": "v1.0.1",
+		"group": "Image Adjustments",
 		"events": [
 			"day",
 			"night"

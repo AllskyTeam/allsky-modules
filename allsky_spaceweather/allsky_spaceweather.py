@@ -25,7 +25,8 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 		"version": "v1.0.1",
 		"centersettings": "false",
 		"testable": "true", 
-		"extradatafilename": "allsky_spaceweather.json", 
+		"extradatafilename": "allsky_spaceweather.json",
+		"group": "Data Capture", 
 		"events": [
 			"day",
 			"night",

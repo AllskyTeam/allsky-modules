@@ -5,6 +5,7 @@ metaData = {
 	"description": "Monitors current and voltage using an ina3221",
 	"module": "allsky_ina3221",
 	"version": "v1.0.1",
+	"group": "Hardware",
 	"deprecation": {
 		"fromversion": "v2024.12.06_02",
 		"removein": "v2024.12.06_02",

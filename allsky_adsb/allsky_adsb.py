@@ -24,6 +24,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 		"description": "Provides aircraft data for display in the captured images",
 		"module": "allsky_adsb",    
 		"version": "v1.0.0",
+		"group": "Data Capture",
 		"events": [
 			"periodic",
 			"day",

@@ -31,7 +31,8 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 		"experimental": "true",
 		"centersettings": "false",
 		"testable": "true", 
-		"extradatafilename": "allsky_sqm.json", 
+		"extradatafilename": "allsky_sqm.json",
+		"group": "Data Capture",
 		"extradata": {
 			"values": {
 				"AS_SQM": {

@@ -57,6 +57,7 @@ metaData = {
 	    "night"
 	],
 	"experimental": "true",
+	"group": "Data Export",
 	"deprecation": {
 		"fromversion": "v2024.12.06_01",
 		"removein": "v2024.12.06_01",

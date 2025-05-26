@@ -55,6 +55,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		"testable": "true",
 		"centersettings": "false",
 		"dependency": "allsky_temp.py",
+		"group": "Environment Control",
 		"deprecation": {
 			"fromversion": "v2024.12.06_01",
 			"removein": "TBC",

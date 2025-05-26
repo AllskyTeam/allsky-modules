@@ -24,6 +24,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 		],
 		"extradatafilename": "allsky_power.json", 	
 		"experimental": "false",
+		"group": "Data Sensor",
 		"graphs": {
 			"chart1": {
 				"icon": "fas fa-chart-line",

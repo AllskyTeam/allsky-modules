@@ -36,6 +36,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 		"centersettings": "false",
 		"testable": "true",
 		"extradatafilename": "allsky_pmsx003.json",
+		"group": "Data Sensor",
         "graphs": {
             "chart1": {
 				"icon": "fas fa-scale-balanced",

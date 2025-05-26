@@ -23,7 +23,8 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 		"version": "v1.0.2",
 		"centersettings": "false",
 		"testable": "true",
-		"extradatafilename": "allsky_openweathermap.json", 
+		"extradatafilename": "allsky_openweathermap.json",
+		"group": "Data Capture", 
 		"events": [
 			"day",
 			"night",

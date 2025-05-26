@@ -15,7 +15,8 @@ metaData = {
 	"module": "allsky_boilerplate",
 	"version": "v1.0.2",
 	"centersettings": "false",
-	"testable": "true",    
+	"testable": "true",
+	"group": "Boilerplate", 
 	"events": [
 	    "day",
 	    "night",

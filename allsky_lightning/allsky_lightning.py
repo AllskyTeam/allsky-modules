@@ -16,6 +16,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 		"centersettings": "false",
 		"testable": "true",
 		"experimental": "true",
+		"group": "Data Sensor",
 		"events": [
 			"day",
 			"night",

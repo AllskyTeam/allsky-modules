@@ -32,6 +32,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 		],
 		"experimental": "false",
 		"extradatafilename": "allsky_light.json",
+		"group": "Data Sensor",
 		"graphs": {
 			"chart1": {
 				"icon": "fa-solid fa-chart-line",

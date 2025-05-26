@@ -21,7 +21,8 @@ class ALLSKYCLOUD(ALLSKYMODULEBASE):
 		"version": "v1.0.2",
 		"testable": "true",
 		"centersettings": "false",
-		"extradatafilename": "allsk_cloud.json",  
+		"extradatafilename": "allsk_cloud.json",
+		"group": "Image Analysis",
 		"deprecation": {
 			"fromversion": "v2024.12.06_02",
 			"removein": "v2024.12.06_04",

@@ -28,7 +28,8 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		"module": "allsky_solarsystem",
 		"version": "v1.0.1",
 		"testable": "true",
-		"centersettings": "false",    
+		"centersettings": "false",
+		"group": "Data Capture",   
 		"events": [
 			"periodic",
 			"day",

@@ -7,6 +7,7 @@ import tempfile
 import re
 import smbus
 import shutil
+import shlex
 import argparse
 from pathlib import Path
 from platform import python_version
@@ -26,9 +27,11 @@ class ALLSKYMODULE:
     _installed_meta_data = {}
     _installer_data = {}
     _installed_file_path = None
-
-    def __init__(self, module_name):
+    _module_paths = []
+    
+    def __init__(self, module_name, module_paths):
         self._module_name = module_name
+        self._module_paths = module_paths
         self._module_installer_base_folder = os.path.dirname(os.path.realpath(__file__)) 
         self._installed_file_path = os.path.join(self._dest_path, module_name + '.py')
         self._read_module_data()
@@ -71,7 +74,17 @@ class ALLSKYMODULE:
 
     @property
     def installed(self):
-        return os.path.exists(self._installed_file_path) and os.path.isfile(self._installed_file_path)
+        result = False
+        for path in self._module_paths:
+            if not os.path.exists(path):
+                continue
+            installed_file_path = os.path.join(path, self.name + '.py')
+            
+            if os.path.exists(installed_file_path) and os.path.isfile(installed_file_path):
+                result = True
+                break
+            
+        return result
 
     @property
     def winstalled(self):
@@ -99,7 +112,7 @@ class ALLSKYMODULE:
 
     @property
     def installed_version(self):
-        return self._installed_file_path['version'] if 'version' in self._installed_file_path else ''
+        return self._meta_data['version'] if 'version' in self._meta_data else ''
 
     def _get_meta_data_from_file(self, installed=False):
         if installed:
@@ -266,24 +279,82 @@ class ALLSKYMODULEINSTALLER:
     dest_path = None
     dest_path_deps = None
     dest_path_info = None
+    allsky_path = None
     user = None
     module_dirs = []
     modules = []
     check_list = []
     debug_mode = False
     module_list = []
-
+    valid_module_paths = []
+    
     def __init__(self, debug_mode):
+        self._setupEnvironment()
         self.debug_mode = debug_mode
         self.base_path = os.path.dirname(os.path.realpath(__file__))
-        self.dest_path = '/opt/allsky/modules'
+        self.dest_path = self.valid_module_paths[0]
         self.module_path_base = os.path.join(self.dest_path, 'moduledata')
         self.module_path_data = os.path.join(self.module_path_base, 'data')
         self.dest_path_installer = os.path.join(self.module_path_base, 'installer')
         self.dest_path_info = os.path.join(self.module_path_base, 'info')
         self.dest_path_log = os.path.join(self.module_path_base, 'logfiles')
-
         self.install_errors = {}
+
+    def _setEnvironmentVariable(self, name, value, logMessage='', logLevel=4):
+        result = True
+
+        try:
+            os.environ[name] = value
+        except:
+            result = False
+
+        return result
+
+    def _setupEnvironment(self):
+        
+        try:
+            self.allsky_path = os.environ['ALLSKY_HOME']
+        except KeyError:
+            print('ALLSKY_HOME environment variable is not set. Please set it to the AllSky installation directory.')
+            sys.exit(1)
+
+        command = shlex.split("bash -c 'source " + self.allsky_path + "/variables.sh && env'")
+        proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        for line in proc.stdout:
+            line = line.decode(encoding='UTF-8')
+            line = line.strip("\n")
+            line = line.strip("\r")
+            try:
+                (key, _, value) = line.partition("=")
+                self._setEnvironmentVariable(key, value)
+            except Exception:
+                pass
+        proc.communicate()
+
+        
+        try:
+            allsky_my_files_folder = os.environ["ALLSKY_MYFILES_DIR"]
+        except KeyError:
+            print("ERROR: $ALLSKY_MYFILES_DIR not found - Aborting.")
+            sys.exit(1)
+
+        try:
+            all_sky_modules = os.environ["ALLSKY_MODULE_LOCATION"]
+        except KeyError:
+            print("ERROR: $ALLSKY_MODULE_LOCATION not found - Aborting.")
+            sys.exit(1)
+        allsky_modules_location = os.path.join(all_sky_modules, "modules")
+
+        try:
+            allsky_scripts = os.environ["ALLSKY_SCRIPTS"]
+        except KeyError:
+            print("ERROR: $ALLSKY_SCRIPTS not found - Aborting")
+            sys.exit(1)
+        allsky_modules_path = os.path.join(allsky_scripts, "modules")
+        allsky_my_files_folder = os.path.join(allsky_my_files_folder, "modules")
+
+        self.valid_module_paths = [allsky_my_files_folder, allsky_modules_location, allsky_modules_path]
+
 
     def _add_installer_error(self, module, error):
         self.install_errors.setdefault(module.name, []).append(error)
@@ -291,7 +362,7 @@ class ALLSKYMODULEINSTALLER:
     def _pre_checks(self):
         result = True
 
-        if not os.path.exists(self.dest_path):
+        if not os.path.exists(self.allsky_path):
             print('AllSky does not seem to be installed. The /opt/allsky directory does not exist. Please install AllSky before installing the modules')
             result = False
 
@@ -315,8 +386,8 @@ class ALLSKYMODULEINSTALLER:
         dirs = os.listdir()
         for dir in dirs:
             if dir.startswith('allsky_') and not os.path.isfile(dir):
-                self.module_list.append(ALLSKYMODULE(dir))
-
+                self.module_list.append(ALLSKYMODULE(dir, self.valid_module_paths))
+        
         self.module_list = sorted(self.module_list, key=lambda p: p.name)
 
     def _display_install_dialog(self):
@@ -527,7 +598,7 @@ class ALLSKYMODULEINSTALLER:
 
             if return_code != 1:
                 module_name = module_name[0]
-                module = ALLSKYMODULE(module_name)
+                module = ALLSKYMODULE(module_name, self.valid_module_paths)
                 self._display_module_info_dialog(module)
             else:
                 done = True
