@@ -189,11 +189,11 @@ def emailsend(params, event):
     result = ""
     send_email = False
 
-    # Get yesterday's date in YYYYMMDD format
-    yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y%m%d")
-
     # Get user's home directory
     home_dir = os.path.expanduser("~")
+
+    # Get yesterday's date in YYYYMMDD format
+    yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y%m%d")
     
     # get image file extension from allsky user settings      
     full_file_name = s.getSetting('filename')
