@@ -1,5 +1,6 @@
 import sys
 import board
+import datetime
 import allsky_shared as s
 from barbudor_ina3221.full import *
 
@@ -89,11 +90,12 @@ def readChannel(ina3221, channel):
     shuntVoltage = ina3221.shunt_voltage(channel)
     current = ina3221.current(channel)
     voltage = round(busVoltage + shuntVoltage,2)
-    current = round(abs(current),3)
+    current = round(current,3)  # Removed the absolute value filter so this can be used to monitor current in and out of batteries. 
+    power = round(voltage * current,3)  # Calculate the power (in watts) going across the bus.
 
-    s.log(4, f"INFO: Channel {channel} read, voltage {voltage}, current {current}. Bus Voltage {busVoltage}, Shunt Voltage {shuntVoltage}")
+    s.log(4, f"INFO: Channel {channel} read, voltage {voltage}, current {current}. Bus Voltage {busVoltage}, Shunt Voltage {shuntVoltage}, power {power}")
                         
-    return voltage, current
+    return voltage, current, power
 
 def ina3221(params, event):
     result = "Ina3221 read ok"
@@ -106,7 +108,7 @@ def ina3221(params, event):
         c3enabled = params["c3enable"]
         c3name = params["c3name"].upper()
         extradatafilename = params['extradatafilename']
-    
+
         i2cBus = board.I2C()
         ina3221 = INA3221(i2cBus)
 
@@ -124,25 +126,32 @@ def ina3221(params, event):
         extraData = {}
         extraData[f"AS_{c1name}VOLTAGE"] = "N/A"
         extraData[f"AS_{c1name}CURRENT"] = "N/A"
+        extraData[f"AS_{c1name}POWER"] = "N/A"
         extraData[f"AS_{c2name}VOLTAGE"] = "N/A"
         extraData[f"AS_{c2name}CURRENT"] = "N/A"
+        extraData[f"AS_{c2name}POWER"] = "N/A"
         extraData[f"AS_{c3name}VOLTAGE"] = "N/A"
         extraData[f"AS_{c3name}CURRENT"] = "N/A"
+        extraData[f"AS_{c3name}POWER"] = "N/A"
+        extraData[f"AS_INA3221TIME"] = str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))  # Adds timestamp to the json file when generated. Helpful in determining if the data is fresh. 
 
         if c1enabled:
-            voltage, current = readChannel(ina3221,1)
+            voltage, current, power = readChannel(ina3221,1)
             extraData[f"AS_{c1name}VOLTAGE"] = str(voltage)
-            extraData[f"AS_{c1name}CURRENT"] = str(current) 
+            extraData[f"AS_{c1name}CURRENT"] = str(current)
+            extraData[f"AS_{c1name}POWER"] = str(power)  
 
         if c2enabled:
-            voltage, current = readChannel(ina3221,2)
+            voltage, current, power = readChannel(ina3221,2)
             extraData[f"AS_{c2name}VOLTAGE"] = str(voltage)
-            extraData[f"AS_{c2name}CURRENT"] = str(current) 
+            extraData[f"AS_{c2name}CURRENT"] = str(current)
+            extraData[f"AS_{c2name}POWER"] = str(power) 
             
         if c3enabled:
-            voltage, current = readChannel(ina3221,3)
+            voltage, current, power = readChannel(ina3221,3)
             extraData[f"AS_{c3name}VOLTAGE"] = str(voltage)
-            extraData[f"AS_{c3name}CURRENT"] = str(current) 
+            extraData[f"AS_{c3name}CURRENT"] = str(current)
+            extraData[f"AS_{c3name}POWER"] = str(power) 
 
         s.saveExtraData(extradatafilename,extraData)                            
     except Exception as e:
@@ -162,3 +171,4 @@ def ina3221_cleanup():
         }
     }
     s.cleanupModule(moduleData)
+    
