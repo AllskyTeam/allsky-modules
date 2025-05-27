@@ -13,7 +13,7 @@ metaData = {
 	"name": "All Sky Boilerplate",
 	"description": "Example module for AllSky",
 	"module": "allsky_boilerplate",
-	"version": "v1.0.2",
+	"version": "v1.0.1",
 	"centersettings": "false",
 	"testable": "true",
 	"group": "Boilerplate", 

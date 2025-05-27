@@ -73,6 +73,19 @@ class ALLSKYMODULE:
         return self._installer_data['post-install']['run']
 
     @property
+    def installed_path(self):
+        path = None
+        for path in self._module_paths:
+            if not os.path.exists(path):
+                continue
+            installed_file_path = os.path.join(path, self.name + '.py')
+            
+            if os.path.exists(installed_file_path) and os.path.isfile(installed_file_path):
+                break
+            
+        return path
+    
+    @property
     def installed(self):
         result = False
         for path in self._module_paths:
@@ -112,11 +125,35 @@ class ALLSKYMODULE:
 
     @property
     def installed_version(self):
-        return self._meta_data['version'] if 'version' in self._meta_data else ''
+        return self._installed_meta_data['version'] if 'version' in self._installed_meta_data else ''
 
+    @property
+    def is_new_version_available(self):
+        if not self.installed:
+            return True
+        if self.installed_version and self.version:
+            if self.installed_version != '' and self.version != '':
+                return version.parse(self.installed_version) < version.parse(self.version)
+        return False
+    
+    @property
+    def is_update_available(self):
+        if self.installed_version and self.version:
+            if self.installed_version != '' and self.version != '':
+                return version.parse(self.installed_version) < version.parse(self.version)
+        return False
+    
     def _get_meta_data_from_file(self, installed=False):
         if installed:
-            file_name = os.path.join(self._dest_path, self.name + '.py')
+            file_name = ''
+            for path in self._module_paths:
+                if not os.path.exists(path):
+                    continue
+                installed_file_path = os.path.join(path, self.name + '.py')
+            
+                if os.path.exists(installed_file_path) and os.path.isfile(installed_file_path):
+                    file_name = os.path.join(path, self.name + '.py')
+                    break
         else:
             file_name = os.path.join(self._module_installer_base_folder, self.name, self.name + '.py')
 
@@ -355,7 +392,6 @@ class ALLSKYMODULEINSTALLER:
 
         self.valid_module_paths = [allsky_my_files_folder, allsky_modules_location, allsky_modules_path]
 
-
     def _add_installer_error(self, module, error):
         self.install_errors.setdefault(module.name, []).append(error)
 
@@ -389,16 +425,35 @@ class ALLSKYMODULEINSTALLER:
                 self.module_list.append(ALLSKYMODULE(dir, self.valid_module_paths))
         
         self.module_list = sorted(self.module_list, key=lambda p: p.name)
-
-    def _display_install_dialog(self):
+            
+    def _display_install_dialog(self, reinstall=False):
         module_list = []
+        modules_to_install = None
         for module in self.module_list:
-            module_list.append((module.name, '', module.winstalled))
-        w = Whiptail(title='Select Modules', backtitle='AllSky Module Manager', height=20, width=40)
-        modules_to_install = w.checklist('Select the Modules To Install', module_list)[0]
+            
+            if reinstall:
+                if module.installed:
+                    module_list.append((module.name, '',  ''))
+            else:
+                module_list.append((module.name, '',  module.winstalled if module.is_new_version_available else ''))
+        if len(module_list) > 0:                
+            w = Whiptail(title='Select Modules', backtitle='AllSky Module Manager', height=20, width=40)
+            modules_to_install = w.checklist('Select the Modules To Install', module_list)[0]
 
         return modules_to_install
 
+    def _display_uninstall_dialog(self):
+        module_list = []
+        modules_to_uninstall = None
+        for module in self.module_list:
+            if module.installed:
+                module_list.append((module.name, '', ''))
+        if len(module_list) > 0:
+            w = Whiptail(title='Select Modules', backtitle='AllSky Module Manager', height=20, width=40)
+            modules_to_uninstall = w.checklist('Select the Modules To Uninstall', module_list)[0]
+
+        return modules_to_uninstall
+            
     def _check_python_version(self, module):
         result = True
         minimum_python_version = module.python_version
@@ -537,32 +592,110 @@ class ALLSKYMODULEINSTALLER:
             print(f'Runing post install routine {os.path.basename(post_run_script)}')
             subprocess.run(post_run_script, shell=True)
 
-    def _do_install(self, modules_to_install):
+    def _do_install(self, modules_to_install, reinstall=False):
         result = True
-
+        did_something = False
         os.system('clear')
 
         for module_name in modules_to_install:
             module = self._find_module(module_name)
+            if module.is_new_version_available or reinstall:
+                if module is not None:
+                    if module.is_update_available :
+                        title = f'Updating {module.name} to version {module.version}'
+                    else:
+                        title = f'Installing {module.name}'
+                    print(title)
+                    print('='*len(title))
+
+                    if (result := self._check_python_version(module)):
+                        if (result := self._install_dependencies(module)):
+                            if (result := self._install_module(module)):
+                                self._run_post_installaton(module)
+                                print(f'SUCCESS: Module "{module}" installed\n\n')
+                            else:
+                                error = f'ERROR: Module "{module}" failed to install'
+                                self._add_installer_error(module, f'{error}')
+                                print(f'{error}\n\n')
+                        did_something = True
+                    if not result:
+                        self._display_install_errors()
+                        break
+            else:
+                print(f'INFO: Module "{module.name}" is already installed and up to date\n\n')
+        if did_something:
+            input("Press Enter to continue...")
+    
+    def _is_module_in_use(self, module_name):
+        result = None
+        
+        return result
+    
+    def _do_uninstall(self, modules_to_uninstall):
+        result = False
+
+        os.system('clear')
+
+        for module_name in modules_to_uninstall:
+            module = self._find_module(module_name)
             if module is not None:
-                title = f'Installing {module.name}'
-                print(title)
-                print('='*len(title))
-
-                if (result := self._check_python_version(module)):
-                    if (result := self._install_dependencies(module)):
-                        if (result := self._install_module(module)):
-                            self._run_post_installaton(module)
-                            print(f'SUCCESS: Module "{module}" installed\n\n')
-                        else:
-                            error = f'ERROR: Module "{module}" failed to install'
-                            self._add_installer_error(module, f'{error}')
-                            print(f'{error}\n\n')
-
-                if not result:
-                    self._display_install_errors()
-                    break
-
+                module_flow = self._is_module_in_use(module_name)
+                if module_flow is None:
+                    title = f'Uninnstalling {module.name}'
+                    print(title)
+                    print('='*len(title))
+        
+                    installed_path = module.installed_path
+                    if installed_path is not None:
+                        module_file = os.path.join(installed_path, module_name + '.py')
+                        module_install_data_folder = os.path.join(installed_path, 'moduledata')
+                        module_data_folder = os.path.join(module_install_data_folder, 'data', module_name)
+                        module_info_folder = os.path.join(module_install_data_folder, 'info', module_name)
+                        module_installer_folder = os.path.join(module_install_data_folder, 'installer', module_name)
+                        module_log_files_folder = os.path.join(module_install_data_folder, 'logfiles', module_name)
+                        
+                        try:
+                            if os.path.exists(module_log_files_folder) and os.path.isdir(module_log_files_folder):
+                                print(f"INFO: Deleting folder {module_log_files_folder}")
+                                shutil.rmtree(module_log_files_folder)
+                        except Exception as e:
+                            print(f"Error deleting folder {module_log_files_folder}: {e}")
+                    
+                        try:
+                            if os.path.exists(module_info_folder) and os.path.isdir(module_info_folder):
+                                print(f"INFO: Deleting folder {module_info_folder}")
+                                shutil.rmtree(module_info_folder)
+                        except Exception as e:
+                            print(f"Error deleting folder {module_info_folder}: {e}")
+                    
+                        try:
+                            if os.path.exists(module_data_folder) and os.path.isdir(module_data_folder):
+                                print(f"INFO: Deleting folder {module_data_folder}")
+                                shutil.rmtree(module_data_folder)
+                        except Exception as e:
+                            print(f"Error deleting folder {module_data_folder}: {e}")
+                            
+                        try:
+                            if os.path.exists(module_installer_folder) and os.path.isdir(module_installer_folder):
+                                print(f"INFO: Deleting folder {module_installer_folder}")
+                                shutil.rmtree(module_installer_folder)
+                        except Exception as e:
+                            print(f"Error deleting folder {module_installer_folder}: {e}")
+                            
+                        try:
+                            if os.path.isfile(module_file):
+                                print(f"INFO: Deleting module {module_file}")
+                                os.remove(module_file)
+                        except Exception as e:
+                            print(f"Error deleting folder {module_installer_folder}: {e}")
+                            
+                        result = True
+                            
+                else:
+                    print(f'ERROR: Module "{module.name}" is currently in use and cannot be uninstalled')
+        if result:
+            input("Press Enter to continue...")                
+                
     def _display_install_errors(self):
         message_text = ''
         for module_with_errors in self.install_errors:
@@ -717,7 +850,7 @@ class ALLSKYMODULEINSTALLER:
 
         while not done:
             w = Whiptail(title='Main Menu', backtitle='AllSky Module Manager', height=20, width = 40)
-            menu_option, return_code = w.menu('', ['Install/Remove Modules', 'Module Information', 'System Checks', 'Exit'])
+            menu_option, return_code = w.menu('', ['Install Modules', 'Reinstall Modules', 'Uninstall Modules', 'Module Information', 'System Checks', 'Exit'])
 
             if return_code == 0:
                 if menu_option == 'Exit':
@@ -726,11 +859,33 @@ class ALLSKYMODULEINSTALLER:
                     self._display_modules_info()
                 if menu_option == 'System Checks':
                     self._display_system_checks()                    
-                if menu_option == 'Install/Remove Modules':
+                if menu_option == 'Install Modules':
                     if self._pre_checks():
                         self._read_modules()
-                        modules_to_install = self._display_install_dialog()
+                        modules_to_install = self._display_install_dialog(False)
                         self._do_install(modules_to_install)
+                    else:
+                        sys.exit(0)
+                if menu_option == 'Reinstall Modules':
+                    if self._pre_checks():
+                        self._read_modules()
+                        modules_to_install = self._display_install_dialog(True)
+                        if modules_to_install is not None:
+                            self._do_install(modules_to_install, True)
+                        else:
+                            w = Whiptail(title='Reinstall Modules', backtitle='AllSky Module Manager', height=8, width=50)
+                            w.msgbox("There are no modules available for reinstall.")
+                    else:
+                        sys.exit(0)
+                if menu_option == 'Uninstall Modules':
+                    if self._pre_checks():
+                        self._read_modules()
+                        modules_to_uninstall = self._display_uninstall_dialog()
+                        if modules_to_uninstall is not None:
+                            self._do_uninstall(modules_to_uninstall)
+                        else:
+                            w = Whiptail(title='Uninstall Modules', backtitle='AllSky Module Manager', height=8, width=50)
+                            w.msgbox("There are no modules available for uninstall.")
                     else:
                         sys.exit(0)
             else:
