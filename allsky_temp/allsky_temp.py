@@ -10,7 +10,6 @@ import sys
 import os
 import json
 import requests
-import json
 import board
 from pathlib import Path
 
@@ -2532,105 +2531,25 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 		return temperature, humidity, co2
 
-	def _get_nested_value(self, data, path, value_type=str, separator="."):
-		keys = path.split(separator)
-		try:
-			for key in keys:
-				if isinstance(data, dict):
-					data = data[key]
-				elif isinstance(data, list):
-					data = data[int(key)]
-				else:
-					return None
-			return value_type(data)
-		except (KeyError, IndexError, ValueError, TypeError):
-			return None
-
-	def _f_to_c(self, fahrenheit):
-		result = fahrenheit
-		if fahrenheit is not None:
-			result =  round((fahrenheit - 32) * 5 / 9, 2)
-      
-		return result
-
-	def _inhg_to_mbar(self, inhg):
-		result = inhg
-		if inhg is not None:
-			result = round(inhg * 33.8639, 2)
-   
-		return result
-
 	def _read_ecowitt(self, sensor_number):
 
 		temperature = None
 		humidity = None
 		pressure = None
 		the_dew_point = None
-       
+		
 		app_key = self.get_param('ecowittapplication' + sensor_number, '', str)
 		api_key = self.get_param('ecowittapikey' + sensor_number, '', str)
 		mac_address = self.get_param('ecowittmac' + sensor_number, '', str)
 
-		if all(var.strip() for var in (app_key, api_key, mac_address)):
-			ECOWITT_API_URL = f'https://api.ecowitt.net/api/v3/device/real_time?application_key={app_key}&api_key={api_key}&mac={mac_address}&call_back=all'
-			allsky_shared.log(4,f"INFO: Reading Ecowitt API from - {ECOWITT_API_URL}")
-			try:
-				response = requests.get(ECOWITT_API_URL)
-				if response.status_code == 200:
-					raw_data = response.json()
+		data = allsky_shared.get_ecowitt_data(api_key, app_key, mac_address)
 
-					temperature = self._get_nested_value(raw_data, 'data.outdoor.temperature.value', float)
-					humidity = self._get_nested_value(raw_data, 'data.outdoor.humidity.value', float)
-					pressure = self._get_nested_value(raw_data, 'data.pressure.relative.value', float)
-					the_dew_point = self._get_nested_value(raw_data, 'data.outdoor.dew_point.value', float)
-
-					temperature = self._f_to_c(temperature)
-					the_dew_point = self._f_to_c(the_dew_point)
-					pressure = self._inhg_to_mbar(pressure)	
-					allsky_shared.log(1, f'INFO: Data read from Ecowitt API')
-				else:
-					result = f'Got error from the Ecowitt API. Response code {response.status_code}'
-					allsky_shared.log(0,f'ERROR: {result}')
-			except Exception as e:
-				eType, eObject, eTraceback = sys.exc_info()
-				result = f'ERROR: Failed to read data from Ecowitt {eTraceback.tb_lineno} - {e}'
-				allsky_shared.log(0, result)
-		else:
-			result = 'Missing Ecowitt Application Key, API Key or MAC Address'
-			allsky_shared.log(0, f'ERROR: {result}')
-   
+		temperature = data['outdoor']['temperature']
+		humidity = data['outdoor']['humidity']
+		pressure = data['pressure']['relative']
+		the_dew_point = data['outdoor']['dew_point']
+  
 		return temperature, humidity, pressure, the_dew_point	
-
-	def _get_by_id(self, data_list, target_id):
-		for item in data_list:
-			if item.get('id') == target_id:
-				raw = item.get('val')
-				if raw is None:
-					return None
-				return raw
-		return None
-    
-	def _convert_to_mbar(self, pressure_str):
-		if not isinstance(pressure_str, str):
-			return None
-
-		try:
-			value, unit = pressure_str.strip().lower().split()
-			value = float(value)
-			unit = unit.replace(".", "")  # normalize unit
-
-			if unit in ["hpa", "mbar", "mb"]:
-				return round(value, 2)
-			elif unit == "kpa":
-				return round(value * 10, 2)
-			elif unit == "inhg":
-				return round(value * 33.8639, 2)
-			elif unit == "mmhg":
-				return round(value * 1.33322, 2)
-			else:
-				return None  # Unknown unit
-		except (ValueError, TypeError):
-			return None
     
 	def _read_ecowitt_local(self, sensor_number):
      
@@ -2640,34 +2559,15 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		the_dew_point = None
   
 		LOCAL_URL = self.get_param('ecowittlocalurl' + sensor_number, '', str)
-  
-		if LOCAL_URL.strip() != '':
-			allsky_shared.log(4,f"INFO: Reading Ecowitt local URL - {LOCAL_URL}")
-			try:
-				response = requests.get(LOCAL_URL)
-				if response.status_code == 200:
-					raw_data = response.json()
-					print(raw_data)
-					temperature = self._get_by_id(raw_data.get("common_list", []), "0x02")
-					humidity = self._get_by_id(raw_data.get("common_list", []), "0x07")
-					pressure = self._get_by_id(raw_data.get("common_list", []), "5")
-					the_dew_point = self._get_by_id(raw_data.get("common_list", []), "0x03")
-					print(pressure)
-					pressure = self._convert_to_mbar(pressure)
-					print(pressure)
-     
-					allsky_shared.log(1, f'INFO: Data read from local URL')
-				else:
-					result = f'Got error from the Ecowitt local URL. Response code {response.status_code}'
-					allsky_shared.log(0,f'ERROR: {result}')
-			except Exception as e:
-				eType, eObject, eTraceback = sys.exc_info()
-				result = f'ERROR: Failed to read data from Ecowitt {eTraceback.tb_lineno} - {e}'
-				allsky_shared.log(0, result)
-		else:
-			result = 'Missing Ecowitt local URL'
-			allsky_shared.log(0, f'ERROR: {result}')
+
+		data = allsky_shared.get_ecowitt_local_data(LOCAL_URL)
    
+
+		temperature = data['outdoor']['temperature']
+		humidity = data['outdoor']['humidity']
+		pressure = data['pressure']['relative']
+		the_dew_point = data['outdoor']['dew_point']
+  
 		return temperature, humidity, pressure, the_dew_point	
 
 
