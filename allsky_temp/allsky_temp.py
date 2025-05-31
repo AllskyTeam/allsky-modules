@@ -254,7 +254,12 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"owperiod": "",        
 			"owunits": "",        
 			"owexpire": "",
-	
+			"ecowittapplication": "",
+			"ecowittapikey": "",
+			"ecowittmac": "",
+			"ecowittlocalurl": "",
+
+
 			"type1": "None",
 			"name1": "",
 			"inputpin1": "",
@@ -273,7 +278,12 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"owperiod1": "",        
 			"owunits1": "",        
 			"owexpire1": "",  
-			
+			"ecowittapplication1": "",
+			"ecowittapikey1": "",
+			"ecowittmac1": "",
+			"ecowittlocalurl1": "",
+
+   
 			"type2": "None",
 			"name2": "",
 			"inputpin2": "",
@@ -292,7 +302,11 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"owperiod2": "",        
 			"owunits2": "",        
 			"owexpire2": "",  
-				
+			"ecowittapplication2": "",
+			"ecowittapikey2": "",
+			"ecowittmac2": "",
+			"ecowittlocalurl2": "",
+   				
 			"type3": "None",
 			"name3": "",
 			"inputpin3": "",
@@ -310,8 +324,13 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"owfilename3": "",
 			"owperiod3": "",
 			"owunits3": "",
-			"owexpire3": ""
-			
+			"owexpire3": "",
+			"ecowittapplication3": "",
+			"ecowittapikey3": "",
+			"ecowittmac3": "",
+			"ecowittlocalur3": ""
+   
+   			
 		},
 		"argumentdetails": {
 			"notice" : {
@@ -363,7 +382,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Core",
 				"type": {
 					"fieldtype": "select",
-					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather,Ecowitt,Ecowitt Local",
 					"default": "None"
 				}
 			},
@@ -593,6 +612,80 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}                       
 			},          
+
+			"ecowittapplication": {
+				"required": "false",
+				"description": "Application Key",
+				"tab": "Core",            
+				"help": "The Ecowitt application key. This is created in your user profile on https://www.ecowitt.net/",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt"
+					]
+				}    				
+			},
+			"ecowittapikey": {
+				"required": "false",
+				"description": "API Key",
+				"tab": "Core",            
+				"help": "The Ecowitt api key. This is created in your user profile on https://www.ecowitt.net/",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt"
+					]
+				}    				
+			},
+			"ecowittmac": {
+				"required": "false",
+				"description": "MAC Address",
+				"tab": "Core",            
+				"help": "The Ecowitt MAC Address. This can be found in your devices page on https://www.ecowitt.net/",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt"
+					]
+				}    				
+			},
+			"ecowittlocalurltext": {
+				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. The URL will look like http://192.168.1.25/get_livedata_info?. See the documentation on howto obtain this url.",
+				"tab": "Core",
+				"type": {
+					"fieldtype": "text",
+					"style": {
+						"width": "full",
+						"alert": {
+							"class": "success"
+						}
+					}
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt Local"
+					]
+				}              						
+			},
+			"ecowittlocalurl": {
+				"required": "false",
+				"description": "Local URL",
+				"tab": "Core",            
+				"help": "The local URL of the Ecowitt Hub",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt Local"
+					]
+				}    				
+			},
+         
 			"noticecore" : {
 				"tab": "Core",      
 				"message": "This sensor is used by Allksy for basic temperature information. The following Variables will be created<br>AS_TEMP - The temperature<br>AS_HUMIDITY - The Humidity<br>AS_DEWPOINT - the dew point<br>AS_PRESSURE - <Only if supported by the sensor> Barometric Pressure<br>AS_ALTITUDE - <Only if supported by the sensor> The altitude",
@@ -605,15 +698,15 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						}
 					}
 				} 			
-			}, 
-			"type1" : {
+			},    
+   			"type1" : {
 				"required": "false",
 				"description": "Sensor Type",
 				"help": "The type of sensor that is being used.",
 				"tab": "Sensor 1",
 				"type": {
 					"fieldtype": "select",
-					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather,Ecowitt,Ecowitt Local",
 					"default": "None"
 				}
 			},
@@ -636,7 +729,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"SCD30",
 						"BME680",
-						"OpenWeather"
+						"OpenWeather",
+						"Ecowitt"
 					]
 				}            
 			},        
@@ -859,6 +953,80 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}                       
 			},                 
+
+			"ecowittapplication1": {
+				"required": "false",
+				"description": "Application Key",
+				"tab": "Sensor 1",            
+				"help": "The Ecowitt application key. This is created in your user profile on https://www.ecowitt.net/",
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt"
+					]
+				}    				
+			},
+			"ecowittapikey1": {
+				"required": "false",
+				"description": "API Key",
+				"tab": "Sensor 1",            
+				"help": "The Ecowitt api key. This is created in your user profile on https://www.ecowitt.net/",
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt"
+					]
+				}    				
+			},
+			"ecowittmac1": {
+				"required": "false",
+				"description": "MAC Address",
+				"tab": "Sensor 1",            
+				"help": "The Ecowitt MAC Address. This can be found in your devices page on https://www.ecowitt.net/",
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt"
+					]
+				}    				
+			},
+			"ecowittlocalurltext1": {
+				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. The URL will look like http://192.168.1.25/get_livedata_info?. See the documentation on howto obtain this url.",
+				"tab": "Sensor 1",
+				"type": {
+					"fieldtype": "text",
+					"style": {
+						"width": "full",
+						"alert": {
+							"class": "success"
+						}
+					}
+				},
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt Local"
+					]
+				}              						
+			},
+			"ecowittlocalurl1": {
+				"required": "false",
+				"description": "Local URL",
+				"tab": "Sensor 1",            
+				"help": "The local URL of the Ecowitt Hub",
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt Local"
+					]
+				}    				
+			},
+   
 			"temp1" : {
 				"required": "false",
 				"description": "Max Temp",
@@ -964,14 +1132,15 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}                    
 			},                    
-			"type2" : {
+			
+   			"type2" : {
 				"required": "false",
 				"description": "Sensor Type",
 				"help": "The type of sensor that is being used.",
 				"tab": "Sensor 2",
 				"type": {
 					"fieldtype": "select",
-					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather,Ecowitt,Ecowitt Local",
 					"default": "None"
 				}
 			},
@@ -994,7 +1163,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"SCD30",
 						"BME680",
-						"OpenWeather"
+						"OpenWeather",
+						"Ecowitt"
 					]
 				}            
 			},        
@@ -1216,7 +1386,84 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"OpenWeather"
 					]
 				}                       
-			},                 
+			},
+   
+   
+   
+   			"ecowittapplication2": {
+				"required": "false",
+				"description": "Application Key",
+				"tab": "Sensor 2",            
+				"help": "The Ecowitt application key. This is created in your user profile on https://www.ecowitt.net/",
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt"
+					]
+				}    				
+			},
+			"ecowittapikey2": {
+				"required": "false",
+				"description": "API Key",
+				"tab": "Sensor 2",            
+				"help": "The Ecowitt api key. This is created in your user profile on https://www.ecowitt.net/",
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt"
+					]
+				}    				
+			},
+			"ecowittmac2": {
+				"required": "false",
+				"description": "MAC Address",
+				"tab": "Sensor 2",            
+				"help": "The Ecowitt MAC Address. This can be found in your devices page on https://www.ecowitt.net/",
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt"
+					]
+				}    				
+			},
+			"ecowittlocalurltext2": {
+				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. The URL will look like http://192.168.1.25/get_livedata_info?. See the documentation on howto obtain this url.",
+				"tab": "Sensor 2",
+				"type": {
+					"fieldtype": "text",
+					"style": {
+						"width": "full",
+						"alert": {
+							"class": "success"
+						}
+					}
+				},
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt Local"
+					]
+				}              						
+			},
+			"ecowittlocalurl2": {
+				"required": "false",
+				"description": "Local URL",
+				"tab": "Sensor 2",            
+				"help": "The local URL of the Ecowitt Hub",
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt Local"
+					]
+				}    				
+			},   
+   
+              
 			"temp2" : {
 				"required": "false",
 				"description": "Max Temp",
@@ -1329,7 +1576,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Sensor 3",
 				"type": {
 					"fieldtype": "select",
-					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather,Ecowitt,Ecowitt Local",
 					"default": "None"
 				}
 			},
@@ -1352,7 +1599,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"OpenWeather",
 						"SCD30",
-						"BME680"
+						"BME680",
+						"Ecowitt"
 					]
 				}            
 			},        
@@ -1575,6 +1823,83 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}                       
 			},  
+   
+   
+   
+   			"ecowittapplication3": {
+				"required": "false",
+				"description": "Application Key",
+				"tab": "Sensor 3",            
+				"help": "The Ecowitt application key. This is created in your user profile on https://www.ecowitt.net/",
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt"
+					]
+				}    				
+			},
+			"ecowittapikey3": {
+				"required": "false",
+				"description": "API Key",
+				"tab": "Sensor 3",            
+				"help": "The Ecowitt api key. This is created in your user profile on https://www.ecowitt.net/",
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt"
+					]
+				}    				
+			},
+			"ecowittmac3": {
+				"required": "false",
+				"description": "MAC Address",
+				"tab": "Sensor 3",            
+				"help": "The Ecowitt MAC Address. This can be found in your devices page on https://www.ecowitt.net/",
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt"
+					]
+				}    				
+			},   
+			"ecowittlocalurltext3": {
+				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. The URL will look like http://192.168.1.25/get_livedata_info?. See the documentation on howto obtain this url.",
+				"tab": "Sensor 3",
+				"type": {
+					"fieldtype": "text",
+					"style": {
+						"width": "full",
+						"alert": {
+							"class": "success"
+						}
+					}
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt Local"
+					]
+				}              						
+			},
+			"ecowittlocalurl3": {
+				"required": "false",
+				"description": "Local URL",
+				"tab": "Sensor 3",            
+				"help": "The local URL of the Ecowitt Hub",
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"Ecowitt Local"
+					]
+				}    				
+			},   
+   
+   
 			"temp3" : {
 				"required": "false",
 				"description": "Max Temp",
@@ -2207,6 +2532,145 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 		return temperature, humidity, co2
 
+	def _get_nested_value(self, data, path, value_type=str, separator="."):
+		keys = path.split(separator)
+		try:
+			for key in keys:
+				if isinstance(data, dict):
+					data = data[key]
+				elif isinstance(data, list):
+					data = data[int(key)]
+				else:
+					return None
+			return value_type(data)
+		except (KeyError, IndexError, ValueError, TypeError):
+			return None
+
+	def _f_to_c(self, fahrenheit):
+		result = fahrenheit
+		if fahrenheit is not None:
+			result =  round((fahrenheit - 32) * 5 / 9, 2)
+      
+		return result
+
+	def _inhg_to_mbar(self, inhg):
+		result = inhg
+		if inhg is not None:
+			result = round(inhg * 33.8639, 2)
+   
+		return result
+
+	def _read_ecowitt(self, sensor_number):
+
+		temperature = None
+		humidity = None
+		pressure = None
+		the_dew_point = None
+       
+		app_key = self.get_param('ecowittapplication' + sensor_number, '', str)
+		api_key = self.get_param('ecowittapikey' + sensor_number, '', str)
+		mac_address = self.get_param('ecowittmac' + sensor_number, '', str)
+
+		if all(var.strip() for var in (app_key, api_key, mac_address)):
+			ECOWITT_API_URL = f'https://api.ecowitt.net/api/v3/device/real_time?application_key={app_key}&api_key={api_key}&mac={mac_address}&call_back=all'
+			allsky_shared.log(4,f"INFO: Reading Ecowitt API from - {ECOWITT_API_URL}")
+			try:
+				response = requests.get(ECOWITT_API_URL)
+				if response.status_code == 200:
+					raw_data = response.json()
+
+					temperature = self._get_nested_value(raw_data, 'data.outdoor.temperature.value', float)
+					humidity = self._get_nested_value(raw_data, 'data.outdoor.humidity.value', float)
+					pressure = self._get_nested_value(raw_data, 'data.pressure.relative.value', float)
+					the_dew_point = self._get_nested_value(raw_data, 'data.outdoor.dew_point.value', float)
+
+					temperature = self._f_to_c(temperature)
+					the_dew_point = self._f_to_c(the_dew_point)
+					pressure = self._inhg_to_mbar(pressure)	
+					allsky_shared.log(1, f'INFO: Data read from Ecowitt API')
+				else:
+					result = f'Got error from the Ecowitt API. Response code {response.status_code}'
+					allsky_shared.log(0,f'ERROR: {result}')
+			except Exception as e:
+				eType, eObject, eTraceback = sys.exc_info()
+				result = f'ERROR: Failed to read data from Ecowitt {eTraceback.tb_lineno} - {e}'
+				allsky_shared.log(0, result)
+		else:
+			result = 'Missing Ecowitt Application Key, API Key or MAC Address'
+			allsky_shared.log(0, f'ERROR: {result}')
+   
+		return temperature, humidity, pressure, the_dew_point	
+
+	def _get_by_id(self, data_list, target_id):
+		for item in data_list:
+			if item.get('id') == target_id:
+				raw = item.get('val')
+				if raw is None:
+					return None
+				return raw
+		return None
+    
+	def _convert_to_mbar(self, pressure_str):
+		if not isinstance(pressure_str, str):
+			return None
+
+		try:
+			value, unit = pressure_str.strip().lower().split()
+			value = float(value)
+			unit = unit.replace(".", "")  # normalize unit
+
+			if unit in ["hpa", "mbar", "mb"]:
+				return round(value, 2)
+			elif unit == "kpa":
+				return round(value * 10, 2)
+			elif unit == "inhg":
+				return round(value * 33.8639, 2)
+			elif unit == "mmhg":
+				return round(value * 1.33322, 2)
+			else:
+				return None  # Unknown unit
+		except (ValueError, TypeError):
+			return None
+    
+	def _read_ecowitt_local(self, sensor_number):
+     
+		temperature = None
+		humidity = None
+		pressure = None
+		the_dew_point = None
+  
+		LOCAL_URL = self.get_param('ecowittlocalurl' + sensor_number, '', str)
+  
+		if LOCAL_URL.strip() != '':
+			allsky_shared.log(4,f"INFO: Reading Ecowitt local URL - {LOCAL_URL}")
+			try:
+				response = requests.get(LOCAL_URL)
+				if response.status_code == 200:
+					raw_data = response.json()
+					print(raw_data)
+					temperature = self._get_by_id(raw_data.get("common_list", []), "0x02")
+					humidity = self._get_by_id(raw_data.get("common_list", []), "0x07")
+					pressure = self._get_by_id(raw_data.get("common_list", []), "5")
+					the_dew_point = self._get_by_id(raw_data.get("common_list", []), "0x03")
+					print(pressure)
+					pressure = self._convert_to_mbar(pressure)
+					print(pressure)
+     
+					allsky_shared.log(1, f'INFO: Data read from local URL')
+				else:
+					result = f'Got error from the Ecowitt local URL. Response code {response.status_code}'
+					allsky_shared.log(0,f'ERROR: {result}')
+			except Exception as e:
+				eType, eObject, eTraceback = sys.exc_info()
+				result = f'ERROR: Failed to read data from Ecowitt {eTraceback.tb_lineno} - {e}'
+				allsky_shared.log(0, result)
+		else:
+			result = 'Missing Ecowitt local URL'
+			allsky_shared.log(0, f'ERROR: {result}')
+   
+		return temperature, humidity, pressure, the_dew_point	
+
+
 	def _get_sensor_reading(self, sensor_type, sensor_number):
 		temperature = None
 		humidity = None
@@ -2235,7 +2699,11 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		elif sensor_type == 'OpenWeather':
 			temperature, humidity, pressure, the_dew_point = self._read_open_weather(sensor_number)
 		elif sensor_type == 'BME680':
-			temperature, humidity, pressure = self._read_bme680(sensor_number) 
+			temperature, humidity, pressure = self._read_bme680(sensor_number)
+		elif sensor_type == 'Ecowitt':
+			temperature, humidity, pressure, the_dew_point = self._read_ecowitt(sensor_number) 
+		elif sensor_type == 'Ecowitt Local':
+			temperature, humidity, pressure, the_dew_point = self._read_ecowitt_local(sensor_number) 
 		else:
 			allsky_shared.log(0, 'ERROR: No sensor type defined')
 
