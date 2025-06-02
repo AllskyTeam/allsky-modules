@@ -196,7 +196,7 @@ def validate_files(the_file_paths, total_attachment_size, max_attachment_size, m
     return result, total_attachment_size, message_body
 
 # Function to create composite startrails-keogram image
-def create_combo_image(output_path, file_path_stars, file_path_keo, keo_height, img_padding):
+def create_combo_image(file_path_stars, file_path_keo, keo_height, img_padding):
     result = ""
     try:
         with Image.open(file_path_stars) as stars_img:
@@ -210,13 +210,17 @@ def create_combo_image(output_path, file_path_stars, file_path_keo, keo_height, 
             combined_img = Image.new("RGB", (stars_width, ttl_height), (0, 0, 0))
             combined_img.paste(stars_img, (0, 0))
             combined_img.paste(keo_img, (0, stars_height + img_padding))
-            combined_img.save(output_path)
-            result += f"Composite image saved to {output_path}\n"
 
-        return result
+            # Save the combined image to a BytesIO object
+            img_byte_arr = io.BytesIO()
+            combined_img.save(img_byte_arr, format='JPEG')
+            img_byte_arr.seek(0)
+
+            result += f"Overlay image created in memory\n"
+            return img_byte_arr
     except Exception as e:
-        result += f"Error creating composite image: {e}\n"
-        return result
+        result += f"Error creating combo image: {e}\n"
+        return None
 
 # Function to attach valid files to the email
 def attach_files(the_email_msg, attach_files):
@@ -258,7 +262,7 @@ def emailsend(params, event):
     message_body = params['message_body']
     startrails = params['startrails']
     keogram = params['keogram']
-    composite = params['composite']
+    create_composite = params['composite']
     composite_padding = params['composite_padding']
     composite_keogram_height = params['composite_keogram_height']
     timelapse = params['timelapse']
@@ -298,17 +302,16 @@ def emailsend(params, event):
     file_path_stars = file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/startrails/startrails-{yesterday}{file_ext}")
     file_path_keo = os.path.join(home_dir, f"allsky/images/{yesterday}/keogram/keogram-{yesterday}{file_ext}")
     file_path_timelapse = os.path.join(home_dir, f"allsky/images/{yesterday}/allsky-{yesterday}.mp4")
-    file_path_composite = os.path.join(home_dir, f"allsky/images/{yesterday}/startrails/startrails-keo-{yesterday}{file_ext}")
 
     # Check user file selections
-    if composite =="Yes":
+    if create_composite =="Yes":
             if os.path.exists(file_path_stars) and os.path.exists(file_path_keo):
                 # create composite
-                composite_img = create_combo_image(file_path_composite, file_path_stars, file_path_keo, composite_keogram_height, composite_padding)
+                composite_img = create_combo_image(file_path_stars, file_path_keo, composite_keogram_height, composite_padding)
                 # attach composite
-                if composite_img:
-                    file_paths_images.append(file_path_composite)
-                    result += "Attached composite image\n"
+                msg.add_attachment(composite_img.read(), maintype='image', subtype='jpeg', filename=f'startrails-keo-{yesterday}.jpg')
+                result += "Attached composite image\n"
+
                 send_email = True
 
     if startrails == "Yes":

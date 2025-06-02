@@ -152,11 +152,11 @@ def create_combo_image(file_path_stars, file_path_keo, keo_height, img_padding):
             combined_img.save(img_byte_arr, format='JPEG')
             img_byte_arr.seek(0)
 
-            result += "Overlay image and thumbnail created in memory\n"
+            result += f"Overlay image created in memory\n"
             return img_byte_arr
     except Exception as e:
         result += f"Error creating combo image: {e}\n"
-        return None, None
+        return None
 
 # Main Module Function
 def stars_keo_combo_in_mem(params, event):

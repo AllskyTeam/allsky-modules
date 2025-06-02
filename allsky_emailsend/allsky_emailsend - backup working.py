@@ -4,8 +4,6 @@ import os
 import datetime
 from email.message import EmailMessage
 import mimetypes
-import io
-from PIL import Image, ImageOps
 
 metaData = {
     "name": "Email images via SMTP or Gmail",
@@ -27,15 +25,12 @@ metaData = {
         "startrails": "Yes",
         "keogram": "No",
         "timelapse": "No",
-        "composite": "No",
-        "composite_padding": "50",
-        "composite_keogram_height": "400",
         "sender_email_address": "", 
         "sender_email_password": "",
         "smtp_server": "smtp.gmail.com",
         "smtp_port": "587"
     },
-    "argumentdetails": {        
+    "argumentdetails": {
         "address_as": {
             "required": "false",
             "description": "To or BCC?",
@@ -104,41 +99,6 @@ metaData = {
                 "values": "No,Yes,Yes - in separate email"
             }
         },
-        "composite": {
-            "required": "false",
-            "description": "Attach Composite",
-            "help": "creates a composite image of Startrails and Keogram",
-            "tab": "Daily Notification Setup",
-            "type": {
-                "fieldtype": "select",
-                "values": "No,Yes"
-            }
-        },
-        "composite_padding": {
-            "required": "false",
-            "description": "padding between images",
-            "help": "",
-            "tab": "Daily Notification Setup",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 0,
-                "max": 500,
-                "step": 20
-            }    
-        }, 
-        "composite_keogram_height": {
-            "required": "false",
-            "description": "new height for Keogram",
-            "help": "",
-            "tab": "Daily Notification Setup",
-            "type": {
-                "fieldtype": "spinner",
-                "min": 20,
-                "max": 2000,
-                "step": 20
-            }  
-        },
-
         "sender_email_address": {
             "required": "true",
             "description": "Sender email address",
@@ -195,29 +155,6 @@ def validate_files(the_file_paths, total_attachment_size, max_attachment_size, m
             result += f"Error: File does not exist: {file_path}\n"
     return result, total_attachment_size, message_body
 
-# Function to create composite startrails-keogram image
-def create_combo_image(output_path, file_path_stars, file_path_keo, keo_height, img_padding):
-    result = ""
-    try:
-        with Image.open(file_path_stars) as stars_img:
-            stars_width, stars_height = stars_img.size
-            
-            with Image.open(file_path_keo) as keo_img:
-                keo_img = keo_img.resize((stars_width, keo_height))
-
-            ttl_height = stars_height + img_padding + keo_height
-
-            combined_img = Image.new("RGB", (stars_width, ttl_height), (0, 0, 0))
-            combined_img.paste(stars_img, (0, 0))
-            combined_img.paste(keo_img, (0, stars_height + img_padding))
-            combined_img.save(output_path)
-            result += f"Composite image saved to {output_path}\n"
-
-        return result
-    except Exception as e:
-        result += f"Error creating composite image: {e}\n"
-        return result
-
 # Function to attach valid files to the email
 def attach_files(the_email_msg, attach_files):
     result = ""
@@ -258,9 +195,6 @@ def emailsend(params, event):
     message_body = params['message_body']
     startrails = params['startrails']
     keogram = params['keogram']
-    composite = params['composite']
-    composite_padding = params['composite_padding']
-    composite_keogram_height = params['composite_keogram_height']
     timelapse = params['timelapse']
     to_or_bcc = params['address_as']
 
@@ -295,32 +229,20 @@ def emailsend(params, event):
     file_paths_video = []
     valid_file_paths = []  
 
-    file_path_stars = file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/startrails/startrails-{yesterday}{file_ext}")
-    file_path_keo = os.path.join(home_dir, f"allsky/images/{yesterday}/keogram/keogram-{yesterday}{file_ext}")
-    file_path_timelapse = os.path.join(home_dir, f"allsky/images/{yesterday}/allsky-{yesterday}.mp4")
-    file_path_composite = os.path.join(home_dir, f"allsky/images/{yesterday}/startrails/startrails-keo-{yesterday}{file_ext}")
-
     # Check user file selections
-    if composite =="Yes":
-            if os.path.exists(file_path_stars) and os.path.exists(file_path_keo):
-                # create composite
-                composite_img = create_combo_image(file_path_composite, file_path_stars, file_path_keo, composite_keogram_height, composite_padding)
-                # attach composite
-                if composite_img:
-                    file_paths_images.append(file_path_composite)
-                    result += "Attached composite image\n"
-                send_email = True
-
     if startrails == "Yes":
-        file_paths_images.append(file_path_stars)
+        file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/startrails/startrails-{yesterday}{file_ext}")
+        file_paths_images.append(file_path)
         send_email = True
         
     if keogram == "Yes":
-        file_paths_images.append(file_path_keo)
+        file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/keogram/keogram-{yesterday}{file_ext}")
+        file_paths_images.append(file_path)
         send_email = True
 
     if timelapse == "Yes":
-        file_paths_images.append(file_path_timelapse)
+        file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/allsky-{yesterday}.mp4")
+        file_paths_images.append(file_path)
         send_email = True
 
     if send_email:
