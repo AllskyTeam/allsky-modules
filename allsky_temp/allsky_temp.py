@@ -257,7 +257,12 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"ecowittapikey": "",
 			"ecowittmac": "",
 			"ecowittlocalurl": "",
-
+			"hassurl": "",
+			"hassltt": "",
+			"hassunit": "",
+			"hasstemp": "",
+			"hasshumidity": "",
+			"hasspressure": "",
 
 			"type1": "None",
 			"name1": "",
@@ -381,7 +386,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Core",
 				"type": {
 					"fieldtype": "select",
-					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather,Ecowitt,Ecowitt Local",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather,Ecowitt,Ecowitt Local,Homeassistant",
 					"default": "None"
 				}
 			},
@@ -611,7 +616,6 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}                       
 			},          
-
 			"ecowittapplication": {
 				"required": "false",
 				"description": "Application Key",
@@ -684,10 +688,116 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}    				
 			},
-         
+			"hassurl": {
+				"required": "false",
+				"description": "URL",
+				"tab": "Core",            
+				"help": "The url of your homeassistant server, will be something liek http://192.168.1.196:8123",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},
+			"hassltt": {
+				"required": "false",
+				"description": "Long Term Token",
+				"tab": "Core",            
+				"help": "The Homeassistant long term token, generated in your hass user profile under the security tab",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},
+			"hassunit": {
+				"required": "false",
+				"description": "Temperature Unit",
+				"tab": "Core",            
+				"help": "The temperature units used in Homeassistant",
+				"type": {
+					"fieldtype": "select",
+					"values": "Metric,Imperial",
+					"default": "None"
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},
+			"hasstemp": {
+				"required": "false",
+				"description": "Temperature Sensor",
+				"tab": "Core",            
+				"help": "The id of the temperature sensor to read from Homeassistant",
+				"type": {
+					"fieldtype": "dependentselect",
+					"action": "hasssensors",
+					"dependenciesset": [
+						"hassurl",
+						"hassltt"
+					]
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},
+			"hasshumidity": {
+				"required": "false",
+				"description": "Humidity Sensor",
+				"tab": "Core",            
+				"help": "The id of the humidity sensor to read from Homeassistant",
+				"type": {
+					"fieldtype": "dependentselect",
+					"action": "hasssensors",
+					"dependenciesset": [
+						"hassurl",
+						"hassltt"
+					]
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},
+			"hasspressure": {
+				"required": "false",
+				"description": "Pressure Sensor",
+				"tab": "Core",            
+				"help": "The id of the pressure sensor to read from Homeassistant",
+				"type": {
+					"fieldtype": "dependentselect",
+					"action": "hasssensors",
+					"dependenciesset": [
+						"hassurl",
+						"hassltt"
+					]
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},           
 			"noticecore" : {
 				"tab": "Core",      
-				"message": "This sensor is used by Allksy for basic temperature information. The following Variables will be created<br>AS_TEMP - The temperature<br>AS_HUMIDITY - The Humidity<br>AS_DEWPOINT - the dew point<br>AS_PRESSURE - <Only if supported by the sensor> Barometric Pressure<br>AS_ALTITUDE - <Only if supported by the sensor> The altitude",
+				"message": "This sensor is used by Allksy for basic temperature information. The following Variables will be created<br>AS_TEMP, AS_HUMIDITY, AS_DEWPOINT, AS_PRESSURE, AS_ALTITUDE",
 				"type": {
 					"fieldtype": "text",
 					"style": {
@@ -705,7 +815,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Sensor 1",
 				"type": {
 					"fieldtype": "select",
-					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather,Ecowitt,Ecowitt Local",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather,Ecowitt,Ecowitt Local,Homeassistant",
 					"default": "None"
 				}
 			},
@@ -729,7 +839,9 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"SCD30",
 						"BME680",
 						"OpenWeather",
-						"Ecowitt"
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}            
 			},        
@@ -952,7 +1064,6 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}                       
 			},                 
-
 			"ecowittapplication1": {
 				"required": "false",
 				"description": "Application Key",
@@ -1024,8 +1135,114 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"Ecowitt Local"
 					]
 				}    				
+			}, 
+			"hassurl1": {
+				"required": "false",
+				"description": "URL",
+				"tab": "Sensor 1",            
+				"help": "The url of your homeassistant server, will be something liek http://192.168.1.196:8123",
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
 			},
-   
+			"hassltt1": {
+				"required": "false",
+				"description": "Long Term Token",
+				"tab": "Sensor 1",            
+				"help": "The Homeassistant long term token, generated in your hass user profile under the security tab",
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},
+			"hassunit1": {
+				"required": "false",
+				"description": "Temperature Unit",
+				"tab": "Sensor 1",            
+				"help": "The temperature units used in Homeassistant",
+				"type": {
+					"fieldtype": "select",
+					"values": "Metric,Imperial",
+					"default": "None"
+				},
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},
+			"hasstemp1": {
+				"required": "false",
+				"description": "Temperature Sensor",
+				"tab": "Sensor 1",            
+				"help": "The id of the temperature sensor to read from Homeassistant",
+				"type": {
+					"fieldtype": "dependentselect",
+					"action": "hasssensors",
+					"dependenciesset": [
+						"hassurl1",
+						"hassltt1"
+					]
+				},
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},
+			"hasshumidity1": {
+				"required": "false",
+				"description": "Humidity Sensor",
+				"tab": "Sensor 1",            
+				"help": "The id of the humidity sensor to read from Homeassistant",
+				"type": {
+					"fieldtype": "dependentselect",
+					"action": "hasssensors",
+					"dependenciesset": [
+						"hassurl1",
+						"hassltt1"
+					]
+				},
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},
+			"hasspressure1": {
+				"required": "false",
+				"description": "Pressure Sensor",
+				"tab": "Sensor 1",            
+				"help": "The id of the pressure sensor to read from Homeassistant",
+				"type": {
+					"fieldtype": "dependentselect",
+					"action": "hasssensors",
+					"dependenciesset": [
+						"hassurl1",
+						"hassltt1"
+					]
+				},
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},    
 			"temp1" : {
 				"required": "false",
 				"description": "Max Temp",
@@ -1130,8 +1347,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"BME680"
 					]
 				}                    
-			},                    
-			
+			},                    			
    			"type2" : {
 				"required": "false",
 				"description": "Sensor Type",
@@ -1139,7 +1355,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Sensor 2",
 				"type": {
 					"fieldtype": "select",
-					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather,Ecowitt,Ecowitt Local",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather,Ecowitt,Ecowitt Local,Homeassistant",
 					"default": "None"
 				}
 			},
@@ -1163,7 +1379,9 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"SCD30",
 						"BME680",
 						"OpenWeather",
-						"Ecowitt"
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"      
 					]
 				}            
 			},        
@@ -1386,9 +1604,113 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}                       
 			},
-   
-   
-   
+			"hassurl2": {
+				"required": "false",
+				"description": "URL",
+				"tab": "Sensor 2",            
+				"help": "The url of your homeassistant server, will be something liek http://192.168.1.196:8123",
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},
+			"hassltt2": {
+				"required": "false",
+				"description": "Long Term Token",
+				"tab": "Sensor 2",
+				"help": "The Homeassistant long term token, generated in your hass user profile under the security tab",
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},
+			"hassunit2": {
+				"required": "false",
+				"description": "Temperature Unit",
+				"tab": "Sensor 2",            
+				"help": "The temperature units used in Homeassistant",
+				"type": {
+					"fieldtype": "select",
+					"values": "Metric,Imperial",
+					"default": "None"
+				},
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},
+			"hasstemp2": {
+				"required": "false",
+				"description": "Temperature Sensor",
+				"tab": "Sensor 2",            
+				"help": "The id of the temperature sensor to read from Homeassistant",
+				"type": {
+					"fieldtype": "dependentselect",
+					"action": "hasssensors",
+					"dependenciesset": [
+						"hassurl2",
+						"hassltt2"
+					]
+				},
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},
+			"hasshumidity2": {
+				"required": "false",
+				"description": "Humidity Sensor",
+				"tab": "Sensor 2",            
+				"help": "The id of the humidity sensor to read from Homeassistant",
+				"type": {
+					"fieldtype": "dependentselect",
+					"action": "hasssensors",
+					"dependenciesset": [
+						"hassurl2",
+						"hassltt2"
+					]
+				},
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},
+			"hasspressure2": {
+				"required": "false",
+				"description": "Pressure Sensor",
+				"tab": "Sensor 2",            
+				"help": "The id of the pressure sensor to read from Homeassistant",
+				"type": {
+					"fieldtype": "dependentselect",
+					"action": "hasssensors",
+					"dependenciesset": [
+						"hassurl2",
+						"hassltt2"
+					]
+				},
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},       
    			"ecowittapplication2": {
 				"required": "false",
 				"description": "Application Key",
@@ -1460,9 +1782,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"Ecowitt Local"
 					]
 				}    				
-			},   
-   
-              
+			},                
 			"temp2" : {
 				"required": "false",
 				"description": "Max Temp",
@@ -1575,7 +1895,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Sensor 3",
 				"type": {
 					"fieldtype": "select",
-					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather,Ecowitt,Ecowitt Local",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather,Ecowitt,Ecowitt Local,Homeassistant",
 					"default": "None"
 				}
 			},
@@ -1599,7 +1919,9 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"OpenWeather",
 						"SCD30",
 						"BME680",
-						"Ecowitt"
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}            
 			},        
@@ -1822,9 +2144,6 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}                       
 			},  
-   
-   
-   
    			"ecowittapplication3": {
 				"required": "false",
 				"description": "Application Key",
@@ -1896,9 +2215,114 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"Ecowitt Local"
 					]
 				}    				
-			},   
-   
-   
+			},     
+			"hassurl3": {
+				"required": "false",
+				"description": "URL",
+				"tab": "Sensor 3",
+				"help": "The url of your homeassistant server, will be something liek http://192.168.1.196:8123",
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},
+			"hassltt3": {
+				"required": "false",
+				"description": "Long Term Token",
+				"tab": "Sensor 3",
+				"help": "The Homeassistant long term token, generated in your hass user profile under the security tab",
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},
+			"hassunit3": {
+				"required": "false",
+				"description": "Temperature Unit",
+				"tab": "Sensor 3",
+				"help": "The temperature units used in Homeassistant",
+				"type": {
+					"fieldtype": "select",
+					"values": "Metric,Imperial",
+					"default": "None"
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},
+			"hasstemp3": {
+				"required": "false",
+				"description": "Temperature Sensor",
+				"tab": "Sensor 3",
+				"help": "The id of the temperature sensor to read from Homeassistant",
+				"type": {
+					"fieldtype": "dependentselect",
+					"action": "hasssensors",
+					"dependenciesset": [
+						"hassurl3",
+						"hassltt3"
+					]
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},
+			"hasshumidity3": {
+				"required": "false",
+				"description": "Humidity Sensor",
+				"tab": "Sensor 3",            
+				"help": "The id of the humidity sensor to read from Homeassistant",
+				"type": {
+					"fieldtype": "dependentselect",
+					"action": "hasssensors",
+					"dependenciesset": [
+						"hassurl3",
+						"hassltt3"
+					]
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},
+			"hasspressure3": {
+				"required": "false",
+				"description": "Pressure Sensor",
+				"tab": "Sensor 3",            
+				"help": "The id of the pressure sensor to read from Homeassistant",
+				"type": {
+					"fieldtype": "dependentselect",
+					"action": "hasssensors",
+					"dependenciesset": [
+						"hassurl3",
+						"hassltt3"
+					]
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"Homeassistant"
+					]
+				}    				
+			},        
 			"temp3" : {
 				"required": "false",
 				"description": "Max Temp",
@@ -2036,6 +2460,9 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					"authorurl": "https://github.com/allskyteam",
 					"changes": [
 						"Add Openweather",
+						"Add Ecowitt",
+						"Add Ecowitt Local",
+						"Added Homeassistant",
 						"Added new meta options for better structure in the module manager"
 					]
 				}
@@ -2570,7 +2997,33 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
   
 		return temperature, humidity, pressure, the_dew_point	
 
+	def _read_homeassistant(self, sensor_number):
+		temperature = None
+		humidity = None
+		pressure = None
 
+		hass_url = self.get_param('hassurl' + sensor_number, '', str)
+		hass_ltt = self.get_param('hassltt' + sensor_number, '', str)
+		hass_unit = self.get_param('hassunit' + sensor_number, '', str)
+		hass_temperature = self.get_param('hasstemp' + sensor_number, '', str)
+		hass_humidity = self.get_param('hasshumidity' + sensor_number, '', str)
+		hass_pressure = self.get_param('hasspressure' + sensor_number, '', str)
+
+		required_vars = ['hass_url', 'hass_ltt', 'hass_unit', 'hass_temperature', 'hass_humidity', 'hass_pressure']
+		missing_variables = [name for name in required_vars if locals().get(name) == '']
+
+		if missing_variables:
+			allsky_shared.log(0, f"Error: The following variables are not set: {', '.join(missing_variables)}")
+		else:
+			temperature = allsky_shared.get_hass_sensor_value(hass_url, hass_ltt, hass_temperature)
+			humidity = allsky_shared.get_hass_sensor_value(hass_url, hass_ltt, hass_humidity)
+			pressure = allsky_shared.get_hass_sensor_value(hass_url, hass_ltt, hass_pressure)
+
+			if hass_unit == 'Imperial' and temperature is not None:
+				temperature = (temperature - 32) * 5 / 9
+			
+		return temperature, humidity, pressure
+     
 	def _get_sensor_reading(self, sensor_type, sensor_number):
 		temperature = None
 		humidity = None
@@ -2603,7 +3056,9 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		elif sensor_type == 'Ecowitt':
 			temperature, humidity, pressure, the_dew_point = self._read_ecowitt(sensor_number) 
 		elif sensor_type == 'Ecowitt Local':
-			temperature, humidity, pressure, the_dew_point = self._read_ecowitt_local(sensor_number) 
+			temperature, humidity, pressure, the_dew_point = self._read_ecowitt_local(sensor_number)
+		elif sensor_type == 'Homeassistant':
+			temperature, humidity, pressure = self._read_homeassistant(sensor_number) 
 		else:
 			allsky_shared.log(0, 'ERROR: No sensor type defined')
 
