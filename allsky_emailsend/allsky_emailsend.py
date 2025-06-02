@@ -24,10 +24,8 @@ metaData = {
         "email_subject_text": "Last night's Allsky images",
         "email_subject_date": "Yes",
         "message_body": "Attached are last night's Allsky camera images.",
-        "startrails": "Yes",
-        "keogram": "No",
+        "image_selection":"Startrails Only",
         "timelapse": "No",
-        "composite": "No",
         "composite_padding": "50",
         "composite_keogram_height": "400",
         "sender_email_address": "", 
@@ -74,26 +72,16 @@ metaData = {
             "help": "Any message body text you want to include. No characters like backslash or quote marks. File names are appended below this text.",
             "tab": "Daily Notification Setup"             
         },
-        "startrails": {
+        "image_selection": {
             "required": "false",
-            "description": "Attach Star Trails",
-            "help": "",
+            "description": "Attach Images",
+            "help": "Will only send these if you are creatingt them.",
             "tab": "Daily Notification Setup",
             "type": {
                 "fieldtype": "select",
-                "values": "No,Yes"
+                "values": "Startrails Only,Keogram Only,Startrails and Keogram,Startrails Keogram Composite"
             }
-        }, 
-        "keogram": {
-            "required": "false",
-            "description": "Attach Keogram",
-            "help": "",
-            "tab": "Daily Notification Setup",
-            "type": {
-                "fieldtype": "select",
-                "values": "No,Yes"
-            }
-        }, 
+        },         
         "timelapse": {
             "required": "false",
             "description": "Attach Timelapse",
@@ -104,21 +92,11 @@ metaData = {
                 "values": "No,Yes,Yes - in separate email"
             }
         },
-        "composite": {
-            "required": "false",
-            "description": "Attach Composite",
-            "help": "creates a composite image of Startrails and Keogram",
-            "tab": "Daily Notification Setup",
-            "type": {
-                "fieldtype": "select",
-                "values": "No,Yes"
-            }
-        },
         "composite_padding": {
             "required": "false",
-            "description": "padding between images",
-            "help": "",
-            "tab": "Daily Notification Setup",
+            "description": "Padding",
+            "help": "Space to add between Startrails and Keogram",
+            "tab": "Composite Image Setup",
             "type": {
                 "fieldtype": "spinner",
                 "min": 0,
@@ -128,9 +106,9 @@ metaData = {
         }, 
         "composite_keogram_height": {
             "required": "false",
-            "description": "new height for Keogram",
-            "help": "",
-            "tab": "Daily Notification Setup",
+            "description": "Height for Keogram",
+            "help": "Keogram is resized to this height x Startrails width",
+            "tab": "Composite Image Setup",
             "type": {
                 "fieldtype": "spinner",
                 "min": 20,
@@ -256,13 +234,15 @@ def emailsend(params, event):
     email_subject_text = params['email_subject_text']
     email_subject_date = params['email_subject_date']
     message_body = params['message_body']
-    startrails = params['startrails']
-    keogram = params['keogram']
-    composite = params['composite']
+    image_selection = params['image_selection']
     composite_padding = params['composite_padding']
     composite_keogram_height = params['composite_keogram_height']
     timelapse = params['timelapse']
     to_or_bcc = params['address_as']
+
+    startrails = 'No'
+    keogram = 'No'
+    composite = 'No'
 
     result = ""
     send_email = False
@@ -288,6 +268,14 @@ def emailsend(params, event):
     else:
         msg["Subject"] = email_subject_text
     
+    match image_selection:
+        case "Startrails Only": startrails = "Yes"
+        case "Keogram Only": keogram ="Yes"
+        case "Startrails and Keogram": 
+            startrails ="Yes"
+            keogram ="Yes"
+        case "Startrails Keogram Composite": composite ="Yes"
+
     # Initialize total attachment size (max is 25MB for gmail)
     max_attachment_size = 25 * 1024 * 1024
     total_attachment_size = 0

@@ -7,7 +7,8 @@
 | **Runs In**  | Night to Day Transition<br>Periodic (only for testing)   |
 
 
-This module allows for automatically emailing nightly startrails, keogram, and timelapse images from a Gmail (or SMTP) account each morning. 
+This module allows for automatically emailing nightly startrails, keogram, and timelapse images from a Gmail (or SMTP) account each morning.  Additionally it can create and send a composite startrails+keogram image which is a compressed keogram displayed below the startrails.
+
 Timelapse can be sent in a separate email from the other images if required or desired (eg. due to file size).
 
 **Prerequisites:**
@@ -16,19 +17,21 @@ Timelapse can be sent in a separate email from the other images if required or d
  - For Gmail, see [Sign in with app passwords](https://support.google.com/accounts/answer/185833?hl=en) for details on how to setup an App Password.  _eg a 16-digit passcode used to give the script permission to access your Google Account to send email._
 
 ### Settings:
-| Daily Notification Setup       |||
+| Daily Notification Setup          |||
 | ------------                      | ------------ |------------ |
 | To:                               | The address(es) to receive the email notification.  |Required|
 | Subject:                          | Configurable text for the email subject line |Optional|
 | Append date to Subject line       | Select to append Date Stamp to subject line text |Optional|
 | Email Message Text:               | Configurable text for the message body.<br>The filenames of any attached files will be appended to this text.|Optional|
-| Attach Star Trails                | No / Yes |Optional|
-| Attach Keogram                    | No / Yes |Optional|
+| Attach Images                     | Startrails / Keogram / Startrails and Keogram<br>Startrails Keogram Composite |Optional|
 | Attach Timelapse                  | No / Yes / Yes - in separate email |Optional|
 ||||
+| **Composite Image Setup**|||
+| Padding                           | How much space to add between Startrails and Keogram <br> Default: 50 (0 - 1000)   | Required |
+| Height for Keogram                | Keogram is resized to this height x Startrails width <br> Default: 400 (20 - 2000) |Required  |
 | **Sender SMTP Setup**|||
 | Sender email address              | Sending account email address      | Required |
-| Password / <br>Google App Password    |16-digit passcode from Google security settings<br> (or SMTP Password for other services)|Required|
+| Password / <br>Google App Password|16-digit passcode from Google security settings<br> (or SMTP Password for other services)|Required|
 | SMTP server address               | Preset for Gmail|Required|
 | SMTP server port                  | Preset for Gmail|Required|
 
