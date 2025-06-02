@@ -4,14 +4,15 @@ import os
 import datetime
 from email.message import EmailMessage
 import mimetypes
+import io
 from PIL import Image, ImageOps
 
 metaData = {
-    "name": "Create combo stars-keo image",
-    "description": "Create combo stars-keo image",
+    "name": "Send a combo stars-keo image",
+    "description": "Create combo stars-keo image in memory and email",
     "version": "v1.0",
     "pythonversion": "3.9.0",
-    "module": "allsky_stars_keo_combo",    
+    "module": "allsky_stars_keo_combo_in_mem",    
     "events": [
         "nightday",
         "periodic"
@@ -89,7 +90,7 @@ metaData = {
             "type": {
                 "fieldtype": "spinner",
                 "min": 20,
-                "max": 1000,
+                "max": 2000,
                 "step": 20
             }  
         },       
@@ -131,7 +132,7 @@ metaData = {
 }
 
 # Function to combine the two images
-def create_combo_image(output_path, file_path_stars, file_path_keo, keo_height, img_padding):
+def create_combo_image(file_path_stars, file_path_keo, keo_height, img_padding):
     result = ""
     try:
         with Image.open(file_path_stars) as stars_img:
@@ -145,42 +146,20 @@ def create_combo_image(output_path, file_path_stars, file_path_keo, keo_height, 
             combined_img = Image.new("RGB", (stars_width, ttl_height), (0, 0, 0))
             combined_img.paste(stars_img, (0, 0))
             combined_img.paste(keo_img, (0, stars_height + img_padding))
-            combined_img.save(output_path)
-            result += f"Overlay image saved to {output_path}\n"
 
-        return result
+            # Save the combined image to a BytesIO object
+            img_byte_arr = io.BytesIO()
+            combined_img.save(img_byte_arr, format='JPEG')
+            img_byte_arr.seek(0)
+
+            result += "Overlay image and thumbnail created in memory\n"
+            return img_byte_arr
     except Exception as e:
         result += f"Error creating combo image: {e}\n"
-        return result
-
-# Function to attach valid files to the email
-def attach_files(the_email_msg, file_path):
-    result = ""
-    try:
-        mime_type, _ = mimetypes.guess_type(file_path)
-        maintype, subtype = mime_type.split('/')
-        with open(file_path, "rb") as f:
-            the_email_msg.add_attachment(f.read(), maintype=maintype, subtype=subtype, filename=os.path.basename(file_path))
-            result += f"Attached: {file_path}\n"
-    except Exception as e:
-        result += f"Error attaching file: {e}\n"
-    return result
-
-# Function to send email via Gmail SMTP / TLS
-def send_email_now(the_email_msg, smtp_server, smtp_port, sender_email_address, sender_email_password):
-    result = ""
-    try:
-        with smtplib.SMTP(smtp_server, smtp_port) as server:
-            server.starttls()  # Secure connection
-            server.login(sender_email_address, sender_email_password)
-            server.send_message(the_email_msg)
-        result = "\nEmail sent successfully"
-    except Exception as e:
-        result = f"\nError sending email: {e}"
-    return result
+        return None, None
 
 # Main Module Function
-def stars_keo_combo(params, event):
+def stars_keo_combo_in_mem(params, event):
     # Gmail SMTP configuration and parameters
     smtp_server = params['smtp_server']
     smtp_port = params['smtp_port']
@@ -194,7 +173,7 @@ def stars_keo_combo(params, event):
     img_padding = int(params['img_padding'])
     to_or_bcc = params['address_as']
 
-    result = " "
+    result = "s"
     send_email = False
 
     # Get user's home directory
@@ -213,6 +192,7 @@ def stars_keo_combo(params, event):
     match to_or_bcc:
         case "To": msg["To"] = recipient_email
         case "BCC": msg["BCC"] = recipient_email
+    
     if email_subject_date == "Yes":
         msg["Subject"] = f"{email_subject_text} - {yesterday}"
     else:
@@ -232,11 +212,8 @@ def stars_keo_combo(params, event):
     if os.path.exists(file_path_stars): stars_exist = True
     if os.path.exists(file_path_keo): keo_exist = True
     
-    # path to save
-    save_path = os.path.join(home_dir, f"allsky/images/{yesterday}/startrails/startrails-keo-{yesterday}{file_ext}")
-        
     if stars_exist and keo_exist:
-        composite_img = create_combo_image(save_path, file_path_stars, file_path_keo, keo_height, img_padding)
+        composite_img = create_combo_image(file_path_stars, file_path_keo, keo_height, img_padding)
         result += "just tried to create image"
         send_email = True
 
@@ -244,7 +221,9 @@ def stars_keo_combo(params, event):
         # Set the main body content details BEFORE attaching files
         msg.set_content(message_body)
         # Attach the valid files
-        result += attach_files(msg, save_path)
+        if composite_img:
+            msg.add_attachment(composite_img.read(), maintype='image', subtype='jpeg', filename='startrails-keo.jpg')
+            result += "Attached composite image\n"
         # Send the email
         result += send_email_now(msg, smtp_server, smtp_port, sender_email_address, sender_email_password)
 

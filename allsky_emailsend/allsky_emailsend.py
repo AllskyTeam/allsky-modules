@@ -17,6 +17,7 @@ metaData = {
     ],
     "experimental": "false",  
     "arguments": {
+        "address_as": "To",
         "recipient_email": "",
         "email_subject_text": "Last night's Allsky images",
         "email_subject_date": "Yes",
@@ -29,7 +30,17 @@ metaData = {
         "smtp_server": "smtp.gmail.com",
         "smtp_port": "587"
     },
-    "argumentdetails": { 
+    "argumentdetails": {
+        "address_as": {
+            "required": "false",
+            "description": "To or BCC?",
+            "help": "",
+            "tab": "Daily Notification Setup",
+            "type": {
+                "fieldtype": "select",
+                "values": "To,BCC"
+            }              
+        },         
         "recipient_email": {
             "required": "true",
             "description": "To:",
@@ -185,7 +196,8 @@ def emailsend(params, event):
     startrails = params['startrails']
     keogram = params['keogram']
     timelapse = params['timelapse']
-    
+    to_or_bcc = params['address_as']
+
     result = ""
     send_email = False
 
@@ -202,8 +214,9 @@ def emailsend(params, event):
     # Initialize email message details
     msg = EmailMessage()
     msg["From"] = sender_email_address
-    msg["To"] = recipient_email
-    
+    match to_or_bcc:
+        case "To": msg["To"] = recipient_email
+        case "BCC": msg["BCC"] = recipient_email
     if email_subject_date == "Yes":
         msg["Subject"] = f"{email_subject_text} - {yesterday}"
     else:
