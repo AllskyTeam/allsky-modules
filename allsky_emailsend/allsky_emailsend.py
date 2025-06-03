@@ -31,12 +31,13 @@ metaData = {
         "sender_email_address": "", 
         "sender_email_password": "",
         "smtp_server": "smtp.gmail.com",
-        "smtp_port": "587"
+        "smtp_port": "587",
+        "max_attachment_size_mb":"25"
     },
     "argumentdetails": {        
         "address_as": {
             "required": "false",
-            "description": "To or BCC?",
+            "description": "To or BCC",
             "help": "",
             "tab": "Daily Notification Setup",
             "type": {
@@ -46,13 +47,13 @@ metaData = {
         },         
         "recipient_email": {
             "required": "true",
-            "description": "To:",
+            "description": "Recipients",
             "help": "Separate with a comma if more than one.  eg. AAA@mail.com,BBB@mail.com",
             "tab": "Daily Notification Setup"             
         },
         "email_subject_text": {
             "required": "true",
-            "description": "Subject:",
+            "description": "Subject",
             "help": "No characters like backslash or quote marks",
             "tab": "Daily Notification Setup"             
         },
@@ -68,18 +69,18 @@ metaData = {
         },
         "message_body": {
             "required": "true",
-            "description": "Email Message Text:",
+            "description": "Email Message Text",
             "help": "Any message body text you want to include. No characters like backslash or quote marks. File names are appended below this text.",
             "tab": "Daily Notification Setup"             
         },
         "image_selection": {
             "required": "false",
             "description": "Attach Images",
-            "help": "Will only send these if you are creatingt them.",
+            "help": "Will only send images if Allsky is configured to create them and save at least one day on the Pi.",
             "tab": "Daily Notification Setup",
             "type": {
                 "fieldtype": "select",
-                "values": "Startrails Only,Keogram Only,Startrails and Keogram,Startrails Keogram Composite"
+                "values": "Startrails Only,Keogram Only,Startrails and Keogram,Startrails Keogram Composite,None"
             }
         },         
         "timelapse": {
@@ -107,7 +108,7 @@ metaData = {
         "composite_keogram_height": {
             "required": "false",
             "description": "Height for Keogram",
-            "help": "Keogram is resized to this height x Startrails width",
+            "help": "Keogram is resized to [this Height] x [Startrails width]",
             "tab": "Composite Image Setup",
             "type": {
                 "fieldtype": "spinner",
@@ -140,6 +141,18 @@ metaData = {
             "description": "SMTP server port",
             "help": "Only change if not using Gmail",
             "tab": "Sender SMTP Setup"
+        },
+        "max_attachment_size_mb": {
+            "required": "true",
+            "description": "Max attachments size",
+            "help": "In MB the maximum allowed size of all attachments to an email.",
+            "tab": "Sender SMTP Setup",
+            "type": {
+                "fieldtype": "spinner",
+                "min": 0,
+                "max": 200,
+                "step": 1
+            }  
         }
     },
     "enabled": "false",
@@ -174,14 +187,16 @@ def validate_files(the_file_paths, total_attachment_size, max_attachment_size, m
     return result, total_attachment_size, message_body
 
 # Function to create composite startrails-keogram image
-def create_combo_image(output_path, file_path_stars, file_path_keo, keo_height, img_padding):
+def create_combo_image(output_path, file_path_stars, file_path_keo, new_keo_height, img_padding):
     result = ""
     try:
         with Image.open(file_path_stars) as stars_img:
             stars_width, stars_height = stars_img.size
             
             with Image.open(file_path_keo) as keo_img:
-                keo_img = keo_img.resize((stars_width, keo_height))
+                k_width, k_height = keo_img.size
+                new_keo_height = min(k_height,new_keo_height)
+                keo_img = keo_img.resize((stars_width, new_keo_height))
 
             ttl_height = stars_height + img_padding + keo_height
 
@@ -235,10 +250,11 @@ def emailsend(params, event):
     email_subject_date = params['email_subject_date']
     message_body = params['message_body']
     image_selection = params['image_selection']
-    composite_padding = params['composite_padding']
-    composite_keogram_height = params['composite_keogram_height']
+    composite_padding = int(params['composite_padding'])
+    composite_keogram_height = int(params['composite_keogram_height'])
     timelapse = params['timelapse']
     to_or_bcc = params['address_as']
+    max_attachment_size_mb = int(params['max_attachment_size_mb'])
 
     startrails = 'No'
     keogram = 'No'
@@ -277,7 +293,7 @@ def emailsend(params, event):
         case "Startrails Keogram Composite": composite ="Yes"
 
     # Initialize total attachment size (max is 25MB for gmail)
-    max_attachment_size = 25 * 1024 * 1024
+    max_attachment_size = max_attachment_size_mb * 1024 * 1024
     total_attachment_size = 0
     file_paths_images = []
     file_paths_video = []
