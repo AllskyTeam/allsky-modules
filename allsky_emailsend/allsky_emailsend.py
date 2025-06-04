@@ -198,7 +198,7 @@ def create_combo_image(output_path, file_path_stars, file_path_keo, new_keo_heig
                 new_keo_height = min(k_height,new_keo_height)
                 keo_img = keo_img.resize((stars_width, new_keo_height))
 
-            ttl_height = stars_height + img_padding + keo_height
+            ttl_height = stars_height + img_padding + new_keo_height
 
             combined_img = Image.new("RGB", (stars_width, ttl_height), (0, 0, 0))
             combined_img.paste(stars_img, (0, 0))
@@ -293,7 +293,8 @@ def emailsend(params, event):
         case "Startrails Keogram Composite": composite ="Yes"
 
     # Initialize total attachment size (max is 25MB for gmail)
-    max_attachment_size = max_attachment_size_mb * 1024 * 1024
+    max_attachment_size = (max_attachment_size_mb * 1024 * 1024)
+    #max_attachment_size = (25 * 1024 * 1024)
     total_attachment_size = 0
     file_paths_images = []
     file_paths_video = []
