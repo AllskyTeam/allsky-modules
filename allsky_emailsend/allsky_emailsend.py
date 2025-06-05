@@ -203,7 +203,7 @@ def create_combo_image(output_path, file_path_stars, file_path_keo, new_keo_heig
             combined_img = Image.new("RGB", (stars_width, ttl_height), (0, 0, 0))
             combined_img.paste(stars_img, (0, 0))
             combined_img.paste(keo_img, (0, stars_height + img_padding))
-            combined_img.save(output_path)
+            combined_img.save(output_path, quality=95)
             result += f"Composite image saved to {output_path}\n"
 
         return result
@@ -300,9 +300,12 @@ def emailsend(params, event):
     file_paths_video = []
     valid_file_paths = []  
 
+    # there has to be a better way to get these paths using allsky variables?
     file_path_stars = file_path = os.path.join(home_dir, f"allsky/images/{yesterday}/startrails/startrails-{yesterday}{file_ext}")
     file_path_keo = os.path.join(home_dir, f"allsky/images/{yesterday}/keogram/keogram-{yesterday}{file_ext}")
     file_path_timelapse = os.path.join(home_dir, f"allsky/images/{yesterday}/allsky-{yesterday}.mp4")
+    
+    # maybe should use temp folder instead?
     file_path_composite = os.path.join(home_dir, f"allsky/images/{yesterday}/startrails/startrails-keo-{yesterday}{file_ext}")
 
     # Check user file selections

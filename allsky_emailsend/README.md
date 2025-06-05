@@ -15,9 +15,10 @@ This module allows for automatically emailing nightly startrails, keogram, and t
  - Allsky must be configured to generate Startrails, Keogram, and/or Timeplapse and to store at least one day of images on the Pi.
 
 ### Settings:
+
 | Daily Notification Setup          ||Default|
 | ------------                      | ------------ |------------ |
-| To or BCC                         |Select how emails wil be delivered<br>TO or BCC|To|
+| To or BCC                         | Select how emails wil be addressed    |To|
 | Recipients                        | The address(es) to receive the email notifications.  ||
 | Subject                           | Text for email subject line ||
 | Append date to Subject            | Select to append Date Stamp to subject line text |Yes|
@@ -26,8 +27,8 @@ This module allows for automatically emailing nightly startrails, keogram, and t
 | Attach Timelapse                  | No / Yes / Yes - in separate email |No|
 ||||
 | **Composite Image Setup**|||
-| Padding                           | How much space to add between Startrails and Keogram <br>    | 50 |
-| Keogram Height                    | Keogram is resized to [this height] x [Startrails width] <br> |400  |
+| Padding                           | How much space to add between Startrails and Keogram     | 50 |
+| Keogram Height                    | Keogram is resized to [this height] x [Startrails width] |400  |
 ||||
 | **Sender SMTP Setup**|||
 | Sender email address              | Sender account email address      |  |
