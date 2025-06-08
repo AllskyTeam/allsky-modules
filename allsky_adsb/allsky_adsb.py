@@ -750,7 +750,8 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			except JSONDecodeError:
 				allsky_shared.log(4, f'The provided URL "{url}" is not returning JSON data')
 		else:
-			database_dir = '/opt/allsky/modules/moduledata/data/allsky_adsb/adsb_data'
+			script_dir = os.path.dirname(os.path.abspath(__file__))
+			database_dir = os.path.join(script_dir, 'moduledata', 'data', 'allsky_adsb', 'adsb_data')
 			if os.path.isdir(database_dir):
 				icao_key = icao[:2]
 				icao_file = f'{icao_key}.json'
