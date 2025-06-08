@@ -58,6 +58,12 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 							"title": {
 								"text": "Voltage"
 							} 
+						},
+						{ 
+							"title": {
+								"text": "Current"
+							},
+       						"opposite": "true"
 						}
 					],
 					"lang": {
@@ -73,15 +79,35 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 				},
 				"series": {
 					"c1voltage": {
-						"name": "Channel 1",
+						"name": "Channel 1 Voltage",
 						"yAxis": 0,
 						"variable": "AS_POWER_VOLTAGE1"                 
 					},
 					"c2voltage": {
-						"name": "Channel 2",
-						"yAxis": 1,
+						"name": "Channel 2 Voltage",
+						"yAxis": 0,
 						"variable": "AS_POWER_VOLTAGE2"
-					}               
+					},
+					"c3voltage": {
+						"name": "Channel 3 Voltage",
+						"yAxis": 0,
+						"variable": "AS_POWER_VOLTAGE3"
+					},
+					"c1current": {
+						"name": "Channel 1 Current",
+						"yAxis": 1,
+						"variable": "AS_POWER_CURRENT2"                 
+					},
+					"c2current": {
+						"name": "Channel 2 Current",
+						"yAxis": 1,
+						"variable": "AS_POWER_CURRENT3"                 
+					},
+					"c3current": {
+						"name": "Channel 3 Current",
+						"yAxis": 1,
+						"variable": "AS_POWER_CURRENT1"                 
+					}      
 				}
 			}
 		}, 
