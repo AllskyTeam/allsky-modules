@@ -46,3 +46,8 @@ This module allows for automatically emailing nightly startrails, keogram, and t
  - This module can take a minute or more to complete depending on your Pi, internet connection, size of the files to be attached, etc.  Therefore it may make sense for this to be the last madule to run in your 'selected modules'
 
  - _Special Thanks to the prior work by Alex Greenland_, I referenced your disordsend module to get myself started with this one!
+
+<hr>
+
+### Example Screenshots from module setup:
+

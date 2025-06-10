@@ -9,7 +9,7 @@ from PIL import Image, ImageOps
 
 metaData = {
     "name": "Email images via SMTP or Gmail",
-    "description": "Emails nightly images to email recipients",
+    "description": "Email nightly images to recipients",
     "version": "v1.0",
     "pythonversion": "3.9.0",
     "module": "allsky_emailsend",    
