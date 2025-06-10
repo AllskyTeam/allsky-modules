@@ -21,7 +21,7 @@ metaData = {
     "arguments": {
         "address_as": "To",
         "recipient_email": "",
-        "email_subject_text": "Last night's Allsky images",
+        "email_subject_text": "Your Allsky nightly images",
         "email_subject_date": "Yes",
         "message_body": "Attached are last night's Allsky camera images.",
         "image_selection":"Startrails Only",
@@ -126,8 +126,8 @@ metaData = {
         },        
         "sender_email_password": {
             "required": "true",        
-            "description": "Password / Google App Password",
-            "help": "For Gmail: get this from your google account's security settings, it is NOT your gmail login password.",
+            "description": "Account Password",
+            "help": "SMTP Account password or Google App password if you use MFA.",
             "tab": "Sender SMTP Setup"
         },
         "smtp_server": {
@@ -233,7 +233,7 @@ def send_email_now(the_email_msg, smtp_server, smtp_port, sender_email_address, 
             server.starttls()  # Secure connection
             server.login(sender_email_address, sender_email_password)
             server.send_message(the_email_msg)
-        result = "\nEmail sent successfully"
+        result = f"\nEmail sent successfully"
     except Exception as e:
         result = f"\nError sending email: {e}"
     return result
@@ -294,8 +294,8 @@ def emailsend(params, event):
 
     # Initialize total attachment size (max is 25MB for gmail)
     max_attachment_size = (max_attachment_size_mb * 1024 * 1024)
-    #max_attachment_size = (25 * 1024 * 1024)
     total_attachment_size = 0
+
     file_paths_images = []
     file_paths_video = []
     valid_file_paths = []  
@@ -316,8 +316,9 @@ def emailsend(params, event):
                 # attach composite
                 if composite_img:
                     file_paths_images.append(file_path_composite)
-                    result += "Attached composite image\n"
                 send_email = True
+            else:
+                result += "Composite not created.  Startrails or Keogram not found.\n"
 
     if startrails == "Yes":
         file_paths_images.append(file_path_stars)
