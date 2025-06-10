@@ -49,5 +49,12 @@ This module allows for automatically emailing nightly startrails, keogram, and t
 
 <hr>
 
-### Example Screenshots from module setup:
+### Screenshots of module setup:
+|Configuration Tab        |Example|
+| ------------            | ------------   |
+|Sender SMTP Settings     |![image](https://github.com/user-attachments/assets/81adc966-de5a-4a3f-a454-b5d8d94477d4)|
+|Daily Notification Setup |![image](https://github.com/user-attachments/assets/6d68e309-5533-496a-9e95-e42141764a15)|
+|Composite Image Setup    |![image](https://github.com/user-attachments/assets/f1f4a0cf-df06-4ee7-9237-0a4904e60ca7)|
+
+
 
