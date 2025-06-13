@@ -230,7 +230,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Dew Heater",
 					"description": "Dew Heater Humidity",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_DEWCONTROLHEATER": {
 					"name": "${DEWCONTROLHEATER}",

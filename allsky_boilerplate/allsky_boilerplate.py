@@ -33,7 +33,7 @@ metaData = {
 	            "sample": "",
 	            "group": "Boilerplate",
 	            "description": "The ${BOILERPLATE_VALUE$} value",
-	            "type": "Number"
+	            "type": "number"
 	        }
 	    }                         
 	},   

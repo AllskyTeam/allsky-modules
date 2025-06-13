@@ -40,7 +40,7 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Space",
 					"description": "Solar wind speed",
-					"type": "Number"
+					"type": "number"
 				},
 				"SWX_SWIND_DENSITY": {
 					"name": "${SWIND_DENSITY}",
@@ -48,7 +48,7 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Space",
 					"description": "Solar wind density",
-					"type": "Number"
+					"type": "number"
 				},
 				"SWX_SWIND_TEMP": {
 					"name": "${SWIND_TEMP}",
@@ -56,7 +56,7 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Space",
 					"description": "Solar wind temperature",
-					"type": "Number"
+					"type": "number"
 				},
 				"SWX_KPDATA": {
 					"name": "${KPDATA}",
@@ -64,7 +64,7 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Space",
 					"description": "KP Data",
-					"type": "Number"
+					"type": "number"
 				},
 				"SWX_BZDATA": {
 					"name": "${BZDATA}",
@@ -72,7 +72,7 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Space",
 					"description": "BZ Data",
-					"type": "Number"
+					"type": "number"
 				},
 				"SWX_S_ANGLE": {
 					"name": "${S_ANGLE}",
@@ -80,7 +80,7 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Space",
 					"description": "Sun Angle",
-					"type": "Number"
+					"type": "number"
 				}
 			}                         
 		}, 

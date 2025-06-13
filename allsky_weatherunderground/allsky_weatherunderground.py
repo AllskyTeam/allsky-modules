@@ -77,7 +77,7 @@ class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
 					"sample": "",                
 					"group": "Environment",
 					"description": "WU Solar Radiation",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_WUUV": {
 					"name": "${WUUV}",
@@ -85,7 +85,7 @@ class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
 					"sample": "",                
 					"group": "Environment",
 					"description": "WU UV Level",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_WUTEMP": {
 					"name": "${WUTEMP}",
@@ -117,7 +117,7 @@ class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
 					"sample": "",                
 					"group": "Environment",
 					"description": "WU Wind Direction",
-					"type": "Azimuth"
+					"type": "azimuth"
 				},
 				"AS_WUWINDCARDINAL": {
 					"name": "${WUWINDCARDINAL}",

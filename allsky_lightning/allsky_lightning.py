@@ -31,7 +31,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Environment",
 					"description": "Number of lightning strikes",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_LIGHTNING_DIST": {
 					"name": "${LIGHTNING_DIST}",
@@ -39,7 +39,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Environment",
 					"description": "Approx distance of last strike",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_LIGHTNING_ENERGY": {
 					"name": "${LIGHTNING_ENERGY}",
@@ -47,7 +47,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Environment",
 					"description": "Energy of last strike",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_LIGHTNING_LAST": {
 					"name": "${LIGHTNING_LAST}",

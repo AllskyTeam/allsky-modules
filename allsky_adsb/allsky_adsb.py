@@ -107,7 +107,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 				},
 				"AS_ALTITUDE_AIRCRAFT${COUNT}": {
 					"group": "ADSB Data",
-					"type": "Altitude",                
+					"type": "altitude",                
 					"description": "Aircraft ${COUNT} altitude"
 				},                        
 				"AS_TYPE_AIRCRAFT${COUNT}": {

@@ -131,7 +131,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 1 voltage",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_POWER_CURRENT1": {
 					"name": "${POWER_CURRENT1}",
@@ -139,7 +139,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 1 current",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_POWER_BUS_VOLTAGE1": {
 					"name": "${POWER_BUS_VOLTAGE1}",
@@ -147,7 +147,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 1 bus voltage",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_POWER_SHUNT_VOLTAGE1": {
 					"name": "${POWER_SHUNT_VOLTAGE1}",
@@ -155,7 +155,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 1 shunt voltage",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_POWER_POWER1": {
 					"name": "${POWER_POWER1}",
@@ -163,7 +163,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 1 power (w)",
-					"type": "Number"
+					"type": "number"
 				},         
 				"AS_POWER_NAME2": {
 					"name": "${POWER_NAME2}",
@@ -179,7 +179,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 2 voltage",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_POWER_CURRENT2": {
 					"name": "${POWER_CURRENT2}",
@@ -187,7 +187,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 2 current",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_POWER_BUS_VOLTAGE2": {
 					"name": "${POWER_BUS_VOLTAGE2}",
@@ -195,7 +195,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 2 bus voltage",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_POWER_SHUNT_VOLTAGE2": {
 					"name": "${POWER_SHUNT_VOLTAGE2}",
@@ -203,7 +203,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 2 shunt voltage",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_POWER_POWER2": {
 					"name": "${POWER_POWER2}",
@@ -211,7 +211,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 2 power (w)",
-					"type": "Number"
+					"type": "number"
 				},           
 				"AS_POWER_NAME3": {
 					"name": "${POWER_NAME3}",
@@ -227,7 +227,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 3 voltage",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_POWER_CURRENT3": {
 					"name": "${POWER_CURRENT3}",
@@ -235,7 +235,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 3 current",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_POWER_BUS_VOLTAGE3": {
 					"name": "${POWER_BUS_VOLTAGE3}",
@@ -243,7 +243,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 3 bus voltage",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_POWER_SHUNT_VOLTAGE3": {
 					"name": "${POWER_SHUNT_VOLTAGE3}",
@@ -251,7 +251,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 3 shunt voltage",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_POWER_POWER3": {
 					"name": "${POWER_POWER3}",
@@ -259,7 +259,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 3 power (w)",
-					"type": "Number"
+					"type": "number"
 				}
 			}                         
 		}, 

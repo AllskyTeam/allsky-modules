@@ -106,7 +106,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 					"sample": "",                
 					"group": "Environment",
 					"description": "Lux level",
-					"type": "Number"
+					"type": "number"
 				},
 				"AS_LIGHTBORTLE": {
 					"name": "${LIGHTBORTLE}",
@@ -114,7 +114,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 					"sample": "",                
 					"group": "Environment",
 					"description": "Approximate Bortle level",
-					"type": "Number"
+					"type": "number"
 				}           
 			}                         
 		},  
