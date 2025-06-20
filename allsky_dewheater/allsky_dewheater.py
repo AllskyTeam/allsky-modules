@@ -29,6 +29,7 @@ from meteocalc import heat_index
 from meteocalc import dew_point, Temp
 import board
 import adafruit_sht31d
+import adafruit_sht4x
 import adafruit_dht
 import adafruit_ahtx0
 from adafruit_bme280 import basic as adafruit_bme280
@@ -63,6 +64,7 @@ metaData = {
         "dhtxxdelay" : "500",
         "extradatafilename": "allskydew.json",
         "sht31heater": "False",
+        "sht41mode": "0xE0",        
         "solourl": "",
         "apikey": "",
         "period": 120,
@@ -79,7 +81,7 @@ metaData = {
             "tab": "Sensor",
             "type": {
                 "fieldtype": "select",
-                "values": "None,SHT31,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,SOLO-Cloudwatcher,OpenWeather",
+                "values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,SOLO-Cloudwatcher,OpenWeather",
                 "default": "None"
             }
         },
@@ -122,6 +124,17 @@ metaData = {
                 "step": 1
             }
         },
+        "sht41mode" : {
+            "required": "false",
+            "description": "SHT4x Power Mode",
+            "help": "Sets the SHT4x power mode",
+            "tab": "SHT4x",
+            "type": {
+                "fieldtype": "select",
+                "values": "No heater - high precision,No heater - med precision,No heater - low precision (Lowest Power Mode),High heat - 1 second (Highest Power Mode),High heat - 0.1 second,Med heat - 1 second,Med heat - 0.1 second,Low heat - 1 second,Low heat - 0.1 second",
+                "default": "None"
+            }
+        }, 
         "heaterpin": {
             "required": "false",
             "description": "Heater Pin",
@@ -573,6 +586,67 @@ def readOpenWeather(params):
     
     return temperature, humidity, pressure, dewPoint
 
+def read_sht4x(i2c_address, sht41_mode_code):
+    temperature = None
+    humidity = None
+
+    st41_mode_str = "0xe0"
+    if sht41_mode_code == "No heater - high precision":
+        st41_mode_str = "0xfd"
+        
+    if sht41_mode_code == "No heater - med precision":
+        st41_mode_str = "0xf6"
+        
+    if sht41_mode_code == "No heater - low precision (Lowest Power Mode)":
+        st41_mode_str = "0xe0"
+
+    if sht41_mode_code == "High heat - 1 second (Highest Power Mode)":
+        st41_mode_str = "0x39"
+
+    if sht41_mode_code == "High heat - 0.1 second":
+        st41_mode_str = "0x32"
+
+    if sht41_mode_code == "Med heat - 1 second":
+        st41_mode_str = "0x2f"
+
+    if sht41_mode_code == "Med heat - 0.1 second":
+        st41_mode_str = "0x24"
+
+    if sht41_mode_code == "Low heat - 1 second":
+        st41_mode_str = "0x1e"
+
+    if sht41_mode_code == "Low heat - 0.1 second":
+        st41_mode_str = "0x15"
+        
+    sht41_mode = int(st41_mode_str, 16)
+    try:
+        sht41_mode = int(sht41_mode_code, 16)
+    except Exception as e:
+        pass
+
+    if i2c_address != "":
+        try:
+            i2c_address_int = int(i2c_address, 16)
+        except Exception as e:
+            result = f'Address {i2c_address} is not a valid i2c address'
+            s.log(0, f'ERROR: {result}')
+                
+    try:
+        i2c = board.I2C()
+        if i2c_address != '':
+            sensor = adafruit_sht4x.SHT4x(i2c, i2c_address_int)
+        else:
+            sensor = adafruit_sht4x.SHT4x(i2c)
+        sensor.mode = sht41_mode
+        s.log(4, f'INFO: Current mode is {adafruit_sht4x.Mode.string[sensor.mode]}')
+        temperature, humidity = sensor.measurements
+    except Exception as e:
+        eType, eObject, eTraceback = sys.exc_info()
+        s.log(4, f'ERROR: Module _read_sht4x failed on line {eTraceback.tb_lineno} - {e}')
+        return temperature, humidity
+
+    return temperature, humidity
+
 def readSHT31(sht31heater, i2caddress):
     temperature = None
     humidity = None
@@ -806,7 +880,7 @@ def turnHeaterOff(heaterpin, invertrelay, extra=False):
         s.dbDeleteKey("dewheaterontime")
     s.log(1,f"INFO: {result}")
 
-def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay, sht31heater, soloURL, params):
+def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay, sht31heater, soloURL, sht41mode, params):
     temperature = None
     humidity = None
     dewPoint = None
@@ -817,6 +891,8 @@ def getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdel
 
     if sensorType == "SHT31":
         temperature, humidity = readSHT31(sht31heater, i2caddress)
+    elif sensorType == "SHT4x":
+        temperature, humidity = read_sht4x(i2caddress, sht41mode)
     elif sensorType == "DHT22" or sensorType == "DHT11" or sensorType == "AM2302":
         temperature, humidity = readDHT22(inputpin, dhtxxretrycount, dhtxxdelay)
     elif sensorType == "BME280-I2C":
@@ -888,6 +964,7 @@ def dewheater(params, event):
     dhtxxdelay = int(params["dhtxxdelay"])
     extradatafilename = params['extradatafilename']
     sht31heater = params["sht31heater"]
+    sht41mode = params["sht41mode"]
 
     try:
         soloURL = params["solourl"]
@@ -926,7 +1003,7 @@ def dewheater(params, event):
                     lastRunSecs = now - lastRunTime
                     if lastRunSecs >= frequency:
                         s.dbUpdate("dewheaterlastrun", now)
-                        temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude = getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay, sht31heater, soloURL, params)
+                        temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude = getSensorReading(sensorType, inputpin, i2caddress, dhtxxretrycount, dhtxxdelay, sht31heater, soloURL, sht41mode, params)
                         if temperature is not None:
                             lastOnSecs = 0
                             if s.dbHasKey("dewheaterontime"):
