@@ -259,6 +259,22 @@ class ALLSKYBOILERPLATE(ALLSKYMODULEBASE):
 						"value2"
 					]
 				}              
+			},
+			"html": {
+				"tab": "Help",
+    			"source": "local",
+                "html": "<h1>This help text is defined within the module</h1><blockquote>This help is hard coded into the modules config. This is ok for very short text but not good for longer. For longer text use the file option in the field</blockquote><p>Bacon ipsum dolor amet cow chislic strip steak pig pork belly chuck pork doner salami. Pig bresaola kielbasa rump. Jerky beef strip steak jowl beef ribs, kielbasa corned beef fatback cupim pork loin. Swine strip steak tongue turkey pig. Pork belly turducken boudin rump venison.</p><p>Burgdoggen beef pig ribeye, kielbasa biltong filet mignon shank turkey spare ribs ground round meatball sirloin picanha. Brisket t-bone doner, tri-tip jowl ham biltong kielbasa. Fatback chicken kevin tail prosciutto, frankfurter kielbasa capicola rump tri-tip andouille chislic swine pork loin filet mignon. T-bone ribeye spare ribs kevin, sausage turkey short loin short ribs filet mignon tri-tip bresaola. Beef ribs chislic pork, alcatra beef pig ball tip doner jowl shank kevin kielbasa meatloaf spare ribs. Ground round ham tail, flank pastrami kevin jerky.</p>",
+				"type": {
+					"fieldtype": "html"
+				}
+			},
+			"html1": {
+				"tab": "Help 1",
+    			"source": "file",
+                "file": "help.html",
+				"type": {
+					"fieldtype": "html"
+				}
 			}
 		},
 		"enabled": "false",
