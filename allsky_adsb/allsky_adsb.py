@@ -95,6 +95,11 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 					"type": "number",                
 					"description": "Total Aircraft"
 				},
+				"AS_DISTANCE_AIRCRAFT${COUNT}": {
+					"group": "ADSB Data",
+					"type": "Distance",                
+					"description": "Aircraft ${COUNT} distance"
+				},    
 				"AS_AZIMUTH_AIRCRAFT${COUNT}": {
 					"group": "ADSB Data",
 					"type": "azimuth",                
@@ -877,6 +882,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 									aircraft['info'] = self._get_aircraft_info(aircraft['hex'], timeout, aircraft_data)
 									aircraft['route'] = self._get_route(aircraft['flight'].rstrip(), timeout, get_aircraft_route)
 
+									extra_data[f'AS_DISTANCE_AIRCRAFT{counter}'] = int(aircraft['distance_miles'])
 									extra_data[f'AS_HEX_AIRCRAFT{counter}'] = aircraft['hex']
 									extra_data[f'AS_AZIMUTH_AIRCRAFT{counter}'] = int(aircraft['azimuth'])
 									extra_data[f'AS_ELEVATION_AIRCRAFT{counter}'] = int(aircraft['elevation'])
