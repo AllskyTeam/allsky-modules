@@ -37,95 +37,363 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		],
 		"extradatafilename": "allsky_solarsystem.json",
 		"experimental": "false",
-		"extradata": {   
+        "templates": {
+			"moonbasictemplate": {
+				"name": "Moon Info",
+    			"description" : "List of sun time data",
+				"fields": {
+					"moonrow1": {
+						"col1": {
+							"text": "Azimuth:"
+						},
+						"col2": {
+							"text": "${AS_MOON_AZIMUTH}"
+						}         
+					},
+					"moonrow2": {
+						"col1": {
+							"text": "Elevation:"
+						},
+						"col2": {
+							"text": "${AS_MOON_ELEVATION}"
+						}      
+					},
+					"moonrow3": {
+						"col1": {
+							"text": "Visible:"
+						},
+						"col2": {
+							"text": "${AS_MOON_VISIBLE}"
+						}      
+					},
+					"moonrow4": {
+						"col1": {
+							"text": "Illumination:"
+						},
+						"col2": {
+							"text": "${AS_MOON_ILLUMINATION}"
+						}      
+					},        
+					"moonrow5": {
+						"col1": {
+							"text": "Phase:"
+						},
+						"col2": {
+							"text": "${AS_MOON_SYMBOL}"
+						}      
+					}                 
+				}
+			},
+			"moontimetemplate": {
+				"name": "Moon Info",
+    			"description" : "List of sun time data",
+				"fields": {
+					"moonrow1": {
+						"col1": {
+							"text": "Rise:"
+						},
+						"col2": {
+							"text": "${AS_MOON_RISE_TIME}"
+						}         
+					},
+					"moonrow2": {
+						"col1": {
+							"text": "Set:"
+						},
+						"col2": {
+							"text": "${AS_MOON_SET_TIME}"
+						}      
+					},
+					"moonrow3": {
+						"col1": {
+							"text": "New:"
+						},
+						"col2": {
+							"text": "${AS_MOONAS_MOON_NEW_TIME_VISIBLE}"
+						}      
+					},
+					"moonrow4": {
+						"col1": {
+							"text": "Full:"
+						},
+						"col2": {
+							"text": "${AS_MOON_FULL_TIME}"
+						}      
+					}               
+				}
+			},
+			"suntemplate": {
+				"name": "Sun Times",
+    			"description" : "List of sun time data",
+				"fields": {
+					"sunrow1": {
+						"col1": {
+							"text": "Dawn:"
+						},
+						"col2": {
+							"text": "${AS_SUN_DAWN}"
+						}         
+					},
+					"sunrow2": {
+						"col1": {
+							"text": "Sunrise:"
+						},
+						"col2": {
+							"text": "${AS_SUN_SUNRISE}"
+						}      
+					},
+					"sunrow3": {
+						"col1": {
+							"text": "Noon:"
+						},
+						"col2": {
+							"text": "${AS_SUN_NOON}"
+						}      
+					},
+					"sunrow4": {
+						"col1": {
+							"text": "Sunset:"
+						},
+						"col2": {
+							"text": "${AS_SUN_SUNSET}"
+						}      
+					},        
+					"sunrow5": {
+						"col1": {
+							"text": "Dusk:"
+						},
+						"col2": {
+							"text": "${AS_SUN_DUSK}"
+						}      
+					}                 
+				}
+			},
+			"planetstemplate": {
+				"name": "Planets",
+    			"description" : "Planet Positions",
+				"fields": {
+					"planetrow1": {
+						"col1": {
+							"text": "Mercury:"
+						},
+						"col2": {
+							"text": "${AS_MERCURY_VISIBLE}"
+						},
+						"col3": {
+							"text": "${AS_MERCURY_AZIMUTH}"
+						},
+						"col4": {
+							"text": "${AS_MERCURY_ELEVATION}"
+						}      
+					},
+					"planetrow2": {
+						"col1": {
+							"text": "Venus:"
+						},
+						"col2": {
+							"text": "${AS_VENUS_VISIBLE}"
+						},
+						"col3": {
+							"text": "${AS_VENUS_AZIMUTH}"
+						},
+						"col4": {
+							"text": "${AS_VENUS_ELEVATION}"
+						}      
+					},
+					"planetrow3": {
+						"col1": {
+							"text": "Mars:"
+						},
+						"col2": {
+							"text": "${AS_MARS_VISIBLE}"
+						},
+						"col3": {
+							"text": "${AS_MARS_AZIMUTH}"
+						},
+						"col4": {
+							"text": "${AS_MARS_ELEVATION}"
+						}      
+					},
+					"planetrow4": {
+						"col1": {
+							"text": "Jupiter:"
+						},
+						"col2": {
+							"text": "${AS_JUPITER_VISIBLE}"
+						},
+						"col3": {
+							"text": "${AS_JUPITER_AZIMUTH}"
+						},
+						"col4": {
+							"text": "${AS_JUPITER_ELEVATION}"
+						}      
+					},
+					"planetrow5": {
+						"col1": {
+							"text": "Saturn:"
+						},
+						"col2": {
+							"text": "${AS_SATURN_VISIBLE}"
+						},
+						"col3": {
+							"text": "${AS_SATURN_AZIMUTH}"
+						},
+						"col4": {
+							"text": "${AS_SATURN_ELEVATION}"
+						}      
+					},
+					"planetrow6": {
+						"col1": {
+							"text": "Uranus:"
+						},
+						"col2": {
+							"text": "${AS_URANUS_VISIBLE}"
+						},
+						"col3": {
+							"text": "${AS_URANUS_AZIMUTH}"
+						},
+						"col4": {
+							"text": "${AS_URANUS_ELEVATION}"
+						}      
+					},
+					"planetrow7": {
+						"col1": {
+							"text": "Neptune:"
+						},
+						"col2": {
+							"text": "${AS_NEPTUNE_VISIBLE}"
+						},
+						"col3": {
+							"text": "${AS_NEPTUNE_AZIMUTH}"
+						},
+						"col4": {
+							"text": "${AS_NEPTUNE_ELEVATION}"
+						}      
+					},
+					"planetrow8": {
+						"col1": {
+							"text": "Pluto:"
+						},
+						"col2": {
+							"text": "${AS_PLUTO_VISIBLE}"
+						},
+						"col3": {
+							"text": "${AS_PLUTO_AZIMUTH}"
+						},
+						"col4": {
+							"text": "${AS_PLUTO_ELEVATION}"
+						}      
+					}      
+				}
+			}
+		},		
+  		"extradata": {   
 			"values": {
 				"AS_MOON_AZIMUTH": {
 					"group": "Solar System",
+					"format": "{int|deg}",
 					"type": "azimuth",
 					"description": "The Moons azimuth"
 				},
 				"AS_MOON_ELEVATION": {
 					"group": "Solar System",
+					"format": "{1dp|deg}",     
 					"type": "elevation",
 					"description": "The Moons elevation"
 				},
 				"AS_MOON_VISIBLE": {
 					"group": "Solar System",
+					"format": "{%yes}",     
 					"type": "bool",
 					"description": "Is the Moon visible"
 				},
 				"AS_MOON_ILLUMINATION": {
 					"group": "Solar System",
+					"format": "{1dp|per}",     
 					"type": "number",
 					"description": "The Moons illumination %"
 				},
 				"AS_MOON_SYMBOL": {
 					"group": "Solar System",
 					"type": "string",
+     				"font": "moon_phases",
 					"description": "The moon phase symbol (use moon ttf)"
 				},
 				"AS_MOON_RISE_TIME": {
 					"group": "Solar System",
+					"format": "{timeformat}",     
 					"type": "timestamp",
 					"description": "The moon rise timestamp"
 				},
 				"AS_MOON_SET_TIME": {
 					"group": "Solar System",
+					"format": "{timeformat}",     
 					"type": "timestamp",
 					"description": "The moon set timestamp"
 				},
 				"AS_MOON_NEW_TIME": {
 					"group": "Solar System",
+					"format": "{timeformat}",     
 					"type": "timestamp",
 					"description": "The next new moon timestamp"
 				},
 				"AS_MOON_FULL_TIME": {
 					"group": "Solar System",
+					"format": "{timeformat}",     
 					"type": "timestamp",
 					"description": "The next full moon timestamp"
 				},
 				"AS_SUN_DAWN": {
 					"group": "Solar System",
-					"type": "timestamp",
+					"format": "{timeformat}",
+     				"type": "timestamp",
 					"description": "The timestamp for Dawn"
 				},
 				"AS_SUN_SUNRISE": {
 					"group": "Solar System",
+					"format": "{timeformat}",
 					"type": "timestamp",
 					"description": "The timestamp for Sun Rise"
 				},
 				"AS_SUN_NOON": {
 					"group": "Solar System",
+					"format": "{timeformat}",     
 					"type": "timestamp",
 					"description": "The timestamp for Noon"
 				},
 				"AS_SUN_SUNSET": {
 					"group": "Solar System",
+					"format": "{timeformat}",     
 					"type": "timestamp",
 					"description": "The timestamp for Sun Set"
 				},
 				"AS_SUN_DUSK": {
 					"group": "Solar System",
+					"format": "{timeformat}",     
 					"type": "timestamp",
 					"description": "The timestamp for Dusk"
 				},
 				"AS_SUN_AZIMUTH": {
 					"group": "Solar System",
+					"format": "{timeformat}",     
 					"type": "azimuth",
 					"description": "The azimuth of the Sun"
 				},
 				"AS_SUN_ELEVATION": {
 					"group": "Solar System",
+					"format": "{1dp|deg}",     
 					"type": "elevation",
 					"description": "The elevation of the Sun"
 				},
 				"AS_MERCURY_ELEVATION": {
 					"group": "Solar System",
+					"format": "{1dp|deg}",          
 					"type": "elevation",
 					"description": "The elevation of Mercury"
 				},            
 				"AS_MERCURY_AZIMUTH": {
 					"group": "Solar System",
+					"format": "{int|deg}",     
 					"type": "azimuth",
 					"description": "The AZIMUTH of Mercury"
 				},
@@ -136,11 +404,13 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				},
 				"AS_VENUS_ELEVATION": {
 					"group": "Solar System",
+					"format": "{1dp|deg}",     
 					"type": "elevation",
 					"description": "The elevation of Venus"
 				},
 				"AS_VENUS_AZIMUTH": {
 					"group": "Solar System",
+					"format": "{int|deg}",     
 					"type": "azimuth",
 					"description": "The AZIMUTH of Venus"
 				},
@@ -151,11 +421,13 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				},
 				"AS_MARS_ELEVATION": {
 					"group": "Solar System",
+					"format": "{1dp|deg}",     
 					"type": "elevation",
 					"description": "The elevation of Mars"
 				},
 				"AS_MARS_AZIMUTH": {
 					"group": "Solar System",
+					"format": "{int|deg}",     
 					"type": "azimuth",
 					"description": "The AZIMUTH of Mars"
 				},
@@ -166,11 +438,13 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				},
 				"AS_JUPITER_ELEVATION": {
 					"group": "Solar System",
+					"format": "{1dp|deg}",     
 					"type": "elevation",
 					"description": "The elevation of Jupiter"
 				},
 				"AS_JUPITER_AZIMUTH": {
 					"group": "Solar System",
+					"format": "{int|deg}",     
 					"type": "azimuth",
 					"description": "The AZIMUTH of Jupiter"
 				},
@@ -181,11 +455,13 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				},
 				"AS_SATURN_ELEVATION": {
 					"group": "Solar System",
+					"format": "{1dp|deg}",     
 					"type": "elevation",
 					"description": "The elevation of Saturn"
 				},
 				"AS_SATURN_AZIMUTH": {
 					"group": "Solar System",
+					"format": "{int|deg}",     
 					"type": "azimuth",
 					"description": "The AZIMUTH of Saturn"
 				},
@@ -196,11 +472,13 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				},
 				"AS_URANUS_ELEVATION": {
 					"group": "Solar System",
+					"format": "{1dp|deg}",
 					"type": "elevation",
 					"description": "The elevation of Uranus"
 				},
 				"AS_URANUS_AZIMUTH": {
 					"group": "Solar System",
+					"format": "{int|deg}",     
 					"type": "azimuth",
 					"description": "The AZIMUTH of Uranus"
 				},
@@ -211,11 +489,13 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				},
 				"AS_NEPTUNE_ELEVATION": {
 					"group": "Solar System",
+					"format": "{1dp|deg}",
 					"type": "elevation",
 					"description": "The elevation of Neptune"
 				},
 				"AS_NEPTUNE_AZIMUTH": {
 					"group": "Solar System",
+					"format": "{int|deg}",     
 					"type": "azimuth",
 					"description": "The AZIMUTH of Neptune"
 				},
@@ -226,11 +506,13 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				},
 				"AS_PLUTO_ELEVATION": {
 					"group": "Solar System",
+					"format": "{1dp|deg}",
 					"type": "elevation",
 					"description": "The elevation of Pluto"
 				},
 				"AS_PLUTO_AZIMUTH": {
 					"group": "Solar System",
+					"format": "{int|deg}",      
 					"type": "azimuth",
 					"description": "The AZIMUTH of Pluto"
 				},
