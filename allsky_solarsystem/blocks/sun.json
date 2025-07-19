@@ -1,0 +1,70 @@
+{
+    "suntimesblock": {
+        "name": "Sun Times",
+        "description": "List of sun time data",
+        "fields": {
+            "sunrow1": {
+                "col1": {
+                    "text": "Dawn:"
+                },
+                "col2": {
+                    "text": "${AS_SUN_DAWN}"
+                }
+            },
+            "sunrow2": {
+                "col1": {
+                    "text": "Sunrise:"
+                },
+                "col2": {
+                    "text": "${AS_SUN_SUNRISE}"
+                }
+            },
+            "sunrow3": {
+                "col1": {
+                    "text": "Noon:"
+                },
+                "col2": {
+                    "text": "${AS_SUN_NOON}"
+                }
+            },
+            "sunrow4": {
+                "col1": {
+                    "text": "Sunset:"
+                },
+                "col2": {
+                    "text": "${AS_SUN_SUNSET}"
+                }
+            },
+            "sunrow5": {
+                "col1": {
+                    "text": "Dusk:"
+                },
+                "col2": {
+                    "text": "${AS_SUN_DUSK}"
+                }
+            }
+        }
+    },
+    "sunpositionblock": {
+        "name": "Sun Position",
+        "description": "Position of the Sun",
+        "fields": {
+            "sunrow1": {
+                "col1": {
+                    "text": "Azimuth:"
+                },
+                "col2": {
+                    "text": "${AS_SUN_AZIMUTH}"
+                }
+            },
+            "sunrow2": {
+                "col1": {
+                    "text": "Elevation:"
+                },
+                "col2": {
+                    "text": "${AS_SUN_ELEVATION}"
+                }
+            }
+        }
+    }    
+}

@@ -332,6 +332,7 @@ class ALLSKYMODULEINSTALLER:
         self.dest_path = self.valid_module_paths[0]
         self.module_path_base = os.path.join(self.dest_path, 'moduledata')
         self.module_path_data = os.path.join(self.module_path_base, 'data')
+        self.module_path_blocks = os.path.join(self.module_path_base, 'blocks')
         self.dest_path_installer = os.path.join(self.module_path_base, 'installer')
         self.dest_path_info = os.path.join(self.module_path_base, 'info')
         self.dest_path_log = os.path.join(self.module_path_base, 'logfiles')
@@ -551,6 +552,7 @@ class ALLSKYMODULEINSTALLER:
         result = self._copy_file(source, dest)
         if result:
             self._create_directory(self.module_path_data)
+            self._create_directory(self.module_path_blocks)
             self._create_directory(os.path.join(self.dest_path_info, module.name))
 
             doc_files = ['readme.txt', 'README.txt', 'README.md']
@@ -564,6 +566,14 @@ class ALLSKYMODULEINSTALLER:
                 command = f'cp -ar {module_data_path} {self.module_path_data}'
                 os.system(command)
 
+            module_data_path = os.path.join(self.base_path, module.name, 'blocks')
+            if os.path.exists(module_data_path) and os.path.isdir(module_data_path):
+                blocks_folder = os.path.join(self.module_path_blocks, module.name)
+                if not os.path.exists(blocks_folder):
+                    self._create_directory(blocks_folder)                
+                command = f'cp -ar {module_data_path}/* {blocks_folder}/'
+                os.system(command)
+                
             installer_folder = os.path.join(self.dest_path_installer, module.name)
             self._create_directory(installer_folder)
             installer_file = os.path.join(installer_folder, 'installer.json')
