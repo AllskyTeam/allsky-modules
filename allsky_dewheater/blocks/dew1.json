@@ -1,0 +1,39 @@
+{
+    "dew": {
+        "name": "Dew Heater Information",
+        "fields": {
+            "acrow1": {
+                "col1": {
+                    "text": "Ambient:"
+                },
+                "col2": {
+                    "text": "${AS_DEWCONTROLAMBIENT}"
+                }
+            },
+            "acrow2": {
+                "col1": {
+                    "text": "Dew Point:"
+                },
+                "col2": {
+                    "text": "${AS_DEWCONTROLDEW}"
+                }
+            },
+            "acrow3": {
+                "col1": {
+                    "text": "Humidity:"
+                },
+                "col2": {
+                    "text": "${AS_DEWCONTROLHUMIDITY}"
+                }
+            },
+            "acrow4": {
+                "col1": {
+                    "text": "Heater:"
+                },
+                "col2": {
+                    "text": "${AS_DEWCONTROLHEATER}"
+                }
+            }          
+        }
+    }
+}
