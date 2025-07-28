@@ -97,21 +97,25 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 				},
 				"AS_DISTANCE_AIRCRAFT${COUNT}": {
 					"group": "ADSB Data",
-					"type": "Distance",                
+					"format": "{allsky}",
+					"type": "distance",            
 					"description": "Aircraft ${COUNT} distance"
 				},    
 				"AS_AZIMUTH_AIRCRAFT${COUNT}": {
 					"group": "ADSB Data",
+					"format": "{dp2|deg}",     
 					"type": "azimuth",                
 					"description": "Aircraft ${COUNT} azimuth"
 				},
 				"AS_ELEVATION_AIRCRAFT${COUNT}": {
 					"group": "ADSB Data",
+					"format": "{dp2|deg}",     
 					"type": "elevation",                
 					"description": "Aircraft ${COUNT} elevation"
 				},
 				"AS_ALTITUDE_AIRCRAFT${COUNT}": {
 					"group": "ADSB Data",
+					"format": "{flightlevel}",
 					"type": "altitude",                
 					"description": "Aircraft ${COUNT} altitude"
 				},                        
@@ -137,6 +141,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 				},
 				"AS_MILITARY_AIRCRAFT${COUNT}": {
 					"group": "ADSB Data",
+					"format": "{yesno}",     
 					"type": "bool",                
 					"description": "Aircraft ${COUNT} military flag"
 				},
@@ -734,7 +739,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			'RegisteredOwners': '', 
 			'Registration': '', 
 			'Type': '',
-			'Military': ''
+			'Military': False
 		}
 		
 		if aircraft_data == 'Hexdb':
@@ -747,7 +752,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 
 					aircraft_info['TypeLong'] = aircraft_info['Type']
 					aircraft_info['Type'] = aircraft_info['Type'].split()[0]
-					aircraft_info['Military'] = ''
+					aircraft_info['Military'] = False
 				else:
 					allsky_shared.log(4, f'ERROR: Failed to retrieve data from "{url}". {response.status_code} - {response.text}')
 			except MissingSchema:
@@ -777,10 +782,10 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 							'Registration': ac_info['r'], 
 							'Type': ac_info['it'],
 							'TypeLong': ac_info['it'],
-							'Military': ''
+							'Military': False
 						}
 						if ac_info['ml']:
-							aircraft_info['Military'] = 'Mil'
+							aircraft_info['Military'] = True
 				except FileNotFoundError:
 					pass
 			else:
@@ -882,10 +887,10 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 									aircraft['info'] = self._get_aircraft_info(aircraft['hex'], timeout, aircraft_data)
 									aircraft['route'] = self._get_route(aircraft['flight'].rstrip(), timeout, get_aircraft_route)
 
-									extra_data[f'AS_DISTANCE_AIRCRAFT{counter}'] = int(aircraft['distance_miles'])
+									extra_data[f'AS_DISTANCE_AIRCRAFT{counter}'] = round(aircraft['distance_miles'], 2)
 									extra_data[f'AS_HEX_AIRCRAFT{counter}'] = aircraft['hex']
-									extra_data[f'AS_AZIMUTH_AIRCRAFT{counter}'] = int(aircraft['azimuth'])
-									extra_data[f'AS_ELEVATION_AIRCRAFT{counter}'] = int(aircraft['elevation'])
+									extra_data[f'AS_AZIMUTH_AIRCRAFT{counter}'] = round(aircraft['azimuth'],2)
+									extra_data[f'AS_ELEVATION_AIRCRAFT{counter}'] = round(aircraft['elevation'],2)
 									extra_data[f'AS_ALTITUDE_AIRCRAFT{counter}'] = int(aircraft['altituderaw'])
 									extra_data[f'AS_TYPE_AIRCRAFT{counter}'] = aircraft['info']['Type'] if aircraft['info']['Type'] != '' else aircraft['hex']
 									extra_data[f'AS_OWNER_AIRCRAFT{counter}'] = aircraft['info']['RegisteredOwners']
