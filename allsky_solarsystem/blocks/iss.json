@@ -1,0 +1,56 @@
+{
+    "issblock": {
+        "name": "ISS Information",
+        "description": "Requires ISS to be enabled in the solar system module",
+        "fields": {
+            "issrow0": {
+                "col1": {
+                    "text": "Id:"
+                },
+                "col2": {
+                    "text": "${AS_25544_ID}"
+                }
+            },
+            "issrow1": {
+                "col1": {
+                    "text": "Name:"
+                },
+                "col2": {
+                    "text": "${AS_25544_NAME}"
+                }
+            },
+            "issrow2": {
+                "col1": {
+                    "text": "Visible:"
+                },
+                "col2": {
+                    "text": "${AS_25544_VISIBLE}"
+                }
+            },
+            "issrow3": {
+                "col1": {
+                    "text": "Azimuth:"
+                },
+                "col2": {
+                    "text": "${AS_25544_AZ}"
+                }
+            },
+            "issrow4": {
+                "col1": {
+                    "text": "Elevation:"
+                },
+                "col2": {
+                    "text": "${AS_25544_ALT}"
+                }
+            },
+            "issrow5": {
+                "col1": {
+                    "text": "Distance:"
+                },
+                "col2": {
+                    "text": "${AS_25544_DISTANCE}"
+                }
+            }
+        }
+    }
+}
