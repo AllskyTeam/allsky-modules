@@ -41,25 +41,25 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			"values": {
 				"AS_MOON_AZIMUTH": {
 					"group": "Solar System",
-					"format": "{int|deg}",
+					"format": "{dp=2|deg}",
 					"type": "azimuth",
 					"description": "The Moons azimuth"
 				},
 				"AS_MOON_ELEVATION": {
 					"group": "Solar System",
-					"format": "{1dp|deg}",     
+					"format": "{dp=2|deg}",     
 					"type": "elevation",
 					"description": "The Moons elevation"
 				},
 				"AS_MOON_VISIBLE": {
 					"group": "Solar System",
-					"format": "{%yes}",     
+					"format": "{yesno}",     
 					"type": "bool",
 					"description": "Is the Moon visible"
 				},
 				"AS_MOON_ILLUMINATION": {
 					"group": "Solar System",
-					"format": "{1dp|per}",     
+					"format": "{dp=1|per}",     
 					"type": "number",
 					"description": "The Moons illumination %"
 				},
@@ -72,55 +72,55 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				"AS_MOON_RISE_TIME": {
 					"group": "Solar System",
 					"format": "{timeformat}",     
-					"type": "timestamp",
+					"type": "date",
 					"description": "The moon rise timestamp"
 				},
 				"AS_MOON_SET_TIME": {
 					"group": "Solar System",
 					"format": "{timeformat}",     
-					"type": "timestamp",
+					"type": "date",
 					"description": "The moon set timestamp"
 				},
 				"AS_MOON_NEW_TIME": {
 					"group": "Solar System",
 					"format": "{timeformat}",     
-					"type": "timestamp",
+					"type": "date",
 					"description": "The next new moon timestamp"
 				},
 				"AS_MOON_FULL_TIME": {
 					"group": "Solar System",
 					"format": "{timeformat}",     
-					"type": "timestamp",
+					"type": "date",
 					"description": "The next full moon timestamp"
 				},
 				"AS_SUN_DAWN": {
 					"group": "Solar System",
 					"format": "{timeformat}",
-     				"type": "timestamp",
+     				"type": "date",
 					"description": "The timestamp for Dawn"
 				},
 				"AS_SUN_SUNRISE": {
 					"group": "Solar System",
 					"format": "{timeformat}",
-					"type": "timestamp",
+					"type": "date",
 					"description": "The timestamp for Sun Rise"
 				},
 				"AS_SUN_NOON": {
 					"group": "Solar System",
 					"format": "{timeformat}",     
-					"type": "timestamp",
+					"type": "date",
 					"description": "The timestamp for Noon"
 				},
 				"AS_SUN_SUNSET": {
 					"group": "Solar System",
 					"format": "{timeformat}",     
-					"type": "timestamp",
+					"type": "date",
 					"description": "The timestamp for Sun Set"
 				},
 				"AS_SUN_DUSK": {
 					"group": "Solar System",
 					"format": "{timeformat}",     
-					"type": "timestamp",
+					"type": "date",
 					"description": "The timestamp for Dusk"
 				},
 				"AS_SUN_AZIMUTH": {
@@ -131,13 +131,13 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				},
 				"AS_SUN_ELEVATION": {
 					"group": "Solar System",
-					"format": "{1dp|deg}",     
+					"format": "{dp=1|deg}",     
 					"type": "elevation",
 					"description": "The elevation of the Sun"
 				},
 				"AS_MERCURY_ELEVATION": {
 					"group": "Solar System",
-					"format": "{1dp|deg}",          
+					"format": "{dp=1|deg}",          
 					"type": "elevation",
 					"description": "The elevation of Mercury"
 				},            
@@ -154,7 +154,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				},
 				"AS_VENUS_ELEVATION": {
 					"group": "Solar System",
-					"format": "{1dp|deg}",     
+					"format": "{dp=1|deg}",     
 					"type": "elevation",
 					"description": "The elevation of Venus"
 				},
@@ -171,7 +171,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				},
 				"AS_MARS_ELEVATION": {
 					"group": "Solar System",
-					"format": "{1dp|deg}",     
+					"format": "{dp=1|deg}",     
 					"type": "elevation",
 					"description": "The elevation of Mars"
 				},
@@ -188,7 +188,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				},
 				"AS_JUPITER_ELEVATION": {
 					"group": "Solar System",
-					"format": "{1dp|deg}",     
+					"format": "{dp=1|deg}",     
 					"type": "elevation",
 					"description": "The elevation of Jupiter"
 				},
@@ -205,7 +205,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				},
 				"AS_SATURN_ELEVATION": {
 					"group": "Solar System",
-					"format": "{1dp|deg}",     
+					"format": "{dp=1|deg}",     
 					"type": "elevation",
 					"description": "The elevation of Saturn"
 				},
@@ -222,7 +222,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				},
 				"AS_URANUS_ELEVATION": {
 					"group": "Solar System",
-					"format": "{1dp|deg}",
+					"format": "{dp=1|deg}",
 					"type": "elevation",
 					"description": "The elevation of Uranus"
 				},
@@ -239,7 +239,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				},
 				"AS_NEPTUNE_ELEVATION": {
 					"group": "Solar System",
-					"format": "{1dp|deg}",
+					"format": "{dp=1|deg}",
 					"type": "elevation",
 					"description": "The elevation of Neptune"
 				},
@@ -256,7 +256,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				},
 				"AS_PLUTO_ELEVATION": {
 					"group": "Solar System",
-					"format": "{1dp|deg}",
+					"format": "{dp=1|deg}",
 					"type": "elevation",
 					"description": "The elevation of Pluto"
 				},
@@ -507,10 +507,12 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 					symbol = '1'  # new moon
 				else:
 					symbol = chr(ord('A')+int(symbol+0.5)-1)
-
+     
 				az_temp = str(moon.az).split(":")
-				moon_azimuth = az_temp[0]
-				moon_elevation = round(degrees(moon.alt),2)
+				#moon_azimuth = az_temp[0]
+				#moon_elevation = round(degrees(moon.alt),2)
+				moon_azimuth = moon.az
+				moon_elevation = moon.alt
 				moon_illumination = round(moon.phase, 2)
 				moon_phase_symbol = symbol
 
@@ -626,8 +628,8 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			self._extra_data['AS_SUN_SUNSET'] = sunset.timestamp()
 			self._extra_data['AS_SUN_DUSK'] = dusk.timestamp()
 			
-			self._extra_data['AS_SUN_AZIMUTH'] = str(int(todaySunData["azimuth"]))
-			self._extra_data['AS_SUN_ELEVATION'] = str(int(todaySunData["elevation"]))
+			self._extra_data['AS_SUN_AZIMUTH'] = str(float(todaySunData["azimuth"]))
+			self._extra_data['AS_SUN_ELEVATION'] = str(float(todaySunData["elevation"]))
 			
 			allsky_shared.log(4, 'INFO: Sun data calculated')
 		except Exception as e:
@@ -645,11 +647,11 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			astrometric = observer_location.at(time_now).observe(planet).apparent()
 			alt, az, distance = astrometric.altaz()
 
-			alt_dms = alt.dms()
-			az_dms = az.dms()
+			alt_degrees = alt.degrees
+			az_degrees = az.degrees
 			planet_key = planet_name.upper()
-			self._extra_data[f'AS_{planet_key}_ELEVATION'] = int(alt_dms[0])
-			self._extra_data[f'AS_{planet_key}_AZIMUTH'] = int(az_dms[0])
+			self._extra_data[f'AS_{planet_key}_ELEVATION'] = alt_degrees
+			self._extra_data[f'AS_{planet_key}_AZIMUTH'] = az_degrees
 
 			try:
 				planet_min_elevation = int(self._params['planetElevation'])
@@ -855,34 +857,43 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 
 	def _add_satellite_to_extra_data(self, norad_id, alt, az, distance, name, visible, prefix=''):
 		try:
-			self._custom_fields[f'AS_{prefix}{norad_id}_NAME'] = {
+			self._custom_fields[f'AS_{prefix}{norad_id}_ID'] = {
 				'value': norad_id,
 				'group': 'Solar System',
 				'type': 'string',
-				'description': 'Satellite name'
+				'description': 'Satellite id'
 			}
+			self._custom_fields[f'AS_{prefix}{norad_id}_NAME'] = {
+				'value': name,
+				'group': 'Solar System',
+				'type': 'string',
+				'description': 'Satellite name'
+			}   
 			self._custom_fields[f'AS_{prefix}{norad_id}_ALT'] = {
 				'value': float(alt.degrees),      
 				'group': 'Solar System',
-				'type': 'altitude',
+				'type': 'elevation',
+    			"format": "{dp=2|deg}",    
 				'description': 'Satellite altitude'
 			}
 			self._custom_fields[f'AS_{prefix}{norad_id}_AZ'] = {
 				'value': float(az.degrees),
 				'group': 'Solar System',
 				'type': 'azimuth',
+    			"format": "{int|deg}", 
 				'description': 'Satellite azimuth'
 			}
 			self._custom_fields[f'AS_{prefix}{norad_id}_DISTANCE'] = {
 				'value': float(distance.km),
 				'group': 'Solar System',
-				'type': 'integer',
+				'type': 'number',
 				'description': 'Satellite distance in KM'
 			}
 			self._custom_fields[f'AS_{prefix}{norad_id}_VISIBLE'] = {
 				'value': visible,
 				'group': 'Solar System',
 				'type': 'bool',
+				"format": "{yesno}",
 				'description': 'Satellite visible'
 			}
 		except Exception as e:
