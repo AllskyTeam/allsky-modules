@@ -210,7 +210,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				},              
 				"AS_DEWCONTROLAMBIENT": {
 					"name": "${DEWCONTROLAMBIENT}",
-					"format": "{dp2|deg|unit}",
+					"format": "{dp=2|deg|unit}",
 					"sample": "",                 
 					"group": "Dew Heater",
 					"description": "Dew Heater Ambient",
@@ -218,7 +218,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				},
 				"AS_DEWCONTROLDEW": {
 					"name": "${DEWCONTROLDEW}",
-					"format": "{dp2|deg|unit}",
+					"format": "{dp=2|deg|unit}",
 					"sample": "",                 
 					"group": "Dew Heater",
 					"description": "Dew heater Dew Point",
@@ -226,7 +226,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				},
 				"AS_DEWCONTROLHUMIDITY": {
 					"name": "${DEWCONTROLHUMIDITY}",
-					"format": "{dp2|per}",
+					"format": "{dp=2|per}",
 					"sample": "",                 
 					"group": "Dew Heater",
 					"description": "Dew Heater Humidity",
@@ -258,7 +258,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				},
 				"AS_DEWCONTROLRELHUMIDITY": {
 					"name": "${DEWCONTROLRELHUMIDITY}",
-					"format": "{dp2|per}",
+					"format": "{dp=2|per}",
 					"sample": "",                  
 					"group": "Dew Heater",
 					"description": "Dew Heater Relative Humidity",
@@ -274,7 +274,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				},
 				"AS_DEWCONTROLPWMDUTYCYCLE": {
 					"name": "${DEWCONTROLPWMDUTYCYCLE}",
-					"format": "{dp0|per}",
+					"format": "{dp=0|per}",
 					"sample": "",                   
 					"group": "Dew Heater",
 					"description": "Dew Heater Duty Cycle",

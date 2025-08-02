@@ -14,7 +14,7 @@ dtoverlay=pwm-2chan
 import allsky_shared as allsky_shared
 from allsky_base import ALLSKYMODULEBASE
 import sys
-
+import requests
 
 class ALLSKYFANS(ALLSKYMODULEBASE):
     
@@ -285,7 +285,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			"values": {
 				"AS_FANS_ENABLE1": {
 					"name": "${FANS_ENABLE1}",
-					"format": "",
+					"format": "{yesno}",
 					"sample": "",                 
 					"group": "Fan",
 					"description": "Fan 1 enabled",
@@ -293,7 +293,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				},       
 				"AS_FANS_FAN_STATE1": {
 					"name": "${FANS_FAN_STATE1}",
-					"format": "",
+					"format": "{yesno}",
 					"sample": "",                
 					"group": "Fan",
 					"description": "Fan 1 Status",
@@ -301,7 +301,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				},
 				"AS_FANS_TEMPERATURE1": {
 					"name": "${FANS_TEMPERATURE1}",
-					"format": "",
+					"format": "{dp=2|deg|unit}",
 					"sample": "",                 
 					"group": "Fan",
 					"description": "Fan 1 module Temperature",
@@ -309,7 +309,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				},             
 				"AS_FANS_TEMP_LIMIT1": {
 					"name": "${FANS_TEMP_LIMIT1}",
-					"format": "",
+					"format": "{dp=2|deg|unit}",
 					"sample": "",                 
 					"group": "Fan",
 					"description": "Fan 1 Activation Temperature",
@@ -317,7 +317,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				},
 				"AS_FANS_USE_PWM1": {
 					"name": "${FANS_USE_PWM1}",
-					"format": "",
+					"format": "{yesno}",
 					"sample": "",                 
 					"group": "Fan",
 					"description": "Fan 1 use PWM",
@@ -325,7 +325,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				},
 				"AS_FANS_PWM_ENABLED1": {
 					"name": "${FANS_PWM_ENABLED1}",
-					"format": "",
+					"format": "{yesno}",
 					"sample": "",                 
 					"group": "Fan",
 					"description": "Fan 1 PWM enabled",
@@ -341,7 +341,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				},
 				"AS_FANS_ENABLE2": {
 					"name": "${FANS_ENABLE2}",
-					"format": "",
+					"format": "{yesno}",
 					"sample": "",                 
 					"group": "Fan",
 					"description": "Fan 2 enabled",
@@ -349,7 +349,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				},     
 				"AS_FANS_FAN_STATE2": {
 					"name": "${FANS_FAN_STATE2}",
-					"format": "",
+					"format": "{yesno}",
 					"sample": "",                
 					"group": "Fan",
 					"description": "Fan 2 Status",
@@ -357,7 +357,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				},
 				"AS_FANS_TEMPERATURE2": {
 					"name": "${FANS_TEMPERATURE2}",
-					"format": "",
+					"format": "{dp=2|deg|unit}",
 					"sample": "",                 
 					"group": "Fan",
 					"description": "Fan 2 module Temperature",
@@ -365,7 +365,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				},             
 				"AS_FANS_TEMP_LIMIT2": {
 					"name": "${FANS_TEMP_LIMIT2}",
-					"format": "",
+					"format": "{dp=2|deg|unit}",
 					"sample": "",                 
 					"group": "Fan",
 					"description": "Fan 2 Activation Temperature",
@@ -373,7 +373,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				},
 				"AS_FANS_USE_PWM2": {
 					"name": "${FANS_USE_PWM2}",
-					"format": "",
+					"format": "{yesno}",
 					"sample": "",                 
 					"group": "Fan",
 					"description": "Fan 2 use PWM",
@@ -381,7 +381,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				},
 				"AS_FANS_PWM_ENABLED2": {
 					"name": "${FANS_PWM_ENABLED2}",
-					"format": "",
+					"format": "{yesno}",
 					"sample": "",                 
 					"group": "Fan",
 					"description": "Fan 2 PWM enabled",
@@ -818,30 +818,53 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 	def _display_status(self, value):
 		return 'On' if value else 'Off'
 
-	def _use_bool_fan_control(self):
+	def _use_bool_fan_control(self, fan_number):
 		error = False
 		state = False
-		allsky_shared.stop_pwm(self._fan_pin)
+  
+		try:  
+			allsky_shared.stop_pwm(self._fan_pin)
 
-		if (self._temperature > self._temperature_limit):
-			fan_result = self._turn_fan_on()
-			fan_status = True
-			result = f'Fan {self._fan_number} - {self._temperature} is higher then set limit of {self._temperature_limit}, Fans are {self._display_status(fan_status)} via fan pin {self._fan_pin}'
-			state= True
-		else:
-			fan_result = self._turn_fan_off()
-			fan_status = False
-			result = f'Fan {self._fan_number} - {self._temperature} is lower then set limit of {self._temperature_limit}, Fans are {self._display_status(fan_status)} via fan pin {self._fan_pin}'
+			if (self._temperature > self._temperature_limit):
+				fan_result = self._turn_fan_on()
+				fan_status = True
+				result = f'Fan {self._fan_number} - {self._temperature} is higher then set limit of {self._temperature_limit}, Fans are {self._display_status(fan_status)} via fan pin {self._fan_pin}'
+				state= True
+			else:
+				fan_result = self._turn_fan_off()
+				fan_status = False
+				result = f'Fan {self._fan_number} - {self._temperature} is lower then set limit of {self._temperature_limit}, Fans are {self._display_status(fan_status)} via fan pin {self._fan_pin}'
 
-		if not fan_result:
-			result = f'Fan {self._fan_number} - Failed to set the fan status check pigpiod is running'
-			error = True
+			if not fan_result:
+				result = f'Fan {self._fan_number} - Failed to set the fan status check pigpiod is running'
+				error = True
 
+		except requests.exceptions.ConnectionError  as e:
+			exception_type, exception_object, exception_traceback = sys.exc_info()
+			result = f'Fan {self._fan_number} - Module _use_bool_fan_control - Unable to connect to the Allsky server. Is it running?'
+			allsky_shared.log(0, f'ERROR: {result}')
+			error = True 
+      
+		except Exception as e:
+			exception_type, exception_object, exception_traceback = sys.exc_info()
+			result = f'Fan {self._fan_number} - Module _use_bool_fan_control - {exception_traceback.tb_lineno} - {e}'
+			allsky_shared.log(0, f'ERROR: {result}')      
+			error = True 
+   
 		return result, error, state
 
-	def _use_pwm_fan_control(self):
-		pwm_min = self.get_param('pwmmin', 0, int)
-		pwm_max = self.get_param('pwmmax', 100, int)
+	def _temperature_to_pwm_duty(self, temp, min_temp, max_temp):
+		if temp <= min_temp:
+			return 0
+		elif temp >= max_temp:
+			return 65535
+		else:
+			ratio = (temp - min_temp) / (max_temp - min_temp)
+			return int(ratio * 65535)
+    
+	def _use_pwm_fan_control(self, fan_number):
+		pwm_min = self.get_param(f'pwmmin{fan_number}', 0, int)
+		pwm_max = self.get_param(f'pwmmax{fan_number}', 100, int)
 		result = ''
 		pwm_enabled = 0
 		pwm_duty_cycle = 0
@@ -852,16 +875,9 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			if self._fan_pin != 0:
 				model = allsky_shared.get_pi_info(allsky_shared.PI_INFO_MODEL)
 				if model in self._pwm_map:
-					if self._temperature < pwm_min:
-						pwm_duty_cycle = 0
-					elif self._temperature > pwm_max:
-						pwm_duty_cycle = 255
-						status = True
-					else:
-						pwm_duty_cycle = int(((self._temperature - pwm_min) / (pwm_max - pwm_min)) * 100)
-						status = True
-
+					pwm_duty_cycle = self._temperature_to_pwm_duty(self._temperature, pwm_min, pwm_max)
 					pwm_result = allsky_shared.set_pwm(self._fan_pin, pwm_duty_cycle)
+					status = True     
 					if pwm_result:
 						pwm_enabled = 1
 						result = f'Fan {self._fan_number} - PWM duty cycle set to {pwm_duty_cycle} on pin {self._fan_pin}'
@@ -873,10 +889,17 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			else:
 				result = 'Fan {self._fan_number} - PWM Pin is invalid'
 				allsky_shared.log(0, f'ERROR: {result}')
+		except requests.exceptions.ConnectionError  as e:
+			exception_type, exception_object, exception_traceback = sys.exc_info()
+			result = f'Fan {self._fan_number} - Module _use_pwm_fan_control - Unable to connect to the Allsky server. Is it running?'
+			allsky_shared.log(0, f'ERROR: {result}')
+			error = True 
+      
 		except Exception as e:
 			exception_type, exception_object, exception_traceback = sys.exc_info()
-			result = f'Fan {self._fan_number} -  Module _use_pwm_fan_control - {exception_traceback.tb_lineno} - {e}'
-			allsky_shared.log(4, f'ERROR: {result}')      
+			result = f'Fan {self._fan_number} - Module _use_pwm_fan_control - {exception_traceback.tb_lineno} - {e}'
+			allsky_shared.log(0, f'ERROR: {result}')      
+			error = True 
 
 		return result, pwm_duty_cycle, pwm_enabled, error, status
 		
@@ -914,9 +937,9 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 
 							if self._temperature is not None:
 								if use_pwm:
-									result, pwm_duty_cycle, pwm_enabled, error, fan_status = self._use_pwm_fan_control()
+									result, pwm_duty_cycle, pwm_enabled, error, fan_status = self._use_pwm_fan_control(fan_number)
 								else:
-									result, error, fan_status = self._use_bool_fan_control()
+									result, error, fan_status = self._use_bool_fan_control(fan_number)
 
 								if not error:
 									extra_data[f'AS_FANS_FAN_STATE{fan_number}'] = fan_status

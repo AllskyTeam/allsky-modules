@@ -103,13 +103,13 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 				},    
 				"AS_AZIMUTH_AIRCRAFT${COUNT}": {
 					"group": "ADSB Data",
-					"format": "{dp2|deg}",     
+					"format": "{dp=2|deg}",     
 					"type": "azimuth",                
 					"description": "Aircraft ${COUNT} azimuth"
 				},
 				"AS_ELEVATION_AIRCRAFT${COUNT}": {
 					"group": "ADSB Data",
-					"format": "{dp2|deg}",     
+					"format": "{dp=2|deg}",     
 					"type": "elevation",                
 					"description": "Aircraft ${COUNT} elevation"
 				},
