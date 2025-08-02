@@ -308,6 +308,8 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			"units": "metric",
 			"daydisable": "False",
 			"usepwm": "false",
+			"pwmmin": 1,
+			"pwmmax": 100,
 			"extrausepwm": "false",
 			"enabledebug": "False",
 			"debugtemperature": 0,
@@ -585,6 +587,44 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				"type": {
 					"fieldtype": "checkbox"
 				}
+			},
+			"pwmmin" : {
+				"required": "false",
+				"description": "Min PWM Temp",
+				"help": "This equates to 0% PWM duty cycle",
+				"tab": "Heater",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 200,
+					"step": 1
+				},
+				"filters": {
+					"filter": "usepwm",
+					"filtertype": "show",
+					"values": [
+						"usepwm"
+					]
+				}      
+			},
+			"pwmmax" : {
+				"required": "false",
+				"description": "Max PWM Temp",
+				"help": "This equates to 100% PWM duty cycle. This is based upon the difference between the dew point and temperature.",
+				"tab": "Heater",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 200,
+					"step": 1
+				},
+				"filters": {
+					"filter": "usepwm",
+					"filtertype": "show",
+					"values": [
+						"usepwm"
+					]
+				}         
 			},   
 			"extrapin": {
 				"required": "false",
@@ -618,7 +658,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			"invertrelay" : {
 				"required": "false",
 				"description": "Invert Relay",
-				"help": "Normally a GPIO pin will go high to enable a relay. Selecting this option if the relay is wired to activate on the GPIO pin going Low",
+				"help": "Selecting this option if the relay is wired to activate on the GPIO pin going Low",
 				"tab": "Heater",
 				"type": {
 					"fieldtype": "checkbox"
@@ -627,7 +667,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			"invertextrapin" : {
 				"required": "false",
 				"description": "Invert Extra Pin",
-				"help": "Normally a GPIO extra pin will go high when ebabling heater. Selecting this option inverts extra pin to go low when enabling heater",
+				"help": "Selecting this option inverts extra pin to go low when enabling heater",
 				"tab": "Heater",
 				"type": {
 					"fieldtype": "checkbox"
@@ -636,7 +676,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			"frequency" : {
 				"required": "false",
 				"description": "Delay",
-				"help": "The delay between sensor reads in seconds. Zero will disable this and run the check every time the periodic jobs run",
+				"help": "The delay between sensor reads in seconds. Zero will disable this and run the check every time the module run",
 				"tab": "Dew Control",
 				"type": {
 					"fieldtype": "spinner",
@@ -1276,6 +1316,18 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 												
 		return temperature, humidity, pressure, rel_humidity, altitude
 
+	def _temperature_to_pwm_duty(self, temp):
+		pwm_min = self.get_param('pwmmin', 0, int)
+		pwm_max = self.get_param('pwmmax', 100, int)
+		print(f'{pwm_min}, {pwm_max}, {temp}')
+		if temp <= pwm_min:
+			return 0
+		elif temp >= pwm_max:
+			return 65535
+		else:
+			ratio = (temp - pwm_min) / (pwm_max - pwm_min)
+			return int(ratio * 65535)
+
 	def _set_pwm_state(self, heater_pin, duty_cycle):
 		result = allsky_shared.set_pwm(heater_pin, duty_cycle)
 
@@ -1482,7 +1534,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 								elif force != 0 and temperature <= force:
 									result = f'Temperature below forced level {force}'
 									allsky_shared.log(1, f'INFO: {result}')
-									duty_cycle = 100         
+									duty_cycle = 65535         
 									self._turn_heater_on(heater_pin, invert_relay, False, use_pwm, duty_cycle)
 									if extra_pin != 0:
 										self._turn_heater_on(extra_pin, invert_extra_pin, True, extra_use_pwm, duty_cycle)
@@ -1495,7 +1547,8 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 										if temp_dew_diff > 10:
 											temp_dew_diff = 10
 
-										duty_cycle = round(temp_dew_diff * 10, 2)
+										#duty_cycle = round(temp_dew_diff * 10, 2)
+										duty_cycle = self._temperature_to_pwm_duty(temp_dew_diff)
 										self._turn_heater_on(heater_pin, invert_relay, False, use_pwm, duty_cycle)
 										if extra_pin != 0:
 											self._turn_heater_on(extra_pin, invert_extra_pin, True, extra_use_pwm, duty_cycle)
