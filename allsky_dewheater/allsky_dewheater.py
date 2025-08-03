@@ -1319,7 +1319,6 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 	def _temperature_to_pwm_duty(self, temp):
 		pwm_min = self.get_param('pwmmin', 0, int)
 		pwm_max = self.get_param('pwmmax', 100, int)
-		print(f'{pwm_min}, {pwm_max}, {temp}')
 		if temp <= pwm_min:
 			return 0
 		elif temp >= pwm_max:
@@ -1348,7 +1347,8 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			type = 'Heater'
 
 		if use_pwm:
-			result = f'Turning {type} on using pwm on pin {heater_pin}. Duty Cycle {duty_cycle:.2f}%'
+			duty_cycle_percent = round((duty_cycle / 65535) * 100,2)
+			result = f'Turning {type} on using pwm on pin {heater_pin}. Duty Cycle {duty_cycle}, {duty_cycle_percent}%'
 			allsky_shared.log(4, f'INFO: {result}')
 			self._set_pwm_state(heater_pin, duty_cycle)
 		else:
