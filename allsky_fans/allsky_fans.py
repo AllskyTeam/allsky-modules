@@ -880,7 +880,8 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					status = True     
 					if pwm_result:
 						pwm_enabled = 1
-						result = f'Fan {self._fan_number} - PWM duty cycle set to {pwm_duty_cycle} on pin {self._fan_pin}'
+						duty_percent = round((pwm_duty_cycle / 65535) * 100,2)
+						result = f'Fan {self._fan_number} - PWM duty cycle set to {pwm_duty_cycle}, {duty_percent}% on pin {self._fan_pin}'
 					else:
 						result = f'Fan {self._fan_number} - Failed to set the fan status check pigpiod is running'
 				else:
