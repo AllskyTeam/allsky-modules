@@ -17,17 +17,15 @@ This module allows for automatically emailing nightly startrails, keogram, and t
 
 | Daily Notification Setup          |               |Default|
 | -------------                     | ------------- |------------- |
-| To or BCC                         | Select how emails wil be addressed    |To|
+| To or BCC                         | Select how emails will be addressed    |To|
 | Recipients                        | The address(es) to receive the email notifications.  ||
 | Subject                           | Text for email subject line ||
 | Append date to Subject            | Select to append Date Stamp to subject line text |Yes|
 | Email Message Text                | Enterable plain text for the message body.<br>Filenames of any attached files will be listed below this text.||
 | Attach Images                     | Startrails / Keogram / Startrails and Keogram<br>Startrails Keogram Composite / None |Startrails Only|
-| Attach Timelapse                  | No / Yes / Yes - in separate email |No|
-||||
-| **Composite Image Setup**|||
 | Padding                           | How much space to add between Startrails and Keogram     | 50 |
-| Keogram Height                    | Keogram is resized to [This height] x [Startrails width] | 600 |
+| Keogram Height                    | Keogram is resized to [This height] x [Startrails width] | 400 |
+| Attach Timelapse                  | No / Yes / Yes - in separate email |No|
 ||||
 | **Sender SMTP Setup**|||
 | Sender email address              | Sender account email address      |  |
@@ -35,7 +33,9 @@ This module allows for automatically emailing nightly startrails, keogram, and t
 | SMTP server address               | Server address |smtp.gmail.com|
 | SMTP server port                  | Server port|587|
 | Max attachments size              | Maximum allowed size of all attachments to an email in MB.|25|
-
+||||
+ **Test**           |||
+ |The "test button" supports triggering an email, _but will not attach images_.  Use to verify server/credentials/recipient/email body text, etc.||
 <hr>
 
 ### Notes:
@@ -45,7 +45,7 @@ This module allows for automatically emailing nightly startrails, keogram, and t
 
  - This module can take a minute or more to complete depending on your Pi, internet connection, size of the files to be attached, etc.  Therefore it may make sense for this to be the last madule to run in your 'selected modules'
 
- - _Special Thanks to the prior work by Alex Greenland_, I referenced your disordsend module to get myself started with this one!
+ - _Special thanks to prior work by Alex Greenland_, I referenced your disordsend module to get myself started with this one!
 
 <hr>
 
