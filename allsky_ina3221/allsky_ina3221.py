@@ -1,85 +1,56 @@
+<<<<<<< HEAD
 import sys
 import board
 import datetime
 import allsky_shared as s
 from barbudor_ina3221.full import *
+=======
+import allsky_shared as allsky_shared
+>>>>>>> upstream/v2024.12.06_01-Updates
 
 metaData = {
-    "name": "Current/voltage monitoring",
-    "description": "Monitors current and voltage using an ina3221",
-    "module": "allsky_ina3221",
-    "version": "v1.0.1",
-    "events": [
-        "periodic"
-    ],
-    "experimental": "true",
-    "arguments":{
-        "i2caddress": "",
-        "c1enable": "false",
-        "c1name": "",
-        "c2enable": "false",
-        "c2name": "",
-        "c3enable": "false",
-        "c3name": "",
-        "extradatafilename": "allskyina3221.json"                  
-    },
-    "argumentdetails": {
-        "i2caddress": {
-            "required": "false",
-            "description": "I2C Address",
-            "help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x40"
-        },
-        "c1enable" : {
-            "required": "false",
-            "description": "Enable Channel 1",
-            "help": "Enable channel 1 on the sensor",
-            "type": {
-                "fieldtype": "checkbox"
-            }
-        },
-        "c1name" : {
-            "required": "false",
-            "description": "Channel 1 name",
-            "help": "Name of the channel 1 allsky overlay variable"
-        },
-        "c2enable" : {
-            "required": "false",
-            "description": "Enable Channel 2",
-            "help": "Enable channel 2 on the sensor",
-            "type": {
-                "fieldtype": "checkbox"
-            }
-        },
-        "c2name" : {
-            "required": "false",
-            "description": "Channel 2 name",
-            "help": "Name of the channel 2 allsky overlay variable"
-        },
-        "c3enable" : {
-            "required": "false",
-            "description": "Enable Channel 3",
-            "help": "Enable channel 3 on the sensor",
-            "type": {
-                "fieldtype": "checkbox"
-            }
-        },
-        "c3name" : {
-            "required": "false",
-            "description": "Channel 3 name",
-            "help": "Name of the channel 3 allsky overlay variable"
-        },
-        "extradatafilename": {
-            "required": "true",
-            "description": "Extra Data Filename",
-            "tab": "Extra Data",
-            "help": "The name of the file to create with the voltage/current data for the overlay manager"
-        }
-    },
-    "businfo": [
-        "i2c"
-    ] 
+	"name": "Current/voltage monitoring",
+	"description": "Monitors current and voltage using an ina3221",
+	"module": "allsky_ina3221",
+	"version": "v1.0.1",
+	"group": "Hardware",
+	"deprecation": {
+		"fromversion": "v2024.12.06_02",
+		"removein": "v2024.12.06_02",
+		"notes": "This module has been deprecated. Please use the allsky_power module",
+		"replacedby": "allsky_power",
+		"deprecated": "true"
+	}, 
+	"events": [
+		"day",
+		"night",
+	    "periodic"
+	],
+	"experimental": "true",
+	"arguments":{
+		"dummy": ""
+	},
+	"argumentdetails": {
+		"notice": {
+			"message": "This module is no longer in use and has been replaced by the allsky_power module",
+	        "tab": "Sensor",
+	        "type": {
+	            "fieldtype": "text",
+	            "style": {
+	                "width": "full",
+					"alert": {
+						"class": "danger"
+					}
+				}
+	        }            						
+		}
+	},
+	"businfo": [
+	    "i2c"
+	] 
 }
 
+<<<<<<< HEAD
 
 def debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude):
     s.log(1,f"INFO: Sensor {sensorType} read. Temperature {temperature} Humidity {humidity} Relative Humidity {relHumidity} Dew Point {dewPoint} Heat Index {heatIndex} Pressure {pressure} Altitude {altitude}")
@@ -97,9 +68,12 @@ def readChannel(ina3221, channel):
                         
     return voltage, current, power
 
+=======
+>>>>>>> upstream/v2024.12.06_01-Updates
 def ina3221(params, event):
-    result = "Ina3221 read ok"
+	result = 'Module deprecated please use the allsky_power module instead'
 
+<<<<<<< HEAD
     try:
         c1enabled = params["c1enable"]
         c1name = params["c1name"].upper()
@@ -172,3 +146,7 @@ def ina3221_cleanup():
     }
     s.cleanupModule(moduleData)
     
+=======
+	allsky_shared.log(0, f'ERROR: {result}')
+	return result
+>>>>>>> upstream/v2024.12.06_01-Updates

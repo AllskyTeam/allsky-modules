@@ -5,6 +5,9 @@ adafruit-circuitpython-htu21d
 adafruit-circuitpython-dht
 adafruit-circuitpython-ahtx0
 barbudor-circuitpython-ina3221
+adafruit-circuitpython-scd30
+Adafruit_CircuitPython_SHT4x
+bme680
 DS18B20dvr
 requests
 meteocalc

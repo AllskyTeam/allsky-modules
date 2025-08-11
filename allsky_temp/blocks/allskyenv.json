@@ -1,0 +1,32 @@
+{
+    "allskyenvblock": {
+        "name": "Core Info",
+        "description": "Core temp, humidity and dewpoint values",
+        "fields": {
+            "asrow1": {
+                "col1": {
+                    "text": "Temperature:"
+                },
+                "col2": {
+                    "text": "${AS_TEMP}"
+                }
+            },
+            "asrow2": {
+                "col1": {
+                    "text": "Humidity:"
+                },
+                "col2": {
+                    "text": "${AS_HUMIDITY}"
+                }
+            },
+            "asrow3": {
+                "col1": {
+                    "text": "Dew Point:"
+                },
+                "col2": {
+                    "text": "${AS_DEW}"
+                }
+            }
+        }
+    }
+}

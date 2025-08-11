@@ -1,0 +1,18 @@
+{
+    "closest": {
+        "name": "Closest Aircraft",
+        "fields": {
+            "ac1row1": {
+                "text": "${AS_LONGTEXT_AIRCRAFT1}:"
+            },
+            "ac1row2": {
+                "col1": {
+                    "text": "${AS_SHORT_ROUTE_AIRCRAFT1}"
+                },
+                "col2": {
+                    "text": "${AS_MEDIUM_ROUTE_AIRCRAFT1}"
+                }
+            }
+        }
+    }
+}

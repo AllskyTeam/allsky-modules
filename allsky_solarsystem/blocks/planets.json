@@ -1,0 +1,134 @@
+{
+    "planetsblock": {
+        "name": "Planets",
+        "description": "Planet Positions",
+        "fields": {
+            "planetrow0": {
+                "col1": {
+                    "text": "Planet"
+                },
+                "col2": {
+                    "text": "Vis"
+                },
+                "col3": {
+                    "text": "Az"
+                },
+                "col4": {
+                    "text": "El"
+                }
+            },            
+            "planetrow1": {
+                "col1": {
+                    "text": "Mercury:"
+                },
+                "col2": {
+                    "text": "${AS_MERCURY_VISIBLE}"
+                },
+                "col3": {
+                    "text": "${AS_MERCURY_AZIMUTH}"
+                },
+                "col4": {
+                    "text": "${AS_MERCURY_ELEVATION}"
+                }
+            },
+            "planetrow2": {
+                "col1": {
+                    "text": "Venus:"
+                },
+                "col2": {
+                    "text": "${AS_VENUS_VISIBLE}"
+                },
+                "col3": {
+                    "text": "${AS_VENUS_AZIMUTH}"
+                },
+                "col4": {
+                    "text": "${AS_VENUS_ELEVATION}"
+                }
+            },
+            "planetrow3": {
+                "col1": {
+                    "text": "Mars:"
+                },
+                "col2": {
+                    "text": "${AS_MARS_VISIBLE}"
+                },
+                "col3": {
+                    "text": "${AS_MARS_AZIMUTH}"
+                },
+                "col4": {
+                    "text": "${AS_MARS_ELEVATION}"
+                }
+            },
+            "planetrow4": {
+                "col1": {
+                    "text": "Jupiter:"
+                },
+                "col2": {
+                    "text": "${AS_JUPITER_VISIBLE}"
+                },
+                "col3": {
+                    "text": "${AS_JUPITER_AZIMUTH}"
+                },
+                "col4": {
+                    "text": "${AS_JUPITER_ELEVATION}"
+                }
+            },
+            "planetrow5": {
+                "col1": {
+                    "text": "Saturn:"
+                },
+                "col2": {
+                    "text": "${AS_SATURN_VISIBLE}"
+                },
+                "col3": {
+                    "text": "${AS_SATURN_AZIMUTH}"
+                },
+                "col4": {
+                    "text": "${AS_SATURN_ELEVATION}"
+                }
+            },
+            "planetrow6": {
+                "col1": {
+                    "text": "Uranus:"
+                },
+                "col2": {
+                    "text": "${AS_URANUS_VISIBLE}"
+                },
+                "col3": {
+                    "text": "${AS_URANUS_AZIMUTH}"
+                },
+                "col4": {
+                    "text": "${AS_URANUS_ELEVATION}"
+                }
+            },
+            "planetrow7": {
+                "col1": {
+                    "text": "Neptune:"
+                },
+                "col2": {
+                    "text": "${AS_NEPTUNE_VISIBLE}"
+                },
+                "col3": {
+                    "text": "${AS_NEPTUNE_AZIMUTH}"
+                },
+                "col4": {
+                    "text": "${AS_NEPTUNE_ELEVATION}"
+                }
+            },
+            "planetrow8": {
+                "col1": {
+                    "text": "Pluto:"
+                },
+                "col2": {
+                    "text": "${AS_PLUTO_VISIBLE}"
+                },
+                "col3": {
+                    "text": "${AS_PLUTO_AZIMUTH}"
+                },
+                "col4": {
+                    "text": "${AS_PLUTO_ELEVATION}"
+                }
+            }
+        }
+    }
+}

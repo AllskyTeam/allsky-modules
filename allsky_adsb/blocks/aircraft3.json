@@ -1,0 +1,79 @@
+{
+    "aircraft": {
+        "name": "Aircraft 3",
+        "fields": {
+            "acrow1": {
+                "col1": {
+                    "text": "Distance:"
+                },
+                "col2": {
+                    "text": "${AS_DISTANCE_AIRCRAFT3}"
+                }
+            },
+            "acrow2": {
+                "col1": {
+                    "text": "Azimuth:"
+                },
+                "col2": {
+                    "text": "${AS_AZIMUTH_AIRCRAFT3}"
+                }
+            },
+            "acrow3": {
+                "col1": {
+                    "text": "Elevation:"
+                },
+                "col2": {
+                    "text": "${AS_ELEVATION_AIRCRAFT3}"
+                }
+            },
+            "acrow4": {
+                "col1": {
+                    "text": "Altitude:"
+                },
+                "col2": {
+                    "text": "${AS_ALTITUDE_AIRCRAFT3}"
+                }
+            },
+            "acrow5": {
+                "col1": {
+                    "text": "Type:"
+                },
+                "col2": {
+                    "text": "${AS_TYPE_AIRCRAFT3}"
+                }
+            },
+            "acrow6": {
+                "col1": {
+                    "text": "Registration:"
+                },
+                "col2": {
+                    "text": "${AS_REGISTRATION_AIRCRAFT3}"
+                }
+            },
+            "acrow7": {
+                "col1": {
+                    "text": "Military:"
+                },
+                "col2": {
+                    "text": "${AS_MILITARY_AIRCRAFT3}"
+                }
+            },
+            "acrow8": {
+                "col1": {
+                    "text": "Short Route:"
+                },
+                "col2": {
+                    "text": "${AS_SHORT_ROUTE_AIRCRAFT3}"
+                }
+            },
+            "acrow9": {
+                "col1": {
+                    "text": "Medium Route:"
+                },
+                "col2": {
+                    "text": "${AS_MEDIUM_ROUTE_AIRCRAFT3}"
+                }
+            }            
+        }
+    }
+}
