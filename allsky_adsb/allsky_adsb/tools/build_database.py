@@ -79,6 +79,11 @@ class ALLSKYBUILDADSBDATABASES:
                 json.dump(ac_data[icao_key], file, indent=2)
         print(f'Total Aircraft written {total_aircraft:,}')
 
+        try:
+            os.remove(self._raw_data_file)
+        except OSError as e:
+            print(f'Error removing {self._raw_data_file} file: {e}')
+                
     def run(self):
         self._download_adsb_data()
         self._parse_adsb_data()
@@ -91,3 +96,4 @@ if __name__ == '__main__':
     end_time = time.time()
     execution_time = end_time - start_time
     print(f'Execution time: {execution_time} seconds')
+    exit(0)
