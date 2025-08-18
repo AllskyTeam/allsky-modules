@@ -1,0 +1,3 @@
+ncnn
+Pillow
+requests
