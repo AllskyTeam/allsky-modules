@@ -70,3 +70,4 @@ python3 module-installer.py
 if  [[ ${PI_OS} != "buster" ]] && [[ ${PI_OS} != "bullseye" ]] ; then
     deactivate
 fi
+
