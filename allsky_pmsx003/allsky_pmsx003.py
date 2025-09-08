@@ -110,7 +110,8 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 		"extradata": {
 			"database": {
 				"enabled": "True",
-				"table": "allsky_airquality"
+				"table": "allsky_airquality",
+				"include_all": "true"    
 			},      
 			"values": {
 				"AS_PM1_0CF1": {

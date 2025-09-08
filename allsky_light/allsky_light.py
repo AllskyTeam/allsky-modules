@@ -97,7 +97,8 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 		"extradata": {
 			"database": {
 				"enabled": "True",
-				"table": "allsky_light"
+				"table": "allsky_light",
+				"include_all": "true"
 			}, 
 			"values": {
 				"AS_LIGHTLUX": {

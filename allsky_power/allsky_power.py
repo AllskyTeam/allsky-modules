@@ -114,7 +114,8 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 		"extradata": {
 			"database": {
 				"enabled": "True",
-				"table": "allsky_power"
+				"table": "allsky_power",
+				"include_all": "true"    
 			},     
 			"values": {
 				"AS_POWER_NAME1": {

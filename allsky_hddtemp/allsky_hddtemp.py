@@ -199,7 +199,8 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 		"extradata": {
 			"database": {
 				"enabled": "True",
-				"table": "allsky_hddtemp"
+				"table": "allsky_hddtemp",
+				"include_all": "true"
 			},   
 			"values": {
 				"AS_HDDSDATEMP": {

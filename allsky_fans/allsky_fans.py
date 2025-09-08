@@ -280,7 +280,8 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		"extradata": {
 			"database": {
 				"enabled": "True",
-				"table": "allsky_fans"
+				"table": "allsky_fans",
+				"include_all": "true"
 			},
 			"values": {
 				"AS_FANS_ENABLE1": {

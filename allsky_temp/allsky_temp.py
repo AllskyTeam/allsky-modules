@@ -149,7 +149,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			},
 			"database": {
 				"enabled": "True",
-				"table": "allsky_temp"
+				"table": "allsky_temp",
+				"include_all": "true"    
 			},   
 			"values": {       
 				"AS_GPIOSTATE${COUNT}": {

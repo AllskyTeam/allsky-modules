@@ -77,7 +77,8 @@ class ALLSKYRAIN(ALLSKYMODULEBASE):
 		"extradata": {
 			"database": {
 				"enabled": "True",
-				"table": "allsky_rain"
+				"table": "allsky_rain",
+				"include_all": "true"    
 			},
 			"values": {
 				"AS_RAINSTATE": {

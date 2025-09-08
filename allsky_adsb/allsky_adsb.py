@@ -93,7 +93,10 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 				"AS_TOTAL_AIRCRAFT": {
 					"group": "ADSB Data",
 					"type": "number",                
-					"description": "Total Aircraft"
+					"description": "Total Aircraft",
+					"database": {
+						"include" : "true"
+					}     
 				},
 				"AS_DISTANCE_AIRCRAFT${COUNT}": {
 					"group": "ADSB Data",
@@ -961,7 +964,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 				message = self.__get_warnings('location')
 				if message != '':
 					allsky_shared.log(4, f'INFO: {message} have no location so ignoring')
-          		
+
 			else:
 				result = f'Will run in {(period - diff):.0f} seconds'
 				allsky_shared.log(4,f'INFO: {result}')

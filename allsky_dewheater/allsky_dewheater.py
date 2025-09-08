@@ -197,7 +197,8 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		"extradata": {
 			"database": {
 				"enabled": "True",
-				"table": "allsky_dewheater"
+				"table": "allsky_dewheater",
+    			"include_all": "true"
 			},
 			"values": {
 				"AS_DEWCONTROLSENSOR": {
