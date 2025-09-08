@@ -526,11 +526,27 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 									'elevation': aircraft_elevation   
 								}
 							else:
-								self.__add_warning('ground', aircraft['flight'].rstrip())
+								code = "Unknown"
+								if "flight" in aircraft:
+									code = aircraft['flight'].rstrip()
+								if "hex" in aircraft:
+									code = aircraft['hex'].rstrip()
+			
+								self.__add_warning('ground', code)
 						else:
-							self.__add_warning('altitude', aircraft['flight'].rstrip())
+							code = "Unknown"
+							if "flight" in aircraft:
+								code = aircraft['flight'].rstrip()
+							if "hex" in aircraft:
+								code = aircraft['hex'].rstrip()         
+							self.__add_warning('altitude', code)
 					else:
-						allsky_shared.log(4, f'INFO: {flight} has no location so ignoring')
+						code = "Unknown"
+						if "flight" in aircraft:
+							code = aircraft['flight'].rstrip()
+						if "hex" in aircraft:
+							code = aircraft['hex'].rstrip()          
+						allsky_shared.log(4, f'INFO: {code} has no location so ignoring')
 			else:
 				result = f'ERROR: Failed to retrieve data from "{url}". {response.status_code} - {response.text}'
 		except Exception as data_exception:
