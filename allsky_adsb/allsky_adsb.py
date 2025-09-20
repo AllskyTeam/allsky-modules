@@ -23,7 +23,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 		"name": "ADSB - Aircraft tracking",
 		"description": "Provides aircraft data for display in the captured images",
 		"module": "allsky_adsb",    
-		"version": "v1.0.0",
+		"version": "v2.0.0",
 		"group": "Data Capture",
 		"events": [
 			"periodic",
@@ -250,6 +250,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 				"description": "Local ADSB Address",
 				"help": "See the help for how to obtain this address",
 				"tab": "Data Source",
+				"secret": "true",
 				"filters": {
 					"filter": "data_source",
 					"filtertype": "show",
@@ -263,6 +264,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 				"description": "OpenSky Username",
 				"help": "Your username for the Opensky Network. See the module documentaiton for details on the api limits with and without a username",
 				"tab": "Data Source",
+				"secret": "true",    
 				"filters": {
 					"filter": "data_source",
 					"filtertype": "show",
@@ -276,6 +278,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 				"description": "OpenSky Password",
 				"help": "Your password for the Opensky Network",
 				"tab": "Data Source",
+				"secret": "true",    
 				"filters": {
 					"filter": "data_source",
 					"filtertype": "show",
@@ -421,7 +424,14 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 					"authorurl": "https://github.com/allskyteam",
 					"changes": "Initial Release"
 				}
-			]
+			],
+			"v2.0.0" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Updates for new module system"
+				}
+			]   
 		}
 	}
 
