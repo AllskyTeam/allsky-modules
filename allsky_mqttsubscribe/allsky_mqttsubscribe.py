@@ -133,10 +133,10 @@ class ALLSKYMQTTSUBSCRIBE(ALLSKYMODULEBASE):
 				# MQTT client callbacks for connection
 				def on_connect(client, userdata, flags, rc):
 					if rc == 0:
-						allsky_shared.log(1, f'INFO: Connected to MQTT server {mqtt_server}:{mqtt_port}')
+						self.log(1, f'INFO: Connected to MQTT server {mqtt_server}:{mqtt_port}')
 						client.subscribe(mqtt_topic)
 					else:
-						allsky_shared.log(1, f'ERROR: Connection to MQTT server failed with code {rc}')
+						self.log(1, f'ERROR: Connection to MQTT server failed with code {rc}')
 
 				# MQTT client callbacks for message
 				def on_message(client, userdata, msg):
@@ -144,11 +144,11 @@ class ALLSKYMQTTSUBSCRIBE(ALLSKYMODULEBASE):
 					nonlocal extra_data
 					try:
 						payload = msg.payload.decode('utf-8')
-						allsky_shared.log(1, f'INFO: Received message: {payload}')
+						self.log(1, f'INFO: Received message: {payload}')
 						json_data = json.loads(payload)
 						extra_data = json_data
 					except json.JSONDecodeError as e:
-						allsky_shared.log(1, f'ERROR: Failed to decode JSON message: {e}')
+						self.log(1, f'ERROR: Failed to decode JSON message: {e}')
 						result = "Invalid JSON"
 
 				# Create MQTT client and connect to the server
@@ -175,19 +175,19 @@ class ALLSKYMQTTSUBSCRIBE(ALLSKYMODULEBASE):
 				# Flatten the object (in case this is a nested JSON) and save the extra data and set the last run
 				extra_data = flatten(extra_data)
 				result = extra_data  # Update the result with the flattened data
-				allsky_shared.log(1, f'INFO: Final result: {result}')
+				self.log(1, f'INFO: Final result: {result}')
 				allsky_shared.saveExtraData(extra_data_filename, extra_data)
 				allsky_shared.setLastRun(metaData['module'])
 
 			# Handle exceptions
 			except Exception as e:
-				allsky_shared.log(1, f'ERROR: Failed to connect to MQTT server: {e}')
+				self.log(1, f'ERROR: Failed to connect to MQTT server: {e}')
 				result = "Failed to connect to MQTT server"
 
 		# Return the result if the module should not run yet    
 		else:
 			result = f'Will run in {(period - diff):.2f} seconds'
-			allsky_shared.log(1,f'INFO: {result}')
+			self.log(1,f'INFO: {result}')
 			return result
 
 		return result

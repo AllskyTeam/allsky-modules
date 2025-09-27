@@ -214,7 +214,7 @@ class ALLSKYDISCORD(ALLSKYMODULEBASE):
 				result = True
 				allsky_shared.dbUpdate(key, 0)
 
-			allsky_shared.log(4, f'INFO: {tod} - Sending after {count} current count is {current_count}, sending {result}')
+			self.log(4, f'INFO: {tod} - Sending after {count} current count is {current_count}, sending {result}')
 		else:
 			result = True
 
@@ -240,16 +240,16 @@ class ALLSKYDISCORD(ALLSKYMODULEBASE):
 					webhook = SyncWebhook.from_url(sendURL)
 					webhook.send(file=discord_file)
 					result = f'{fileType} file {file_name} sent to Discord'
-					allsky_shared.log(4,f'INFO: {result}')
+					self.log(4,f'INFO: {result}')
 				else:
 					result = f'{fileType} file {file_name} is too large to send to Discord. File is {file_size} bytes'
-					allsky_shared.log(0, f'ERROR: {result}')
+					self.log(0, f'ERROR: {result}')
 			else:
 				result = f'{fileType} file ="{file_name}" not found'
-				allsky_shared.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR: {result}')
 		else:
 			result = f'{fileType} Invalid Discord URL '
-			allsky_shared.log(0, f'ERROR: {result} {sendURL}')
+			self.log(0, f'ERROR: {result} {sendURL}')
 
 		return result
 

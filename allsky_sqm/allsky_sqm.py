@@ -165,9 +165,9 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 			image = cv2.imread(debug_image)
 			if image is None:
 				image = allsky_shared.image
-				allsky_shared.log(0, f'WARNING: Debug image set to {debug_image} but cannot be found, using latest allsky image')
+				self.log(0, f'WARNING: Debug image set to {debug_image} but cannot be found, using latest allsky image')
 			else:
-				allsky_shared.log(0, f'WARNING: Using debug image {debug_image}')
+				self.log(0, f'WARNING: Using debug image {debug_image}')
 		else:
 			image = allsky_shared.image
 
@@ -189,7 +189,7 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 				if debug:
 					allsky_shared.write_debug_image(self.meta_data['module'], 'masked-image.png', gray_image)
 			else:
-				allsky_shared.log(0, 'ERROR: Source image and mask dimensions do not match')
+				self.log(0, 'ERROR: Source image and mask dimensions do not match')
 
 		image_height, image_width = gray_image.shape[:2]
 		try:
@@ -200,9 +200,9 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 			y2 = int(roi_list[3])
 		except:
 			if len(roi) > 0:
-				allsky_shared.log(0, f'ERROR: SQM ROI is invalid, falling back to {roi_fallback}% of image')
+				self.log(0, f'ERROR: SQM ROI is invalid, falling back to {roi_fallback}% of image')
 			else:
-				allsky_shared.log(1, f'INFO: SQM ROI not set, falling back to {roi_fallback}% of image')
+				self.log(1, f'INFO: SQM ROI not set, falling back to {roi_fallback}% of image')
 			fallback_adj = (100 / roi_fallback)
 			x1 = int((image_width / 2) - (image_width / fallback_adj))
 			y1 = int((image_height / 2) - (image_height / fallback_adj))
@@ -224,19 +224,19 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 
 		result = f'Final SQM Mean calculated as {sqm_avg}, weighted {weighted_sqm_avg}'
 		if formula != '':
-			allsky_shared.log(1, f'INFO: SQM Mean calculated as {sqm_avg}, weighted {weighted_sqm_avg}')
+			self.log(1, f'INFO: SQM Mean calculated as {sqm_avg}, weighted {weighted_sqm_avg}')
 			try:
 				sqm = float(self._evaluate(formula, sqm_avg, weighted_sqm_avg))
 				result = f'Final SQM calculated as {sqm}'
-				allsky_shared.log(1, f'INFO: Ran Formula: {formula}')
-				allsky_shared.log(1, f'INFO: {result}')
+				self.log(1, f'INFO: Ran Formula: {formula}')
+				self.log(1, f'INFO: {result}')
 			except Exception as e:
 				result = "Error " + str(e)
 				sqm = weighted_sqm_avg
-				allsky_shared.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR: {result}')
 		else:
 			sqm = weighted_sqm_avg
-			allsky_shared.log(1, f'INFO: {result}')
+			self.log(1, f'INFO: {result}')
 
 		extra_data['AS_SQM'] = sqm
 		allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])

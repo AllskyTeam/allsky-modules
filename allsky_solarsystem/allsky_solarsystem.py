@@ -457,12 +457,12 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			ephemeris_path = os.path.join(self._tmp_folder, 'de421.bsp')
 			skyfield_loader = Loader(self._tmp_folder, verbose=False)
 			if (skyfield_loader.exists(ephemeris_path)):
-				allsky_shared.log(4, 'INFO: Using cached ephemeris data')
+				self.log(4, 'INFO: Using cached ephemeris data')
 			else:
-				allsky_shared.log(4, 'INFO: Downloading ephemeris data')
+				self.log(4, 'INFO: Downloading ephemeris data')
 			self._eph = skyfield_loader('de421.bsp')
 		except Exception as err:
-			allsky_shared.log(0, f'ERROR: Unable to download de421.bsp: {err}')
+			self.log(0, f'ERROR: Unable to download de421.bsp: {err}')
 			self._enable_skyfield = False
 		self._observer_lat = allsky_shared.getSetting('latitude')
 		self._observer_lon = allsky_shared.getSetting('longitude')		
@@ -472,7 +472,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		self._extra_data = {}
 
 	def _saveExtraData(self):
-		allsky_shared.log(4, f'INFO: Saving {self.meta_data["extradatafilename"]}')
+		self.log(4, f'INFO: Saving {self.meta_data["extradatafilename"]}')
 		allsky_shared.saveExtraData(self.meta_data['extradatafilename'], self._extra_data, self.meta_data["module"], self.meta_data["extradata"], self._custom_fields)
 
 	def _convert_ephem_date(self, ephem_date):
@@ -551,13 +551,13 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				else:
 					self._extra_data['AS_MOON_VISIBLE'] = 'No'
 
-				allsky_shared.log(4, 'INFO: Moon data calculated')
+				self.log(4, 'INFO: Moon data calculated')
 			else:
-				allsky_shared.log(0, 'ERROR: Moon enabled but cannot use due to prior error initialising skyfield.')
+				self.log(0, 'ERROR: Moon enabled but cannot use due to prior error initialising skyfield.')
 
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(0, f'ERROR: _calculateMoon failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR: _calculateMoon failed on line {eTraceback.tb_lineno} - {e}')
 		return True 
 
 	def _getSunTimes(self, location, date):
@@ -570,7 +570,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			sunData['elevation'] = el
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(0, f'ERROR: _getSunTimes failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR: _getSunTimes failed on line {eTraceback.tb_lineno} - {e}')
 		return sunData
 
 	def _getTimeZone(self):
@@ -631,16 +631,16 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			self._extra_data['AS_SUN_AZIMUTH'] = str(float(todaySunData["azimuth"]))
 			self._extra_data['AS_SUN_ELEVATION'] = str(float(todaySunData["elevation"]))
 			
-			allsky_shared.log(4, 'INFO: Sun data calculated')
+			self.log(4, 'INFO: Sun data calculated')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(0, f'ERROR: _calculateSun failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR: _calculateSun failed on line {eTraceback.tb_lineno} - {e}')
 
 		return True
 
 	def _set_planet_data(self, planet, observer_location, planet_name):
 		try:
-			allsky_shared.log(4, f'INFO: Calculating position of {planet_name}')
+			self.log(4, f'INFO: Calculating position of {planet_name}')
 			timescale = load.timescale()
 			time_now = timescale.now()
 
@@ -664,7 +664,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				self._extra_data[f'AS_{planet_key}_VISIBLE'] = 'No'
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(0, f"ERROR: _set_planet_data failed on line {eTraceback.tb_lineno} - {e}")
+			self.log(0, f"ERROR: _set_planet_data failed on line {eTraceback.tb_lineno} - {e}")
    
 	def _calculate_planets(self):
 		try:
@@ -697,16 +697,16 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			if self.get_param('planetPlutoEnabled', False, bool):       
 				self._set_planet_data(self._eph['PLUTO BARYCENTER'], observer_location, 'Pluto')  
 
-			allsky_shared.log(4, 'INFO: Planet data calculated')
+			self.log(4, 'INFO: Planet data calculated')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(0, f"ERROR: _calculate_planets failed on line {eTraceback.tb_lineno} - {e}")
+			self.log(0, f"ERROR: _calculate_planets failed on line {eTraceback.tb_lineno} - {e}")
    
 	def _fetch_tle_from_celestrak(self, data_key, verify=True):
 		tle_data = {}
 		try:
 		
-			allsky_shared.log(4, f'INFO: Loading Satellite {data_key}', True)
+			self.log(4, f'INFO: Loading Satellite {data_key}', True)
 
 			data_filename = os.path.join(self._overlay_tle_folder , data_key + '.tle')
 			allsky_shared.createTempDir(self._overlay_tle_folder)
@@ -749,7 +749,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 						exception_type, exception_object, exception_traceback = sys.exc_info()
 						result = f'ERROR: Failed to retrieve data from {url} - {exception_traceback.tb_lineno} - {data_exception}'
 
-				allsky_shared.log(4, ' TLE file over 2 days old so downloaded')
+				self.log(4, ' TLE file over 2 days old so downloaded')
 
 			tle_data = {}
 			if data_key[0].isdigit():
@@ -775,10 +775,10 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 								'line3': lines[2].replace(os.linesep,'')
 							}
 						counter = counter + 1
-				allsky_shared.log(4, ' TLE loaded from cache')
+				self.log(4, ' TLE loaded from cache')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(0, f"ERROR: _fetch_tle_from_celestrak failed on line {eTraceback.tb_lineno} - {e}")
+			self.log(0, f"ERROR: _fetch_tle_from_celestrak failed on line {eTraceback.tb_lineno} - {e}")
 		return tle_data
 
 	def _calcSatellites(self):
@@ -802,7 +802,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 					counter = counter + 1
 		except Exception as e:     
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(0, f"ERROR: _calcSatellites failed on line {eTraceback.tb_lineno} - {e}")    
+			self.log(0, f"ERROR: _calcSatellites failed on line {eTraceback.tb_lineno} - {e}")    
 
 	def _calculate_satellite(self, tle):
 		try:
@@ -821,7 +821,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			sat_time = time_scale.now()
 
 			satellite = EarthSatellite(tle['line2'], tle['line3'], tle['line1'], time_scale)
-			allsky_shared.log(4, f' Calculating {satellite.name}')
+			self.log(4, f' Calculating {satellite.name}')
 			norad_id = str(satellite.model.satnum)
 
 			difference = satellite - observer_location
@@ -851,7 +851,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(0, f"ERROR: _calculate_satellite failed on line {eTraceback.tb_lineno} - {e}")
+			self.log(0, f"ERROR: _calculate_satellite failed on line {eTraceback.tb_lineno} - {e}")
    
 		return True
 
@@ -898,7 +898,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			}
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(0, f"ERROR: _add_satellite_to_extra_data failed on line {eTraceback.tb_lineno} - {e}")    
+			self.log(0, f"ERROR: _add_satellite_to_extra_data failed on line {eTraceback.tb_lineno} - {e}")    
   
 	def run(self):
 		# check Skyfield initilaised ok

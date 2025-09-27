@@ -223,7 +223,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 		status = status[0].lower()
 		if status.find(' yes') > -1:
 			synced = True
-		allsky_shared.log(4, f'INFO: Time sync active {active}, time synched {synced}')
+		self.log(4, f'INFO: Time sync active {active}, time synched {synced}')
 
 		result = False
 		if active and synced:
@@ -299,7 +299,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 							
 										utc = datetime.datetime(year, month, day, hour, min, sec, 0)
 										local = utc - timedelta(hours=offset)
-										allsky_shared.log(4, f'INFO: GPS UTC time {utc}. Local time {local}. TZ Diff {offset}') 
+										self.log(4, f'INFO: GPS UTC time {utc}. Local time {local}. TZ Diff {offset}') 
 										extra_data['AS_PIGPSUTC'] = str(utc)
 										extra_data['AS_PIGPSLOCAL'] = str(local)
 										extra_data['AS_PIGPSOFFSET'] = str(offset)                                
@@ -310,17 +310,17 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 							
 							if time.time() > timeout:
 								result = 'No date returned from gpsd'
-								allsky_shared.log(1, f'ERROR: {result}')
+								self.log(1, f'ERROR: {result}')
 								break
 					except Exception as err:
 						result = f'No GPS found. Please check gpsd is configured and running - {err}'
-						allsky_shared.log(1, f'ERROR: {result}')                                                                                        
+						self.log(1, f'ERROR: {result}')                                                                                        
 				else:
 					result = "Time is synchronised from the internet - Ignoring any gps data"
-					allsky_shared.log(4, f'INFO: {result}')
+					self.log(4, f'INFO: {result}')
 			else:
 				result = "Time update disabled"
-				allsky_shared.log(4, f"INFO: {result}")
+				self.log(4, f"INFO: {result}")
 			              
 			try:
 				if gpsd is None:
@@ -339,7 +339,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 								if obfuscate:
 									lat = lat + (obfuscate_lat_distance * ONEMETER)
 									lon = lon + (obfuscate_lon_distance * ONEMETER)
-									allsky_shared.log(4, f"INFO: Offsetting latitude by {obfuscate_lat_distance}m and longitude by {obfuscate_lon_distance}m")
+									self.log(4, f"INFO: Offsetting latitude by {obfuscate_lat_distance}m and longitude by {obfuscate_lon_distance}m")
 								discResult, discAllSkyLat, discAllSkyLon, strLat, strLon = self._compare_gps_and_allsky(lat, lon)
 								if discResult:
 									extra_data['AS_PIGPSFIXDISC'] = extra_data_pos_disc
@@ -349,14 +349,14 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 									updateData.append({"latitude": strLat})
 									updateData.append({"longitude": strLon})
 									allsky_shared.updateSetting(updateData)
-									allsky_shared.log(4, f'INFO: AllSky Lat/Lon updated to {strLat},{strLon} - An AllSky restart will be required for them to take effect')
+									self.log(4, f'INFO: AllSky Lat/Lon updated to {strLat},{strLon} - An AllSky restart will be required for them to take effect')
 								else:
 									if discResult:
 										positionResult = f'GPS position differs from AllSky position. AllSky {discAllSkyLat} {discAllSkyLon}, GPS {strLat} {strLon}'
 									else:
 										positionResult = f'Lat {lat:.6f} Lon {lon:.6f} - {strLat},{strLon}'
 									result = result + f'. {positionResult}'
-									allsky_shared.log(4, f'INFO: {positionResult}')
+									self.log(4, f'INFO: {positionResult}')
 									
 								extra_data['AS_PIGPSLAT'] = strLat
 								extra_data['AS_PIGPSLON'] = strLon
@@ -366,7 +366,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 								extra_data['AS_PIGPSFIX']['fill'] = '#00ff00'
 								break
 							else:
-								allsky_shared.log(4, 'INFO: No GPS Fix. gpsd returned 0 for both lat and lon')
+								self.log(4, 'INFO: No GPS Fix. gpsd returned 0 for both lat and lon')
 								break                       
 						else:
 							extra_data['AS_PIGPSFIX']['value'] = 'No'
@@ -374,7 +374,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
                   
 					if time.time() > timeout:
 						result = 'No position returned from gpsd'
-						allsky_shared.log(1, f'ERROR: {result}') 
+						self.log(1, f'ERROR: {result}') 
 						break                    
 			
 				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
@@ -383,10 +383,10 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
 				result = f'ERROR: Module pigps failed on line {eTraceback.tb_lineno} - {e}'
-				allsky_shared.log(1, result)   
+				self.log(1, result)   
 		else:
 			result = f'Will run in {(period - diff):.0f} seconds'
-			allsky_shared.log(4, f'INFO: {result}')
+			self.log(4, f'INFO: {result}')
    
 		return result
 

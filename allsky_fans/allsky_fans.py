@@ -785,7 +785,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		except Exception as e:
 			exception_type, exception_object, exception_traceback = sys.exc_info()
 			result = f'Module _get_cpu_temperature - {exception_traceback.tb_lineno} - {e}'
-			allsky_shared.log(4, f'ERROR: {result}')   
+			self.log(4, f'ERROR: {result}')   
 
 		return temp_c
 
@@ -798,7 +798,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		except Exception as e:
 			exception_type, exception_object, exception_traceback = sys.exc_info()
 			result = f'Fan {self._fan_number} - Module _get_cpu_temperature - {exception_traceback.tb_lineno} - {e}'
-			allsky_shared.log(4, f'ERROR: {result}')   
+			self.log(4, f'ERROR: {result}')   
 
 		return temperature
 
@@ -843,13 +843,13 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		except requests.exceptions.ConnectionError  as e:
 			exception_type, exception_object, exception_traceback = sys.exc_info()
 			result = f'Fan {self._fan_number} - Module _use_bool_fan_control - Unable to connect to the Allsky server. Is it running?'
-			allsky_shared.log(0, f'ERROR: {result}')
+			self.log(0, f'ERROR: {result}')
 			error = True 
       
 		except Exception as e:
 			exception_type, exception_object, exception_traceback = sys.exc_info()
 			result = f'Fan {self._fan_number} - Module _use_bool_fan_control - {exception_traceback.tb_lineno} - {e}'
-			allsky_shared.log(0, f'ERROR: {result}')      
+			self.log(0, f'ERROR: {result}')      
 			error = True 
    
 		return result, error, state
@@ -887,20 +887,20 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 						result = f'Fan {self._fan_number} - Failed to set the fan status check pigpiod is running'
 				else:
 					result = f'Pi Model ({model}) is not supported for PWM'
-					allsky_shared.log(0, f'ERROR: {result}')
+					self.log(0, f'ERROR: {result}')
 			else:
 				result = 'Fan {self._fan_number} - PWM Pin is invalid'
-				allsky_shared.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR: {result}')
 		except requests.exceptions.ConnectionError  as e:
 			exception_type, exception_object, exception_traceback = sys.exc_info()
 			result = f'Fan {self._fan_number} - Module _use_pwm_fan_control - Unable to connect to the Allsky server. Is it running?'
-			allsky_shared.log(0, f'ERROR: {result}')
+			self.log(0, f'ERROR: {result}')
 			error = True 
       
 		except Exception as e:
 			exception_type, exception_object, exception_traceback = sys.exc_info()
 			result = f'Fan {self._fan_number} - Module _use_pwm_fan_control - {exception_traceback.tb_lineno} - {e}'
-			allsky_shared.log(0, f'ERROR: {result}')      
+			self.log(0, f'ERROR: {result}')      
 			error = True 
 
 		return result, pwm_duty_cycle, pwm_enabled, error, status
@@ -957,21 +957,21 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 								allsky_shared.setLastRun(run_code)
 							else:
 								result = f'Failed to get temperature for fan {fan_number}'
-								allsky_shared.log(0, f'ERROR: {result}')
+								self.log(0, f'ERROR: {result}')
 						else:
 							result = f'fan pin not defined or invalid for fan {fan_number}'
-							allsky_shared.log(0, f'ERROR: {result}')
+							self.log(0, f'ERROR: {result}')
 					else:
 						result = f'Fan {fan_number} Will run in {(run_period - diff):.0f} seconds'
 				except Exception as e:
 					exception_type, exception_object, exception_traceback = sys.exc_info()
 					result = f'Fan Module run - Fan {fan_number} - {exception_traceback.tb_lineno} - {e}'
-					allsky_shared.log(4, f'ERROR: {result}')    
+					self.log(4, f'ERROR: {result}')    
 
 				if not error:
-					allsky_shared.log(4,f'INFO: {result}')
+					self.log(4,f'INFO: {result}')
 			else:
-				allsky_shared.log(4,f'INFO: FAN {fan_number} skipped as its disabled')
+				self.log(4,f'INFO: FAN {fan_number} skipped as its disabled')
 
 		if extra_data:
 			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])

@@ -443,7 +443,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 		'''
 		found_aircraft = {}
 		result = ''
-		allsky_shared.log(4, 'INFO: Getting data from local ADSB receiver')
+		self.log(4, 'INFO: Getting data from local ADSB receiver')
 		
 		try:
 			response = requests.get(local_adsb_url, timeout=timeout)
@@ -451,7 +451,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			if response.status_code == 200:
 				aircraft_data = response.json()
 
-				allsky_shared.log(4, f'INFO: Retrieved {len(aircraft_data["aircraft"])} aircraft from local ADSB server')
+				self.log(4, f'INFO: Retrieved {len(aircraft_data["aircraft"])} aircraft from local ADSB server')
 				for aircraft in aircraft_data['aircraft']:
 
 					if 'flight' not in aircraft or aircraft['flight'].replace(' ', '') == '':
@@ -501,14 +501,14 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 
 		radius = self.get_param('distance_limit', 50, int)
 
-		allsky_shared.log(4, 'INFO: Getting data from Airplanes Live Network')  
+		self.log(4, 'INFO: Getting data from Airplanes Live Network')  
 		url = f'https://api.airplanes.live/v2/point/{observer_location[0]}/{observer_location[1]}/{radius}'
 		try:
 			response = requests.get(url, timeout=timeout)
 
 			if response.status_code == 200:
 				aircraft_data = response.json()
-				allsky_shared.log(4, f'INFO: Retrieved {len(aircraft_data["ac"])+1} aircraft from AirplanesLive Network')
+				self.log(4, f'INFO: Retrieved {len(aircraft_data["ac"])+1} aircraft from AirplanesLive Network')
 				for aircraft in aircraft_data['ac']:
 					flight = aircraft['flight'] if 'flight' in aircraft else 'Unknown'
 
@@ -559,7 +559,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 							code = aircraft['flight'].rstrip()
 						if "hex" in aircraft:
 							code = aircraft['hex'].rstrip()          
-						allsky_shared.log(4, f'INFO: {code} has no location so ignoring')
+						self.log(4, f'INFO: {code} has no location so ignoring')
 			else:
 				result = f'ERROR: Failed to retrieve data from "{url}". {response.status_code} - {response.text}'
 		except Exception as data_exception:
@@ -582,7 +582,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 		password = self.get_param('opensky_password', None, str, True)
 
 		url = f'https://opensky-network.org/api/states/all?lamin={lat_min}&lamax={lat_max}&lomin={lon_min}&lomax={lon_max}'
-		allsky_shared.log(4, 'INFO: Getting data from OpenSky Network')
+		self.log(4, 'INFO: Getting data from OpenSky Network')
 
 		try:
 			if username is not None and password is not None:
@@ -593,7 +593,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			if response.status_code == 200:
 				aircraft_data = response.json()
 
-				allsky_shared.log(4, f'INFO: Retrieved {len(aircraft_data["states"])} aircraft from OpenSky Network') 
+				self.log(4, f'INFO: Retrieved {len(aircraft_data["states"])} aircraft from OpenSky Network') 
 				for aircraft in aircraft_data['states']:
 					aircraft_pos = (float(aircraft[6]), float(aircraft[5]), int(aircraft[7]))
 					aircraft_azimuth, aircraft_elevation, aircraft_distance, slant_distance = self._look_angle(aircraft_pos, observer_location)
@@ -629,14 +629,14 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 		result = ''
 		radius = self.get_param('distance_limit', 50, int)
 
-		allsky_shared.log(4, 'INFO: Getting data from Adsb.fi Network')  
+		self.log(4, 'INFO: Getting data from Adsb.fi Network')  
 		url = f'https://opendata.adsb.fi/api/v2/lat/{observer_location[0]}/lon/{observer_location[1]}/dist/{radius}'
 		try:
 			response = requests.get(url, timeout=timeout)
 
 			if response.status_code == 200:
 				aircraft_data = response.json()
-				allsky_shared.log(4, f'INFO: Retrieved {len(aircraft_data["aircraft"])+1} aircraft from Adsb.fi Network')
+				self.log(4, f'INFO: Retrieved {len(aircraft_data["aircraft"])+1} aircraft from Adsb.fi Network')
 				for aircraft in aircraft_data['aircraft']:
 					
 					if 'ias' not in aircraft:
@@ -783,11 +783,11 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 					aircraft_info['Type'] = aircraft_info['Type'].split()[0]
 					aircraft_info['Military'] = False
 				else:
-					allsky_shared.log(4, f'ERROR: Failed to retrieve data from "{url}". {response.status_code} - {response.text}')
+					self.log(4, f'ERROR: Failed to retrieve data from "{url}". {response.status_code} - {response.text}')
 			except MissingSchema:
-				allsky_shared.log(4, f'The provided URL "{url}" is invalid')
+				self.log(4, f'The provided URL "{url}" is invalid')
 			except JSONDecodeError:
-				allsky_shared.log(4, f'The provided URL "{url}" is not returning JSON data')
+				self.log(4, f'The provided URL "{url}" is not returning JSON data')
 		else:
 			script_dir = os.path.dirname(os.path.abspath(__file__))
 			database_dir = os.path.join(script_dir, 'moduledata', 'data', 'allsky_adsb', 'adsb_data')
@@ -864,7 +864,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			except Exception as data_exception:
 				exception_type, exception_object, exception_traceback = sys.exc_info()
 				result = f'ERROR: Failed to retrieve data from {url} - {exception_traceback.tb_lineno} - {data_exception}'
-				allsky_shared.log(4, result)
+				self.log(4, result)
 			
 		return route_data
 	
@@ -938,49 +938,49 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 							extra_data['AS_TOTAL_AIRCRAFT'] = counter-1
 							allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 							allsky_shared.setLastRun(module)
-							allsky_shared.log(4,f'INFO: {result}')
+							self.log(4,f'INFO: {result}')
 						else:
-							allsky_shared.log(0, result)
+							self.log(0, result)
 					else:
 						result = f'The longitude in the main Allsky settings is invalid "{lon}"'
-						allsky_shared.log(0, f'ERROR: {result}')
+						self.log(0, f'ERROR: {result}')
 				else:
 					result = f'The latitude in the main Allsky settings is invalid "{lat}"'
-					allsky_shared.log(0, f'ERROR: {result}')
+					self.log(0, f'ERROR: {result}')
 
 				if self._missing_adsb_data:
-					allsky_shared.log(4, 'ERROR: The aircarft database has not been initialised so no aircraft information available. Please check the adsb module documentation')
+					self.log(4, 'ERROR: The aircarft database has not been initialised so no aircraft information available. Please check the adsb module documentation')
 
 				message = self.__get_warnings('excluded')
 				if message != '':
-					allsky_shared.log(4, f'INFO: Aicraft {message} excludes as beyond {distance_limit} miles')
+					self.log(4, f'INFO: Aicraft {message} excludes as beyond {distance_limit} miles')
 
 				message = self.__get_warnings('latitude')
 				if message != '':
-					allsky_shared.log(4, f'INFO: Ignoring {message} as their latitude missing')
+					self.log(4, f'INFO: Ignoring {message} as their latitude missing')
 
 				message = self.__get_warnings('airspeed')
 				if message != '':
-					allsky_shared.log(4, f'INFO: Ignoring {message} as their airspeed missing')
+					self.log(4, f'INFO: Ignoring {message} as their airspeed missing')
 
 				message = self.__get_warnings('altitude')
 				if message != '':
-					allsky_shared.log(4, f'INFO: {message} have no altitude available so ignoring')
+					self.log(4, f'INFO: {message} have no altitude available so ignoring')
 
 				message = self.__get_warnings('ground')
 				if message != '':
-					allsky_shared.log(4, f'INFO: {message} are on the ground so ignoring')
+					self.log(4, f'INFO: {message} are on the ground so ignoring')
 
 				message = self.__get_warnings('location')
 				if message != '':
-					allsky_shared.log(4, f'INFO: {message} have no location so ignoring')
+					self.log(4, f'INFO: {message} have no location so ignoring')
 
 			else:
 				result = f'Will run in {(period - diff):.0f} seconds'
-				allsky_shared.log(4,f'INFO: {result}')
+				self.log(4,f'INFO: {result}')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(0, f"ERROR: adsb failed on line {eTraceback.tb_lineno} - {e}")    
+			self.log(0, f"ERROR: adsb failed on line {eTraceback.tb_lineno} - {e}")    
 		return result
 
 	def __add_warning(self, warning_key, warning_text):

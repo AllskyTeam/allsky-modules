@@ -343,11 +343,11 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				sensor = adafruit_tsl2591.TSL2591(i2c, i2caddress_int)
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				allsky_shared.log(0, f'ERROR: Module readTSL2591 failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(0, f'ERROR: Module readTSL2591 failed on line {eTraceback.tb_lineno} - {e}')
 		else: 
 			sensor = adafruit_tsl2591.TSL2591(i2c)
 
-		allsky_shared.log(4, f'Using TSL2591 on i2c address {i2c_address}')
+		self.log(4, f'Using TSL2591 on i2c address {i2c_address}')
 			
 		lux = None
 		infrared = None
@@ -367,10 +367,10 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				infrared = sensor.infrared
 				visible = sensor.visible
 
-				allsky_shared.log(4, f'TSL2591 read values - lux {lux}, infrared {infrared}, visible {visible}')
+				self.log(4, f'TSL2591 read values - lux {lux}, infrared {infrared}, visible {visible}')
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				allsky_shared.log(0, f'ERROR: Module __read_TSL2591 failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(0, f'ERROR: Module __read_TSL2591 failed on line {eTraceback.tb_lineno} - {e}')
         
 		return lux, infrared, visible
 
@@ -385,11 +385,11 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				tsl = adafruit_tsl2561.TSL2561(i2c, i2caddress_int)
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				allsky_shared.log(0, f'ERROR: Module readTSL2561 failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(0, f'ERROR: Module readTSL2561 failed on line {eTraceback.tb_lineno} - {e}')
 		else: 
 			tsl = adafruit_tsl2561.TSL2561(i2c)
 		
-		allsky_shared.log(4, f'Using TSL2561 on i2c address {i2c_address}')
+		self.log(4, f'Using TSL2561 on i2c address {i2c_address}')
     
 		lux = None
 		infrared = None
@@ -408,7 +408,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 			if lux is None:
 				lux = 0
 
-		allsky_shared.log(4, f'TSL2561 read values - lux {lux}, infrared {infrared}, visible {visible}')
+		self.log(4, f'TSL2561 read values - lux {lux}, infrared {infrared}, visible {visible}')
 
 		return lux, infrared, visible
 
@@ -429,7 +429,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except:
 				result = f"Address {i2c_address} is not a valid i2c address"
-				allsky_shared.log(0,f"ERROR: {result}")
+				self.log(0,f"ERROR: {result}")
 				ok = False
 
 		if ok:
@@ -492,7 +492,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
 				result = f"Module light (ltr390) failed on line {eTraceback.tb_lineno} - {e}"
-				allsky_shared.log(1, f"ERROR: {result}")
+				self.log(1, f"ERROR: {result}")
 
 	def __lux_to_bortle(self, lux):
 		if lux <= 0.1:
@@ -538,19 +538,19 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 					allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 
 					result = f'Lux {lux}, Bortle {bortle}'
-					allsky_shared.log(4, f"INFO: {result}")		
+					self.log(4, f"INFO: {result}")		
 				except Exception as e:
 					eType, eObject, eTraceback = sys.exc_info()        
 					result = f'Failed to calculate sqm or nelm, lux = {lux}, line {eTraceback.tb_lineno} {e}'
-					allsky_shared.log(0, f'ERROR: {result}')
+					self.log(0, f'ERROR: {result}')
 			else:
 				allsky_shared.deleteExtraData(self.meta_data['extradatafilename'])
 				result = f'Error reading {sensor}'
-				allsky_shared.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR: {result}')
 		else:
 			allsky_shared.deleteExtraData(self.meta_data['extradatafilename'])
 			result = 'No sensor defined'
-			allsky_shared.log(0, f'ERROR: {result}')
+			self.log(0, f'ERROR: {result}')
 			
 		return result
 

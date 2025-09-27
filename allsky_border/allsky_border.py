@@ -132,7 +132,7 @@ class ALLSKYBORDER(ALLSKYMODULEBASE):
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f'Border failed on line {eTraceback.tb_lineno} - {e}'
-			allsky_shared.log(0, f'ERROR: {result}')
+			self.log(0, f'ERROR: {result}')
 			
 		return result
 

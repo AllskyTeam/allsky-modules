@@ -333,7 +333,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 		extra_data = {}
 		serial_port = self.get_param('serialport', 'serial0', str, True)   
 
-		allsky_shared.log(4, f'INFO: Using device "/dev/{serial_port}"')
+		self.log(4, f'INFO: Using device "/dev/{serial_port}"')
 		try:
 			sensor = Pms7003Sensor(f'/dev/{serial_port}')
   
@@ -348,14 +348,14 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 			extra_data['AS_AQI_TEXT'] = air_quality_index_text
 			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 			result = f'Sensor Data read and written the the {self.meta_data["extradatafilename"]} extra data file'
-			allsky_shared.log(4, f'INFO: {result}')
+			self.log(4, f'INFO: {result}')
 		except PmsSensorException:
 			result = 'Cannot connect to the sensor'
-			allsky_shared.log(0, f'ERROR: {result}')
+			self.log(0, f'ERROR: {result}')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f'Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}'
-			allsky_shared.log(0, f'ERROR: {result}')      
+			self.log(0, f'ERROR: {result}')      
 
 		return result
 

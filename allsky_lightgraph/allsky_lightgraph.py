@@ -358,25 +358,25 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			self.graph_width = self.image_width
 			self.graph_X = 0
 			if debug:
-				allsky_shared.log(1, "Width truncated")
+				self.log(1, "Width truncated")
 
 		if center:
 			self.graph_X = int((self.image_width - self.graph_width) / 2)
 		elif (self.graph_X + self.graph_width) > self.image_width:
 			self.graph_X = self.image_width - self.graph_width
 			if debug:
-				allsky_shared.log(1,"X adjusted")
+				self.log(1,"X adjusted")
 
 		if self.graph_height > self.image_height / 5:
 			self.graph_height = int(self.image_height / 5)
 		if (self.graph_Y + self.graph_height) > self.image_height:
 			self.graph_Y = self.image_height - self.graph_height
 			if debug:
-				allsky_shared.log(1,"Y adjusted")
+				self.log(1,"Y adjusted")
 		if self.graph_Y < 10:
 			self.graph_Y = 10
 			if debug:
-				allsky_shared.log(1,"Y adjusted")
+				self.log(1,"Y adjusted")
 
 		if params["draw_elev"] == True:
 			self.elev_width = int(params["elev_width"])

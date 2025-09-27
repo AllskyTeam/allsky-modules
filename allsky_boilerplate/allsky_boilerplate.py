@@ -332,13 +332,13 @@ class ALLSKYBOILERPLATE(ALLSKYMODULEBASE):
 
 		if allsky_shared.TOD == "day":
 			result = "It's daytime"
-			allsky_shared.log(1,f"INFO: {result}")
+			self.log(1,f"INFO: {result}")
 		elif allsky_shared.TOD == "night":
 			result = "It's nighttime"
-			allsky_shared.log(1,f"INFO: {result}")
+			self.log(1,f"INFO: {result}")
 		else:
 			result = "I don't know if its day or night!"
-			allsky_shared.log(0,f"ERROR: {result}")
+			self.log(0,f"ERROR: {result}")
 
 		extraData = {}
 		extraData["AS_BOILERPLATE_VALUE"] = result

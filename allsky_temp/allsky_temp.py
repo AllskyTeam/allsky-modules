@@ -2589,7 +2589,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			max_age = json_data[field]['expires']
 			age = int(time.time()) - file_modified_time
 			if age > max_age:
-				allsky_shared.log(4, f'WARNING: field {field} has expired - age is {age}')
+				self.log(4, f'WARNING: field {field} has expired - age is {age}')
 				result = None
 				
 		return result
@@ -2635,41 +2635,41 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 								lon = allsky_shared.convertLatLon(lon)
 								try:
 									ow_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units={units}&appid={api_key}"
-									allsky_shared.log(4,f"INFO: Reading Openweather API from - {ow_url}")
+									self.log(4,f"INFO: Reading Openweather API from - {ow_url}")
 									response = requests.get(ow_url)
 									if response.status_code == 200:
 										raw_data = response.json()
 										extra_data = self._process_ow_result(raw_data, expire, units)
 										allsky_shared.saveExtraData(file_name, extra_data, 'internal')
 										result = f'Data acquired and written to extra data file {file_name}'
-										allsky_shared.log(1, f'INFO: {result}')
+										self.log(1, f'INFO: {result}')
 									else:
 										result = f'Got error from Open Weather Map API. Response code {response.status_code}'
-										allsky_shared.log(0,f'ERROR: {result}')
+										self.log(0,f'ERROR: {result}')
 								except Exception as e:
 									eType, eObject, eTraceback = sys.exc_info()            
 									result = str(e)
-									allsky_shared.log(0, f'ERROR: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}')
+									self.log(0, f'ERROR: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}')
 								allsky_shared.setLastRun(module)                            
 							else:
 								result = 'Invalid Longitude. Check the Allsky configuration'
-								allsky_shared.log(0, f'ERROR: {result}')
+								self.log(0, f'ERROR: {result}')
 						else:
 							result = 'Invalid Latitude. Check the Allsky configuration'
-							allsky_shared.log(0, f'ERROR: {result}')
+							self.log(0, f'ERROR: {result}')
 					else:
 						result = 'Missing filename for data'
-						allsky_shared.log(0, f'ERROR: {result}')
+						self.log(0, f'ERROR: {result}')
 				else:
 					result = 'Missing Open Weather Map API key'
-					allsky_shared.log(0, f'ERROR: {result}')
+					self.log(0, f'ERROR: {result}')
 			else:
-				allsky_shared.log(4, f'INFO: Using Cached Openweather API data')
+				self.log(4, f'INFO: Using Cached Openweather API data')
 
 			temperature, humidity, pressure, the_dew_point = self._get_ow_values(file_name)                
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(0, f'ERROR: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}')
 
 		return temperature, humidity, pressure, the_dew_point	
 
@@ -2689,11 +2689,11 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				# pylint: disable=broad-exception-caught
 				except Exception as ex:
 					_, _, trace_back = sys.exc_info()
-					allsky_shared.log(4, f'ERROR: Module readDS18B20 failed on line {trace_back.tb_lineno} - {ex}')
+					self.log(4, f'ERROR: Module readDS18B20 failed on line {trace_back.tb_lineno} - {ex}')
 			else:
-				allsky_shared.log(4, f'ERROR: (readDS18B20) - "{ds18b20_address}" is not a valid DS18B20 address. Please check /sys/bus/w1/devices')
+				self.log(4, f'ERROR: (readDS18B20) - "{ds18b20_address}" is not a valid DS18B20 address. Please check /sys/bus/w1/devices')
 		else:
-			allsky_shared.log(4, 'ERROR: (readDS18B20) - One Wire is not enabled. Please use the raspi-config utility to enable it')
+			self.log(4, 'ERROR: (readDS18B20) - One Wire is not enabled. Please use the raspi-config utility to enable it')
 
 		return temperature, humidity
 
@@ -2707,7 +2707,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except:
 				result = f'Address {i2c_address} is not a valid i2c address'
-				allsky_shared.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR: {result}')
 
 		try:
 			i2c = board.I2C()
@@ -2720,7 +2720,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			humidity = htu21.relative_humidity
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(4, f'ERROR: Module read_htu21 failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(4, f'ERROR: Module read_htu21 failed on line {eTraceback.tb_lineno} - {e}')
 			
 		return temperature, humidity
 
@@ -2734,7 +2734,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except:
 				result = f'Address {i2c_address} is not a valid i2c address'
-				allsky_shared.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR: {result}')
 
 		try:
 			i2c = board.I2C()
@@ -2746,7 +2746,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			humidity = sensor.relative_humidity
 		except ValueError as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(4, f"ERROR: Module read_ahtx0 failed on line {eTraceback.tb_lineno} - {e}")
+			self.log(4, f"ERROR: Module read_ahtx0 failed on line {eTraceback.tb_lineno} - {e}")
 
 		return temperature, humidity
 
@@ -2762,10 +2762,10 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				humidity = dhtDevice.humidity
 			except RuntimeError as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				allsky_shared.log(4, f'ERROR: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(4, f'ERROR: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(4, f'WARNING: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(4, f'WARNING: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
 
 		return temperature, humidity
 
@@ -2782,7 +2782,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		while reading:
 			temperature, humidity = self._do_dhtxx_read(input_pin)
 			if temperature is None and humidity is None:
-				allsky_shared.log(4, f'WARNING: Failed to read DHTXX on attempt {count+1}')
+				self.log(4, f'WARNING: Failed to read DHTXX on attempt {count+1}')
 				count = count + 1
 				if count > dhtxx_retry_count:
 					reading = False
@@ -2806,7 +2806,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					i2c_address_int = int(i2c_address, 16)
 				except Exception as e:
 					eType, eObject, eTraceback = sys.exc_info()
-					allsky_shared.log(0, f'ERROR: Module read_bme680 failed on line {eTraceback.tb_lineno} - {e}')
+					self.log(0, f'ERROR: Module read_bme680 failed on line {eTraceback.tb_lineno} - {e}')
 
 			if i2c_address != "":
 				sensor = bme680.BME680(i2c_address_int)
@@ -2824,7 +2824,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				pressure = sensor.data.pressure
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(0, f'ERROR: Module read_bme680 failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR: Module read_bme680 failed on line {eTraceback.tb_lineno} - {e}')
     
 		return temperature, humidity, pressure
 
@@ -2841,7 +2841,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				allsky_shared.log(0, f'ERROR: Module read_bme280_i2c failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(0, f'ERROR: Module read_bme280_i2c failed on line {eTraceback.tb_lineno} - {e}')
 
 		try:
 			i2c = board.I2C()
@@ -2857,7 +2857,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			pressure = bme280.pressure
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(0, f'ERROR: Module read_bme280_i2c failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR: Module read_bme280_i2c failed on line {eTraceback.tb_lineno} - {e}')
 
 		return temperature, humidity, pressure, altitude
 
@@ -2873,7 +2873,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except Exception as e:
 				result = f'Address {i2c_address} is not a valid i2c address'
-				allsky_shared.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR: {result}')
 					
 		try:
 			i2c = board.I2C()
@@ -2886,7 +2886,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			humidity = sensor.relative_humidity
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(4, f'ERROR: Module read_sht31 failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(4, f'ERROR: Module read_sht31 failed on line {eTraceback.tb_lineno} - {e}')
 			return temperature, humidity
 
 		return temperature, humidity
@@ -2909,7 +2909,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except Exception as e:
 				result = f'Address {i2c_address} is not a valid i2c address'
-				allsky_shared.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR: {result}')
 					
 		try:
 			i2c = board.I2C()
@@ -2918,11 +2918,11 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			else:
 				sensor = adafruit_sht4x.SHT4x(i2c)
 			sensor.mode = sht41_mode
-			allsky_shared.log(4, f'INFO: Current mode is {adafruit_sht4x.Mode.string[sensor.mode]}')
+			self.log(4, f'INFO: Current mode is {adafruit_sht4x.Mode.string[sensor.mode]}')
 			temperature, humidity = sensor.measurements
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(4, f'ERROR: Module _read_sht4x failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(4, f'ERROR: Module _read_sht4x failed on line {eTraceback.tb_lineno} - {e}')
 			return temperature, humidity
 
 		return temperature, humidity
@@ -2939,7 +2939,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except Exception as e:
 				result = f'Address {i2c_address} is not a valid i2c address'
-				allsky_shared.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR: {result}')
 					
 		try:
 			i2c = board.I2C()
@@ -2955,7 +2955,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(4, f'ERROR: Module _read_scd30 failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(4, f'ERROR: Module _read_scd30 failed on line {eTraceback.tb_lineno} - {e}')
 
 		return temperature, humidity, co2
 
@@ -3014,7 +3014,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		missing_variables = [name for name in required_vars if locals().get(name) == '']
 
 		if missing_variables:
-			allsky_shared.log(0, f"Error: The following variables are not set: {', '.join(missing_variables)}")
+			self.log(0, f"Error: The following variables are not set: {', '.join(missing_variables)}")
 		else:
 			temperature = allsky_shared.get_hass_sensor_value(hass_url, hass_ltt, hass_temperature)
 			humidity = allsky_shared.get_hass_sensor_value(hass_url, hass_ltt, hass_humidity)
@@ -3061,7 +3061,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		elif sensor_type == 'Homeassistant':
 			temperature, humidity, pressure = self._read_homeassistant(sensor_number) 
 		else:
-			allsky_shared.log(0, 'ERROR: No sensor type defined')
+			self.log(0, 'ERROR: No sensor type defined')
 
 		temp_units = allsky_shared.getSetting('temptype')
 		if temperature is not None and humidity is not None:
@@ -3069,7 +3069,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			if temp_units == 'F':
 				temperature = (temperature * (9/5)) + 32
 				the_dew_point = (the_dew_point * (9/5)) + 32
-				allsky_shared.log(4, 'INFO: Converted temperature to F')
+				self.log(4, 'INFO: Converted temperature to F')
 
 			temperature = round(temperature, 2)
 			humidity = round(humidity, 2)
@@ -3078,12 +3078,12 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			if temperature is not None:
 				if temp_units == 'F':
 					temperature = (temperature * (9/5)) + 32
-					allsky_shared.log(4, 'INFO: Converted temperature ONLY to F')
+					self.log(4, 'INFO: Converted temperature ONLY to F')
 					
 		return temperature, humidity, the_dew_point, pressure, rel_humidity, altitude, co2
 
 	def _debug_output(self, sensor_type, temperature, humidity, the_dew_point, pressure, rel_humidity, altitude, co2):
-		allsky_shared.log(4,f'INFO: Sensor {sensor_type} read. Temperature {temperature} Humidity {humidity} Relative Humidity {rel_humidity} Dew Point {the_dew_point} Pressure {pressure} Altitude {altitude} Co2 {co2}')
+		self.log(4,f'INFO: Sensor {sensor_type} read. Temperature {temperature} Humidity {humidity} Relative Humidity {rel_humidity} Dew Point {the_dew_point} Pressure {pressure} Altitude {altitude} Co2 {co2}')
 
 	def run(self):
 		result = ''
@@ -3105,7 +3105,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				sensor_type = self.get_param('type' + sensor_number, 'None', str)
 
 				if sensor_type != 'None':
-					allsky_shared.log(4, f'INFO: Reading sensor {sensor_number}, {sensor_type}')
+					self.log(4, f'INFO: Reading sensor {sensor_number}, {sensor_type}')
 					name = self.get_param('name' + sensor_number, 'Unknown', str)
 					max_temp_key = "temp" + sensor_number
 					max_temp = self.get_param(max_temp_key, -1, float)       
@@ -3146,16 +3146,16 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 									if temperature > max_temp:
 										gpio_value = True
 						
-										allsky_shared.log(4, f'INFO: Temperature {temperature} is greater than {max_temp} so enabling GPIO {gpio_pin}')
+										self.log(4, f'INFO: Temperature {temperature} is greater than {max_temp} so enabling GPIO {gpio_pin}')
 										pin.value = 1
 									else:
 										gpio_value = False
-										allsky_shared.log(4, f'INFO: Temperature {temperature} is less than {max_temp} so disabling GPIO {gpio_pin}')
+										self.log(4, f'INFO: Temperature {temperature} is less than {max_temp} so disabling GPIO {gpio_pin}')
 										pin.value = 0
 								except Exception as e:    
 									eType, eObject, eTraceback = sys.exc_info()
 									result = f'ERROR: Failed to set Digital IO to output {eTraceback.tb_lineno} - {e}'
-									allsky_shared.log(0, result)
+									self.log(0, result)
 								
 					if temperature is not None:
 						if sensor_number != '':
@@ -3178,7 +3178,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 		else:
 			result = 'Will run in {:.2f} seconds'.format(self._run_interval - diff)
-			allsky_shared.log(1, f'INFO: {result}')
+			self.log(1, f'INFO: {result}')
 
 		return result
 

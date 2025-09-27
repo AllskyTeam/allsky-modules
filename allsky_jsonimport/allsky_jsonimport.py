@@ -90,7 +90,7 @@ class ALLSKYJSONIMPORT(ALLSKYMODULEBASE):
 				response.raise_for_status()
 				json_data = response.json()
 
-				allsky_shared.log(4, f'INFO: Retrieved {json_data} from {json_url}')
+				self.log(4, f'INFO: Retrieved {json_data} from {json_url}')
 
 				for key in json_data:
 					extra_data[f'AS_{prefix}{key.upper()}'] = json_data[key]
@@ -98,20 +98,20 @@ class ALLSKYJSONIMPORT(ALLSKYMODULEBASE):
 				result = 'Data retrieved ok'
 			except requests.exceptions.RequestException as json_exception:
 				result = f'Request Error: {json_exception}'
-				allsky_shared.log(0,f'ERROR: {result}')
+				self.log(0,f'ERROR: {result}')
 			except json.JSONDecodeError:
 				result = 'Error decoding JSON.'
-				allsky_shared.log(0,f'ERROR: {result}')            
+				self.log(0,f'ERROR: {result}')            
 			except Exception as json_exception:
 				result = f'An unexpected error occurred: {json_exception}'
-				allsky_shared.log(0,f'ERROR: {result}')
+				self.log(0,f'ERROR: {result}')
 
 			allsky_shared.saveExtraData(extra_data_filename, extra_data, self.meta_data['module'])
 			
 			allsky_shared.setLastRun(self.meta_data['module'])
 		else:
 			result = f'Will run in {(period - diff):.2f} seconds'
-			allsky_shared.log(1,f'INFO: {result}')
+			self.log(1,f'INFO: {result}')
 
 		return result
 

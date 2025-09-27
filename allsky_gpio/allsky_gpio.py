@@ -87,17 +87,17 @@ class ALLSKYGPIO(ALLSKYMODULEBASE):
 					allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['extradata'])
 
 					result = f'INFO: GPIO pin {gpio_pin} set to {gpio_state}'
-					allsky_shared.log(4, f'INFO: {result}')
+					self.log(4, f'INFO: {result}')
 				else:
 					result = f'Filed to set gpio pin {gpio_pin} to {gpio_state}'
-					allsky_shared.log(4, f'ERROR: {result}')             
+					self.log(4, f'ERROR: {result}')             
 			else:
 				result = f'GPIO pin is invalid'
-				allsky_shared.log(4, f'ERROR: {result}')     
+				self.log(4, f'ERROR: {result}')     
 		except Exception as e:
 			exception_type, exception_object, exception_traceback = sys.exc_info()
 			result = f'Module gpio - {exception_traceback.tb_lineno} - {e}'
-			allsky_shared.log(4, f'ERROR: {result}')   
+			self.log(4, f'ERROR: {result}')   
 
 		return result
     

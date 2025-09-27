@@ -322,7 +322,7 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 			}
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(0, f'ERROR: Module openweathermap failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR: Module openweathermap failed on line {eTraceback.tb_lineno} - {e}')
    
 	def _set_extra_value(self, path, data, extra_key, expires):
 		value = self._get_value(path, data)
@@ -365,38 +365,38 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 						try:
 							api_url = f'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units={requested_units}&appid={api_key}'
 							log_api_url = f'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units={requested_units}&appid={allsky_shared.obfuscate_secret(api_key)}'
-							allsky_shared.log(4, f'INFO: URL - {log_api_url}')
+							self.log(4, f'INFO: URL - {log_api_url}')
 							response = requests.get(api_url)
 							if response.status_code == 200:
 								raw_data = response.json()
 								self._process_result(raw_data, expire, requested_units)
 								allsky_shared.saveExtraData(self.meta_data['extradatafilename'], self._extra_data, self.meta_data['module'], self.meta_data['extradata'])
 								result = f"Data acquired and written to extra data file {self.meta_data['extradatafilename']}"
-								allsky_shared.log(1, f'INFO: {result}')
+								self.log(1, f'INFO: {result}')
 							else:
 								result = f'Got error from Open Weather Map API. Response code {response.status_code}'
-								allsky_shared.log(0, f'ERROR: {result}')
+								self.log(0, f'ERROR: {result}')
 						except Exception as e:
 							eType, eObject, eTraceback = sys.exc_info()
 							result = f'ERROR: Failed to download Open Weather Map data {eTraceback.tb_lineno} - {e}'
-							allsky_shared.log(0, f'ERROR: {result}')
+							self.log(0, f'ERROR: {result}')
 					else:
 						result = 'Invalid Latitude/Longitude. Check the Allsky configuration'
-						allsky_shared.log(0, f'ERROR: {result}')
+						self.log(0, f'ERROR: {result}')
 				
 				else:
 					result = 'Missing Open Weather Map API key'
-					allsky_shared.log(0, f'ERROR: {result}')
+					self.log(0, f'ERROR: {result}')
 
 
 				allsky_shared.setLastRun(module)
 			else:
 				result = f'Last run {diff} seconds ago. Running every {period} seconds'
-				allsky_shared.log(1, f'INFO: {result}')
+				self.log(1, f'INFO: {result}')
 
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(0, f"ERROR: Module openweathermap failed on line {eTraceback.tb_lineno} - {e}")    
+			self.log(0, f"ERROR: Module openweathermap failed on line {eTraceback.tb_lineno} - {e}")    
 			
 		return result
 

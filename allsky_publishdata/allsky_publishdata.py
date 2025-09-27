@@ -322,13 +322,13 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 		influx_host = f'{influx_host}:{influx_port}'
 
 		try:
-			allsky_shared.log(4, f'Sending to {influx_host}, org {influx_org}, bucket {influx_bucket}')
+			self.log(4, f'Sending to {influx_host}, org {influx_org}, bucket {influx_bucket}')
 			write_client = influxdb_client.InfluxDBClient(url=influx_host, token=influx_token, org=influx_org)
 			
 			ping_result = write_client.ping()
 			if ping_result:
 				influxdb_version = write_client.version()
-				allsky_shared.log(4, f'INFO: Ping InfluxDB server at {influx_host}:{influx_port} succeeded. Version {influxdb_version} found')
+				self.log(4, f'INFO: Ping InfluxDB server at {influx_host}:{influx_port} succeeded. Version {influxdb_version} found')
 				write_api = write_client.write_api(write_options=SYNCHRONOUS)
 				
 				points = []
@@ -339,28 +339,28 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 								points.append(
 									Point(variable).tag(variable, self._all_variables[variable]['value']).field(variable, self._all_variables[variable]['value'])
 								)
-								allsky_shared.log(4, f'Sending {variable} = {self._all_variables[variable]["value"]}')
+								self.log(4, f'Sending {variable} = {self._all_variables[variable]["value"]}')
 							else:
-								allsky_shared.log(4, f'{variable} cannot be sent to InfluxDB as its of type "{self._all_variables[variable]["type"]}", valid types are "{influx_types_string}"')
+								self.log(4, f'{variable} cannot be sent to InfluxDB as its of type "{self._all_variables[variable]["type"]}", valid types are "{influx_types_string}"')
 						else:
-							allsky_shared.log(4, f'Sending {variable} not found')
+							self.log(4, f'Sending {variable} not found')
 					else:
-						allsky_shared.log(4, f'{variable} is false!!!')
+						self.log(4, f'{variable} is false!!!')
 				if points:
 					write_api.write(bucket=influx_bucket, org=influx_org, record=points)
 					result = f'Data written to InfluxDB server at {influx_host}:{influx_port}'
-					allsky_shared.log(4, f'INFO: {result}')
+					self.log(4, f'INFO: {result}')
 				else:
 					result = f'NO data written to InfluxDB server at {influx_host}:{influx_port} as no valid variables found'
-					allsky_shared.log(4, f'WARNING: {result}')
+					self.log(4, f'WARNING: {result}')
         
 			else:
 				result = f'Failed to ping InfluxDB server at {influx_host}:{influx_port}'
-				allsky_shared.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR: {result}')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f'Module influxdb failed on line {eTraceback.tb_lineno} - {e}'
-			allsky_shared.log(0, f'ERROR: {result}')
+			self.log(0, f'ERROR: {result}')
    
 		return result
    
@@ -379,18 +379,18 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 				try:
 					redis_object = redis.Redis(host=redis_host, port=redis_port, db=redis_database, password=redis_password)
 					redis_object.set(redis_key, json.dumps(self._json_data))
-					allsky_shared.log(1, f'INFO: Published to Redis server at {redis_host}:{redis_port}, Database: {redis_database}, Key: {redis_key}')        
+					self.log(1, f'INFO: Published to Redis server at {redis_host}:{redis_port}, Database: {redis_database}, Key: {redis_key}')        
 				except Exception as e:    
 					eType, eObject, eTraceback = sys.exc_info()
 					result = f'ERROR: Failed to connect to the Redis server at {redis_host}:{redis_port} {eTraceback.tb_lineno} - {e}'
-					allsky_shared.log(0, result)      
+					self.log(0, result)      
 			else:
 				result = f'Please specify a topic for Redis to publish to'
-				allsky_shared.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR: {result}')
 
 		else:
 			result = f'Please specify a host for Redis to publish to'
-			allsky_shared.log(0, f'ERROR: {result}')
+			self.log(0, f'ERROR: {result}')
     
 	def _send_to_mqtt(self):
 		result = ''
@@ -411,11 +411,11 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 					if variable:
 						if variable in self._all_variables:
 								mqtt_data[variable] = self._all_variables[variable]["value"]
-								allsky_shared.log(4, f'MQTT - Sending {variable} = {self._all_variables[variable]["value"]}')
+								self.log(4, f'MQTT - Sending {variable} = {self._all_variables[variable]["value"]}')
 						else:
-							allsky_shared.log(4, f'MQTT - Sending {variable} not found')
+							self.log(4, f'MQTT - Sending {variable} not found')
 					else:
-						allsky_shared.log(4, f'MQTT - {variable} is false!!!')
+						self.log(4, f'MQTT - {variable} is false!!!')
 
 				if mqtt_data:
 					mqtt_data['utc'] = self._get_utc_timestamp()
@@ -436,19 +436,19 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 					is_published = message_info.is_published()
 					client.disconnect()
 					if is_published:
-						allsky_shared.log(4, f'INFO: MQTT - Published to MQTT on topic: {mqtt_topic}')
+						self.log(4, f'INFO: MQTT - Published to MQTT on topic: {mqtt_topic}')
 					else:
-						allsky_shared.log(4, f'ERROR: MQTT - No data published to topic: {mqtt_topic}')
+						self.log(4, f'ERROR: MQTT - No data published to topic: {mqtt_topic}')
 				else:
 					result = f'NO data written to MQTT server at {mqtt_host}:{mqtt_port} as no valid variables found'
-					allsky_shared.log(4, f'WARNING: {result}')
+					self.log(4, f'WARNING: {result}')
 		
 			else:
 				result = f'MQTT - Please specify a topic to publish'
-				allsky_shared.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR: {result}')
 		else:
 			result = f'MQTT - Please specify a MQTT host to publish to'
-			allsky_shared.log(0, f'ERROR: {result}')
+			self.log(0, f'ERROR: {result}')
        
 		return result
             
@@ -497,9 +497,9 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 					#variable_value = self._change_type(variable_value)
 					self._json_data[variable] = variable_value
 				else:
-					allsky_shared.log(0, f'ERROR: Cannot locate environment variable {variable} specified in the extradata')
+					self.log(0, f'ERROR: Cannot locate environment variable {variable} specified in the extradata')
 			else:
-				allsky_shared.log(0, 'ERROR: Empty environment variable specified in the extradata field. Check commas!')
+				self.log(0, 'ERROR: Empty environment variable specified in the extradata field. Check commas!')
 
 			self._json_data['utc'] = self._get_utc_timestamp()
    

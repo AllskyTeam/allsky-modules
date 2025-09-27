@@ -186,7 +186,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except Exception as e:
 				result = 'Address {i2c_address} is not a valid i2c address'
-				allsky_shared.log(0,"ERROR: {}".format(result))
+				self.log(0,"ERROR: {}".format(result))
     
 		if i2c_address != "":    
 			lightning = sparkfun_qwiicas3935.Sparkfun_QwiicAS3935_I2C(i2c, i2c_address_int)
@@ -194,41 +194,41 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 			lightning = sparkfun_qwiicas3935.Sparkfun_QwiicAS3935_I2C(i2c)
 
 		if lightning.connected:
-			allsky_shared.log(4, 'INFO: Lightning Detector Ready')
+			self.log(4, 'INFO: Lightning Detector Ready')
 		
 			afe_mode = lightning.indoor_outdoor
 			if afe_mode == lightning.OUTDOOR:
-				allsky_shared.log(4, 'INFO: The Lightning Detector is in the Outdoor mode.')
+				self.log(4, 'INFO: The Lightning Detector is in the Outdoor mode.')
 			elif afe_mode == lightning.INDOOR:
-				allsky_shared.log(4, 'INFO: The Lightning Detector is in the Indoor mode.')
+				self.log(4, 'INFO: The Lightning Detector is in the Indoor mode.')
 			else:
-				allsky_shared.log(4, f'INFO: The Lightning Detector is in an Unknown mode. Mode = {afe_mode}')
+				self.log(4, f'INFO: The Lightning Detector is in an Unknown mode. Mode = {afe_mode}')
 			
 			lightning.mask_disturber = mask_disturbers
 			if lightning.mask_disturber:
-				allsky_shared.log(4, 'INFO: Disturbers are being masked.')
+				self.log(4, 'INFO: Disturbers are being masked.')
 			else:
-				allsky_shared.log(4, 'INFO: Disturbers are not being masked.')
+				self.log(4, 'INFO: Disturbers are not being masked.')
 
 			lightning.noise_level = noise_level
-			allsky_shared.log(4, f'INFO: Noise level is set at: {noise_level}')
+			self.log(4, f'INFO: Noise level is set at: {noise_level}')
 
 			lightning.watchdog_threshold = watchdog_threshold
-			allsky_shared.log(4, f'INFO: Watchdog Threshold is set to: {watchdog_threshold}')
+			self.log(4, f'INFO: Watchdog Threshold is set to: {watchdog_threshold}')
 
 			lightning.spike_rejection = spike_rejection
-			allsky_shared.log(4, f'INFO: Spike Rejection is set to: {spike_rejection}')
+			self.log(4, f'INFO: Spike Rejection is set to: {spike_rejection}')
 
 			lightning.lightning_threshold = lightning_threshold
-			allsky_shared.log(4, f'INFO:The number of strikes before interrupt is triggered: {lightning_threshold}')
+			self.log(4, f'INFO:The number of strikes before interrupt is triggered: {lightning_threshold}')
  
 			if as3935_interrupt_pin.value:
 				interrupt_value = lightning.read_interrupt_register()
 				#interrupt_value = lightning.LIGHTNING
 				if interrupt_value == lightning.NOISE:
-					allsky_shared.log(4, f'INFO: Noise detected')
+					self.log(4, f'INFO: Noise detected')
 				elif interrupt_value == lightning.DISTURBER:
-					allsky_shared.log(4, f'INFO: Disturber detected')
+					self.log(4, f'INFO: Disturber detected')
 				elif interrupt_value == lightning.LIGHTNING:
 					distance_to_storm = lightning.distance_to_storm
 					lightning_energy = lightning.lightning_energy
@@ -248,11 +248,11 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 		
 					allsky_shared.dbUpdate('allsky_lightning_strike_counter', count)
 					allsky_shared.dbUpdate('allsky_lightning_last_strike', last_strike_time)    
-					allsky_shared.log(4, f'INFO: Strike detected. Approx distance: {distance_to_storm}km, Energy: {lightning_energy}, Total Strikes: {count}')
+					self.log(4, f'INFO: Strike detected. Approx distance: {distance_to_storm}km, Energy: {lightning_energy}, Total Strikes: {count}')
 				else:
-					allsky_shared.log(4, f'INFO: Unknown event detected')
+					self.log(4, f'INFO: Unknown event detected')
 			else:
-				allsky_shared.log(4, f'INFO: No event detected')
+				self.log(4, f'INFO: No event detected')
 
 			last_strike_time = allsky_shared.db_get('allsky_lightning_last_strike')
 			if last_strike_time is not None:
@@ -268,7 +268,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
        
 		else:
 			result = 'Lightning Detector does not appear to be connected. Please check wiring.'
-			allsky_shared.log(0, 'ERROR: {result}')
+			self.log(0, 'ERROR: {result}')
    							
 def lightning(params, event):
 	allsky_lightning = ALLSKYLIGHTNING(params, event)

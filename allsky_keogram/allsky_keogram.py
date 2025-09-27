@@ -230,13 +230,13 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 			# Fallback to bash only if not executable
 			cmd = ["bash", script_str, *args]
 
-		allsky_shared.log(0, f"{cmd}")
+		self.log(0, f"{cmd}")
 		try:
 			proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
 			if proc.returncode == 0:
-				allsky_shared.log(1, f"INFO: Successful: {script_str}")
+				self.log(1, f"INFO: Successful: {script_str}")
 			else:
-				allsky_shared.log(0, f"ERROR: {script_str} - rc={proc.returncode}\nSTDERR:\n{proc.stderr}")
+				self.log(0, f"ERROR: {script_str} - rc={proc.returncode}\nSTDERR:\n{proc.stderr}")
 			return proc.returncode, proc.stdout, proc.stderr
 		
 		except Exception as e:
@@ -264,7 +264,7 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 		#first validate sizing input by passing bogus info to resize functino to test?
 		#test_resize,resize_plan_test = allsky_shared.resize_image("test",resize,start_size=(640,480),return_image=False)
 		#w_resize = (resize_plan_test[-2])
-		#allsky_shared.log(0, f"test results return new size of {w_resize}")
+		#self.log(0, f"test results return new size of {w_resize}")
 		#return
 	
 		# Create keogram by deriving and passing parameters
@@ -326,14 +326,14 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 		create_keo_rc, out, err = self.__execute_script(keo_script_path, *create_params)
 		if create_keo_rc == 0:		
 			#sucessfully created	
-			allsky_shared.log(1, f"INFO: Keogram created successfully: {keogram_fullpath}")
+			self.log(1, f"INFO: Keogram created successfully: {keogram_fullpath}")
 			
 			#could add stretch here by opening the new keogram file and doing stuff
 			#if stretch:
 			#	run script for that...
 
 		else:
-			allsky_shared.log(0, f"ERROR: Keogram creation failed (rc={create_keo_rc}). See stderr:\n{err}")
+			self.log(0, f"ERROR: Keogram creation failed (rc={create_keo_rc}). See stderr:\n{err}")
 
 
 		# upload if created and user selected to upload
@@ -351,10 +351,10 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 			if resize not in("","0"):			# user entered a resizing value
 				tmp_dir=output_dir
 				tmp_dir = allsky_shared.get_environment_variable("ALLSKY_TMP")
-				#allsky_shared.log(1,tmp_dir)
+				#self.log(1,tmp_dir)
 
 				keogram_resized,resize_plan = allsky_shared.resize_image(keogram_fullpath,resize)
-				allsky_shared.log(1,{resize_plan})
+				self.log(1,{resize_plan})
 				
 				#if keogram_resized is not None:
 					#TODO: save resized in tmp and update keogram_fullpath
@@ -375,9 +375,9 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 				#run upload script
 				upload_keo_rc, out, err = self.__execute_script(upload_script_path, target, keogram_fullpath, remote_dir, target_file)
 				if upload_keo_rc == 0:
-					allsky_shared.log(1, f"INFO: Keogram uploaded successfully: {os.path.join(output_dir, keo_filename)}")
+					self.log(1, f"INFO: Keogram uploaded successfully: {os.path.join(output_dir, keo_filename)}")
 				else:
-					allsky_shared.log(0, f"ERROR: Failed to upload keogram to {target} (rc={create_keo_rc}). See stderr:\n{err}")
+					self.log(0, f"ERROR: Failed to upload keogram to {target} (rc={create_keo_rc}). See stderr:\n{err}")
 
 			if useremoteweb:
 				target = "--remote-web"
@@ -387,9 +387,9 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 				#run upload script
 				upload_keo_rc, out, err = self.__execute_script(upload_script_path, target, keogram_fullpath, remote_dir, target_file)
 				if upload_keo_rc == 0:
-					allsky_shared.log(1, f"INFO: Keogram uploaded successfully: {os.path.join(output_dir, keo_filename)}")
+					self.log(1, f"INFO: Keogram uploaded successfully: {os.path.join(output_dir, keo_filename)}")
 				else:
-					allsky_shared.log(0, f"ERROR: Failed to uplaod keogram to {target} (rc={create_keo_rc}). See stderr:\n{err}")
+					self.log(0, f"ERROR: Failed to uplaod keogram to {target} (rc={create_keo_rc}). See stderr:\n{err}")
 
 			# remote website need to check "upload with original name?"
 			if useremoteserver:
@@ -405,9 +405,9 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 				#run upload script
 				upload_keo_rc, out, err = self.__execute_script(upload_script_path, target, keogram_fullpath, remote_dir, target_file)
 				if upload_keo_rc == 0:
-					allsky_shared.log(1, f"INFO: Keogram uploaded successfully: {os.path.join(output_dir, keo_filename)}")
+					self.log(1, f"INFO: Keogram uploaded successfully: {os.path.join(output_dir, keo_filename)}")
 				else:
-					allsky_shared.log(0, f"ERROR: Failed to upload keogram to {target} (rc={create_keo_rc}). See stderr:\n{err}")
+					self.log(0, f"ERROR: Failed to upload keogram to {target} (rc={create_keo_rc}). See stderr:\n{err}")
 		
 		# delete temp file if we created it
 		if os.path.exists(keogram_tmp_path):
@@ -415,7 +415,7 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 
 		result = "Daily Keogram process complete"
 		
-		allsky_shared.log(1, f"INFO:  {result}")
+		self.log(1, f"INFO:  {result}")
 		#the end!
 		return result
   

@@ -203,7 +203,7 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 			shouldRun, diff = allsky_shared.shouldRun(module, period)
 			if not shouldRun and not self._debugmode:
 				result = f'Last run {diff} seconds ago. Running every {period} seconds'
-				allsky_shared.log(1, f'INFO: {result}')
+				self.log(1, f'INFO: {result}')
 				return result
 
 			# Calculate sun angle
@@ -290,13 +290,13 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 			# Save data to file
 			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], space_weather_data, self.meta_data['module'], self.meta_data['extradata'])
 			result = f"Space weather data successfully written to {self.meta_data['extradatafilename']}"
-			allsky_shared.log(1, f"INFO: {result}")
+			self.log(1, f"INFO: {result}")
 			allsky_shared.setLastRun(module)
 
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f"Module spaceweather failed on line {eTraceback.tb_lineno} - {e}"
-			allsky_shared.log(0, f"ERROR: {result}")
+			self.log(0, f"ERROR: {result}")
 
 		return result
 

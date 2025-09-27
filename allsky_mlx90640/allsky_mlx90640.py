@@ -157,7 +157,7 @@ class ALLSKYMLX90640(ALLSKYMODULEBASE):
 				i2c_address_int = int(self._i2c_address, 16)
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				allsky_shared.log(0, f'ERROR: Module (mlx906040) _get_image failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(0, f'ERROR: Module (mlx906040) _get_image failed on line {eTraceback.tb_lineno} - {e}')
 
 		i2c = board.I2C()
 		if self._i2c_address != '':

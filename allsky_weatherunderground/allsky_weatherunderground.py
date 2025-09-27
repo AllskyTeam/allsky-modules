@@ -279,31 +279,31 @@ class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
 					if station_id != '':
 						try:
 							message = f'Connecting using station id: {allsky_shared.obfuscate_secret(station_id)} api key: {allsky_shared.obfuscate_secret(api_key)}'
-							allsky_shared.log(4, f'INFO: {message}')
+							self.log(4, f'INFO: {message}')
 							wu = WUndergroundAPI(api_key=api_key, default_station_id=station_id, units=unit)
 							response = wu.current()['observations'][0]
 							self._process_result(requested_units, response)
 							allsky_shared.saveExtraData(self.meta_data['extradatafilename'], self._extra_data, self.meta_data['module'], self.meta_data['extradata'])
 							result = f"Data acquired and written to extra data file {self.meta_data['extradatafilename']}"
-							allsky_shared.log(4, f'INFO: {result}')
+							self.log(4, f'INFO: {result}')
 						except Exception as e:
 							eType, eObject, eTraceback = sys.exc_info()
 							result = f'ERROR: Failed to download weather underground data {eTraceback.tb_lineno} - {e}'
-							allsky_shared.log(0, result)
+							self.log(0, result)
 					else:
 						result = 'Missing WeatherUnderground Station ID'
-						allsky_shared.log(0, f'ERROR: {result}')
+						self.log(0, f'ERROR: {result}')
 				else:
 					result = 'Missing WeatherUnderground API key'
-					allsky_shared.log(0, f'ERROR: {result}')
+					self.log(0, f'ERROR: {result}')
 				allsky_shared.setLastRun(module)
 			else:
 				result = f'Last run {diff} seconds ago. Running every {period} seconds'
-				allsky_shared.log(1, f'INFO: {result}')
+				self.log(1, f'INFO: {result}')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f'Module weatherunderground failed on line {eTraceback.tb_lineno} - {e}'
-			allsky_shared.log(0, f'ERROR: {result}')
+			self.log(0, f'ERROR: {result}')
 			
 		return result
 

@@ -299,7 +299,7 @@ class ALLSKYCLOUD(ALLSKYMODULEBASE):
 					i2c_address_int = int(i2c_address, 16)
 				except:
 					result = f'Address {i2c_address} is not a valid i2c address'
-					allsky_shared.log(0,f'ERROR: {result}')
+					self.log(0,f'ERROR: {result}')
 
 			i2c = board.I2C()
 			if i2c_address != '':
@@ -322,11 +322,11 @@ class ALLSKYCLOUD(ALLSKYMODULEBASE):
 			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 
 			result = f'Cloud state - {cloud_cover} {percentage}%. Sky Temp {sky_object}, Ambient {sky_ambient}'
-			allsky_shared.log(1, f'INFO: {result}')
+			self.log(1, f'INFO: {result}')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f'ERROR: Module cloud failed on line {eTraceback.tb_lineno} - {e}'
-			allsky_shared.log(4, result)
+			self.log(4, result)
 			
 		return result 
 

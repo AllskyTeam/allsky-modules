@@ -344,7 +344,7 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 		except Exception as e:
 			exception_type, exception_object, exception_traceback = sys.exc_info()
 			result = f'Module _get_device_list - {exception_traceback.tb_lineno} - {e}'
-			allsky_shared.log(4, f'ERROR: {result}')
+			self.log(4, f'ERROR: {result}')
    
 		return device_list
      
@@ -374,13 +374,13 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 									'value': float(temp),
 									'fill': colour
 								}
-								allsky_shared.log(4, f'INFO: Temperature of {name} is {temp}C, using colour ({colour}), max is {self._ok_temp}C')
+								self.log(4, f'INFO: Temperature of {name} is {temp}C, using colour ({colour}), max is {self._ok_temp}C')
 							else:
 								extra_data[hdd_name] = float(temp)
-								allsky_shared.log(4, f'INFO: Temperature of {name} is {temp}')
+								self.log(4, f'INFO: Temperature of {name} is {temp}')
 						else:
 							result = f'No temperature data available for {name}'
-							allsky_shared.log(4, f'ERROR: {result}')
+							self.log(4, f'ERROR: {result}')
 
 						if temp_max is not None:
 							hdd_name = f'AS_HDD{name}TEMPMAX'
@@ -390,13 +390,13 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 									'value': float(temp_max),
 									'fill': colour
 								}
-								allsky_shared.log(4, f'INFO: Max temperature of {name} is {temp_max}C, using colour ({colour}), max is {self._ok_temp}C')
+								self.log(4, f'INFO: Max temperature of {name} is {temp_max}C, using colour ({colour}), max is {self._ok_temp}C')
 							else:
 								extra_data[hdd_name] = float(temp_max)
-								allsky_shared.log(4, f'INFO: Max temperature of {name} is {temp}')
+								self.log(4, f'INFO: Max temperature of {name} is {temp}')
 						else:
 							result1 = f'No max temperature data available for {name}'
-							allsky_shared.log(4, f"ERROR: {result1}")
+							self.log(4, f"ERROR: {result1}")
 
 							if result != '':
 								result = f'{result}, {result1}'
@@ -407,12 +407,12 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 							result = f'Ok Current: {temp}, Max: {temp_max}'
 
 						if self.debug_mode:
-							allsky_shared.log(4, result)
+							self.log(4, result)
 							
 						allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 
 					else:
-						allsky_shared.log(4, f'ERROR: No temperature data (S.M.A.R.T 194) available for {name}')
+						self.log(4, f'ERROR: No temperature data (S.M.A.R.T 194) available for {name}')
 			else:
 				allsky_shared.deleteExtraData(self.meta_data['extradatafilename'])
 				result = 'No S.M.A.R.T devices found'

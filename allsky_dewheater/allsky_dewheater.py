@@ -888,7 +888,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			if returncode == 3:
 				tod = 'night'
 		except Exception:
-			allsky_shared.log(0, f'ERROR running {cmd}')
+			self.log(0, f'ERROR running {cmd}')
 		return tod 
 
 	def _create_cardinal(self, degrees):
@@ -996,7 +996,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			max_age = json_data[field]['expires']
 			age = int(time.time()) - file_modified_time
 			if age > max_age:
-				allsky_shared.log(4, f'WARNING: field {field} has expired - age is {age}')
+				self.log(4, f'WARNING: field {field} has expired - age is {age}')
 				result = None
 				
 		return result
@@ -1047,40 +1047,40 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 								lon = allsky_shared.convert_lat_lon(lon)
 								try:
 									resultURL = f'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units={units}&appid={api_key}'
-									allsky_shared.log(4,f"INFO: Reading Openweather API from - {resultURL}")
+									self.log(4,f"INFO: Reading Openweather API from - {resultURL}")
 									response = requests.get(resultURL)
 									if response.status_code == 200:
 										rawData = response.json()
 										extraData = self._process_openweather_result(rawData, expire, units)
 										allsky_shared.save_extra_data(file_name, extraData )
 										result = f'Data acquired and written to extra data file {file_name}'
-										allsky_shared.log(1, f'INFO: {result}')
+										self.log(1, f'INFO: {result}')
 									else:
 										result = f'Got error from Open Weather Map API. Response code {response.status_code}'
-										allsky_shared.log(0,f'ERROR: {result}')
+										self.log(0,f'ERROR: {result}')
 								except Exception as e:
 									result = str(e)
-									allsky_shared.log(0, f'ERROR: {result}')
+									self.log(0, f'ERROR: {result}')
 								allsky_shared.set_last_run(module)
 							else:
 								result = 'Invalid Longitude. Check the Allsky configuration'
-								allsky_shared.log(0, f'ERROR: {result}')
+								self.log(0, f'ERROR: {result}')
 						else:
 							result = 'Invalid Latitude. Check the Allsky configuration'
-							allsky_shared.log(0, f'ERROR: {result}')
+							self.log(0, f'ERROR: {result}')
 					else:
 						result = 'Missing filename for data'
-						allsky_shared.log(0, f'ERROR: {result}')
+						self.log(0, f'ERROR: {result}')
 				else:
 					result = 'Missing Open Weather Map API key'
-					allsky_shared.log(0, f'ERROR: {result}')
+					self.log(0, f'ERROR: {result}')
 			else:
-				allsky_shared.log(4, f'INFO: Using Cached Openweather API data')
+				self.log(4, f'INFO: Using Cached Openweather API data')
 				
 			temperature, humidity, pressure, dewPoint = self._get_openweather_values(file_name)                
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(0, f'ERROR: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}')
 
 		return temperature, humidity, pressure, dewPoint
 
@@ -1093,7 +1093,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				i2caddressInt = int(i2c_address, 16)
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				allsky_shared.log(0, f'ERROR: Module readSHT31 failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(0, f'ERROR: Module readSHT31 failed on line {eTraceback.tb_lineno} - {e}')
 				return temperature, humidity
 					
 		try:
@@ -1107,7 +1107,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			humidity = sensor.relative_humidity
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(4, f'ERROR: Module readSHT31 failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(4, f'ERROR: Module readSHT31 failed on line {eTraceback.tb_lineno} - {e}')
 
 		return temperature, humidity
 
@@ -1123,10 +1123,10 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				humidity = dht_device.humidity
 			except RuntimeError as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				allsky_shared.log(4, f'ERROR: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(4, f'ERROR: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(4, f'WARNING: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(4, f'WARNING: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
 
 		return temperature, humidity
 
@@ -1140,7 +1140,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			temperature, humidity = self._do_dhtxx_read(input_pin)
 
 			if temperature is None and humidity is None:
-				allsky_shared.log(4, f'WARNING: Failed to read DHTXX on attempt {count+1}')
+				self.log(4, f'WARNING: Failed to read DHTXX on attempt {count+1}')
 				count = count + 1
 				if count > dhtxx_retry_count:
 					reading = False
@@ -1163,7 +1163,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				allsky_shared.log(0, f'ERROR: Module readBme280I2C failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(0, f'ERROR: Module readBme280I2C failed on line {eTraceback.tb_lineno} - {e}')
 
 		try:
 			i2c = board.I2C()
@@ -1179,7 +1179,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			pressure = bme280.pressure
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(0, f'ERROR: Module readBme280I2C failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR: Module readBme280I2C failed on line {eTraceback.tb_lineno} - {e}')
 
 		return temperature, humidity, pressure, relHumidity, altitude
 
@@ -1192,7 +1192,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				i2caddress_int = int(i2c_address, 16)
 			except:
 				result = f'Address {i2c_address} is not a valid i2c address'
-				allsky_shared.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR: {result}')
 
 		try:
 			i2c = board.I2C()
@@ -1205,7 +1205,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			humidity = htu21.relative_humidity
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(4, f'ERROR: Module readHtu21 failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(4, f'ERROR: Module readHtu21 failed on line {eTraceback.tb_lineno} - {e}')
 			
 		return temperature, humidity
 
@@ -1218,7 +1218,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				i2caddress_int = int(i2c_address, 16)
 			except:
 				result = f'Address {i2c_address} is not a valid i2c address'
-				allsky_shared.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR: {result}')
 
 		try:
 			i2c = board.I2C()
@@ -1230,7 +1230,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			humidity = sensor.relative_humidity
 		except ValueError as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(4, f'ERROR: Module readAHTX0 failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(4, f'ERROR: Module readAHTX0 failed on line {eTraceback.tb_lineno} - {e}')
 
 		return temperature, humidity
 
@@ -1277,7 +1277,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			dewPoint = float(current_weather_data['dewp'])
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			allsky_shared.log(4, f'ERROR: Module readSolo failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(4, f'ERROR: Module readSolo failed on line {eTraceback.tb_lineno} - {e}')
 				
 		return temperature, humidity, pressure, dewPoint
 
@@ -1350,7 +1350,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		if use_pwm:
 			duty_cycle_percent = round((duty_cycle / 65535) * 100,2)
 			result = f'Turning {type} on using pwm on pin {heater_pin}. Duty Cycle {duty_cycle}, {duty_cycle_percent}%'
-			allsky_shared.log(4, f'INFO: {result}')
+			self.log(4, f'INFO: {result}')
 			self._set_pwm_state(heater_pin, duty_cycle)
 		else:
 			result = f'Turning {type} on using pin {heater_pin}'
@@ -1358,10 +1358,10 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				if not allsky_shared.db_has_key('dewheaterontime'):
 					now = int(time.time())
 					allsky_shared.db_add('dewheaterontime', now)
-				allsky_shared.log(1, f'INFO: {result}')
+				self.log(1, f'INFO: {result}')
 			else:
 				result = f'ERROR: (Heater On) Failed to set Digital IO to output. Check pigpiod is running'
-				allsky_shared.log(0, result)
+				self.log(0, result)
 
 	def _turn_heater_off(self, heater_pin, invert_relay, extra=False, use_pwm=False):
 		if extra:
@@ -1371,17 +1371,17 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 						
 
 		if use_pwm:
-			allsky_shared.log(4, f'INFO: Turning {type} off using pwm on pin {heater_pin}.')
+			self.log(4, f'INFO: Turning {type} off using pwm on pin {heater_pin}.')
 			self._set_pwm_state(heater_pin, 0)
 		else:  
 			result = f"Turning {type} off using pin {heater_pin}"
 			if self._set_gpio_pin_state(0, invert_relay, heater_pin):
 				if allsky_shared.db_has_key('dewheaterontime'):
 					allsky_shared.db_delete_key('dewheaterontime')
-				allsky_shared.log(1, f'INFO: {result}')
+				self.log(1, f'INFO: {result}')
 			else:
 				result = f'ERROR: (Heater Off) Failed to set Digital IO to output. Check pigpiod is running'
-				allsky_shared.log(0, result)
+				self.log(0, result)
 
 	def _get_sensor_reading(self, sensor_type, input_pin, i2c_address, dhtxx_retry_count, dhtxx_delay, sht31_heater, solo_url, params):
 		temperature = None
@@ -1409,7 +1409,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		elif sensor_type == 'Allsky':
 			temperature, humidity, pressure, rel_humidity, altitude = self._read_allsky()
 		else:
-			allsky_shared.log(0, 'ERROR: No sensor type defined')
+			self.log(0, 'ERROR: No sensor type defined')
 
 		if temperature is not None and humidity is not None:
 			the_dew_point = dew_point(temperature, humidity).c
@@ -1420,7 +1420,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				temperature = (temperature * (9/5)) + 32
 				the_dew_point = (the_dew_point * (9/5)) + 32
 				the_heat_index = (the_heat_index * (9/5)) + 32
-				allsky_shared.log(4, 'INFO: Converted temperature to F')
+				self.log(4, 'INFO: Converted temperature to F')
 
 			temperature = round(temperature, 2)
 			humidity = round(humidity, 2)
@@ -1438,7 +1438,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		return last_run
 
 	def _debug_output(self, sensor_type, temperature, humidity, dew_point, heat_index, pressure, rel_humidity, altitude):
-		allsky_shared.log(1, f'INFO: Sensor {sensor_type} read. Temperature {temperature} Humidity {humidity} Relative Humidity {rel_humidity} Dew Point {dew_point} Heat Index {heat_index} Pressure {pressure} Altitude {altitude}')
+		self.log(1, f'INFO: Sensor {sensor_type} read. Temperature {temperature} Humidity {humidity} Relative Humidity {rel_humidity} Dew Point {dew_point} Heat Index {heat_index} Pressure {pressure} Altitude {altitude}')
 
 	def _pwm_high_time(self, frequency, duty_cycle):
 		period = 1 / frequency
@@ -1527,14 +1527,14 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 									last_on_seconds = now - last_on_time
 								if max_on_time != 0 and last_on_seconds >= max_on_time:
 									result = f'Heater was on longer than maximum allowed time {max_on_time}'
-									allsky_shared.log(1, f'INFO: {result}')
+									self.log(1, f'INFO: {result}')
 									self._turn_heater_off(heater_pin, invert_relay, False, use_pwm)
 									if extra_pin != 0:
 										self._turn_heater_off(extra_pin, invert_extra_pin, False, extra_use_pwm)
 									heater = False
 								elif force != 0 and temperature <= force:
 									result = f'Temperature below forced level {force}'
-									allsky_shared.log(1, f'INFO: {result}')
+									self.log(1, f'INFO: {result}')
 									duty_cycle = 65535         
 									self._turn_heater_on(heater_pin, invert_relay, False, use_pwm, duty_cycle)
 									if extra_pin != 0:
@@ -1543,7 +1543,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 								else:                           
 									if ((temperature - limit) <= dew_point):
 										result = f'Temperature within limit temperature {temperature}, limit {limit}, dewPoint {dew_point}'
-										allsky_shared.log(1, f'INFO: {result}')
+										self.log(1, f'INFO: {result}')
 										temp_dew_diff = abs(temperature - dew_point)
 										if temp_dew_diff > 10:
 											temp_dew_diff = 10
@@ -1556,7 +1556,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 										heater = True
 									else:
 										result = f'Temperature outside limit temperature {temperature}, limit {limit}, dewPoint {dew_point}'
-										allsky_shared.log(1, f'INFO: {result}')
+										self.log(1, f'INFO: {result}')
 										duty_cycle = 0
 										self._turn_heater_off(heater_pin, invert_relay, False, use_pwm)
 										if extra_pin != 0:
@@ -1616,15 +1616,15 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 
 							else:
 								result = "Failed to read sensor"
-								allsky_shared.log(0, f'ERROR: {result}')
+								self.log(0, f'ERROR: {result}')
 								allsky_shared.delete_extra_data(self.meta_data['extradatafilename'])
 						else:
 							result = f'Not run. Only running every {frequency}s. Last ran {lastRunSecs}s ago'
-							allsky_shared.log(1, f'INFO: {result}')
+							self.log(1, f'INFO: {result}')
 					else:
 						now = int(time.time())
 						allsky_shared.db_add('dewheaterlastrun', now)
-						allsky_shared.log(1, 'INFO: No last run info so assuming startup')
+						self.log(1, 'INFO: No last run info so assuming startup')
 						if heater_startup_state == 'ON':
 							self._turn_heater_on(heater_pin, invert_relay)
 							if extra_pin != 0:
@@ -1638,13 +1638,13 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				else:
 					allsky_shared.delete_extra_data(self.meta_data['extradatafilename'])
 					result = 'heater pin not defined or invalid'
-					allsky_shared.log(0, f'ERROR: {result}')
+					self.log(0, f'ERROR: {result}')
 
 				allsky_shared.set_last_run('allskydew')
 
 			else:
 				result = 'Will run in {:.2f} seconds'.format(frequency - diff)
-				allsky_shared.log(1, f'INFO: {result}')
+				self.log(1, f'INFO: {result}')
 		else:
 			if heater_pin != 0:
 				heater_pin = allsky_shared.get_gpio_pin(heater_pin)
@@ -1662,7 +1662,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 				
 			result = 'Dew control disabled during the day'
-			allsky_shared.log(1, f"INFO: {result}")
+			self.log(1, f"INFO: {result}")
 			
 		return result
 

@@ -448,12 +448,12 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 			extra_data[f'AS_POWER_SHUNT_VOLTAGE1'] = shunt_voltage
 			extra_data[f'AS_POWER_POWER1'] = power
 
-			allsky_shared.log(4, f'INFO: voltage {voltage}, current {current}. Bus Voltage {bus_voltage}, Shunt Voltage {shunt_voltage}, Power {power}')
+			self.log(4, f'INFO: voltage {voltage}, current {current}. Bus Voltage {bus_voltage}, Shunt Voltage {shunt_voltage}, Power {power}')
 
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f'_ina219 failed on line {eTraceback.tb_lineno} - {e}'
-			allsky_shared.log(0, f'ERROR: {result}')
+			self.log(0, f'ERROR: {result}')
 		
 		return result, extra_data
 
@@ -466,7 +466,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 		current = round(abs(current),3)
 		power = voltage * current
 
-		allsky_shared.log(4, f'INFO: Channel {channel} read, voltage {voltage}, current {current}. Bus Voltage {bus_voltage}, Shunt Voltage {shunt_voltage}, Power {power}')
+		self.log(4, f'INFO: Channel {channel} read, voltage {voltage}, current {current}. Bus Voltage {bus_voltage}, Shunt Voltage {shunt_voltage}, Power {power}')
 							
 		return voltage, current, bus_voltage, shunt_voltage, power
 
@@ -514,7 +514,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f'_ina3221 failed on line {eTraceback.tb_lineno} - {e}'
-			allsky_shared.log(0, f'ERROR: {result}')
+			self.log(0, f'ERROR: {result}')
 		
 		return result, extra_data
 
@@ -531,7 +531,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 				result = f'power module - invalid sensor type "{sensor_type}"'
 
 		allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
-		allsky_shared.log(4, f'INFO: {result}')
+		self.log(4, f'INFO: {result}')
 		return result
 				
 def power(params, event):

@@ -84,16 +84,16 @@ class ALLSKYSCRIPT(ALLSKYMODULEBASE):
 				if os.access(script, os.X_OK):
 					script_result = subprocess.run(script, text=True, capture_output=True)
 					result = f"Script {script} Executed."
-					allsky_shared.log(4, f"INFO: Script result Exit Code - {script_result.returncode} Output - {script_result.stdout}")
+					self.log(4, f"INFO: Script result Exit Code - {script_result.returncode} Output - {script_result.stdout}")
 				else:
 					result = f"Script {script} Is NOT Executeable."
-					allsky_shared.log(0, f"ERROR: {result}")
+					self.log(0, f"ERROR: {result}")
 			else:
 				result = f"Script {script} Not Found."
-				allsky_shared.log(0, f"ERROR: {result}")
+				self.log(0, f"ERROR: {result}")
 		else:
 			result = f"Script cannot be empty."
-			allsky_shared.log(0, f"ERROR: {result}")
+			self.log(0, f"ERROR: {result}")
 		
 		return result
 
