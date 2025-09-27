@@ -1,4 +1,5 @@
 adafruit-circuitpython-sht31d
+adafruit-circuitpython-sht4x
 adafruit-circuitpython-bme280
 adafruit-circuitpython-dht
 adafruit-circuitpython-htu21d

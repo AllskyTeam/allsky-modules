@@ -12,6 +12,8 @@ from platform import python_version
 from packaging import version
 from urllib.request import urlopen as url
 from git import Repo
+from gpiozero import pi_info
+import importlib.util
 
 class ALLSKYMODULEINSTALLER:
     _basePath = None
@@ -69,7 +71,7 @@ class ALLSKYMODULEINSTALLER:
                 self._moduleDirs.append((dir,"",installed))
                 self._modules.append(dir)
 
-    def _displayInstallDialog(self):        
+    def _displayInstallDialog(self):
         w = Whiptail(title='Select Modules', backtitle='AllSky Module Manager', height=20, width = 40)
         self._checkList = w.checklist('Select the Modules To Install', self._moduleDirs)[0]
 
@@ -241,6 +243,7 @@ class ALLSKYMODULEINSTALLER:
 
         return result
 
+
     def _doInstall(self):
         os.system('clear')
 
@@ -262,7 +265,8 @@ class ALLSKYMODULEINSTALLER:
                             print(f'ERROR: Module "{module}" failed to installed\n\n')
                     else:
                         print(f'ERROR: Module "{module}" failed to installed\n\n')
-    
+        self._check_gpio_status()
+        
     def _fixModuleMetaData(self, moduleData):
         
         if 'experimental' not in moduleData:
@@ -285,7 +289,7 @@ class ALLSKYMODULEINSTALLER:
 
         return moduleData
                                 
-    def _displayModuleInfoDialog(self, moduleData, installedModuleData, modulePath, module):        
+    def _displayModuleInfoDialog(self, moduleData, installedModuleData, modulePath, module):
         data = ''
         newVersion = ''
         if installedModuleData:
@@ -316,7 +320,7 @@ class ALLSKYMODULEINSTALLER:
             data += readmeText
         else:
             data += 'No readme.txt file available'
-                     
+
         data += '\n\nChangelog\n'
         data += f"{'-'*40}\n\n"
         if moduleData['changelog']:
@@ -398,83 +402,26 @@ class ALLSKYMODULEINSTALLER:
         result = 'Yes'
         try:
             url('https://www.google.com/', timeout=3)
-        except ConnectionError as e: 
+        except ConnectionError as ex: 
             result = 'No'
         
         return result
 
+    def _check_gpio_status(self):
+        pi_version = self._getPiVersion()
+        if pi_version[0] == '5':
+            print('INFO: Found the rpi.gpio module so uninstalling it\n\n')
+            subprocess.run(['pip3', 'uninstall', '-y', 'rpi.gpio'], check=False)
+        else:
+            print(f'Pi version is "{pi_version}" so not modifying gpio libraries')
+
+    def _check_pip_package_installed(self, package_name):
+        return importlib.util.find_spec(package_name) is not None
+    
     def _getPiVersion(self):
-        
-        revisions = {
-            '0000' : 'Unknown Pi',
-            '0002' : 'Model B Revision 1.0',
-            '0003' : 'Model B Revision 1.0 + ECN0001',
-            '0004' : 'Model B Revision 2.0 (256 MB)',
-            '0005' : 'Model B Revision 2.0 (256 MB)',
-            '0006' : 'Model B Revision 2.0 (256 MB)',
-            '0007' : 'Model A',
-            '0008' : 'Model A',
-            '0009' : 'Model A',
-            '000d' : 'Model B Revision 2.0 (512 MB)',
-            '000e' : 'Model B Revision 2.0 (512 MB)',
-            '000f' : 'Model B Revision 2.0 (512 MB)',
-            '0010' : 'Model B+',
-            '0013' : 'Model B+',
-            '0011' : 'Compute Module',
-            '0012' : 'Model A+',
-            'a01040' : 'Pi 2 Model B Revision 1.0 (1 GB)',
-            'a01041' : 'Pi 2 Model B Revision 1.1 (1 GB)',
-            'a02042' : 'Pi 2 Model B (with BCM2837) Revision 1.2 (1 GB)',
-            'a21041' : 'Pi 2 Model B Revision 1.1 (1 GB)',
-            'a22042' : 'Pi 2 Model B (with BCM2837) Revision 1.2 (1 GB)',
-            'a020a0' : 'Compute Module 3 Revision 1.0 (1 GB)',
-            'a220a0' : 'Compute Module 3 Revision 1.0 (1 GB)',
-            'a02100' : 'Compute Module 3+',
-            '900021' : 'Model A+ Revision 1.1 (512 MB)',
-            '900032' : 'Model B+ Revision 1.2 (512 MB)',
-            '900062' : 'Compute Module Revision 1.1 (512 MB)',
-            '900092' : 'PiZero 1.2 (512 MB)',
-            '900093' : 'PiZero 1.3 (512 MB)',
-            '9000c1' : 'PiZero W 1.1 (512 MB)',
-            '920092' : 'PiZero Revision 1.2 (512 MB)',
-            '920093' : 'PiZero Revision 1.3 (512 MB)',
-            '9020e0' : 'Pi 3 Model A+ Revision 1.0 (512 MB)',
-            'a02082' : 'Pi 3 Model B Revision 1.2 (1 GB)',
-            'a22082' : 'Pi 3 Model B Revision 1.2 (1 GB)',
-            'a32082' : 'Pi 3 Model B Revision 1.2 (1 GB)',
-            'a52082' : 'Pi 3 Model B Revision 1.2 (1 GB)',
-            'a22083' : 'Pi 3 Model B Revision 1.3 (1 GB)',
-            'a020d3' : 'Pi 3 Model B+ Revision 1.3 (1 GB)',
-            'a03111' : 'Model 4B Revision 1.1 (1 GB)',
-            'b03111' : 'Model 4B Revision 1.1 (2 GB)',
-            'c03111' : 'Model 4B Revision 1.1 (4 GB)',
-            'b03112' : 'Model 4B Revision 1.2 (2 GB)',
-            'c03112' : 'Model 4B Revision 1.2 (4 GB)',
-            'b03114' : 'Model 4B Revision 1.4 (2 GB)',
-            'c03114' : 'Model 4B Revision 1.4 (4 GB)',
-            'd03114' : 'Model 4B Revision 1.4 (8 GB)',
-            'c03115' : 'Model 4B Revision 1.5 (4 GB)',
-            'c03130' : 'Pi 400 Revision 1.0 (4 GB)',
-            'c04170' : 'Raspberry Pi 5 Model B Rev 1.0 (4 GB)',
-            'd04170' : 'Raspberry Pi 5 Model B Rev 1.0 (8 GB)'
-        }     
-        
-        revision = '0000'
-        try:
-            f = open('/proc/cpuinfo','r')
-            for line in f:
-                if line[0:8]=='Revision':
-                    length=len(line)
-                    revision = line[11:length-1]
-            f.close()
-        except:
-            revision = "0000"
-      
-        try:
-            piVersion = revisions[revision]
-        except:
-            piVersion = revisions['0000']
-        
+        info = pi_info()
+        piVersion = info.model
+
         return piVersion
                     
     def _displaySystemChecks(self):

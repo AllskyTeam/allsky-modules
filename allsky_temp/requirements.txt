@@ -4,6 +4,7 @@ adafruit-circuitpython-dht
 adafruit-circuitpython-htu21d
 adafruit-circuitpython-dht
 adafruit-circuitpython-ahtx0
+adafruit-circuitpython-sht4x
 barbudor-circuitpython-ina3221
 DS18B20dvr
 requests

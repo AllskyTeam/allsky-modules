@@ -146,7 +146,6 @@ def weatherunderground(params, event):
                                 s.saveExtraData(fileName,extraData)
                                 result = f"Data acquired and written to extra data file {fileName}"
                                 s.log(1,f"INFO: {result}")
-                                s.log(0,f"ERROR: {result}")
                             except Exception as e:
                                 result = str(e)
                                 s.log(0, f"ERROR: {result}")
