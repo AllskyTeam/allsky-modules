@@ -12,7 +12,7 @@ class ALLSKYDISCORD(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "Discord",
-		"description": "Posts to a Discord server",
+		"description": "Posts images to a Discord server",
 		"version": "v1.0.3",
 		"pythonversion": "3.9.0",
 		"centersettings": "false",

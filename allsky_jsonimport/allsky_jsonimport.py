@@ -7,7 +7,7 @@ class ALLSKYJSONIMPORT(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "Import JSON",
-		"description": "Reads data from a json web source",
+		"description": "Reads data from a json web source for use in overlays",
 		"module": "allsky_jsonimport",
 		"version": "v1.0.1",
 		"testable": "true",

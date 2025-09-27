@@ -16,7 +16,7 @@ from flatten_json import flatten
 
 metaData = {
 	"name": "Subscribes to MQTT topic and gets messages",
-	"description": "Obtains JSON payload from given MQTT topic for use in overlay manager",
+	"description": "Obtains datafrom given MQTT topic for use in overlay manager",
 	"module": "allsky_mqttsubscribe",
 	"version": "v1.0.0",
 	"centersettings": "false",

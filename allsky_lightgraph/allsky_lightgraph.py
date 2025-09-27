@@ -24,7 +24,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "Light Graph",
-		"description": "Draws a 24hrs light graph",
+		"description": "Draws a 24hrs light graph on the overlay",
 		"events": [
 			"night",
 			"day"

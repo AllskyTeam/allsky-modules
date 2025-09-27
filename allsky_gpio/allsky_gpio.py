@@ -13,7 +13,7 @@ class ALLSKYGPIO(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "Sets a GPIO Pin",
-		"description": "Sets a GPIO Pin",
+		"description": "Sets a GPIO Pin during day/night and night/day transition",
 		"version": "v1.0.0",
 		"module": "allsky_gpio",
 		"testable": "true",

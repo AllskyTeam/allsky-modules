@@ -31,7 +31,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "Environment Monitor",
-		"description": "Reads upto 3 environment sensors",
+		"description": "Obtains environment data (Temperature/Humidity) from external sensors",
 		"module": "allsky_temp",
 		"version": "v1.0.2",
 		"events": [

@@ -13,7 +13,7 @@ from adafruit_ltr390 import LTR390, MeasurementDelay, Resolution, Gain
 
 metaData = {
 	"name": "LTR390 (UV Level)",
-	"description": "Provides UV Levels",
+	"description": "Estimates UV Levels from a LTR390 sensor",
 	"module": "allsky_ltr390",
 	"version": "v1.0.2",
 	"centersettings": "false",

@@ -21,7 +21,7 @@ class ALLSKYTELESCOPEMARKER(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "Telescope postion marker",
-		"description": "Mark the current telescope postion retreived from ASCOM Remote Server in the image",
+		"description": "Obtains the current telescope postion from an ASCOM Remote Server",
 		"module": "allsky_telescopemarker",
 		"version": "v1.0.1",
 		"centersettings": "false",

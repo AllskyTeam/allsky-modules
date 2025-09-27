@@ -13,7 +13,7 @@ class ALLSKYBOILERPLATE(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "All Sky Boilerplate",
-		"description": "Example module for AllSky",
+		"description": "Example module for AllSky module developers",
 		"module": "allsky_boilerplate",
 		"version": "v1.0.3",
 		"centersettings": "false",

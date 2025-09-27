@@ -24,7 +24,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
     
 	meta_data = {
 		"name": "AllSky Solar System",
-		"description": "Produce data for Solar System objects",
+		"description": "Obtains data for Solar System objects",
 		"module": "allsky_solarsystem",
 		"version": "v1.0.1",
 		"testable": "true",

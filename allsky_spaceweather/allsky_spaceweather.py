@@ -20,7 +20,7 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "Space Weather",
-		"description": "Retrieves and processes space weather data from NOAA SWPC for use in AllSky overlays",
+		"description": "Retrieves  space weather data from NOAA SWPC",
 		"module": "allsky_spaceweather",
 		"version": "v1.0.1",
 		"centersettings": "false",

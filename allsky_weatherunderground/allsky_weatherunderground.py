@@ -17,7 +17,7 @@ class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "WeatherUnderground",
-		"description": "Gets weather data from the WeatherUnderground service",
+		"description": "Obtains weather data from WeatherUnderground",
 		"module": "allsky_weatherunderground",
 		"version": "v1.0.1",   
 		"events": [

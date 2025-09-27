@@ -22,7 +22,7 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "Sky Quality",
-		"description": "Calculates sky quality",
+		"description": "Estimates sky quality from captured images",
 		"module": "allsky_sqm",
 		"version": "v1.0.1",
 		"events": [

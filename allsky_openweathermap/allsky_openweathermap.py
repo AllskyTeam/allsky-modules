@@ -18,7 +18,7 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "Open Weather Map",
-		"description": "Gets weather data from the Open Weather Map service",
+		"description": "Obtains weather data from the Open Weather Map service",
 		"module": "allsky_openweathermap",
 		"version": "v1.0.2",
 		"centersettings": "false",

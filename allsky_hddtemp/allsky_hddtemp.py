@@ -14,7 +14,7 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "HDD Temp",
-		"description": "Provides HDD Temps",
+		"description": "Provides Disk Temperatures via S.M.A.R.T",
 		"module": "allsky_hddtemp",
 		"version": "v1.0.1",
 		"events": [
