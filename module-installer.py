@@ -233,7 +233,7 @@ class ALLSKYMODULEINSTALLER:
         data_dir = os.path.join(self._basePath, module, module.replace('allsky_', ''))
         if Path(data_dir).is_dir():
             try:
-                shutil.copytree(data_dir, self._destPath)
+                shutil.copytree(data_dir, self._destPath + "/" + module.replace('allsky_', ''))
             except FileExistsError:
                 print('Destination directory already exists.')
                 result = False
