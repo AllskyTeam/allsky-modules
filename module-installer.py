@@ -6,6 +6,8 @@ import subprocess
 import tempfile
 import re
 import smbus
+import shutil
+from pathlib import Path
 from platform import python_version
 from packaging import version
 from urllib.request import urlopen as url
@@ -22,19 +24,19 @@ class ALLSKYMODULEINSTALLER:
     _moduleDirs = []
     _modules = []
     _checkList = []
-    
+
     def __init__(self):
         self._basePath = os.path.dirname(os.path.realpath(__file__))
         self._destPath = '/opt/allsky/modules'
         self._destPathDeps = os.path.join(self._destPath,'dependencies')
         self._destPathInfo = os.path.join(self._destPath,'info')
-    
+
     def _checkInstalled(self, path):
         if os.path.exists(path):
             return True
         else:
             return False 
-        
+
     def _preChecks(self):
         result = True
         
@@ -56,7 +58,7 @@ class ALLSKYMODULEINSTALLER:
                 result = False
                         
         return result  
-    
+
     def _readModules(self):
         self._moduleDirs = [] 
         dirs = os.listdir()
@@ -72,7 +74,7 @@ class ALLSKYMODULEINSTALLER:
     def _displayInstallDialog(self):
         w = Whiptail(title='Select Modules', backtitle='AllSky Module Manager', height=20, width = 40)
         self._checkList = w.checklist('Select the Modules To Install', self._moduleDirs)[0]
-        
+
     def _getModuleData(self, module):
         modulePath = os.path.join(self._basePath, module)
         scriptPath = os.path.join(self._basePath, module, module + '.py')
@@ -110,7 +112,7 @@ class ALLSKYMODULEINSTALLER:
         moduleData = self._fixModuleMetaData(moduleData)
         
         return moduleData
-    
+
     def _checkPythonVersion(self, moduleData):
         result = True
         if moduleData is not None:
@@ -202,24 +204,49 @@ class ALLSKYMODULEINSTALLER:
                 failed = f'Could not set permissions on {installedPath}\n\n'
                 result = False
         else:
-            failed = f'Could not copy module from {self._scriptPath} to {self._destPath}\n\n'
+            failed = f'Could not copy module from {scriptPath} to {self._destPath}\n\n'
             result = False
-        
+
         if result:
             infoPath = os.path.join(modulePath, 'readme.txt')
             if os.path.exists(infoPath):
                 packageInfoPath = os.path.join(self._destPathInfo,module)
                 if not os.path.isdir(packageInfoPath):
                     os.makedirs(packageInfoPath, mode = 0o777, exist_ok = True)
-                            
+
                 cmd = f'cp {infoPath} {packageInfoPath}'
                 os.system(cmd)
-            
+
+            infoPath = os.path.join(modulePath, 'README.md')
+            if os.path.exists(infoPath):
+                packageInfoPath = os.path.join(self._destPathInfo,module)
+                if not os.path.isdir(packageInfoPath):
+                    os.makedirs(packageInfoPath, mode = 0o777, exist_ok = True)
+
+                cmd = f'cp {infoPath} {packageInfoPath}'
+                os.system(cmd)
+                
         return result
+
+    def _install_module_data(self, module):
+        result = True
+        data_dir = os.path.join(self._basePath, module, module.replace('allsky_', ''))
+        if Path(data_dir).is_dir():
+            try:
+                shutil.copytree(data_dir, self._destPath)
+            except FileExistsError:
+                print('Destination directory already exists.')
+                result = False
+            except Exception as exception:
+                print(f'Error occurred: {exception}')
+                result = False
+
+        return result
+
 
     def _doInstall(self):
         os.system('clear')
-        
+
         if not os.path.isdir(self._destPathDeps):
             os.mkdir(self._destPathDeps)
 
@@ -232,7 +259,10 @@ class ALLSKYMODULEINSTALLER:
             if self._checkPythonVersion(moduleData):
                 if self._installDependencies(module, modulePath):
                     if self._installModule(module, scriptPath, installedPath, modulePath):
-                        print(f'SUCCESS: Module "{module}" installed\n\n')
+                        if self._install_module_data(module):
+                            print(f'SUCCESS: Module "{module}" installed\n\n')
+                        else:
+                            print(f'ERROR: Module "{module}" failed to installed\n\n')
                     else:
                         print(f'ERROR: Module "{module}" failed to installed\n\n')
         self._check_gpio_status()
