@@ -185,7 +185,7 @@ class ALLSKYRAIN(ALLSKYMODULEBASE):
 						extra_data['AS_ALLSKYRAINFLAG'] = rain_flag
 						extra_data['AS_ALLSKYRAINFLAGINT'] = int(bool(rain_flag))
       
-						allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+						allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 
 						result = f'Rain State: Its {result_state}'
 						self.log(1, f'INFO: {result}')

@@ -3174,7 +3174,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						if co2 is not None:
 							extra_data["AS_CO2" + sensor_number] = co2       
 			if extra_data:
-				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 
 		else:
 			result = 'Will run in {:.2f} seconds'.format(self._run_interval - diff)

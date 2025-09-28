@@ -542,7 +542,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 					extra_data = {}
 					extra_data['AS_LIGHTLUX'] = lux
 					extra_data['AS_LIGHTBORTLE'] = bortle
-					allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+					allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 
 					result = f'Lux {lux}, Bortle {bortle}'
 					self.log(4, f"INFO: {result}")		

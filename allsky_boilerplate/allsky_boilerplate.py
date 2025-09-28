@@ -342,7 +342,7 @@ class ALLSKYBOILERPLATE(ALLSKYMODULEBASE):
 
 		extraData = {}
 		extraData["AS_BOILERPLATE_VALUE"] = result
-		allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extraData, self.meta_data['module'], self.meta_data['extradata'])
+		allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extraData, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 		return result
   
   

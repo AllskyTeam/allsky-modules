@@ -283,7 +283,7 @@ class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
 							wu = WUndergroundAPI(api_key=api_key, default_station_id=station_id, units=unit)
 							response = wu.current()['observations'][0]
 							self._process_result(requested_units, response)
-							allsky_shared.saveExtraData(self.meta_data['extradatafilename'], self._extra_data, self.meta_data['module'], self.meta_data['extradata'])
+							allsky_shared.saveExtraData(self.meta_data['extradatafilename'], self._extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 							result = f"Data acquired and written to extra data file {self.meta_data['extradatafilename']}"
 							self.log(4, f'INFO: {result}')
 						except Exception as e:

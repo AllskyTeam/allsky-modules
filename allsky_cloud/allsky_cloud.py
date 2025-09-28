@@ -319,7 +319,7 @@ class ALLSKYCLOUD(ALLSKYMODULEBASE):
 			extra_data['AS_CLOUDSKY'] = sky_object
 			extra_data['AS_CLOUDCOVER'] = cloud_cover
 			extra_data['AS_CLOUDCOVERPERCENT'] = percentage
-			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 
 			result = f'Cloud state - {cloud_cover} {percentage}%. Sky Temp {sky_object}, Ambient {sky_ambient}'
 			self.log(1, f'INFO: {result}')

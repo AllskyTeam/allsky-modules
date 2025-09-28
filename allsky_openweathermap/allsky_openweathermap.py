@@ -370,7 +370,7 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 							if response.status_code == 200:
 								raw_data = response.json()
 								self._process_result(raw_data, expire, requested_units)
-								allsky_shared.saveExtraData(self.meta_data['extradatafilename'], self._extra_data, self.meta_data['module'], self.meta_data['extradata'])
+								allsky_shared.saveExtraData(self.meta_data['extradatafilename'], self._extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 								result = f"Data acquired and written to extra data file {self.meta_data['extradatafilename']}"
 								self.log(1, f'INFO: {result}')
 							else:

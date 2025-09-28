@@ -1659,7 +1659,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			extra_data['AS_DEWCONTROLDEW'] = 0
 			extra_data['AS_DEWCONTROLHUMIDITY'] = 0
 			extra_data['AS_DEWCONTROLHEATER'] = 'Disabled'
-			allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+			allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 				
 			result = 'Dew control disabled during the day'
 			self.log(1, f"INFO: {result}")

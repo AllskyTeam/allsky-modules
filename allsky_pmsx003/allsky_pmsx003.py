@@ -346,7 +346,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 		
 			extra_data['AS_AQI'] = air_quality_index
 			extra_data['AS_AQI_TEXT'] = air_quality_index_text
-			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 			result = f'Sensor Data read and written the the {self.meta_data["extradatafilename"]} extra data file'
 			self.log(4, f'INFO: {result}')
 		except PmsSensorException:

@@ -936,7 +936,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 									self.__add_warning('excluded', aircraft["flight"])
 							result = f'Wrote {counter} aircraft to extra data file allskyadsb.json'
 							extra_data['AS_TOTAL_AIRCRAFT'] = counter-1
-							allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+							allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 							allsky_shared.setLastRun(module)
 							self.log(4,f'INFO: {result}')
 						else:

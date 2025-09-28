@@ -409,7 +409,7 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 						if self.debug_mode:
 							self.log(4, result)
 							
-						allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+						allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 
 					else:
 						self.log(4, f'ERROR: No temperature data (S.M.A.R.T 194) available for {name}')

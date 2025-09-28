@@ -335,5 +335,5 @@ def raindetector(params, event):
         "AS_YOLORAINDETECTED": {"value": overlay_data["YOLO_RAINDROP_DETECTED"], "expires": 7200},
         "AS_YOLOFIRSTDROP": {"value": overlay_data["YOLO_FIRST_RAINDROP_TIME"], "expires": 7200}
     }
-    s.saveExtraData("yolo_rain.json", extraData)
+    s.saveExtraData("yolo_rain.json", extraData, event=self.event)
     print("NCNN inference complete.")

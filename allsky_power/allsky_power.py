@@ -530,7 +530,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 			else:
 				result = f'power module - invalid sensor type "{sensor_type}"'
 
-		allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+		allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 		self.log(4, f'INFO: {result}')
 		return result
 				

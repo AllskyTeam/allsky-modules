@@ -450,7 +450,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 						self.log(1, f'ERROR: {result}') 
 						break                    
 			
-				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 				allsky_shared.setLastRun('pigps')
    
 			except Exception as e:

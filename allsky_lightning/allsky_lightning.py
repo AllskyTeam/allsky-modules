@@ -244,7 +244,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 					extra_data['AS_LIGHTNING_LAST'] = last_strike_time
 					extra_data['AS_LIGHTNING_DIST'] = distance_to_storm    
 					extra_data['AS_LIGHTNING_ENERGY'] = lightning_energy    
-					allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+					allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 		
 					allsky_shared.dbUpdate('allsky_lightning_strike_counter', count)
 					allsky_shared.dbUpdate('allsky_lightning_last_strike', last_strike_time)    
@@ -264,7 +264,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 					extra_data['AS_LIGHTNING_LAST'] = last_strike_time
 					extra_data['AS_LIGHTNING_DIST'] = 0    
 					extra_data['AS_LIGHTNING_ENERGY'] = 0    
-					allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+					allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
        
 		else:
 			result = 'Lightning Detector does not appear to be connected. Please check wiring.'

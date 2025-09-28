@@ -106,7 +106,7 @@ class ALLSKYJSONIMPORT(ALLSKYMODULEBASE):
 				result = f'An unexpected error occurred: {json_exception}'
 				self.log(0,f'ERROR: {result}')
 
-			allsky_shared.saveExtraData(extra_data_filename, extra_data, self.meta_data['module'])
+			allsky_shared.saveExtraData(extra_data_filename, extra_data, self.meta_data['module'], event=self.event)
 			
 			allsky_shared.setLastRun(self.meta_data['module'])
 		else:

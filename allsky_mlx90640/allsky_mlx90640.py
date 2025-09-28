@@ -272,7 +272,7 @@ class ALLSKYMLX90640(ALLSKYMODULEBASE):
 			'AS_MLX906040MAX': float(max_temp)
 		}
 
-		allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+		allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 
 	def run(self):
 		self._get_image()

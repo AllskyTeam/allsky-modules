@@ -974,7 +974,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				self.log(4,f'INFO: FAN {fan_number} skipped as its disabled')
 
 		if extra_data:
-			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 
 		return result
 

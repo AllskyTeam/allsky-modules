@@ -239,7 +239,7 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 			self.log(1, f'INFO: {result}')
 
 		extra_data['AS_SQM'] = sqm
-		allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+		allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 
 		return result
 

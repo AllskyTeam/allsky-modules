@@ -473,7 +473,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 
 	def _saveExtraData(self):
 		self.log(4, f'INFO: Saving {self.meta_data["extradatafilename"]}')
-		allsky_shared.saveExtraData(self.meta_data['extradatafilename'], self._extra_data, self.meta_data["module"], self.meta_data["extradata"], self._custom_fields)
+		allsky_shared.saveExtraData(self.meta_data['extradatafilename'], self._extra_data, self.meta_data["module"], self.meta_data["extradata"], self._custom_fields, event=self.event)
 
 	def _convert_ephem_date(self, ephem_date):
 		date_tuple = ephem_date.tuple()
