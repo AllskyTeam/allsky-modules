@@ -200,7 +200,14 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 			"database": {
 				"enabled": "True",
 				"table": "allsky_hddtemp",
-				"include_all": "true"
+				"include_all": "true",
+       			"time_of_day_save": {
+					"day": "always",
+					"night": "always",
+					"nightday": "always",
+					"daynight": "always",
+					"periodic": "always"
+				}    
 			},   
 			"values": {
 				"AS_HDDSDATEMP": {

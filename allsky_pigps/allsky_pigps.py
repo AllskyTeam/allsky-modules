@@ -83,7 +83,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 					"night": "enabled",
 					"nightday": "always",
 					"daynight": "always",
-					"periodic": "enabled"
+					"periodic": "always"
 				}    
 			},      
 			"values": {
