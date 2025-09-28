@@ -20,18 +20,65 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 	meta_data = {
 		"name": "AllSKY GPS",
 		"description": "Sets date/time and position from an attached GPS",
-		"version": "v1.0.0",
-		"module": "allsky_gps", 
+		"version": "v2.0.0",
+		"module": "allsky_pigps", 
 		"centersettings": "false",
 		"testable": "true",
 		"group": "Data Sensor", 
 		"events": [
-			"day",
-			"night",
 			"periodic"
 		],
-		"extradatafilename": "allsky_gps.json", 
+		"extradatafilename": "allsky_gps.json",
+        "graphs": {
+            "chart1": {
+				"icon": "fa-solid fa-chart-line",
+				"title": "GPS Status",
+				"group": "Environment",    
+				"main": "true",    
+				"config": {
+					"chart": {
+						"type": "spline",
+						"animation": "false",
+						"zooming": {
+							"type": "x"
+						}
+					},
+					"plotOptions": {
+						"series": {
+							"animation": "false"
+						}
+					},
+					"title": {
+						"text": "GPS Fix"
+					},
+					"xAxis": {
+						"type": "datetime",
+						"dateTimeLabelFormats": {
+							"day": "%Y-%m-%d",
+							"hour": "%H:%M"
+						}
+					},
+					"yAxis": [
+						{ 
+							"title": {
+								"text": "Fix"
+							} 
+						}
+					]
+				},
+				"series": {
+					"gpsfix": {
+						"name": "Fix",
+						"variable": "AS_PIGPSFIXBOOL"
+					}
+				}
+			}
+        },  
 		"extradata": {
+			"database": {
+				"enabled": "True",
+				"table": "allsky_gps"
+			},      
 			"values": {
 				"AS_PIGPSFIXDISC": {
 					"name": "${PIGPSFIXDISC}",
@@ -47,7 +94,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 					"sample": "",                
 					"group": "GPS",
 					"description": "GPS Latitude",
-					"type": "latitude"
+					"type": "latitude"  
 				},
 				"AS_PIGPSLON": {
 					"name": "${PIGPSLON}",
@@ -55,7 +102,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 					"sample": "",                
 					"group": "GPS",
 					"description": "GPS Longitude",
-					"type": "longitude"
+					"type": "longitude"    
 				},
 				"AS_PIGPSFIX": {
 					"name": "${PIGPSFIX}",
@@ -63,8 +110,19 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 					"sample": "",                
 					"group": "GPS",
 					"description": "GPS Fix",
-					"type": "bool"
-				}                               
+					"type": "string"      
+				},
+				"AS_PIGPSFIXBOOL": {
+					"name": "${PIGPSFIXBOOL}",
+					"format": "",
+					"sample": "",                
+					"group": "GPS",
+					"description": "GPS Fix",
+					"type": "number",
+					"database": {
+						"include" : "true"
+					}       
+				}
 			}                         
 		},
 		"arguments":{
@@ -148,7 +206,14 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 					"max": 10000,
 					"step": 1
 				}          
-			}                           
+			},
+			"graph": {
+				"required": "false",
+				"tab": "History",
+				"type": {
+					"fieldtype": "graph"
+				}
+			}                              
 		},
 		"changelog": {
 			"v1.0.0" : [
@@ -157,7 +222,14 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 					"authorurl": "https://github.com/allskyteam",
 					"changes": "Initial Release"
 				}
-			]                              
+			],
+			"v2.0.0" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Updates for new module system"
+				}
+			]      
 		}         
 	}
 
@@ -250,6 +322,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 				'value': 'No',
 				'fill': "#ff0000"
 			},
+   			'AS_PIGPSFIXBOOL': 0,
 			'AS_PIGPSTIME': 'Disabled',
 			'AS_PIGPSUTC': '',
 			'AS_PIGPSLOCAL': '',
@@ -360,10 +433,9 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 									
 								extra_data['AS_PIGPSLAT'] = strLat
 								extra_data['AS_PIGPSLON'] = strLon
-								#extra_data['AS_PIGPSLAT'] = self._deg_to_dms(lat, 'lat')
-								#extra_data['AS_PIGPSLON'] = self._deg_to_dms(lon, 'lon')
 								extra_data['AS_PIGPSFIX']['value'] = 'Yes'
 								extra_data['AS_PIGPSFIX']['fill'] = '#00ff00'
+								extra_data['AS_PIGPSFIXBOOL'] = 1
 								break
 							else:
 								self.log(4, 'INFO: No GPS Fix. gpsd returned 0 for both lat and lon')
@@ -371,6 +443,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 						else:
 							extra_data['AS_PIGPSFIX']['value'] = 'No'
 							extra_data['AS_PIGPSFIX']['fill'] = '#ff0000'
+							extra_data['AS_PIGPSFIXBOOL'] = 0
                   
 					if time.time() > timeout:
 						result = 'No position returned from gpsd'
