@@ -29,7 +29,73 @@ class ALLSKYMLX90640(ALLSKYMODULEBASE):
 		"version": "v1.0.2",
 		"extradatafilename": "allsky_mlx906040.json",
 		"group": "Data Sensor",
+		"graphs": {
+			"chart1": {
+				"icon": "fa-solid fa-chart-line",
+				"title": "IR Temperatures",
+				"group": "Environment",
+				"main": "true",
+				"config": {
+					"chart": {
+						"type": "spline",
+						"zooming": {
+							"type": "x"
+						}
+					},
+					"title": {
+						"text": "Temperatures"
+					},
+					"xAxis": {
+						"type": "datetime",
+						"dateTimeLabelFormats": {
+							"day": "%Y-%m-%d",
+							"hour": "%H:%M"
+						}
+					},
+					"yAxis": [
+						{ 
+							"title": {
+								"text": "Min Temperature"
+							} 
+						},
+						{
+							"title": { 
+								"text": "Max Temperature"
+							}, 
+							"opposite": "true"
+						}
+					],
+					"lang": {
+						"noData": "No data available"
+					},
+					"noData": {
+						"style": {
+							"fontWeight": "bold",
+							"fontSize": "16px",
+							"color": "#666"
+						}
+					}
+				},
+				"series": {
+					"exposure": {
+						"name": "Min Temperature",
+						"yAxis": 0,
+						"variable": "AS_MLX906040MIN"                 
+					},
+					"gain": {
+						"name": "Max Temperature",
+						"yAxis": 0,
+						"variable": "AS_MLX906040MAX"
+					}               
+				}
+			}
+		},  
 		"extradata": {
+			"database": {
+				"enabled": "True",
+				"table": "allsky_ir",
+				"include_all": "true"
+			},       
 			"values": {
 				"AS_MLX906040MIN": {
 					"name": "${MLX906040MIN}",
@@ -95,7 +161,14 @@ class ALLSKYMLX90640(ALLSKYMODULEBASE):
 				"help": "Log data and images. **WARNING** This will require a lot of additional disk space",
 				"tab": "Logging",
 				"type": {"fieldtype": "checkbox"}
-			}
+			},
+			"graph": {
+				"required": "false",
+				"tab": "History",
+				"type": {
+					"fieldtype": "graph"
+				}
+			}   
 		},
 		"enabled": "false",
 		"changelog": {

@@ -285,7 +285,14 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 						"LTR390"
 					]
 				}               
-			}  
+			},
+			"graph": {
+				"required": "false",
+				"tab": "History",
+				"type": {
+					"fieldtype": "graph"
+				}
+			}   
 		},
 		"enabled": "false",
 		"businfo": [
