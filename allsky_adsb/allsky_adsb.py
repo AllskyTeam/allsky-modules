@@ -83,14 +83,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 		"extradata": {
 			"database": {
 				"enabled": "True",
-				"table": "allsky_adsb",
-       			"time_of_day_save": {
-					"day": "always",
-					"night": "always",
-					"nightday": "always",
-					"daynight": "always",
-					"periodic": "always"
-				}    
+				"table": "allsky_adsb"   
 			},      
 			"info": {
 				"count": 20,

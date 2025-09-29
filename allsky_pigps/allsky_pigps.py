@@ -77,14 +77,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 		"extradata": {
 			"database": {
 				"enabled": "True",
-				"table": "allsky_gps",
-       			"time_of_day_save": {
-					"day": "enabled",
-					"night": "enabled",
-					"nightday": "always",
-					"daynight": "always",
-					"periodic": "always"
-				}    
+				"table": "allsky_gps" 
 			},      
 			"values": {
 				"AS_PIGPSFIXDISC": {
