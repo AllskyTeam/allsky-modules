@@ -1,0 +1,15 @@
+{
+    "icon": "fas fa-chart-line",
+    "group": "Environment",
+    "title": "Lux level",
+    "type": "line",
+    "main": true,    
+    "table": "allsky_light",     
+    "series": {
+        "exposure": {
+            "name": "Lux Level",
+            "yAxis": 0,
+            "variable": "AS_LIGHTLUX"
+        }
+    }
+}

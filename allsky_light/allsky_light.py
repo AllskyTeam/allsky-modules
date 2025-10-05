@@ -33,79 +33,13 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 		"experimental": "false",
 		"extradatafilename": "allsky_light.json",
 		"group": "Data Sensor",
-		"graphs": {
-			"chart1": {
-				"icon": "fa-solid fa-chart-line",
-				"title": "Light",
-				"group": "Environment",
-				"main": "true",
-				"config": {
-					"chart": {
-						"type": "spline",
-						"zooming": {
-							"type": "x"
-						}
-					},
-					"title": {
-						"text": "Light"
-					},
-					"xAxis": {
-						"type": "datetime",
-						"dateTimeLabelFormats": {
-							"day": "%Y-%m-%d",
-							"hour": "%H:%M"
-						}
-					},
-					"yAxis": [
-						{ 
-							"title": {
-								"text": "LUX level"
-							} 
-						},
-						{
-							"title": { 
-								"text": "Bortle"
-							}, 
-							"opposite": "true"
-						}
-					],
-					"lang": {
-						"noData": "No data available"
-					},
-					"noData": {
-						"style": {
-							"fontWeight": "bold",
-							"fontSize": "16px",
-							"color": "#666"
-						}
-					}
-				},
-				"series": {
-					"exposure": {
-						"name": "LUX level",
-						"yAxis": 0,
-						"variable": "AS_LIGHTLUX"                 
-					},
-					"gain": {
-						"name": "Bortle",
-						"yAxis": 1,
-						"variable": "AS_LIGHTBORTLE"
-					}               
-				}
-			}
-		}, 
 		"extradata": {
 			"database": {
 				"enabled": "True",
 				"table": "allsky_light",
-				"include_all": "true",
-       			"time_of_day_save": {
-					"day": "always",
-					"night": "always",
-					"nightday": "always",
-					"daynight": "always",
-					"periodic": "always"
-				}    
+    			"pk": "id",
+    			"pk_type": "int",    
+				"include_all": "true"
 			}, 
 			"values": {
 				"AS_LIGHTLUX": {
@@ -549,7 +483,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 					extra_data = {}
 					extra_data['AS_LIGHTLUX'] = lux
 					extra_data['AS_LIGHTBORTLE'] = bortle
-					allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
+					allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 
 					result = f'Lux {lux}, Bortle {bortle}'
 					self.log(4, f"INFO: {result}")		

@@ -34,253 +34,12 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		"experimental": "false",
 		"extradatafilename": "allsky_fans.json",
 		"group": "Environment Control",
-        "graphs": {
-			"chart1": {
-				"icon": "fas fa-chart-line",
-				"title": "Fan Speed",
-				"group": "Hardware",
-				"main": "true",    
-				"config": {
-					"chart": {
-						"type": "spline",
-						"zooming": {
-							"type": "x"
-						}
-					},
-					"title": {
-						"text": "Fans"
-					},
-					"xAxis": {
-						"type": "datetime",
-						"dateTimeLabelFormats": {
-							"day": "%Y-%m-%d",
-							"hour": "%H:%M"
-						}
-					},
-					"plotOptions": {
-						"series": {
-							"animation": "false"
-						}
-					},
-					"yAxis": [
-						{ 
-							"title": {
-								"text": "Fan Speed"
-							} 
-						}
-					]
-				},
-				"series": {
-					"fan1speed": {
-						"name": "Fan 1",
-						"yAxis": 0,
-						"variable": "AS_FANS_PWM_DUTY_CYCLE1"                 
-					},
-					"fan2speed": {
-						"name": "Fan 2",
-						"yAxis": 0,
-						"variable": "AS_FANS_PWM_DUTY_CYCLE2"
-					}               
-				}
-			},
-            "guage1": {
-				"icon": "fa-solid fa-gauge",
-				"title": "Fan 1 Speed",
-				"group": "Hardware",
-				"type": "gauge",
-				"config": {
-					"chart": {
-						"type": "gauge",
-						"plotBorderWidth": 0,
-						"height": "50%",
-						"plotBackgroundColor": "",
-						"plotBackgroundImage": ""
-					},
-					"title": {
-						"text": "Fan 1 Speed"
-					},
-					"pane": {
-						"startAngle": -90,
-						"endAngle": 89.9,
-						"center": ["50%", "75%"],
-						"size": "110%",
-						"background": ""
-					},
-					"plotOptions": {
-						"series": {
-							"animation": "false"
-						}
-					},
-					"lang": {
-						"noData": "No data available"
-					},
-					"noData": {
-						"style": {
-							"fontWeight": "bold",
-							"fontSize": "16px",
-							"color": "#666"
-						}
-					},
-					"yAxis": {
-						"min": 0,
-						"max": 100,
-						"tickPixelInterval": 72,
-						"tickPosition": "inside",
-						"tickColor": "#FFFFFF",
-						"tickLength": 20,
-						"tickWidth": 2,
-						"labels": {
-							"distance": 20,
-							"style": {
-								"fontSize": "14px"
-							}
-						},
-						"lineWidth": 0,
-						"plotBands": [{
-							"from": 0,
-							"to": 70,
-							"color": "#55BF3B",
-							"thickness": 20
-						}, {
-							"from": 60,
-							"to": 80,
-							"color": "#DDDF0D",
-							"thickness": 20
-						}, {
-							"from": 80,
-							"to": 100,
-							"color": "#DF5353",
-							"thickness": 20
-						}]
-					},
-					"series": [{
-						"name": "Speed",
-						"data": "AS_FANS_PWM_DUTY_CYCLE1",
-						"tooltip": {
-							"valueSuffix": " %"
-						},
-						"dataLabels": {
-							"format": "{y} %",
-							"borderWidth": 0,
-							"color": "#333333",
-							"style": {
-								"fontSize": "16px"
-							}
-						},
-					"plotOptions": {
-						"series": {
-							"animation": "false"
-						}
-					},
-						"dial": {
-							"radius": "80%",
-							"backgroundColor": "gray",
-							"baseWidth": 12,
-							"baseLength": "0%",
-							"rearLength": "0%"
-						},
-						"pivot": {
-							"backgroundColor": "gray",
-							"radius": 6
-						}
-
-					}]        
-				}            
-            },
-            "guage2": {
-				"icon": "fa-solid fa-gauge",
-				"title": "Fan 2 Speed",
-				"group": "Hardware",
-				"type": "gauge",
-				"config": {
-					"chart": {
-						"type": "gauge",
-						"plotBorderWidth": 0,
-						"height": "50%",
-						"plotBackgroundColor": "",
-						"plotBackgroundImage": ""
-					},
-					"title": {
-						"text": "Fan 2 Speed"
-					},
-					"pane": {
-						"startAngle": -90,
-						"endAngle": 89.9,
-						"center": ["50%", "75%"],
-						"size": "110%",
-						"background": ""
-					},
-					"plotOptions": {
-						"series": {
-							"animation": "false"
-						}
-					},
-					"yAxis": {
-						"min": 0,
-						"max": 100,
-						"tickPixelInterval": 72,
-						"tickPosition": "inside",
-						"tickColor": "#FFFFFF",
-						"tickLength": 20,
-						"tickWidth": 2,
-						"labels": {
-							"distance": 20,
-							"style": {
-								"fontSize": "14px"
-							}
-						},
-						"lineWidth": 0,
-						"plotBands": [{
-							"from": 0,
-							"to": 70,
-							"color": "#55BF3B",
-							"thickness": 20
-						}, {
-							"from": 60,
-							"to": 80,
-							"color": "#DDDF0D",
-							"thickness": 20
-						}, {
-							"from": 80,
-							"to": 100,
-							"color": "#DF5353",
-							"thickness": 20
-						}]
-					},
-					"series": [{
-						"name": "Speed",
-						"data": "AS_FANS_PWM_DUTY_CYCLE2",
-						"tooltip": {
-							"valueSuffix": " %"
-						},
-						"dataLabels": {
-							"format": "{y} %",
-							"borderWidth": 0,
-							"color": "#333333",
-							"style": {
-								"fontSize": "16px"
-							}
-						},
-						"dial": {
-							"radius": "80%",
-							"backgroundColor": "gray",
-							"baseWidth": 12,
-							"baseLength": "0%",
-							"rearLength": "0%"
-						},
-						"pivot": {
-							"backgroundColor": "gray",
-							"radius": 6
-						}
-
-					}]        
-				}            
-            }
-		},
 		"extradata": {
 			"database": {
 				"enabled": "True",
 				"table": "allsky_fans",
+    			"pk": "id",
+    			"pk_type": "int",    
 				"include_all": "true",
        			"time_of_day_save": {
 					"day": "always",
@@ -347,6 +106,14 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					"description": "Fan 1 PWM Duty Cycle",
 					"type": "number"
 				},
+				"AS_FANS_PWM_DUTY_PERCENT1": {
+					"name": "${AS_FANS_PWM_DUTY_PERCENT1}",
+					"format": "",
+					"sample": "",                 
+					"group": "Fan",
+					"description": "Fan 1 PWM Duty Cycle %",
+					"type": "number"
+				},
 				"AS_FANS_ENABLE2": {
 					"name": "${FANS_ENABLE2}",
 					"format": "{yesno}",
@@ -401,6 +168,14 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Fan",
 					"description": "Fan 2 PWM Duty Cycle",
+					"type": "number"
+				},
+				"AS_FANS_PWM_DUTY_PERCENT2": {
+					"name": "${AS_FANS_PWM_DUTY_PERCENT2}",
+					"format": "",
+					"sample": "",                 
+					"group": "Fan",
+					"description": "Fan 2 PWM Duty Cycle %",
 					"type": "number"
 				}
 			}
@@ -876,6 +651,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		result = ''
 		pwm_enabled = 0
 		pwm_duty_cycle = 0
+		duty_percent = 0
 		error = False
 		status = False
 
@@ -910,7 +686,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			self.log(0, f'ERROR: {result}')      
 			error = True 
 
-		return result, pwm_duty_cycle, pwm_enabled, error, status
+		return result, pwm_duty_cycle, pwm_enabled, error, status, duty_percent
 		
 	def run(self):
 		result = ''
@@ -946,7 +722,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 
 							if self._temperature is not None:
 								if use_pwm:
-									result, pwm_duty_cycle, pwm_enabled, error, fan_status = self._use_pwm_fan_control(fan_number)
+									result, pwm_duty_cycle, pwm_enabled, error, fan_status, duty_percent = self._use_pwm_fan_control(fan_number)
 								else:
 									result, error, fan_status = self._use_bool_fan_control(fan_number)
 
@@ -958,8 +734,10 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 									if use_pwm:
 										extra_data[f'AS_FANS_PWM_ENABLED{fan_number}'] = True if pwm_enabled == 1 else False
 										extra_data[f'AS_FANS_PWM_DUTY_CYCLE{fan_number}'] = pwm_duty_cycle
+										extra_data[f'AS_FANS_PWM_DUTY_PERCENT{fan_number}'] = duty_percent
 									else:
 										extra_data[f'AS_FANS_PWM_DUTY_CYCLE{fan_number}'] = 100
+										extra_data[f'AS_FANS_PWM_DUTY_PERCENT{fan_number}'] = 100
 
 								allsky_shared.setLastRun(run_code)
 							else:

@@ -1,0 +1,65 @@
+{
+    "title": "Bortle",
+    "icon": "fa-solid fa-gauge",
+    "type": "gauge",
+    "group": "Environment",
+    "table": "allsky_light",
+    "hc": {
+        "yAxis": [
+            {
+                "min": 0,
+                "max": 9,
+                "tickInterval": 1,
+                "tickPosition": "inside",
+                "lineWidth": 0,
+                "labels": {
+                    "distance": 20,
+                    "style": {
+                        "fontSize": "12px"
+                    }
+                },
+                "plotBands": [
+                    {
+                        "from": 0,
+                        "to": 200,
+                        "color": "#2ecc71",
+                        "thickness": 30
+                    }
+                ]
+            }
+        ],
+        "pane": {
+            "startAngle": -90,
+            "endAngle": 90,
+            "center": [
+                "50%",
+                "75%"
+            ],
+            "size": "110%",
+            "background": null
+        }
+    },
+    "series": [
+        {
+            "name": "Bortle",
+            "variable": "AS_LIGHTBORTLE",
+            "options": {
+                "tooltip": {
+                    "valueSuffix": ""
+                },
+                "dataLabels": {
+                    "format": "{y}"
+                },
+                "dial": {
+                    "radius": "80%",
+                    "baseWidth": 16,
+                    "baseLength": "0%",
+                    "rearLength": "0%"
+                },
+                "pivot": {
+                    "radius": 8
+                }
+            }
+        }
+    ]
+}

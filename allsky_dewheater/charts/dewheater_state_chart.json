@@ -1,0 +1,21 @@
+{
+    "icon": "fas fa-chart-line",
+    "group": "Environment",
+    "title": "Dew Heater State",
+    "type": "line",
+    "table": "allsky_dewheater",
+    "yAxis": [
+        {
+            "title": {
+                "text": "Status"
+            }
+        }
+    ],
+    "series": [
+        {
+            "name": "Status",
+            "yAxis": 0,
+            "variable": "AS_DEWCONTROLPWMPERCENT"
+        }
+    ]
+}

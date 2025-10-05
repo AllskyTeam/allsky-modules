@@ -1,0 +1,33 @@
+{
+    "icon": "fas fa-chart-line",
+    "group": "Environment",
+    "title": "Dew Heater Temp/Humidity",
+    "type": "line",
+    "table": "allsky_dewheater",
+    "main": true,
+    "yAxis": [
+        {
+            "title": {
+                "text": "Temperature"
+            }
+        },
+        {
+            "title": {
+                "text": "Humidity"
+            },
+            "opposite": true
+        }
+    ],
+    "series": [
+        {
+            "name": "Temperature",
+            "yAxis": 0,
+            "variable": "AS_DEWCONTROLAMBIENT"
+        },
+        {
+            "name": "Humidity",
+            "yAxis": 1,
+            "variable": "AS_DEWCONTROLHUMIDITY"
+        }
+    ]
+}

@@ -28,80 +28,14 @@ class ALLSKYMLX90640(ALLSKYMODULEBASE):
 		"centersettings": "false",
 		"version": "v1.0.2",
 		"extradatafilename": "allsky_mlx906040.json",
-		"group": "Data Sensor",
-		"graphs": {
-			"chart1": {
-				"icon": "fa-solid fa-chart-line",
-				"title": "IR Temperatures",
-				"group": "Environment",
-				"main": "true",
-				"config": {
-					"chart": {
-						"type": "spline",
-						"zooming": {
-							"type": "x"
-						}
-					},
-					"title": {
-						"text": "Temperatures"
-					},
-					"xAxis": {
-						"type": "datetime",
-						"dateTimeLabelFormats": {
-							"day": "%Y-%m-%d",
-							"hour": "%H:%M"
-						}
-					},
-					"yAxis": [
-						{ 
-							"title": {
-								"text": "Min Temperature"
-							} 
-						},
-						{
-							"title": { 
-								"text": "Max Temperature"
-							}, 
-							"opposite": "true"
-						}
-					],
-					"lang": {
-						"noData": "No data available"
-					},
-					"noData": {
-						"style": {
-							"fontWeight": "bold",
-							"fontSize": "16px",
-							"color": "#666"
-						}
-					}
-				},
-				"series": {
-					"exposure": {
-						"name": "Min Temperature",
-						"yAxis": 0,
-						"variable": "AS_MLX906040MIN"                 
-					},
-					"gain": {
-						"name": "Max Temperature",
-						"yAxis": 0,
-						"variable": "AS_MLX906040MAX"
-					}               
-				}
-			}
-		},  
+		"group": "Data Sensor",  
 		"extradata": {
 			"database": {
 				"enabled": "True",
 				"table": "allsky_ir",
-				"include_all": "true",
-       			"time_of_day_save": {
-					"day": "always",
-					"night": "always",
-					"nightday": "always",
-					"daynight": "always",
-					"periodic": "always"
-				}      
+    			"pk": "id",
+    			"pk_type": "int",    
+				"include_all": "true"
 			},       
 			"values": {
 				"AS_MLX906040MIN": {
@@ -279,7 +213,7 @@ class ALLSKYMLX90640(ALLSKYMODULEBASE):
 			'AS_MLX906040MAX': float(max_temp)
 		}
 
-		allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
+		allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 
 	def run(self):
 		self._get_image()

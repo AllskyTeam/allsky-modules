@@ -1,0 +1,21 @@
+{
+    "icon": "fas fa-chart-line",
+    "group": "ADSB",
+    "title": "Total Aircraft",
+    "type": "line",
+    "main": true,
+    "table": "allsky_adsb", 
+    "yAxis": [
+        {
+            "title": {
+                "text": "Total Aircraft"
+            }
+        }
+    ],
+    "series": [
+        {
+            "name": "Aircraft",
+            "variable": "AS_TOTAL_AIRCRAFT"
+        }
+    ]
+}

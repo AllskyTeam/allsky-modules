@@ -34,56 +34,21 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 		"experimental": "true",
 		"testable": "true",  
 		"centersettings": "false",
-		"extradatafilename": "allsky_adsb.json",
-        "graphs": {
-            "chart1": {
-				"icon": "fa-solid fa-chart-line",
-				"title": "ADSB Aircraft",
-				"group": "ADSB",    
-				"main": "true",    
-				"config": {
-					"chart": {
-						"type": "spline",
-						"animation": "false",
-						"zooming": {
-							"type": "x"
-						}
-					},
-					"plotOptions": {
-						"series": {
-							"animation": "false"
-						}
-					},
-					"title": {
-						"text": "Total Aircraft"
-					},
-					"xAxis": {
-						"type": "datetime",
-						"dateTimeLabelFormats": {
-							"day": "%Y-%m-%d",
-							"hour": "%H:%M"
-						}
-					},
-					"yAxis": [
-						{ 
-							"title": {
-								"text": "Total"
-							} 
-						}
-					]
-				},
-				"series": {
-					"heater": {
-						"name": "Total",
-						"variable": "AS_TOTAL_AIRCRAFT"
-					}
-				}
-			}
-        },  
+		"extradatafilename": "allsky_adsb.json", 
 		"extradata": {
 			"database": {
 				"enabled": "True",
-				"table": "allsky_adsb"   
+				"table": "allsky_adsb",
+    			"pk": "id",
+    			"pk_type": "int",
+    			"include_all": "false",       
+       			"time_of_day_save": {
+					"day": "always",
+					"night": "always",
+					"nightday": "always",
+					"daynight": "always",
+					"periodic": "enabled"
+				}      
 			},      
 			"info": {
 				"count": 20,
@@ -94,6 +59,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 					"group": "ADSB Data",
 					"type": "number",                
 					"description": "Total Aircraft",
+          			"dbtype": "int",
 					"database": {
 						"include" : "true"
 					}     

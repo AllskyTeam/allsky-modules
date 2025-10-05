@@ -1,0 +1,13 @@
+{
+    "title": "Dew Heater PWM %",
+    "icon": "fa-solid fa-gauge",
+    "type": "gauge",
+    "group": "Environment",
+    "table": "allsky_dewheater",
+    "series": [
+        {
+            "name": "PWM %",
+            "variable": "AS_DEWCONTROLPWMPERCENT"
+        }
+    ]
+}

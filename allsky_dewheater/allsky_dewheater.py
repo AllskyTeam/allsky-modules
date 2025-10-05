@@ -64,148 +64,13 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			"partial": "true"
 		},   
 		"extradatafilename": "allsky_dew.json",
-        "graphs": {
-            "chart1": {
-				"icon": "fa-solid fa-temperature-arrow-up",
-				"title": "Dew Heater",
-				"group": "Environment",    
-				"main": "true",    
-				"config": {
-					"chart": {
-						"type": "spline",
-						"zooming": {
-							"type": "x"
-						}
-					},
-					"title": {
-						"text": "Temperature, Dew Point, Humidity, Duty Cycle"
-					},
-					"lang": {
-						"noData": "No data available"
-					},
-					"noData": {
-						"style": {
-							"fontWeight": "bold",
-							"fontSize": "16px",
-							"color": "#666"
-						}
-					},
-					"xAxis": {
-						"type": "datetime",
-						"dateTimeLabelFormats": {
-							"day": "%Y-%m-%d",
-							"hour": "%H:%M"
-						}
-					},
-					"yAxis": [
-						{ 
-							"title": {
-								"text": "Temperature & Dew Point (°C)"
-							} 
-						},
-						{
-							"title": { 
-								"text": "Humidity (%) & Duty Cycle (%)"
-							}, 
-							"opposite": "true"
-						}
-					]
-				},
-				"series": {
-					"heater": {
-						"name": "Heater",
-						"yAxis": 0,
-						"variable": "AS_DEWCONTROLPWMDUTYCYCLE"                 
-					},
-					"temperature": {
-						"name": "Temperature",
-						"yAxis": 1,
-						"variable": "AS_DEWCONTROLAMBIENT"
-					},
-					"dewpoint": {
-						"name": "Dew Point",                    
-						"yAxis": 0,
-						"variable": "AS_DEWCONTROLDEW"
-					},
-					"humidity": {
-						"name": "Humidity",                    
-						"yAxis": 1,
-						"variable": "AS_DEWCONTROLHUMIDITY"
-					}                
-				}
-			},
-			"guageheater": {
-				"icon": "fa-solid fa-toggle-on",
-				"title": "Heater",
-				"group": "Environment",
-				"type": "gauge",
-				"config": {
-					"chart": {
-						"type": "solidgauge"
-					},
-					"title": {
-						"text": "System Status",
-						"style": {
-							"fontSize": "18px"
-						}
-					},
-					"pane": {
-						"center": ["50%", "85%"],
-						"size": "100%",
-						"startAngle": -90,
-						"endAngle": 90,
-						"background": {
-							"backgroundColor": "#EEE",
-							"innerRadius": "60%",
-							"outerRadius": "100%",
-							"shape": "arc"
-						}
-					},
-					"tooltip": {
-						"enabled": "false"
-					},
-					"yAxis": {
-						"min": 0,
-						"max": 1,
-						"stops": [
-							[0, "#DF5353"],
-							[1, "#55BF3B"]
-						],
-						"lineWidth": 0,
-						"tickWidth": 0,
-						"labels": {
-							"enabled": "false"
-						}
-					},
-					"plotOptions": {
-						"solidgauge": {
-							"dataLabels": {
-								"y": -20,
-								"borderWidth": 0,
-								"useHTML": "true"
-							}
-						}
-					},
-					"series": [{
-						"name": "Status",
-						"data": "AS_DEWCONTROLHEATERINT"
-					}]
-				}           
-			}
-		},
-
 		"extradata": {
 			"database": {
 				"enabled": "True",
 				"table": "allsky_dewheater",
-    			"include_all": "true",
-       			"time_of_day_save": {
-					"day": "always",
-					"night": "always",
-					"nightday": "always",
-					"daynight": "always",
-					"periodic": "always"
-				}       
+    			"pk": "id",
+    			"pk_type": "int",    
+    			"include_all": "true"
 			},
 			"values": {
 				"AS_DEWCONTROLSENSOR": {
@@ -287,7 +152,15 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 					"group": "Dew Heater",
 					"description": "Dew Heater Duty Cycle",
 					"type": "number"
-				}
+				},
+				"AS_DEWCONTROLPWMPERCENT": {
+					"name": "${DEWCONTROLPWMPERCENT}",
+					"format": "",
+					"sample": "",                   
+					"group": "Dew Heater",
+					"description": "Dew Heater PWM %",
+					"type": "number"
+				}    
 			}                         
 		},
 		"arguments":{
@@ -1578,6 +1451,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 									extraData['AS_DEWCONTROLDEW'] = dew_point
 									extraData['AS_DEWCONTROLHUMIDITY'] = humidity
 									extraData['AS_DEWCONTROLPWMDUTYCYCLE'] = 100
+									extraData['AS_DEWCONTROLPWMPERCENT'] = 100 if heater else 0         
 								else:
 									extraData['AS_DEWCONTROLPWMDUTYCYCLE'] = 100            
 									extraData['AS_DEWCONTROLSENSOR'] = sensor_type
@@ -1586,6 +1460,8 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 									extraData['AS_DEWCONTROLHUMIDITY'] = humidity
 									extraData['AS_DEWCONTROLHEATER'] = heater
 									extraData['AS_DEWCONTROLHEATERINT'] = 1 if heater else 0
+									extraData['AS_DEWCONTROLPWMPERCENT'] = 100 if heater else 0
+         
 									if pressure is not None:
 										extraData['AS_DEWCONTROLPRESSURE'] = pressure
 									if rel_humidity is not None:
@@ -1596,6 +1472,8 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 								if use_pwm:
 									high_time = self._pwm_high_time(1000, duty_cycle)
 									extraData['AS_DEWCONTROLPWMDUTYCYCLE'] = duty_cycle
+									extraData['AS_DEWCONTROLPWMPERCENT'] = round((duty_cycle / 65535) * 100,2)
+         
 
 								allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extraData, self.meta_data['module'], self.meta_data['extradata'])
 
@@ -1666,7 +1544,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			extra_data['AS_DEWCONTROLDEW'] = 0
 			extra_data['AS_DEWCONTROLHUMIDITY'] = 0
 			extra_data['AS_DEWCONTROLHEATER'] = 'Disabled'
-			allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
+			allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 				
 			result = 'Dew control disabled during the day'
 			self.log(1, f"INFO: {result}")

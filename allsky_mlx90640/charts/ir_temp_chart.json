@@ -1,0 +1,33 @@
+{
+    "icon": "fas fa-chart-line",
+    "group": "Environment",
+    "title": "IR levels",
+    "type": "line",
+    "table": "allsky_ir",
+    "main": true,
+    "yAxis": [
+        {
+            "title": {
+                "text": "Min"
+            }
+        },
+        {
+            "title": {
+                "text": "Max"
+            },
+            "opposite": true
+        }
+    ],
+    "series": [
+        {
+            "name": "Min",
+            "yAxis": 0,
+            "variable": "AS_MLX906040MIN"
+        },
+        {
+            "name": "Max",
+            "yAxis": 1,
+            "variable": "AS_MLX906040MAX"
+        }
+    ]
+}
