@@ -29,55 +29,20 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 			"periodic"
 		],
 		"extradatafilename": "allsky_gps.json",
-        "graphs": {
-            "chart1": {
-				"icon": "fa-solid fa-chart-line",
-				"title": "GPS Status",
-				"group": "Environment",    
-				"main": "true",    
-				"config": {
-					"chart": {
-						"type": "spline",
-						"animation": "false",
-						"zooming": {
-							"type": "x"
-						}
-					},
-					"plotOptions": {
-						"series": {
-							"animation": "false"
-						}
-					},
-					"title": {
-						"text": "GPS Fix"
-					},
-					"xAxis": {
-						"type": "datetime",
-						"dateTimeLabelFormats": {
-							"day": "%Y-%m-%d",
-							"hour": "%H:%M"
-						}
-					},
-					"yAxis": [
-						{ 
-							"title": {
-								"text": "Fix"
-							} 
-						}
-					]
-				},
-				"series": {
-					"gpsfix": {
-						"name": "Fix",
-						"variable": "AS_PIGPSFIXBOOL"
-					}
-				}
-			}
-        },  
 		"extradata": {
 			"database": {
 				"enabled": "True",
-				"table": "allsky_gps" 
+				"table": "allsky_gps",
+    			"include_all": "false",       
+    			"pk": "id",
+    			"pk_type": "int",    
+       			"time_of_day_save": {
+					"day": "always",
+					"night": "always",
+					"nightday": "always",
+					"daynight": "always",
+					"periodic": "always"
+				}    
 			},      
 			"values": {
 				"AS_PIGPSFIXDISC": {
@@ -86,7 +51,10 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 					"sample": "",                
 					"group": "GPS",
 					"description": "GPS and Allsky position discrepancy",
-					"type": "string"
+					"type": "string",
+					"database": {
+						"include" : "true"
+					}      
 				},
 				"AS_PIGPSLAT": {
 					"name": "${PIGPSLAT}",
@@ -94,7 +62,10 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 					"sample": "",                
 					"group": "GPS",
 					"description": "GPS Latitude",
-					"type": "latitude"  
+					"type": "latitude",
+					"database": {
+						"include" : "true"
+					} 
 				},
 				"AS_PIGPSLON": {
 					"name": "${PIGPSLON}",
@@ -102,7 +73,10 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 					"sample": "",                
 					"group": "GPS",
 					"description": "GPS Longitude",
-					"type": "longitude"    
+					"type": "longitude",
+					"database": {
+						"include" : "true"
+					}   
 				},
 				"AS_PIGPSFIX": {
 					"name": "${PIGPSFIX}",
@@ -450,7 +424,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 						self.log(1, f'ERROR: {result}') 
 						break                    
 			
-				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
+				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 				allsky_shared.setLastRun('pigps')
    
 			except Exception as e:

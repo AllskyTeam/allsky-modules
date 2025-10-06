@@ -20,6 +20,10 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 	n10 - number of particles with diameter greater than 10 μm (in 100 ml of air)
  
 	Air quality index calculations from https://en.wikipedia.org/wiki/Air_quality_index#Computing_the_AQI
+ 
+	NOTE: On pi 5 requires
+ 		dtparam=uart0
+		enable_uart=1
 	'''
 
 	meta_data = {
@@ -36,89 +40,21 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 		"centersettings": "false",
 		"testable": "true",
 		"extradatafilename": "allsky_pmsx003.json",
-		"group": "Data Sensor",
-        "graphs": {
-            "chart1": {
-				"icon": "fas fa-scale-balanced",
-				"title": "Air Quality",
-				"group": "Environment",
-				"main": "true",    
-				"config": {
-					"chart": {
-						"type": "spline",
-						"zooming": {
-							"type": "x"
-						}
-					},
-					"plotOptions": {
-						"series": {
-							"animation": "false"
-						}
-					},
-					"title": {
-						"text": "Air Quality"
-					},
-					"lang": {
-						"noData": "No data available"
-					},
-					"noData": {
-						"style": {
-							"fontWeight": "bold",
-							"fontSize": "16px",
-							"color": "#666"
-						}
-					},
-					"xAxis": {
-						"type": "datetime",
-						"dateTimeLabelFormats": {
-							"day": "%Y-%m-%d",
-							"hour": "%H:%M"
-						}
-					},
-					"yAxis": [
-						{ 
-							"title": {
-								"text": "Particle Count"
-							} 
-						}
-					]
-				},
-				"series": {
-					"1um": {
-						"name": "1um",
-						"yAxis": 0,
-						"variable": "AS_N1_0"                 
-					},
-					"25um": {
-						"name": "2.5um",
-						"yAxis": 0,
-						"variable": "AS_N2_5"
-					},
-					"5um": {
-						"name": "5um",
-						"yAxis": 0,
-						"variable": "AS_N5_0"
-					},
-					"10um": {
-						"name": "10um",
-						"yAxis": 0,
-						"variable": "AS_N10"
-					}           
-				}
-			}
-		},  
+		"group": "Data Sensor",  
 		"extradata": {
 			"database": {
 				"enabled": "True",
 				"table": "allsky_airquality",
-				"include_all": "true",
+    			"include_all": "false",       
+    			"pk": "id",
+    			"pk_type": "int",    
        			"time_of_day_save": {
 					"day": "always",
 					"night": "always",
 					"nightday": "always",
 					"daynight": "always",
 					"periodic": "always"
-				}      
+				} 
 			},      
 			"values": {
 				"AS_PM1_0CF1": {
@@ -127,7 +63,10 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Environment",
 					"description": "PM1.0 concentration in μg/m3 (corrected to standard conditions)",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include" : "true"
+					}
 				},
 				"AS_PM2_5CF1": {
 					"name": "${PM2_5CF1}",
@@ -135,7 +74,10 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Environment",
 					"description": "PM2.5 concentration in μg/m3 (corrected to standard conditions)",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include" : "true"
+					}
 				},
 				"AS_PM10CF1": {
 					"name": "${PM10CF1}",
@@ -143,7 +85,10 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Environment",
 					"description": "PM10 concentration in μg/m3 (corrected to standard conditions)",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include" : "true"
+					}
 				},
 				"AS_PM1_0": {
 					"name": "${PM1_0}",
@@ -223,7 +168,10 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Environment",
 					"description": "Air quality index",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include" : "true"
+					}
 				},
 				"AS_AQI_TEXT": {
 					"name": "${AQI_TEXT}",
@@ -231,7 +179,10 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Environment",
 					"description": "Air quality index, Human Readable",
-					"type": "string"
+					"type": "string",
+					"database": {
+						"include" : "true"
+					}
 				}                                    
 			}                         
 		},
@@ -353,7 +304,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 		
 			extra_data['AS_AQI'] = air_quality_index
 			extra_data['AS_AQI_TEXT'] = air_quality_index_text
-			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
+			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 			result = f'Sensor Data read and written the the {self.meta_data["extradatafilename"]} extra data file'
 			self.log(4, f'INFO: {result}')
 		except PmsSensorException:

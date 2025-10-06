@@ -144,20 +144,22 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		},
 		"extradata": {
 			"info": {
-				"count": 4,
+				"count": 5,
 				"firstblank": "true"
 			},
 			"database": {
 				"enabled": "True",
 				"table": "allsky_temp",
 				"include_all": "true",
+    			"pk": "id",
+    			"pk_type": "int",    
        			"time_of_day_save": {
 					"day": "always",
 					"night": "always",
 					"nightday": "always",
 					"daynight": "always",
 					"periodic": "always"
-				}     
+				}      
 			},   
 			"values": {       
 				"AS_GPIOSTATE${COUNT}": {
@@ -3108,7 +3110,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					sensor_number = ""
 				else:
 					sensor_number = str(sensor_number_itr - 1)
-					
+
 				sensor_type = self.get_param('type' + sensor_number, 'None', str)
 
 				if sensor_type != 'None':
@@ -3179,9 +3181,14 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						if altitude is not None:
 							extra_data["AS_ALTITUDE" + sensor_number] = altitude
 						if co2 is not None:
-							extra_data["AS_CO2" + sensor_number] = co2       
+							extra_data["AS_CO2" + sensor_number] = co2
+					else:
+						if sensor_number == "":
+							self.log(4, 'INFO: Code sensor returned no temperature')
+						else:
+							self.log(4, f'INFO: Sensor {sensor_number} returned no temperature')
 			if extra_data:
-				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
+				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 
 		else:
 			result = 'Will run in {:.2f} seconds'.format(self._run_interval - diff)

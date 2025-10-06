@@ -1,0 +1,38 @@
+{
+    "icon": "fas fa-chart-line",
+    "group": "Environment",
+    "title": "Sensor 2 Environment",
+    "type": "line",
+    "table": "allsky_temp",
+    "main": true,
+    "yAxis": [
+        {
+            "title": {
+                "text": "Temperature"
+            }
+        },
+        {
+            "title": {
+                "text": "Humidity"
+            },
+            "opposite": true
+        }        
+    ],
+    "series": [
+        {
+            "name": "Temperature",
+            "yAxis": 0,
+            "variable": "AS_TEMP2"
+        },
+        {
+            "name": "Dew Point",
+            "yAxis": 0,
+            "variable": "AS_DEW2"
+        },
+        {
+            "name": "Humidity",
+            "yAxis": 1,
+            "variable": "AS_HUMIDITY2"
+        }
+    ]
+}

@@ -1,0 +1,22 @@
+{
+    "icon": "fas fa-chart-line",
+    "group": "Environment",
+    "title": "GPS Fix",
+    "type": "line",
+    "table": "allsky_gps",
+    "main": true,
+    "yAxis": [
+        {
+            "title": {
+                "text": "Fix"
+            }
+        }
+    ],
+    "series": [
+        {
+            "name": "Fix",
+            "yAxis": 0,
+            "variable": "AS_PIGPSFIXBOOL"
+        }
+    ]
+}

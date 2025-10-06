@@ -1,0 +1,32 @@
+{
+    "icon": "fas fa-chart-line",
+    "group": "Hardware",
+    "title": "Power (w) Usage",
+    "type": "line",
+    "table": "allsky_power",
+    "main": true,
+    "yAxis": [
+        {
+            "title": {
+                "text": "Power (w)"
+            }
+        }
+    ],
+    "series": [
+        {
+            "name": "Power 1",
+            "yAxis": 0,
+            "variable": "AS_POWER_POWER1"
+        },
+        {
+            "name": "Power 2",
+            "yAxis": 0,
+            "variable": "AS_POWER_POWER2"
+        },
+        {
+            "name": "Power 3",
+            "yAxis": 0,
+            "variable": "AS_POWER_POWER3"
+        }
+    ]
+}

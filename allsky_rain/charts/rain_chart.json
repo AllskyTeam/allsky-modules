@@ -1,0 +1,22 @@
+{
+    "icon": "fas fa-chart-line",
+    "group": "Environment",
+    "title": "Rain State",
+    "type": "line",
+    "table": "allsky_rain",
+    "main": true,
+    "yAxis": [
+        {
+            "title": {
+                "text": "Rain State"
+            }
+        }
+    ],
+    "series": [
+        {
+            "name": "Min",
+            "yAxis": 0,
+            "variable": "AS_ALLSKYRAINFLAGINT"
+        }
+    ]
+}

@@ -25,104 +25,20 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 		"extradatafilename": "allsky_power.json", 	
 		"experimental": "false",
 		"group": "Data Sensor",
-		"graphs": {
-			"chart1": {
-				"icon": "fas fa-chart-line",
-				"title": "Power Usage",
-				"group": "Hardware",    
-				"main": "true",    
-				"config": {
-					"chart": {
-						"type": "spline",
-						"zooming": {
-							"type": "x"
-						}
-					},
-					"title": {
-						"text": "Power"
-					},
-					"plotOptions": {
-						"series": {
-							"animation": "false"
-						}
-					},
-					"xAxis": {
-						"type": "datetime",
-						"dateTimeLabelFormats": {
-							"day": "%Y-%m-%d",
-							"hour": "%H:%M"
-						}
-					},
-					"yAxis": [
-						{ 
-							"title": {
-								"text": "Voltage"
-							} 
-						},
-						{ 
-							"title": {
-								"text": "Current"
-							},
-       						"opposite": "true"
-						}
-					],
-					"lang": {
-						"noData": "No data available"
-					},
-					"noData": {
-						"style": {
-							"fontWeight": "bold",
-							"fontSize": "16px",
-							"color": "#666"
-						}
-					}
-				},
-				"series": {
-					"c1voltage": {
-						"name": "Channel 1 Voltage",
-						"yAxis": 0,
-						"variable": "AS_POWER_VOLTAGE1"                 
-					},
-					"c2voltage": {
-						"name": "Channel 2 Voltage",
-						"yAxis": 0,
-						"variable": "AS_POWER_VOLTAGE2"
-					},
-					"c3voltage": {
-						"name": "Channel 3 Voltage",
-						"yAxis": 0,
-						"variable": "AS_POWER_VOLTAGE3"
-					},
-					"c1current": {
-						"name": "Channel 1 Current",
-						"yAxis": 1,
-						"variable": "AS_POWER_CURRENT2"                 
-					},
-					"c2current": {
-						"name": "Channel 2 Current",
-						"yAxis": 1,
-						"variable": "AS_POWER_CURRENT3"                 
-					},
-					"c3current": {
-						"name": "Channel 3 Current",
-						"yAxis": 1,
-						"variable": "AS_POWER_CURRENT1"                 
-					}      
-				}
-			}
-		}, 
 		"extradata": {
 			"database": {
 				"enabled": "True",
 				"table": "allsky_power",
-				"include_all": "true",
+    			"include_all": "false",       
+    			"pk": "id",
+    			"pk_type": "int",    
        			"time_of_day_save": {
 					"day": "always",
 					"night": "always",
 					"nightday": "always",
 					"daynight": "always",
 					"periodic": "always"
-				}     
+				}       
 			},     
 			"values": {
 				"AS_POWER_NAME1": {
@@ -131,7 +47,10 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                
 					"group": "Power",
 					"description": "Name of Channel 1",
-					"type": "string"
+					"type": "string",
+					"database": {
+						"include" : "true"
+					}
 				},              
 				"AS_POWER_VOLTAGE1": {
 					"name": "${POWER_VOLTAGE1}",
@@ -139,7 +58,10 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 1 voltage",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include" : "true"
+					}
 				},
 				"AS_POWER_CURRENT1": {
 					"name": "${POWER_CURRENT1}",
@@ -147,7 +69,10 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 1 current",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include" : "true"
+					}
 				},
 				"AS_POWER_BUS_VOLTAGE1": {
 					"name": "${POWER_BUS_VOLTAGE1}",
@@ -171,7 +96,10 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 1 power (w)",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include" : "true"
+					}
 				},         
 				"AS_POWER_NAME2": {
 					"name": "${POWER_NAME2}",
@@ -179,7 +107,10 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                
 					"group": "Power",
 					"description": "Name of Channel 2",
-					"type": "string"
+					"type": "string",
+					"database": {
+						"include" : "true"
+					}
 				},              
 				"AS_POWER_VOLTAGE2": {
 					"name": "${POWER_VOLTAGE2}",
@@ -187,7 +118,10 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 2 voltage",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include" : "true"
+					}
 				},
 				"AS_POWER_CURRENT2": {
 					"name": "${POWER_CURRENT2}",
@@ -195,7 +129,10 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 2 current",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include" : "true"
+					}
 				},
 				"AS_POWER_BUS_VOLTAGE2": {
 					"name": "${POWER_BUS_VOLTAGE2}",
@@ -219,7 +156,10 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 2 power (w)",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include" : "true"
+					}
 				},           
 				"AS_POWER_NAME3": {
 					"name": "${POWER_NAME3}",
@@ -227,7 +167,10 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                
 					"group": "Power",
 					"description": "Name of Channel 3",
-					"type": "string"
+					"type": "string",
+					"database": {
+						"include" : "true"
+					}
 				},              
 				"AS_POWER_VOLTAGE3": {
 					"name": "${POWER_VOLTAGE3}",
@@ -235,7 +178,10 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 3 voltage",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include" : "true"
+					}
 				},
 				"AS_POWER_CURRENT3": {
 					"name": "${POWER_CURRENT3}",
@@ -243,7 +189,10 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 3 current",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include" : "true"
+					}
 				},
 				"AS_POWER_BUS_VOLTAGE3": {
 					"name": "${POWER_BUS_VOLTAGE3}",
@@ -267,7 +216,10 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Power",
 					"description": "Channel 3 power (w)",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include" : "true"
+					}
 				}
 			}                         
 		}, 
@@ -537,7 +489,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 			else:
 				result = f'power module - invalid sensor type "{sensor_type}"'
 
-		allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
+		allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 		self.log(4, f'INFO: {result}')
 		return result
 				

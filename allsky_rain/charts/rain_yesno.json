@@ -1,0 +1,23 @@
+{
+    "icon": "fas fa-lightbulb",
+    "group": "Environment",
+    "title": "Rain State",
+    "type": "yesno",
+    "table": "allsky_rain",
+    "hc": {
+      "yesNo": {
+        "trueText": "Raining",
+        "falseText": "Not Raining",
+        "trueColor": "#2ecc71",
+        "falseColor": "#e74c3c",
+        "fontSize": "72px"
+      }
+    },        
+    "series": [
+        {
+            "name": "Rain State",
+            "yAxis": 0,
+            "variable": "AS_ALLSKYRAINFLAGINT"
+        }
+    ]
+}

@@ -1,0 +1,53 @@
+{
+    "icon": "fas fa-chart-line",
+    "group": "Hardware",
+    "title": "Voltage / Current Usage",
+    "type": "line",
+    "table": "allsky_power",
+    "main": true,
+    "yAxis": [
+        {
+            "title": {
+                "text": "Voltage"
+            }
+        },
+        {
+            "title": {
+                "text": "Current"
+            },
+            "opposite": true
+        }
+    ],
+    "series": [
+        {
+            "name": "Voltage 1",
+            "yAxis": 0,
+            "variable": "AS_POWER_VOLTAGE1"
+        },
+        {
+            "name": "Voltage 2",
+            "yAxis": 0,
+            "variable": "AS_POWER_VOLTAGE2"
+        },
+        {
+            "name": "Voltage 3",
+            "yAxis": 0,
+            "variable": "AS_POWER_VOLTAGE3"
+        },                
+        {
+            "name": "Current 1",
+            "yAxis": 1,
+            "variable": "AS_POWER_CURRENT1"
+        },
+        {
+            "name": "Current 2",
+            "yAxis": 1,
+            "variable": "AS_POWER_CURRENT2"
+        },
+        {
+            "name": "Current 3",
+            "yAxis": 1,
+            "variable": "AS_POWER_CURRENT3"
+        }
+    ]
+}

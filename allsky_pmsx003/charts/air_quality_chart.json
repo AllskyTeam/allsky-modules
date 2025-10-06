@@ -1,0 +1,33 @@
+{
+    "icon": "fas fa-chart-line",
+    "group": "Environment",
+    "title": "Air Quality",
+    "type": "line",
+    "table": "allsky_airquality",
+    "main": true,
+    "yAxis": [
+        {
+            "title": {
+                "text": "Concentration"
+            }
+        }
+    ],
+    "series": [
+        {
+            "name": "PM1",
+            "yAxis": 0,
+            "variable": "AS_PM1_0CF1"
+        },
+        {
+            "name": "PM2.5",
+            "yAxis": 0,
+            "variable": "AS_PM2_5CF1"
+        },
+        {
+            "name": "PM10",
+            "yAxis": 0,
+            "variable": "AS_PM10CF1"
+        }
+
+    ]
+}

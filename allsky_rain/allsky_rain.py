@@ -79,13 +79,15 @@ class ALLSKYRAIN(ALLSKYMODULEBASE):
 				"enabled": "True",
 				"table": "allsky_rain",
 				"include_all": "true",
+    			"pk": "id",
+    			"pk_type": "int",    
        			"time_of_day_save": {
 					"day": "always",
 					"night": "always",
 					"nightday": "always",
 					"daynight": "always",
 					"periodic": "always"
-				}     
+				}        
 			},
 			"values": {
 				"AS_RAINSTATE": {
@@ -192,7 +194,7 @@ class ALLSKYRAIN(ALLSKYMODULEBASE):
 						extra_data['AS_ALLSKYRAINFLAG'] = rain_flag
 						extra_data['AS_ALLSKYRAINFLAGINT'] = int(bool(rain_flag))
       
-						allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
+						allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 
 						result = f'Rain State: Its {result_state}'
 						self.log(1, f'INFO: {result}')
