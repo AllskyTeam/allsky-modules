@@ -2,10 +2,10 @@
 allsky_border.py
 
 Part of allsky flow-runner.py modules.
-https://github.com/thomasjacquin/allsky
+https://github.com/AllskyTeam/allsky
 
-This module will allow an image to be enlarged with a coloured border, primarilly to 
-allow the overlay data to be displayed
+This module enlarges an image with a coloured border,
+primarily to allow the overlay data to be displayed.
 
 Expected parameters:
 None
@@ -18,8 +18,8 @@ import cv2
 class ALLSKYBORDER(ALLSKYMODULEBASE):
 
 	meta_data = {
-		"name": "Add Border",
-		"description": "Expands a captured image adding a border",
+		"name": "Add Border to Image",
+		"description": "Add a border to an image to increase its size.",
 		"module": "allsky_border",
 		"version": "v1.0.1",
 		"group": "Image Adjustments",
@@ -38,7 +38,7 @@ class ALLSKYBORDER(ALLSKYMODULEBASE):
 			"left" : {
 				"required": "false",
 				"description": "Left Size",
-				"help": "The number of pixels to add to the left of the captured image",
+				"help": "The number of pixels to add to the left of the image.",
 				"type": {
 					"fieldtype": "spinner",
 					"min": 10,
@@ -49,7 +49,7 @@ class ALLSKYBORDER(ALLSKYMODULEBASE):
 			"right" : {
 				"required": "false",
 				"description": "Right Size",
-				"help": "The number of pixels to add to the right of the captured image",
+				"help": "The number of pixels to add to the right of the image.",
 				"type": {
 					"fieldtype": "spinner",
 					"min": 10,
@@ -60,7 +60,7 @@ class ALLSKYBORDER(ALLSKYMODULEBASE):
 			"top" : {
 				"required": "false",
 				"description": "Top Size",
-				"help": "The number of pixels to add to the top of the captured image",
+				"help": "The number of pixels to add to the top of the image.",
 				"type": {
 					"fieldtype": "spinner",
 					"min": 10,
@@ -71,7 +71,7 @@ class ALLSKYBORDER(ALLSKYMODULEBASE):
 			"bottom" : {
 				"required": "false",
 				"description": "Bottom Size",
-				"help": "The number of pixels to add to the bottom of the captured image",
+				"help": "The number of pixels to add to the bottom of the image.",
 				"type": {
 					"fieldtype": "spinner",
 					"min": 10,
@@ -82,7 +82,7 @@ class ALLSKYBORDER(ALLSKYMODULEBASE):
 			"colour": {
 				"required": "false",
 				"description": "Border Colour",            
-				"help": "The RGB colour of the border, default to black. This should be comma separated values i.e. 255,0,0 for Red",
+				"help": "The Red,Green,Blue colour of the border, default to black. This should be comma-separated values i.e. 255,0,0 for Red",
 				"type": {
 					"fieldtype": "colour"
 				}      
