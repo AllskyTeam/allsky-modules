@@ -336,7 +336,7 @@ class ALLSKYBOILERPLATE(ALLSKYMODULEBASE):
 			result = "It's nighttime"
 			self.log(1,f"INFO: {result}")
 		else:
-			result = "I don't know if its day or night!"
+			result = "I don't know if it's day or night!"
 			self.log(0,f"ERROR: {result}")
 
 		extraData = {}
