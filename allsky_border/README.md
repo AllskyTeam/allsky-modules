@@ -1,4 +1,4 @@
-# AllSky Border Module
+# Module: Add Border to Image
 
 |             |                      |
 |-------------|----------------------|
@@ -7,7 +7,8 @@
 | **Runs In** | Day time, Night time |
 
 This module allows you to add additional borders to the captured image. This is useful if you
-wish to use the overlay module but do not have enough space to place all of the overlay fields.
+do not have enough space on the image to place all of the overlay fields without overwriting
+the useful part of the image.
 
 
 The module contains the following options
