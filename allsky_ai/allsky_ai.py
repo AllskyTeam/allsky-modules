@@ -83,7 +83,7 @@ class ALLSKYAI(ALLSKYMODULEBASE):
 
 
 def ai(params, event):
-	result = 'Module deprecated please use the allsky_power module instead'
+	result = "Module deprecated - please use the 'Pi Power Monitoring' module instead."
 
 	allsky_shared.log(0, f'ERROR: {result}')
 	return result
