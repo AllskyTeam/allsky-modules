@@ -3,7 +3,7 @@
 allsky_adsb.py
 
 Part of allsky postprocess.py modules.
-https://github.com/thomasjacquin/allsky
+https://github.com/AllskyTeam/allsky
 
 '''
 import allsky_shared as allsky_shared
@@ -20,8 +20,8 @@ from requests.exceptions import MissingSchema, JSONDecodeError
 class ALLSKYADSB(ALLSKYMODULEBASE):
 
 	meta_data = {
-		"name": "ADSB - Aircraft tracking",
-		"description": "Provides aircraft data for display in the captured images",
+		"name": "ADS-B Aircraft Tracking Data",
+		"description": "Provide aircraft data for display on images",
 		"module": "allsky_adsb",    
 		"version": "v2.0.0",
 		"group": "Data Capture",
@@ -162,7 +162,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			"data_source" : {
 				"required": "false",
 				"description": "Data Source",
-				"help": "The source for the adsb data",
+				"help": "The source for the ASB-D data.",
 				"tab": "Data Source",
 				"type": {
 					"fieldtype": "select",
@@ -213,8 +213,8 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			},    
 			"local_adsb_url": {
 				"required": "false",
-				"description": "Local ADSB Address",
-				"help": "See the help for how to obtain this address",
+				"description": "Local ADS-B Address",
+				"help": "See the help for how to obtain this address.",
 				"tab": "Data Source",
 				"secret": "true",
 				"filters": {
@@ -228,7 +228,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			"opensky_username": {
 				"required": "false",
 				"description": "OpenSky Username",
-				"help": "Your username for the Opensky Network. See the module documentaiton for details on the api limits with and without a username",
+				"help": "Your Opensky Network username. See the module documentation for details on the API limits with and without a username.",
 				"tab": "Data Source",
 				"secret": "true",    
 				"filters": {
@@ -242,7 +242,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			"opensky_password": {
 				"required": "false",
 				"description": "OpenSky Password",
-				"help": "Your password for the Opensky Network",
+				"help": "Your Opensky Network password.",
 				"tab": "Data Source",
 				"secret": "true",    
 				"filters": {
@@ -256,7 +256,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			"opensky_lat_min": {
 				"required": "false",
 				"description": "Min latitude",
-				"help": "The minimum latitude of the bounding box. Use a site like http://bboxfinder.com/ to determine the bounding box",
+				"help": "The minimum latitude of the bounding box. Use a site like http://bboxfinder.com/ to determine the bounding box.",
 				"tab": "Data Source",
 				"filters": {
 					"filter": "data_source",
@@ -308,7 +308,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			"aircraft_data" : {
 				"required": "false",
 				"description": "Aircraft Type Data Source",
-				"help": "The source for the aircraft data, see the documentaiton for details",
+				"help": "The source for the aircraft data, see the documentaiton for details.",
 				"tab": "Settings",
 				"type": {
 					"fieldtype": "select",
@@ -319,7 +319,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			"aircraft_route" : {
 				"required": "false",
 				"description": "Get flight route",
-				"help": "Get the flights route if possible",
+				"help": "Get the flight's route if possible.",
 				"tab": "Settings",
 				"type": {
 					"fieldtype": "checkbox"
@@ -328,7 +328,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			"distance_limit" : {
 				"required": "true",
 				"description": "Limit Distance",
-				"help": "Only include aircraft inside this distance",
+				"help": "Only include aircraft inside this distance.",
 				"tab": "Settings",                        
 				"type": {
 					"fieldtype": "spinner",
@@ -352,7 +352,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			"period" : {
 				"required": "true",
 				"description": "Read Every",
-				"help": "Reads data every x seconds. Be careful of any api limits when setting this",
+				"help": "Read data every x seconds. Be careful of any API limits when setting this.",
 				"tab": "Settings",                          
 				"type": {
 					"fieldtype": "spinner",
@@ -364,7 +364,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			"timeout" : {
 				"required": "true",
 				"description": "Timeout",
-				"help": "The number of seconds to wait for a response from the api before aborting",
+				"help": "The number of seconds to wait for a response from the API before aborting.",
 				"tab": "Settings",                        
 				"type": {
 					"fieldtype": "spinner",
@@ -405,11 +405,11 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 	_missing_adsb_data = False
  
 	def _local_adsb(self, local_adsb_url, observer_location, timeout):
-		''' Retreives data from a local ADSB source
+		''' Retreives data from a local ADS-B source
 		'''
 		found_aircraft = {}
 		result = ''
-		self.log(4, 'INFO: Getting data from local ADSB receiver')
+		self.log(4, 'INFO: Getting data from local ADS-B receiver')
 		
 		try:
 			response = requests.get(local_adsb_url, timeout=timeout)
@@ -417,7 +417,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			if response.status_code == 200:
 				aircraft_data = response.json()
 
-				self.log(4, f'INFO: Retrieved {len(aircraft_data["aircraft"])} aircraft from local ADSB server')
+				self.log(4, f'INFO: Retrieved {len(aircraft_data["aircraft"])} aircraft from local ADS-B server')
 				for aircraft in aircraft_data['aircraft']:
 
 					if 'flight' not in aircraft or aircraft['flight'].replace(' ', '') == '':
