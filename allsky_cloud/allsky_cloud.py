@@ -299,7 +299,7 @@ class ALLSKYCLOUD(ALLSKYMODULEBASE):
 					i2c_address_int = int(i2c_address, 16)
 				except:
 					result = f'Address {i2c_address} is not a valid i2c address'
-					self.log(0,f'ERROR: {result}')
+					self.log(0, f'ERROR in {__file__}: {result}')
 
 			i2c = board.I2C()
 			if i2c_address != '':
@@ -325,8 +325,8 @@ class ALLSKYCLOUD(ALLSKYMODULEBASE):
 			self.log(1, f'INFO: {result}')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			result = f'ERROR: Module cloud failed on line {eTraceback.tb_lineno} - {e}'
-			self.log(4, result)
+			result = f'Module cloud failed on line {eTraceback.tb_lineno} - {e}'
+			self.log(0, f'ERROR in {__file__}: {result}')
 			
 		return result 
 
