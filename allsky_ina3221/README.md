@@ -1,4 +1,4 @@
-# AllSky INA3221 Module
+# Monitor Pi Current and Voltage Module (DEPRECATED)
 
 |   |   |
 | ------------ | ------------ |
@@ -8,4 +8,4 @@
 
 A simple module to read 1 to 3 channels from an INA3221 voltage and current sensor.
 
-These modules can be useful for monitoring the current being fed to a dew heater to determine if its actually working or not
+These modules can be useful for monitoring the current being fed to a dew heater to determine if its actually working or not.
