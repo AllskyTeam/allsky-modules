@@ -1,0 +1,13 @@
+{
+    "title": "Fan 1 PWM %",
+    "icon": "fa-solid fa-gauge",
+    "type": "gauge",
+    "group": "Environment",
+    "table": "allsky_fans",
+    "series": [
+        {
+            "name": "PWM %",
+            "variable": "AS_FANS_PWM_DUTY_PERCENT1"
+        }
+    ]
+}

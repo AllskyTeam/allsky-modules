@@ -1,0 +1,26 @@
+{
+    "icon": "fas fa-chart-line",
+    "group": "Environment",
+    "title": "Fan PWM Speed",
+    "type": "line",
+    "table": "allsky_fans",
+    "yAxis": [
+        {
+            "title": {
+                "text": "PWM %"
+            }
+        }
+    ],
+    "series": [
+        {
+            "name": "PWM1 %",
+            "yAxis": 0,
+            "variable": "AS_FANS_PWM_DUTY_PERCENT1"
+        },
+        {
+            "name": "PWM2 %",
+            "yAxis": 0,
+            "variable": "AS_FANS_PWM_DUTY_PERCENT2"
+        }        
+    ]
+}

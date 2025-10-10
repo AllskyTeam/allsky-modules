@@ -1,0 +1,23 @@
+{
+    "icon": "fas fa-lightbulb",
+    "group": "Environment",
+    "title": "Fan 2 State",
+    "type": "yesno",
+    "table": "allsky_fans",
+    "hc": {
+      "yesNo": {
+        "trueText": "On",
+        "falseText": "Off",
+        "trueColor": "#2ecc71",
+        "falseColor": "#e74c3c",
+        "fontSize": "72px"
+      }
+    },        
+    "series": [
+        {
+            "name": "Fan 2 State",
+            "yAxis": 0,
+            "variable": "AS_FANS_FAN_STATE2"
+        }
+    ]
+}
