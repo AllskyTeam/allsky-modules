@@ -2,7 +2,7 @@
 allsky_gpio.py
 
 Part of allsky postprocess.py modules.
-https://github.com/thomasjacquin/allsky
+https://github.com/AllskyTeam/allsky
 
 '''
 import allsky_shared as allsky_shared
@@ -12,8 +12,8 @@ import sys
 class ALLSKYGPIO(ALLSKYMODULEBASE):
 
 	meta_data = {
-		"name": "Sets a GPIO Pin",
-		"description": "Sets a GPIO Pin during day/night and night/day transition",
+		"name": "Set a GPIO Pin",
+		"description": "Set a GPIO Pin during day/night and night/day transition",
 		"version": "v1.0.0",
 		"module": "allsky_gpio",
 		"testable": "true",
@@ -90,14 +90,14 @@ class ALLSKYGPIO(ALLSKYMODULEBASE):
 					self.log(4, f'INFO: {result}')
 				else:
 					result = f'Filed to set gpio pin {gpio_pin} to {gpio_state}'
-					self.log(4, f'ERROR: {result}')             
+					self.log(0, f'ERROR in {__file__}: {result}')             
 			else:
 				result = f'GPIO pin is invalid'
-				self.log(4, f'ERROR: {result}')     
+				self.log(0, f'ERROR in {__file__}: {result}')     
 		except Exception as e:
 			exception_type, exception_object, exception_traceback = sys.exc_info()
 			result = f'Module gpio - {exception_traceback.tb_lineno} - {e}'
-			self.log(4, f'ERROR: {result}')   
+			self.log(0, f'ERROR in {__file__}: {result}')   
 
 		return result
     
