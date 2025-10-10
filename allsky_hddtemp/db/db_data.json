@@ -1,0 +1,8 @@
+{
+    "allsky_hddtemp": {
+        "purge_days": {
+            "source_type": "settings",
+            "source_name": "daystokeep"
+        }
+    }
+}
