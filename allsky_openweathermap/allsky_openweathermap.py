@@ -2,7 +2,7 @@
 allsky_openweathermap.py
 
 Part of allsky postprocess.py modules.
-https://github.com/thomasjacquin/allsky
+https://github.com/AllskyTeam/allsky
 
 This module will retrieve data from the Open Weather Map API
 
@@ -18,7 +18,7 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "Open Weather Map",
-		"description": "Obtains weather data from the Open Weather Map service",
+		"description": "Obtain weather data from the Open Weather Map service",
 		"module": "allsky_openweathermap",
 		"version": "v1.0.2",
 		"centersettings": "false",
@@ -197,12 +197,12 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 				"required": "true",
 				"description": "API Key",
 				"secret": "true",         
-				"help": "Your Open Weather Map API key"         
+				"help": "Your Open Weather Map API key."
 			},      
 			"period" : {
 				"required": "true",
 				"description": "Read Every",
-				"help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
+				"help": "Reads data every x seconds. Be careful of the free 1000 request limit per day.",
 				"type": {
 					"fieldtype": "spinner",
 					"min": 60,
@@ -213,7 +213,7 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 			"units" : {
 				"required": "false",
 				"description": "Units",
-				"help": "Units of measurement. standard, metric and imperial",
+				"help": "Units of measurement. standard, metric and imperial.",
 				"type": {
 					"fieldtype": "select",
 					"values": "standard,metric,imperial"
@@ -222,7 +222,7 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 			"expire" : {
 				"required": "true",
 				"description": "Expiry Time",
-				"help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value",
+				"help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value.",
 				"type": {
 					"fieldtype": "spinner",
 					"min": 61,
@@ -322,7 +322,7 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 			}
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f'ERROR: Module openweathermap failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file}: Module openweathermap failed on line {eTraceback.tb_lineno} - {e}')
    
 	def _set_extra_value(self, path, data, extra_key, expires):
 		value = self._get_value(path, data)
@@ -372,31 +372,31 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 								self._process_result(raw_data, expire, requested_units)
 								allsky_shared.saveExtraData(self.meta_data['extradatafilename'], self._extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 								result = f"Data acquired and written to extra data file {self.meta_data['extradatafilename']}"
-								self.log(1, f'INFO: {result}')
+								self.log(4, f'INFO: {result}')
 							else:
 								result = f'Got error from Open Weather Map API. Response code {response.status_code}'
-								self.log(0, f'ERROR: {result}')
+								self.log(0, f'ERROR in {__file}: {result}')
 						except Exception as e:
 							eType, eObject, eTraceback = sys.exc_info()
 							result = f'ERROR: Failed to download Open Weather Map data {eTraceback.tb_lineno} - {e}'
-							self.log(0, f'ERROR: {result}')
+							self.log(0, f'ERROR in {__file}: {result}')
 					else:
 						result = 'Invalid Latitude/Longitude. Check the Allsky configuration'
-						self.log(0, f'ERROR: {result}')
+						self.log(0, f'ERROR in {__file}: {result}')
 				
 				else:
 					result = 'Missing Open Weather Map API key'
-					self.log(0, f'ERROR: {result}')
+					self.log(0, f'ERROR in {__file}: {result}')
 
 
 				allsky_shared.setLastRun(module)
 			else:
 				result = f'Last run {diff} seconds ago. Running every {period} seconds'
-				self.log(1, f'INFO: {result}')
+				self.log(4, f'INFO: {result}')
 
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f"ERROR: Module openweathermap failed on line {eTraceback.tb_lineno} - {e}")    
+			self.log(0, f"ERROR in {__file}: Module openweathermap failed on line {eTraceback.tb_lineno} - {e}")    
 			
 		return result
 
