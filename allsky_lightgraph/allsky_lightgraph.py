@@ -778,24 +778,6 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 		moon_atran = ephem.localtime(self.location.next_antitransit(ephem.Moon())).time().strftime("%H:%M")
 		moon_rise = ephem.localtime(self.location.next_rising(ephem.Moon())).time().strftime("%H:%M")
 		moon_set = ephem.localtime(self.location.next_setting(ephem.Moon())).time().strftime("%H:%M")
-		
-		sun.compute(self.location)
-		sun_trans = ephem.localtime(self.location.next_transit(ephem.Sun())).time().strftime("%H:%M")
-		sun_atran = ephem.localtime(self.location.next_antitransit(ephem.Sun())).time().strftime("%H:%M")
-		
-		#age = moon.age()
-
-		#os.environ["AS_SUN_ALT"] = str(sun_alt)
-		#os.environ["AS_SUN_AZ"] = str(sun_az)
-
-		#os.environ["AS_MOON_TRANSIT"] = str(moon_trans)
-		#os.environ["AS_MOON_ANTITRANSIT"] = str(moon_atran)
-		#os.environ["AS_MOONRISE"] = str(moon_rise)
-		#os.environ["AS_MOONSET"] = str(moon_set)
-
-		#os.environ["AS_SUN_NOON"] = str(sun_trans)
-		#os.environ["AS_SUN_MIDNIGHT"] = str(sun_atran)
-
 
 def lightgraph(params, event):
 	allsky_shared.startModuleDebug("allsky_lightgraph")
