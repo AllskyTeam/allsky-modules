@@ -1,8 +1,9 @@
 '''
 allsky_lightgraph.py
 Part of allsky prostprocess.py modules.
-https:// github.com/.........
-This modules draw a 24hrs long graph showing:
+https://github.com/AllskyTeam/allsky
+
+This modules draw a 24-hour long graph showing:
 	sunrise and sunset
 	dawn and dusk  (civil, nautical and astronomical)
 	sun transit (noon) and anti-transit (midnight)
@@ -24,7 +25,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "Light Graph",
-		"description": "Draws a 24hrs light graph on the overlay",
+		"description": "Draw a 24-hour light graph on the overlay",
 		"events": [
 			"night",
 			"day"
@@ -63,7 +64,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			"border_color": {
 				"required": "true",
 				"description": "Border color",
-				"help": "BGR format",
+				"help": "BGR format.",
 				"tab": "Colors",
 				"type": {
 					"fieldtype": "colour"
@@ -72,7 +73,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			"light_color": {
 				"required": "true",
 				"description": "Fill color for light time",
-				"help": "BGR format",
+				"help": "BGR format.",
 				"tab": "Colors",
 				"type": {
 					"fieldtype": "colour"
@@ -81,7 +82,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			"dark_color": {
 				"required": "true",
 				"description": "Fill color for dark time",
-				"help": "BGR format",
+				"help": "BGR format.",
 				"tab": "Colors",
 				"type": {
 					"fieldtype": "colour"
@@ -90,7 +91,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			"width": {
 				"required": "true",
 				"description": "Width",
-				"help": "Total with for the graph",
+				"help": "Total with for the graph.",
 				"type": {
 					"fieldtype": "spinner",
 					"min": 500,
@@ -101,7 +102,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			"height": {
 				"required": "true",
 				"description": "Height",
-				"help": "Total height for the graph",
+				"help": "Total height for the graph.",
 				"type": {
 					"fieldtype": "spinner",
 					"min": 5,
@@ -112,7 +113,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			"alpha": {
 				"required": "true",
 				"description": "Transparency",
-				"help": "From 0 (invisible) to 1 (opaque)",
+				"help": "From 0 (invisible) to 1 (opaque).",
 				"tab": "Colors",
 				"type": {
 					"fieldtype": "spinner",
@@ -124,7 +125,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			"horiz_pos": {
 				"required": "true",
 				"description": "Left border position in px",
-				"help": "Ignored if centered",
+				"help": "Ignored if centered.",
 				"type": {
 					"fieldtype": "spinner",
 					"min": 0,
@@ -162,7 +163,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			"hour_nums": {
 				"required": "false",
 				"description": "Visible hour numbers",
-				"help": "Might decrease frquency if too compact",
+				"help": "Might decrease frquency if too compact.",
 				"type": {
 					"fieldtype": "checkbox"
 				}
@@ -181,7 +182,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			"text_color": {
 				"required": "true",
 				"description": "Color for text",
-				"help": "BGR format",
+				"help": "BGR format.",
 				"tab": "Colors",
 				"type": {
 					"fieldtype": "colour"
@@ -208,7 +209,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			"elev_color": {
 				"required": "true",
 				"description": "Elevation border color",
-				"help": "BGR format",
+				"help": "BGR format.",
 				"tab": "Elevation",
 				"type": {
 					"fieldtype": "colour"
@@ -217,7 +218,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			"sun_color": {
 				"required": "true",
 				"description": "Sun color",
-				"help": "BGR format",
+				"help": "BGR format.",
 				"tab": "Elevation",
 				"type": {
 					"fieldtype": "colour"
@@ -226,7 +227,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			"moon_color": {
 				"required": "true",
 				"description": "Moon color",
-				"help": "BGR format",
+				"help": "BGR format.",
 				"tab": "Elevation",
 				"type": {
 					"fieldtype": "colour"
@@ -235,7 +236,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			"elev_width": {
 				"required": "true",
 				"description": "Width",
-				"help": "Total with for the graph",
+				"help": "Total with for the graph".,
 				"tab": "Elevation",
 				"type": {
 					"fieldtype": "spinner",
@@ -247,7 +248,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			"elev_height": {
 				"required": "true",
 				"description": "Height",
-				"help": "Total height for the graph",
+				"help": "Total height for the graph.",
 				"tab": "Elevation",
 				"type": {
 					"fieldtype": "spinner",
@@ -283,7 +284,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 		"debug": {
 				"required": "false",
 				"description": "Enable debug mode",
-				"help": "If selected image will not be updated but stored in allsky tmp debug folder",
+				"help": "If selected image will not be updated but stored in allsky tmp debug folder.",
 				"tab": "Debug",
 				"type": {
 					"fieldtype": "checkbox"
@@ -805,5 +806,5 @@ def lightgraph(params, event):
 	drawer.draw(params)
 	result ="Light Graph Complete"
 
-	allsky_shared.log(1, "INFO {0}".format(result))
+	allsky_shared.log(4, "INFO {0}".format(result))
 	return result
