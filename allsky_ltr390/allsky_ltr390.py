@@ -2,7 +2,7 @@
 allsky_ltr390.py
 
 Part of allsky postprocess.py modules.
-https://github.com/thomasjacquin/allsky
+https://github.com/AllskyTeam/allsky
 
 '''
 import allsky_shared as s
@@ -13,7 +13,7 @@ from adafruit_ltr390 import LTR390, MeasurementDelay, Resolution, Gain
 
 metaData = {
 	"name": "LTR390 (UV Level)",
-	"description": "Estimates UV Levels from a LTR390 sensor",
+	"description": "Estimate UV Levels from an LTR390 sensor",
 	"module": "allsky_ltr390",
 	"version": "v1.0.2",
 	"centersettings": "false",
