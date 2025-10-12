@@ -37,31 +37,62 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		],
 		"extradatafilename": "allsky_solarsystem.json",
 		"experimental": "false",	
-  		"extradata": {   
+  		"extradata": {
+			"database": {
+				"enabled": "True",
+				"table": "allsky_solarsystem",
+    			"pk": "id",
+    			"pk_source": "image_timestamp",
+    			"pk_type": "int",
+    			"include_all": "false",       
+       			"time_of_day_save": {
+					"day": "enabled",
+					"night": "enabled",
+					"nightday": "never",
+					"daynight": "never",
+					"periodic": "enabled"
+				}         
+			},          
 			"values": {
 				"AS_MOON_AZIMUTH": {
 					"group": "Solar System",
 					"format": "{dp=2|deg}",
 					"type": "azimuth",
-					"description": "The Moons azimuth"
+					"description": "The Moons azimuth",
+          			"dbtype": "float",     
+					"database": {
+						"include" : "true"
+					}     
 				},
 				"AS_MOON_ELEVATION": {
 					"group": "Solar System",
 					"format": "{dp=2|deg}",     
 					"type": "elevation",
-					"description": "The Moons elevation"
+					"description": "The Moons elevation",
+          			"dbtype": "float",     
+					"database": {
+						"include" : "true"
+					}     
 				},
 				"AS_MOON_VISIBLE": {
 					"group": "Solar System",
 					"format": "{yesno}",     
 					"type": "bool",
-					"description": "Is the Moon visible"
+					"description": "Is the Moon visible",
+          			"dbtype": "bool",
+					"database": {
+						"include" : "true"
+					}     
 				},
 				"AS_MOON_ILLUMINATION": {
 					"group": "Solar System",
 					"format": "{dp=1|per}",     
 					"type": "number",
-					"description": "The Moons illumination %"
+					"description": "The Moons illumination %",
+          			"dbtype": "float",     
+					"database": {
+						"include" : "true"
+					}     
 				},
 				"AS_MOON_SYMBOL": {
 					"group": "Solar System",
@@ -127,13 +158,21 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 					"group": "Solar System",
 					"format": "{int|deg}",    
 					"type": "azimuth",
-					"description": "The azimuth of the Sun"
+					"description": "The azimuth of the Sun",
+          			"dbtype": "float",     
+					"database": {
+						"include" : "true"
+					}     
 				},
 				"AS_SUN_ELEVATION": {
 					"group": "Solar System",
 					"format": "{dp=1|deg}",     
 					"type": "elevation",
-					"description": "The elevation of the Sun"
+					"description": "The elevation of the Sun",
+          			"dbtype": "float",
+					"database": {
+						"include" : "true"
+					}     
 				},
 				"AS_MERCURY_ELEVATION": {
 					"group": "Solar System",

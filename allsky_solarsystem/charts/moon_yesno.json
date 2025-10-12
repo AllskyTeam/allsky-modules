@@ -1,0 +1,23 @@
+{
+    "icon": "fas fa-lightbulb",
+    "group": "Solar System",
+    "title": "Moon Visible",
+    "type": "yesno",
+    "table": "allsky_solarsystem",
+    "hc": {
+      "yesNo": {
+        "trueText": "Yes",
+        "falseText": "No",
+        "trueColor": "#2ecc71",
+        "falseColor": "#e74c3c",
+        "fontSize": "72px"
+      }
+    },        
+    "series": [
+        {
+            "name": "Moon",
+            "yAxis": 0,
+            "variable": "AS_MOON_VISIBLE"
+        }
+    ]
+}

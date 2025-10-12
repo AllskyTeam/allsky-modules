@@ -1,0 +1,32 @@
+{
+    "icon": "fas fa-chart-line",
+    "group": "Solar System",
+    "title": "Moon Position",
+    "type": "line",
+    "table": "allsky_solarsystem",
+    "yAxis": [
+        {
+            "title": {
+                "text": "Azimuth"
+            }
+        },
+        {
+            "title": {
+                "text": "Elevation"
+            },
+            "opposite": true            
+        }
+    ],
+    "series": [
+        {
+            "name": "Azimuth",
+            "yAxis": 0,
+            "variable": "AS_MOON_AZIMUTH"
+        },
+        {
+            "name": "Elevation",
+            "yAxis": 1,
+            "variable": "AS_MOON_ELEVATION"
+        }        
+    ]
+}

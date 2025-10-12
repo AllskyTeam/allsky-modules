@@ -1,0 +1,13 @@
+{
+    "title": "Moon Illumination",
+    "icon": "fa-solid fa-gauge",
+    "type": "gauge",
+    "group": "Solar System",
+    "table": "allsky_solarsystem",
+    "series": [
+        {
+            "name": "% Illumination",
+            "variable": "AS_MOON_ILLUMINATION"
+        }
+    ]
+}
