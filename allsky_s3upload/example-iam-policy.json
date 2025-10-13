@@ -1,0 +1,18 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowPutToCameraPrefix",
+      "Effect": "Allow",
+      "Action": ["s3:PutObject"],
+      "Resource": "arn:aws:s3:::YOUR_BUCKET/YOUR_PREFIX/*"
+    },
+    {
+      "Sid": "OptionalListForHealth",
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": "arn:aws:s3:::YOUR_BUCKET",
+      "Condition": { "StringLike": { "s3:prefix": ["YOUR_PREFIX/*"] } }
+    }
+  ]
+}
