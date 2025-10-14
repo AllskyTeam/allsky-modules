@@ -6,18 +6,18 @@ from pms7003 import Pms7003Sensor, PmsSensorException
 
 class ALLSKYPMSX003(ALLSKYMODULEBASE):
 	'''
-	pm1_0cf1 - PM1.0 concentration in μg/m3 (corrected to standard conditions)
-	pm2_5cf1 - PM2.5 concentration in μg/m3 (corrected to standard conditions)
-	pm10cf1 - PM10 concentration in μg/m3 (corrected to standard conditions)
-	pm1_0 - PM1.0 concentration in μg/m3 (under atmospheric conditions)
-	pm2_5 - PM2.5 concentration in μg/m3 (under atmospheric conditions)
-	pm10 - PM10 concentration in μg/m3 (under atmospheric conditions)
-	n0_3 - number of particles with diameter greater than 0.3 μm (in 100 ml of air)
-	n0_5 - number of particles with diameter greater than 0.5 μm (in 100 ml of air)
-	n1_0 - number of particles with diameter greater than 1.0 μm (in 100 ml of air)
-	n2_5 - number of particles with diameter greater than 2.5 μm (in 100 ml of air)
-	n5_0 - number of particles with diameter greater than 5.0 μm (in 100 ml of air)
-	n10 - number of particles with diameter greater than 10 μm (in 100 ml of air)
+	pm1_0cf1 - PM1.0 concentration in Î¼g/m3 (corrected to standard conditions)
+	pm2_5cf1 - PM2.5 concentration in Î¼g/m3 (corrected to standard conditions)
+	pm10cf1 - PM10 concentration in Î¼g/m3 (corrected to standard conditions)
+	pm1_0 - PM1.0 concentration in Î¼g/m3 (under atmospheric conditions)
+	pm2_5 - PM2.5 concentration in Î¼g/m3 (under atmospheric conditions)
+	pm10 - PM10 concentration in Î¼g/m3 (under atmospheric conditions)
+	n0_3 - number of particles with diameter greater than 0.3 Î¼m (in 100 ml of air)
+	n0_5 - number of particles with diameter greater than 0.5 Î¼m (in 100 ml of air)
+	n1_0 - number of particles with diameter greater than 1.0 Î¼m (in 100 ml of air)
+	n2_5 - number of particles with diameter greater than 2.5 Î¼m (in 100 ml of air)
+	n5_0 - number of particles with diameter greater than 5.0 Î¼m (in 100 ml of air)
+	n10 - number of particles with diameter greater than 10 Î¼m (in 100 ml of air)
  
 	Air quality index calculations from https://en.wikipedia.org/wiki/Air_quality_index#Computing_the_AQI
  
@@ -28,7 +28,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "Air Quality Monitor",
-		"description": "Monitors air quality using a pms5003, pms7003 or pmsa003",
+		"description": "Monitor air quality using a pms5003, pms7003 or pmsa003",
 		"module": "allsky_pmsx003",
 		"version": "v1.0.2",
 		"events": [
@@ -62,7 +62,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 					"format": "",
 					"sample": "",
 					"group": "Environment",
-					"description": "PM1.0 concentration in μg/m3 (corrected to standard conditions)",
+					"description": "PM1.0 concentration in Î¼g/m3 (corrected to standard conditions)",
 					"type": "number",
 					"database": {
 						"include" : "true"
@@ -73,7 +73,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 					"format": "",
 					"sample": "",
 					"group": "Environment",
-					"description": "PM2.5 concentration in μg/m3 (corrected to standard conditions)",
+					"description": "PM2.5 concentration in Î¼g/m3 (corrected to standard conditions)",
 					"type": "number",
 					"database": {
 						"include" : "true"
@@ -84,7 +84,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 					"format": "",
 					"sample": "",
 					"group": "Environment",
-					"description": "PM10 concentration in μg/m3 (corrected to standard conditions)",
+					"description": "PM10 concentration in Î¼g/m3 (corrected to standard conditions)",
 					"type": "number",
 					"database": {
 						"include" : "true"
@@ -95,7 +95,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 					"format": "",
 					"sample": "",
 					"group": "Environment",
-					"description": "PM1.0 concentration in μg/m3 (under atmospheric conditions)",
+					"description": "PM1.0 concentration in Î¼g/m3 (under atmospheric conditions)",
 					"type": "number"
 				},
 				"AS_PM2_5": {
@@ -103,7 +103,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 					"format": "",
 					"sample": "",
 					"group": "Environment",
-					"description": "PM2.5 concentration in μg/m3 (under atmospheric conditions)",
+					"description": "PM2.5 concentration in Î¼g/m3 (under atmospheric conditions)",
 					"type": "number"
 				},
 				"AS_PM10": {
@@ -111,7 +111,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 					"format": "",
 					"sample": "",
 					"group": "Environment",
-					"description": "PM10 concentration in μg/m3 (under atmospheric conditions)",
+					"description": "PM10 concentration in Î¼g/m3 (under atmospheric conditions)",
 					"type": "number"
 				},
 				"AS_N0_3": {
@@ -119,7 +119,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 					"format": "",
 					"sample": "",
 					"group": "Environment",
-					"description": "Number of particles with diameter greater than 0.3 μm (in 100 ml of air)",
+					"description": "Number of particles with diameter greater than 0.3 Î¼m (in 100 ml of air)",
 					"type": "number"
 				},
 				"AS_N0_5": {
@@ -127,7 +127,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 					"format": "",
 					"sample": "",
 					"group": "Environment",
-					"description": "Number of particles with diameter greater than 0.5 μm (in 100 ml of air)",
+					"description": "Number of particles with diameter greater than 0.5 Î¼m (in 100 ml of air)",
 					"type": "number"
 				},
 				"AS_N1_0": {
@@ -135,7 +135,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 					"format": "",
 					"sample": "",
 					"group": "Environment",
-					"description": "Number of particles with diameter greater than 1.0 μm (in 100 ml of air)",
+					"description": "Number of particles with diameter greater than 1.0 Î¼m (in 100 ml of air)",
 					"type": "number"
 				},
 				"AS_N2_5": {
@@ -143,7 +143,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 					"format": "",
 					"sample": "",
 					"group": "Environment",
-					"description": "Number of particles with diameter greater than 2.5 μm (in 100 ml of air)",
+					"description": "Number of particles with diameter greater than 2.5 Î¼m (in 100 ml of air)",
 					"type": "number"
 				},
 				"AS_N5_0": {
@@ -151,7 +151,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 					"format": "",
 					"sample": "",
 					"group": "Environment",
-					"description": "Number of particles with diameter greater than 5.0 μm (in 100 ml of air)",
+					"description": "Number of particles with diameter greater than 5.0 Î¼m (in 100 ml of air)",
 					"type": "number"
 				},
 				"AS_N10": {
@@ -159,7 +159,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 					"format": "",
 					"sample": "",
 					"group": "Environment",
-					"description": "Number of particles with diameter greater than 10 μm (in 100 ml of air)",
+					"description": "Number of particles with diameter greater than 10 Î¼m (in 100 ml of air)",
 					"type": "number"
 				},
 				"AS_AQI": {
@@ -195,7 +195,7 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Serial port",
 				"tab": "Home",
-				"help": "The serial port the sensor is connected to",
+				"help": "The serial port the sensor is connected to.",
 				"type": {
 					"fieldtype": "ajaxselect",
 					"url": "includes/moduleutil.php?request=SerialPorts",
@@ -309,11 +309,11 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 			self.log(4, f'INFO: {result}')
 		except PmsSensorException:
 			result = 'Cannot connect to the sensor'
-			self.log(0, f'ERROR: {result}')
+			self.log(0, f'ERROR in {__file}: {result}')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f'Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}'
-			self.log(0, f'ERROR: {result}')      
+			self.log(0, f'ERROR in {__file}: {result}')      
 
 		return result
 

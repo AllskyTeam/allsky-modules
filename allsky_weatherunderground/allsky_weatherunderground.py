@@ -3,7 +3,7 @@
 allsky_weatherunderground.py
 
 Part of allsky postprocess.py modules.
-https://github.com/thomasjacquin/allsky
+https://github.com/AllskyTeam/allsky
 
 This module will retrieve data from the WeatherUnderground API
 
@@ -17,7 +17,7 @@ class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "WeatherUnderground",
-		"description": "Obtains weather data from WeatherUnderground",
+		"description": "Obtain weather data from WeatherUnderground",
 		"module": "allsky_weatherunderground",
 		"version": "v1.0.1",   
 		"events": [
@@ -180,18 +180,18 @@ class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
 				"required": "true",
 				"description": "API Key",
 				"secret": "true",
-				"help": "Your WeatherUnderground API key"         
+				"help": "Your WeatherUnderground API key."
 			},
 			"stationid": {
 				"required": "true",
 				"description": "Station ID",
 				"secret": "true",
-				"help": "Your WeatherUnderground station ID"
+				"help": "Your WeatherUnderground station ID."
 			},      
 			"period" : {
 				"required": "true",
 				"description": "Read Every",
-				"help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
+				"help": "Reads data every x seconds. Be careful of the free 1000 request limit per day.",
 				"type": {
 					"fieldtype": "spinner",
 					"min": 60,
@@ -202,7 +202,7 @@ class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
 			"units" : {
 				"required": "false",
 				"description": "Units",
-				"help": "Units of measurement. SI, metric, imperial and hybrid",
+				"help": "Units of measurement. SI, metric, imperial and hybrid.",
 				"type": {
 					"fieldtype": "select",
 					"values": "metric_si,metric,imperial,uk_hybrid"
@@ -288,22 +288,22 @@ class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
 							self.log(4, f'INFO: {result}')
 						except Exception as e:
 							eType, eObject, eTraceback = sys.exc_info()
-							result = f'ERROR: Failed to download weather underground data {eTraceback.tb_lineno} - {e}'
+							result = f'ERROR in {__file}: Failed to download weather underground data {eTraceback.tb_lineno} - {e}'
 							self.log(0, result)
 					else:
 						result = 'Missing WeatherUnderground Station ID'
-						self.log(0, f'ERROR: {result}')
+						self.log(0, f'ERROR in {__file}: {result}')
 				else:
 					result = 'Missing WeatherUnderground API key'
-					self.log(0, f'ERROR: {result}')
+					self.log(0, f'ERROR in {__file}: {result}')
 				allsky_shared.setLastRun(module)
 			else:
 				result = f'Last run {diff} seconds ago. Running every {period} seconds'
-				self.log(1, f'INFO: {result}')
+				self.log(4, f'INFO: {result}')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f'Module weatherunderground failed on line {eTraceback.tb_lineno} - {e}'
-			self.log(0, f'ERROR: {result}')
+			self.log(0, f'ERROR in {__file}: {result}')
 			
 		return result
 

@@ -2,35 +2,35 @@
 allsky_fans.py
 
 Part of allsky postprocess.py modules.
-https://github.com/thomasjacquin/allsky
+https://github.com/AllskyTeam/allsky
 
-Disable bcm2835 on pi 4 as it interferes with the hardware pwm
+Disable bcm2835 on a Pi 4 as it interferes with the hardware pwm:
 # Enable audio (loads snd_bcm2835)
 #dtparam=audio=on
 
 dtoverlay=pwm-2chan
-
 '''
+
 import allsky_shared as allsky_shared
 from allsky_base import ALLSKYMODULEBASE
 import sys
 import requests
 
 class ALLSKYFANS(ALLSKYMODULEBASE):
-    
+
 	meta_data = {
-		"name": "Control Allsky Fans",
-		"description": "Start A Fans when the CPU or external sensor reaches a set temperature",
-		"module": "allsky_fans",    
+		"name": "Pi Fan Control",
+		"description": "Control a Pi fan based on CPU or external sensor temperature",
+		"module": "allsky_fans",
 		"version": "v1.0.3",
 		"testable": "true",
-		"centersettings": "false", 
+		"centersettings": "false",
 		"events": [
 			"night",
 			"day",
 			"periodic"
 		],
-		"enabled": "false",    
+		"enabled": "false",
 		"experimental": "false",
 		"extradatafilename": "allsky_fans.json",
 		"group": "Environment Control",
@@ -39,7 +39,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				"enabled": "True",
 				"table": "allsky_fans",
     			"pk": "id",
-    			"pk_type": "int",    
+    			"pk_type": "int",
 				"include_all": "true",
        			"time_of_day_save": {
 					"day": "always",
@@ -47,21 +47,21 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					"nightday": "always",
 					"daynight": "always",
 					"periodic": "always"
-				}    
+				}
 			},
 			"values": {
 				"AS_FANS_ENABLE1": {
 					"name": "${FANS_ENABLE1}",
 					"format": "{yesno}",
-					"sample": "",                 
+					"sample": "",
 					"group": "Fan",
 					"description": "Fan 1 enabled",
 					"type": "bool"
-				},       
+				},
 				"AS_FANS_FAN_STATE1": {
 					"name": "${FANS_FAN_STATE1}",
 					"format": "{yesno}",
-					"sample": "",                
+					"sample": "",
 					"group": "Fan",
 					"description": "Fan 1 Status",
 					"type": "bool"
@@ -69,15 +69,15 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				"AS_FANS_TEMPERATURE1": {
 					"name": "${FANS_TEMPERATURE1}",
 					"format": "{dp=2|deg|unit}",
-					"sample": "",                 
+					"sample": "",
 					"group": "Fan",
 					"description": "Fan 1 module Temperature",
 					"type": "temperature"
-				},             
+				},
 				"AS_FANS_TEMP_LIMIT1": {
 					"name": "${FANS_TEMP_LIMIT1}",
 					"format": "{dp=2|deg|unit}",
-					"sample": "",                 
+					"sample": "",
 					"group": "Fan",
 					"description": "Fan 1 Activation Temperature",
 					"type": "temperature"
@@ -85,7 +85,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				"AS_FANS_USE_PWM1": {
 					"name": "${FANS_USE_PWM1}",
 					"format": "{yesno}",
-					"sample": "",                 
+					"sample": "",
 					"group": "Fan",
 					"description": "Fan 1 use PWM",
 					"type": "bool"
@@ -93,7 +93,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				"AS_FANS_PWM_ENABLED1": {
 					"name": "${FANS_PWM_ENABLED1}",
 					"format": "{yesno}",
-					"sample": "",                 
+					"sample": "",
 					"group": "Fan",
 					"description": "Fan 1 PWM enabled",
 					"type": "bool"
@@ -101,7 +101,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				"AS_FANS_PWM_DUTY_CYCLE1": {
 					"name": "${FANS_PWM_DUTY_CYCLE1}",
 					"format": "",
-					"sample": "",                 
+					"sample": "",
 					"group": "Fan",
 					"description": "Fan 1 PWM Duty Cycle",
 					"type": "number"
@@ -109,7 +109,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				"AS_FANS_PWM_DUTY_PERCENT1": {
 					"name": "${AS_FANS_PWM_DUTY_PERCENT1}",
 					"format": "",
-					"sample": "",                 
+					"sample": "",
 					"group": "Fan",
 					"description": "Fan 1 PWM Duty Cycle %",
 					"type": "number"
@@ -117,15 +117,15 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				"AS_FANS_ENABLE2": {
 					"name": "${FANS_ENABLE2}",
 					"format": "{yesno}",
-					"sample": "",                 
+					"sample": "",
 					"group": "Fan",
 					"description": "Fan 2 enabled",
 					"type": "bool"
-				},     
+				},
 				"AS_FANS_FAN_STATE2": {
 					"name": "${FANS_FAN_STATE2}",
 					"format": "{yesno}",
-					"sample": "",                
+					"sample": "",
 					"group": "Fan",
 					"description": "Fan 2 Status",
 					"type": "bool"
@@ -133,15 +133,15 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				"AS_FANS_TEMPERATURE2": {
 					"name": "${FANS_TEMPERATURE2}",
 					"format": "{dp=2|deg|unit}",
-					"sample": "",                 
+					"sample": "",
 					"group": "Fan",
 					"description": "Fan 2 module Temperature",
 					"type": "temperature"
-				},             
+				},
 				"AS_FANS_TEMP_LIMIT2": {
 					"name": "${FANS_TEMP_LIMIT2}",
 					"format": "{dp=2|deg|unit}",
-					"sample": "",                 
+					"sample": "",
 					"group": "Fan",
 					"description": "Fan 2 Activation Temperature",
 					"type": "temperature"
@@ -149,7 +149,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				"AS_FANS_USE_PWM2": {
 					"name": "${FANS_USE_PWM2}",
 					"format": "{yesno}",
-					"sample": "",                 
+					"sample": "",
 					"group": "Fan",
 					"description": "Fan 2 use PWM",
 					"type": "bool"
@@ -157,7 +157,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				"AS_FANS_PWM_ENABLED2": {
 					"name": "${FANS_PWM_ENABLED2}",
 					"format": "{yesno}",
-					"sample": "",                 
+					"sample": "",
 					"group": "Fan",
 					"description": "Fan 2 PWM enabled",
 					"type": "bool"
@@ -165,7 +165,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				"AS_FANS_PWM_DUTY_CYCLE2": {
 					"name": "${FANS_PWM_DUTY_CYCLE2}",
 					"format": "",
-					"sample": "",                 
+					"sample": "",
 					"group": "Fan",
 					"description": "Fan 2 PWM Duty Cycle",
 					"type": "number"
@@ -173,19 +173,19 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				"AS_FANS_PWM_DUTY_PERCENT2": {
 					"name": "${AS_FANS_PWM_DUTY_PERCENT2}",
 					"format": "",
-					"sample": "",                 
+					"sample": "",
 					"group": "Fan",
 					"description": "Fan 2 PWM Duty Cycle %",
 					"type": "number"
 				}
 			}
-		}, 
+		},
 		"arguments":{
 			"enable1": "False",
 			"sensor_type1": "Internal",
 			"period1": 60,
 			"fanpin1": "18",
-			"invertrelay1": "False",        
+			"invertrelay1": "False",
 			"usepwm1": "false",
 			"pwmmin1": 0,
 			"pwmmax1": 100,
@@ -196,7 +196,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			"sensor_type2": "Internal",
 			"period2": 60,
 			"fanpin2": "18",
-			"invertrelay2": "False",        
+			"invertrelay2": "False",
 			"usepwm2": "false",
 			"pwmmin2": 0,
 			"pwmmax2": 100,
@@ -214,11 +214,11 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				"type": {
 					"fieldtype": "checkbox"
 				}
-			},      
+			},
 			"sensor_type1" : {
 				"required": "false",
 				"description": "Sensor Type",
-				"help": "The type of sensor that is being used. 'internal' will read the cpu temperature of the PI. 'Allsky' will allow you to select an environment sensor from the 'Allsky Environment' module",
+				"help": "The type of sensor that is being used. 'internal' reads the cpu temperature of the Pi. 'Allsky' allows you to select an environment sensor from the 'Allsky Environment' module.",
 				"tab": "Fan 1",
 				"type": {
 					"fieldtype": "select",
@@ -229,7 +229,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			"temperature1": {
 				"required": "false",
 				"description": "Temperature Variable",
-				"help": "The Variable to use for the temperature",
+				"help": "The Variable to use for the temperature.",
 				"tab": "Fan 1",
 				"filters": {
 					"filter": "sensor_type1",
@@ -237,15 +237,15 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					"values": [
 						"Allsky"
 					]
-				},            
+				},
 				"type": {
 					"fieldtype": "variable"
-				}                             
+				}
 			},
 			"limitInternal1" : {
 				"required": "false",
 				"description": "Temp. Limit",
-				"help": "The temperature limit beyond which fans are activated",
+				"help": "The temperature limit beyond which fans are activated.",
 				"tab": "Fan 1",
 				"filters": {
 					"filter": "sensor_type1",
@@ -254,35 +254,35 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 						"Internal",
 						"Allsky"
 					]
-				},     
+				},
 				"type": {
 					"fieldtype": "spinner",
 					"min": 30,
 					"max": 75,
 					"step": 1
-				}     
-			},  
+				}
+			},
 			"period1" : {
 				"required": "true",
 				"description": "Read Every",
-				"help": "How frequently to read the temperature data, in seconds",                
+				"help": "How frequently to read the temperature data, in seconds.",
 				"tab": "Fan 1",
 				"type": {
 					"fieldtype": "spinner",
 					"min": 30,
 					"max": 600,
 					"step": 1
-				}          
+				}
 			},
 			"fanpin1": {
 				"required": "false",
 				"description": "Fans Output Pin",
-				"help": "The GPIO pin for the fan or PWM",
+				"help": "The GPIO pin for the fan or PWM.",
 				"tab": "Fan 1",
 				"type": {
 					"fieldtype": "gpio"
-				}           
-			},         
+				}
+			},
 			"invertrelay1" : {
 				"required": "false",
 				"description": "Invert Output",
@@ -295,7 +295,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			"usepwm1" : {
 				"required": "false",
 				"description": "Use PWM",
-				"help": "Use PWM Fan control. Please see the module documentation BEFORE using this feature",
+				"help": "Use PWM Fan control. Please see the module documentation BEFORE using this feature.",
 				"tab": "Fan 1",
 				"type": {
 					"fieldtype": "checkbox"
@@ -304,7 +304,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			"pwmmin1" : {
 				"required": "false",
 				"description": "Min PWM Temp",
-				"help": "Below this temp the fan will be off. This equates to 0% PWM duty cycle",
+				"help": "Below this temp the fan will be off. This equates to 0% PWM duty cycle.",
 				"tab": "Fan 1",
 				"type": {
 					"fieldtype": "spinner",
@@ -318,12 +318,12 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					"values": [
 						"usepwm1"
 					]
-				}      
+				}
 			},
 			"pwmmax1" : {
 				"required": "false",
 				"description": "Max PWM Temp",
-				"help": "Below this temp the fan will be on. This equates to 100% PWM duty cycle",
+				"help": "Below this temp the fan will be on. This equates to 100% PWM duty cycle.",
 				"tab": "Fan 1",
 				"type": {
 					"fieldtype": "spinner",
@@ -347,11 +347,11 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				"type": {
 					"fieldtype": "checkbox"
 				}
-			},      
+			},
 			"sensor_type2" : {
 				"required": "false",
 				"description": "Sensor Type",
-				"help": "The type of sensor that is being used. 'internal' will read the cpu temperature of the PI. 'Allsky' will allow you to select an environment sensor from the 'Allsky Environment' module",
+				"help": "The type of sensor being used. 'internal' reads the CPU temperature of the PI. 'Allsky' allows you to select an environment sensor from the 'Allsky Environment' module.",
 				"tab": "Fan 2",
 				"type": {
 					"fieldtype": "select",
@@ -362,7 +362,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			"temperature2": {
 				"required": "false",
 				"description": "Temperature Variable",
-				"help": "The Variable to use for the temperature",
+				"help": "The Variable to use for the temperature.",
 				"tab": "Fan 2",
 				"filters": {
 					"filter": "sensor_type2",
@@ -370,15 +370,15 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					"values": [
 						"Allsky"
 					]
-				},            
+				},
 				"type": {
 					"fieldtype": "variable"
-				}                             
+				}
 			},
 			"limitInternal2" : {
 				"required": "false",
 				"description": "Temp. Limit",
-				"help": "The temperature limit beyond which fans are activated",
+				"help": "The temperature limit beyond which fans are activated.",
 				"tab": "Fan 2",
 				"filters": {
 					"filter": "sensor_type2",
@@ -387,35 +387,35 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 						"Internal",
 						"Allsky"
 					]
-				},     
+				},
 				"type": {
 					"fieldtype": "spinner",
 					"min": 30,
 					"max": 75,
 					"step": 1
-				}     
-			},  
+				}
+			},
 			"period2" : {
 				"required": "true",
 				"description": "Read Every",
-				"help": "How frequently to read the temperature data, in seconds",                
+				"help": "How frequently to read the temperature data, in seconds.",
 				"tab": "Fan 2",
 				"type": {
 					"fieldtype": "spinner",
 					"min": 30,
 					"max": 600,
 					"step": 1
-				}          
+				}
 			},
 			"fanpin2": {
 				"required": "false",
 				"description": "Fans Output Pin",
-				"help": "The GPIO pin for the fan or PWM",
+				"help": "The GPIO pin for the fan or PWM.",
 				"tab": "Fan 2",
 				"type": {
 					"fieldtype": "gpio"
-				}           
-			},         
+				}
+			},
 			"invertrelay2" : {
 				"required": "false",
 				"description": "Invert Output",
@@ -428,7 +428,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			"usepwm2" : {
 				"required": "false",
 				"description": "Use PWM",
-				"help": "Use PWM Fan control. Please see the module documentation BEFORE using this feature",
+				"help": "Use PWM Fan control. Please see the module documentation BEFORE using this feature.",
 				"tab": "Fan 2",
 				"type": {
 					"fieldtype": "checkbox"
@@ -437,7 +437,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			"pwmmin2" : {
 				"required": "false",
 				"description": "Min PWM Temp",
-				"help": "Below this temp the fan will be off. This equates to 0% PWM duty cycle",
+				"help": "Below this temp the fan will be off. This equates to 0% PWM duty cycle.",
 				"tab": "Fan 2",
 				"type": {
 					"fieldtype": "spinner",
@@ -451,12 +451,12 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					"values": [
 						"usepwm2"
 					]
-				}      
+				}
 			},
 			"pwmmax2" : {
 				"required": "false",
 				"description": "Max PWM Temp",
-				"help": "Below this temp the fan will be on. This equates to 100% PWM duty cycle",
+				"help": "Below this temp the fan will be on. This equates to 100% PWM duty cycle.",
 				"tab": "Fan 2",
 				"type": {
 					"fieldtype": "spinner",
@@ -470,17 +470,17 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					"values": [
 						"usepwm2"
 					]
-				}         
+				}
 			},
 			"enabledataage" : {
 				"required": "false",
 				"description": "Custom Data Expiry",
-				"help": "Enable custom data expiry. This will overrides the default in the module manager",
+				"help": "Enable custom data expiry. This will overrides the default in the module manager.",
 				"tab": "Data Control",
     			"type": {
 					"fieldtype": "checkbox"
 				}
-			},  
+			},
 			"dataage" : {
 				"required": "false",
 				"description": "Data Age",
@@ -498,7 +498,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					"values": [
 						"enabledataage"
 					]
-				}         
+				}
 			},
 			"graph": {
 				"required": "false",
@@ -506,7 +506,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				"type": {
 					"fieldtype": "graph"
 				}
-			}	   
+			}
 		},
 		"businfo": [
 			"i2c"
@@ -548,9 +548,9 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 						"Removed all external sensors - Use allsky_temp module to read sensors"
 					]
 				}
-			]       
+			]
 		}
-	}    
+	}
 
 	_temperature = 0
 	_temperature_limit = 0
@@ -567,7 +567,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		except Exception as e:
 			exception_type, exception_object, exception_traceback = sys.exc_info()
 			result = f'Module _get_cpu_temperature - {exception_traceback.tb_lineno} - {e}'
-			self.log(4, f'ERROR: {result}')   
+			self.log(0, f'ERROR in {__file__}: {result}')
 
 		return temp_c
 
@@ -580,7 +580,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		except Exception as e:
 			exception_type, exception_object, exception_traceback = sys.exc_info()
 			result = f'Fan {self._fan_number} - Module _get_cpu_temperature - {exception_traceback.tb_lineno} - {e}'
-			self.log(4, f'ERROR: {result}')   
+			self.log(0, f'ERROR in {__file__}: {result}')
 
 		return temperature
 
@@ -604,8 +604,8 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 	def _use_bool_fan_control(self, fan_number):
 		error = False
 		state = False
-  
-		try:  
+
+		try:
 			allsky_shared.stop_pwm(self._fan_pin)
 
 			if (self._temperature > self._temperature_limit):
@@ -625,15 +625,15 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		except requests.exceptions.ConnectionError  as e:
 			exception_type, exception_object, exception_traceback = sys.exc_info()
 			result = f'Fan {self._fan_number} - Module _use_bool_fan_control - Unable to connect to the Allsky server. Is it running?'
-			self.log(0, f'ERROR: {result}')
-			error = True 
-      
+			self.log(0, f'ERROR in {__file__}: {result}')
+			error = True
+
 		except Exception as e:
 			exception_type, exception_object, exception_traceback = sys.exc_info()
 			result = f'Fan {self._fan_number} - Module _use_bool_fan_control - {exception_traceback.tb_lineno} - {e}'
-			self.log(0, f'ERROR: {result}')      
-			error = True 
-   
+			self.log(0, f'ERROR in {__file__}: {result}')
+			error = True
+
 		return result, error, state
 
 	def _temperature_to_pwm_duty(self, temp, min_temp, max_temp):
@@ -644,7 +644,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		else:
 			ratio = (temp - min_temp) / (max_temp - min_temp)
 			return int(ratio * 65535)
-    
+
 	def _use_pwm_fan_control(self, fan_number):
 		pwm_min = self.get_param(f'pwmmin{fan_number}', 0, int)
 		pwm_max = self.get_param(f'pwmmax{fan_number}', 100, int)
@@ -661,7 +661,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				if model in self._pwm_map:
 					pwm_duty_cycle = self._temperature_to_pwm_duty(self._temperature, pwm_min, pwm_max)
 					pwm_result = allsky_shared.set_pwm(self._fan_pin, pwm_duty_cycle)
-					status = True     
+					status = True
 					if pwm_result:
 						pwm_enabled = 1
 						duty_percent = round((pwm_duty_cycle / 65535) * 100,2)
@@ -670,21 +670,21 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 						result = f'Fan {self._fan_number} - Failed to set the fan status check pigpiod is running'
 				else:
 					result = f'Pi Model ({model}) is not supported for PWM'
-					self.log(0, f'ERROR: {result}')
+					self.log(0, f'ERROR in {__file__}: {result}')
 			else:
 				result = 'Fan {self._fan_number} - PWM Pin is invalid'
-				self.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR in {__file__}: {result}')
 		except requests.exceptions.ConnectionError  as e:
 			exception_type, exception_object, exception_traceback = sys.exc_info()
 			result = f'Fan {self._fan_number} - Module _use_pwm_fan_control - Unable to connect to the Allsky server. Is it running?'
-			self.log(0, f'ERROR: {result}')
-			error = True 
-      
+			self.log(0, f'ERROR in {__file__}: {result}')
+			error = True
+
 		except Exception as e:
 			exception_type, exception_object, exception_traceback = sys.exc_info()
 			result = f'Fan {self._fan_number} - Module _use_pwm_fan_control - {exception_traceback.tb_lineno} - {e}'
-			self.log(0, f'ERROR: {result}')      
-			error = True 
+			self.log(0, f'ERROR in {__file__}: {result}')
+			error = True
 
 		return result, pwm_duty_cycle, pwm_enabled, error, status, duty_percent
 		
@@ -692,7 +692,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		result = ''
 		extra_data = {}
 
-		self._debugmode = self.get_param('ALLSKYTESTMODE', False, bool)  
+		self._debugmode = self.get_param('ALLSKYTESTMODE', False, bool)
 
 		for fan_number in range(1,3):
 			enabled = self.get_param(f'enable{fan_number}', False, bool)
@@ -742,21 +742,21 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 								allsky_shared.setLastRun(run_code)
 							else:
 								result = f'Failed to get temperature for fan {fan_number}'
-								self.log(0, f'ERROR: {result}')
+								self.log(0, f'ERROR in {__file__}: {result}')
 						else:
 							result = f'fan pin not defined or invalid for fan {fan_number}'
-							self.log(0, f'ERROR: {result}')
+							self.log(0, f'ERROR in {__file__}: {result}')
 					else:
 						result = f'Fan {fan_number} Will run in {(run_period - diff):.0f} seconds'
 				except Exception as e:
 					exception_type, exception_object, exception_traceback = sys.exc_info()
 					result = f'Fan Module run - Fan {fan_number} - {exception_traceback.tb_lineno} - {e}'
-					self.log(4, f'ERROR: {result}')    
+					self.log(0, f'ERROR in {__file__}: {result}')
 
 				if not error:
-					self.log(4,f'INFO: {result}')
+					self.log(4, f'INFO: {result}')
 			else:
-				self.log(4,f'INFO: FAN {fan_number} skipped as its disabled')
+				self.log(4, f'INFO: FAN {fan_number} skipped as its disabled')
 
 		if extra_data:
 			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
@@ -767,7 +767,7 @@ def fans(params, event):
 	allsky_fans = ALLSKYFANS(params, event)
 	result = allsky_fans.run()
 
-	return result    
+	return result
 
 def fans_cleanup():
 	moduleData = {

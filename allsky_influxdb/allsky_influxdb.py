@@ -2,7 +2,7 @@
 allsky_influxdb.py
 
 Part of allsky postprocess.py modules.
-https://github.com/thomasjacquin/allsky
+https://github.com/AllskyTeam/allsky
 
 To install InfluxDB v1 on a pi run the following as root
 
@@ -49,8 +49,8 @@ v1.0.2 by Damian Grocholski (Mr-Groch)
 import allsky_shared as allsky_shared
 
 metaData = {
-	"name": "Allsky influxdb",
-	"description": "Saves values from allsky to influxdb",
+	"name": "Save Data to influxdb",
+	"description": "Save data from Allsky to influxdb",
 	"version": "v1.0.2",
 	"events": [
 	    "day",
@@ -61,7 +61,7 @@ metaData = {
 	"deprecation": {
 		"fromversion": "v2024.12.06_01",
 		"removein": "v2024.12.06_01",
-		"notes": "This module has been deprecated. Please use the allsky_publishdata module",
+		"notes": "This module has been deprecated. Please use the 'Publish Data to Redis/MQTT/REST/influxDB' module instead.",
 		"replacedby": "allsky_publishdata",
 		"deprecated": "true"
 	},  
@@ -73,4 +73,4 @@ metaData = {
 }
 
 def influxdb(params, event):
-	return 'Deprectated Please ise allsky_publishdata'
+	return "Deprectated - Please use the 'Publish Data to Redis/MQTT/REST/influxDB' module instead."

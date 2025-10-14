@@ -1,17 +1,16 @@
-# AllSky Weather Module
+# Open Weather Map Module
 
-|   |   |
+|              |              |
 | ------------ | ------------ |
 | **Status**  | Stable  |
 | **Level**  | Experienced  |
-| **Runs In**  | periodic  |
+| **Runs In**  | Periodic  |
 
 
-This module allows data to be retreived from the Open Wether Map API
+This module allows data to be retreived from the Open Wether Map API:
 
 |  Setting | Description  |
 | ------------ | ------------ |
 | API Key | Your Open Weather Map API key  |
 
-**NOTES:** Please visit https://openweathermap.org/ to register for an API key
-
+**NOTE:** Please visit https://openweathermap.org/ to register for an API key.

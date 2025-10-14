@@ -31,7 +31,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "Environment Monitor",
-		"description": "Obtains environment data (Temperature/Humidity) from external sensors",
+		"description": "Obtain environment data (temperature/humidity) from external sensors",
 		"module": "allsky_temp",
 		"version": "v1.0.2",
 		"events": [
@@ -349,7 +349,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		"argumentdetails": {
 			"notice" : {
 				"tab": "Home",      
-				"message": "This module will provide centralised temperature, humidity and pressure data to other modules. This should be used in favour of dedicated sensors in any other modules which will be removed in a future release",
+				"message": "This module provides centralised temperature, humidity, and pressure data to other modules. This should be used in favour of dedicated sensors in any other modules which will be removed in a future release.",
 				"type": {
 					"fieldtype": "text",
 					"style": {
@@ -363,7 +363,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"frequency" : {
 				"required": "false",
 				"description": "Delay",
-				"help": "The delay between sensor reads in seconds. Zero will disable this and run the check every time the periodic jobs run",
+				"help": "The delay between sensor reads in seconds. Zero will disable this and run the check every time the periodic jobs run.",
 				"tab": "Home",
 				"type": {
 					"fieldtype": "spinner",
@@ -377,12 +377,12 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"description": "Extra Data Filename",
 				"tab": "Home",
 				"disabled": "true",
-				"help": "The name of the file to create with the dew heater data for the overlay manager"
+				"help": "The name of the file to create with the dew heater data for the Overlay Manager."
 			},
 			"units" : {
 				"required": "false",
 				"description": "Units",
-				"help": "Units of measurement. standard, metric and imperial",
+				"help": "Units of measurement: standard, metric, or imperial.",
 				"tab": "Home",            
 				"type": {
 					"fieldtype": "select",
@@ -404,13 +404,13 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Name Of Sensor",
 				"tab": "Core",
-				"help": "The name of the sensor, will be added as a variable",
+				"help": "The name of the sensor, will be added as a variable.",
 				"disabled": "true"            
 			},        
 			"inputpin": {
 				"required": "false",
 				"description": "Input Pin",
-				"help": "The input pin for DHT type sensors, not required for i2c devices",
+				"help": "The input pin for DHT type sensors, not required for i2c devices.",
 				"tab": "Core",
 				"type": {
 					"fieldtype": "gpio"
@@ -428,7 +428,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"i2caddress": {
 				"required": "false",
 				"description": "I2C Address",
-				"help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
+				"help": "Override the standard i2c address for a device. NOTE: This value must be hex, i.e., 0x76.",
 				"tab": "Core",
 				"type": {
 					"fieldtype": "i2c"
@@ -451,7 +451,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "DS18B20 Address",
 				"tab": "Core",
-				"help": "Filename in /sys/bus/w1/devices",
+				"help": "Filename in /sys/bus/w1/devices.",
 				"type": {
 					"fieldtype": "ajaxselect",
 					"url": "includes/moduleutil.php?request=Onewire",
@@ -468,7 +468,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"dhtxxretrycount" : {
 				"required": "false",
 				"description": "Retry Count",
-				"help": "The number of times to retry the DHTXX sensor read",
+				"help": "The number of times to retry the DHTXX sensor read.",
 				"tab": "Core",
 				"type": {
 					"fieldtype": "spinner",
@@ -489,7 +489,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"dhtxxdelay" : {
 				"required": "false",
 				"description": "Delay",
-				"help": "The delay between faild DBTXX sensor reads in milliseconds",
+				"help": "The delay between faild DBTXX sensor reads in milliseconds.",
 				"tab": "Core",
 				"type": {
 					"fieldtype": "spinner",
@@ -510,7 +510,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"sht31heater" : {
 				"required": "false",
 				"description": "Enable SHT31 Heater",
-				"help": "Enable the inbuilt heater on the SHT31",
+				"help": "Enable the inbuilt heater on the SHT31.",
 				"tab": "Core",
 				"type": {
 					"fieldtype": "checkbox"
@@ -526,7 +526,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"sht41mode" : {
 				"required": "false",
 				"description": "SHT4x Power Mode",
-				"help": "Sets the SHT4x power mode",
+				"help": "Sets the SHT4x power mode.",
 				"tab": "Core",
 				"type": {
 					"fieldtype": "select",
@@ -579,7 +579,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Filename",
 				"tab": "Core",            
-				"help": "The name of the file that will be written to the allsky/tmp/extra directory",
+				"help": "The name of the file that will be written to the allsky/tmp/extra directory.",
 				"filters": {
 					"filter": "type",
 					"filtertype": "show",
@@ -591,7 +591,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"owperiod" : {
 				"required": "false",
 				"description": "Read Every",
-				"help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
+				"help": "Reads data every x seconds. Be careful of the free 1000 request limit per day.",
 				"tab": "Core",            
 				"type": {
 					"fieldtype": "spinner",
@@ -610,7 +610,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"owexpire" : {
 				"required": "false",
 				"description": "Expiry Time",
-				"help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value",
+				"help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value.",
 				"tab": "Core",            
 				"type": {
 					"fieldtype": "spinner",
@@ -630,7 +630,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Application Key",
 				"tab": "Core",            
-				"help": "The Ecowitt application key. This is created in your user profile on https://www.ecowitt.net/",
+				"help": "The Ecowitt application key. This is created in your user profile on https://www.ecowitt.net/.",
 				"filters": {
 					"filter": "type",
 					"filtertype": "show",
@@ -643,7 +643,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "API Key",
 				"tab": "Core",            
-				"help": "The Ecowitt api key. This is created in your user profile on https://www.ecowitt.net/",
+				"help": "The Ecowitt api key. This is created in your user profile on https://www.ecowitt.net/.",
 				"filters": {
 					"filter": "type",
 					"filtertype": "show",
@@ -656,7 +656,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "MAC Address",
 				"tab": "Core",            
-				"help": "The Ecowitt MAC Address. This can be found in your devices page on https://www.ecowitt.net/",
+				"help": "The Ecowitt MAC Address. This can be found in your devices page on https://www.ecowitt.net/.",
 				"filters": {
 					"filter": "type",
 					"filtertype": "show",
@@ -666,7 +666,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				}    				
 			},
 			"ecowittlocalurltext": {
-				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. The URL will look like http://192.168.1.25/get_livedata_info?. See the documentation on howto obtain this url.",
+				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. The URL will look like http://192.168.1.25/get_livedata_info?. See the documentation on how to obtain this URL.",
 				"tab": "Core",
 				"type": {
 					"fieldtype": "text",
@@ -689,7 +689,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Local URL",
 				"tab": "Core",            
-				"help": "The local URL of the Ecowitt Hub",
+				"help": "The local URL of the Ecowitt Hub.",
 				"filters": {
 					"filter": "type",
 					"filtertype": "show",
@@ -702,7 +702,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "URL",
 				"tab": "Core",            
-				"help": "The url of your homeassistant server, will be something liek http://192.168.1.196:8123",
+				"help": "The URL of your Homeassistant server, for example: http://192.168.1.196:8123.",
 				"filters": {
 					"filter": "type",
 					"filtertype": "show",
@@ -715,7 +715,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Long Term Token",
 				"tab": "Core",            
-				"help": "The Homeassistant long term token, generated in your hass user profile under the security tab",
+				"help": "The Homeassistant long term token, generated in your hass user profile under the security tab.",
 				"filters": {
 					"filter": "type",
 					"filtertype": "show",
@@ -728,7 +728,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Temperature Unit",
 				"tab": "Core",            
-				"help": "The temperature units used in Homeassistant",
+				"help": "The temperature units used in Homeassistant.",
 				"type": {
 					"fieldtype": "select",
 					"values": "Metric,Imperial",
@@ -746,7 +746,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Temperature Sensor",
 				"tab": "Core",            
-				"help": "The id of the temperature sensor to read from Homeassistant",
+				"help": "The id of the temperature sensor to read from Homeassistant.",
 				"type": {
 					"fieldtype": "dependentselect",
 					"action": "hasssensors",
@@ -767,7 +767,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Humidity Sensor",
 				"tab": "Core",            
-				"help": "The id of the humidity sensor to read from Homeassistant",
+				"help": "The id of the humidity sensor to read from Homeassistant.",
 				"type": {
 					"fieldtype": "dependentselect",
 					"action": "hasssensors",
@@ -788,7 +788,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Pressure Sensor",
 				"tab": "Core",            
-				"help": "The id of the pressure sensor to read from Homeassistant",
+				"help": "The id of the pressure sensor to read from Homeassistant.",
 				"type": {
 					"fieldtype": "dependentselect",
 					"action": "hasssensors",
@@ -833,7 +833,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Name Of Sensor",
 				"tab": "Sensor 1",
-				"help": "The name of the sensor, will be added as a variable",
+				"help": "The name of the sensor, will be added as a variable.",
 				"filters": {
 					"filter": "type1",
 					"filtertype": "show",
@@ -858,7 +858,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"inputpin1": {
 				"required": "false",
 				"description": "Input Pin",
-				"help": "The input pin for DHT type sensors, not required for i2c devices",
+				"help": "The input pin for DHT type sensors, not required for i2c devices.",
 				"tab": "Sensor 1",
 				"type": {
 					"fieldtype": "gpio"
@@ -876,7 +876,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"i2caddress1": {
 				"required": "false",
 				"description": "I2C Address",
-				"help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
+				"help": "Override the standard i2c address for a device. NOTE: This value must be hex, i.e., 0x76.",
 				"tab": "Sensor 1",
 				"type": {
 					"fieldtype": "i2c"
@@ -899,7 +899,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "DS18B20 Address",
 				"tab": "Sensor 1",
-				"help": "Filename in /sys/bus/w1/devices",
+				"help": "Filename in /sys/bus/w1/devices.",
 				"type": {
 					"fieldtype": "ajaxselect",
 					"url": "includes/moduleutil.php?request=Onewire",
@@ -916,7 +916,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"dhtxxretrycount1" : {
 				"required": "false",
 				"description": "Retry Count",
-				"help": "The number of times to retry the DHTXX sensor read",
+				"help": "The number of times to retry the DHTXX sensor read.",
 				"tab": "Sensor 1",
 				"type": {
 					"fieldtype": "spinner",
@@ -937,7 +937,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"dhtxxdelay1" : {
 				"required": "false",
 				"description": "Delay",
-				"help": "The delay between faild DBTXX sensor reads in milliseconds",
+				"help": "The delay between faild DBTXX sensor reads in milliseconds.",
 				"tab": "Sensor 1",
 				"type": {
 					"fieldtype": "spinner",
@@ -958,7 +958,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"sht31heater1" : {
 				"required": "false",
 				"description": "Enable SHT31 Heater",
-				"help": "Enable the inbuilt heater on the SHT31",
+				"help": "Enable the inbuilt heater on the SHT31.",
 				"tab": "Sensor 1",
 				"type": {
 					"fieldtype": "checkbox"
@@ -974,7 +974,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"sht41mode1" : {
 				"required": "false",
 				"description": "SHT4x Power Mode",
-				"help": "Sets the SHT4x power mode",
+				"help": "Sets the SHT4x power mode.",
 				"tab": "Sensor 1",
 				"type": {
 					"fieldtype": "select",
@@ -1027,7 +1027,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Filename",
 				"tab": "Sensor 1",            
-				"help": "The name of the file that will be written to the allsky/tmp/extra directory",
+				"help": "The name of the file that will be written to the allsky/tmp/extra directory.",
 				"filters": {
 					"filter": "type1",
 					"filtertype": "show",
@@ -1039,7 +1039,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"owperiod1" : {
 				"required": "false",
 				"description": "Read Every",
-				"help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
+				"help": "Reads data every x seconds. Be careful of the free 1000 request limit per day.",
 				"tab": "Sensor 1",            
 				"type": {
 					"fieldtype": "spinner",
@@ -1058,7 +1058,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"owexpire1" : {
 				"required": "false",
 				"description": "Expiry Time",
-				"help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value",
+				"help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value.",
 				"tab": "Sensor 1",            
 				"type": {
 					"fieldtype": "spinner",
@@ -1078,7 +1078,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Application Key",
 				"tab": "Sensor 1",            
-				"help": "The Ecowitt application key. This is created in your user profile on https://www.ecowitt.net/",
+				"help": "The Ecowitt application key. This is created in your user profile on https://www.ecowitt.net/.",
 				"filters": {
 					"filter": "type1",
 					"filtertype": "show",
@@ -1091,7 +1091,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "API Key",
 				"tab": "Sensor 1",            
-				"help": "The Ecowitt api key. This is created in your user profile on https://www.ecowitt.net/",
+				"help": "The Ecowitt api key. This is created in your user profile on https://www.ecowitt.net/.",
 				"filters": {
 					"filter": "type1",
 					"filtertype": "show",
@@ -1104,7 +1104,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "MAC Address",
 				"tab": "Sensor 1",            
-				"help": "The Ecowitt MAC Address. This can be found in your devices page on https://www.ecowitt.net/",
+				"help": "The Ecowitt MAC Address. This can be found in your devices page on https://www.ecowitt.net/.",
 				"filters": {
 					"filter": "type1",
 					"filtertype": "show",
@@ -1114,7 +1114,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				}    				
 			},
 			"ecowittlocalurltext1": {
-				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. The URL will look like http://192.168.1.25/get_livedata_info?. See the documentation on howto obtain this url.",
+				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. The URL will look like http://192.168.1.25/get_livedata_info?. See the documentation on howto obtain this URL.",
 				"tab": "Sensor 1",
 				"type": {
 					"fieldtype": "text",
@@ -1137,7 +1137,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Local URL",
 				"tab": "Sensor 1",            
-				"help": "The local URL of the Ecowitt Hub",
+				"help": "The local URL of the Ecowitt Hub.",
 				"filters": {
 					"filter": "type1",
 					"filtertype": "show",
@@ -1150,7 +1150,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "URL",
 				"tab": "Sensor 1",            
-				"help": "The url of your homeassistant server, will be something liek http://192.168.1.196:8123",
+				"help": "The url of your homeassistant server, will be something liek http://192.168.1.196:8123.",
 				"filters": {
 					"filter": "type1",
 					"filtertype": "show",
@@ -1163,7 +1163,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Long Term Token",
 				"tab": "Sensor 1",            
-				"help": "The Homeassistant long term token, generated in your hass user profile under the security tab",
+				"help": "The Homeassistant long term token, generated in your hass user profile under the security tab.",
 				"filters": {
 					"filter": "type1",
 					"filtertype": "show",
@@ -1176,7 +1176,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Temperature Unit",
 				"tab": "Sensor 1",            
-				"help": "The temperature units used in Homeassistant",
+				"help": "The temperature units used in Homeassistant.",
 				"type": {
 					"fieldtype": "select",
 					"values": "Metric,Imperial",
@@ -1194,7 +1194,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Temperature Sensor",
 				"tab": "Sensor 1",            
-				"help": "The id of the temperature sensor to read from Homeassistant",
+				"help": "The id of the temperature sensor to read from Homeassistant.",
 				"type": {
 					"fieldtype": "dependentselect",
 					"action": "hasssensors",
@@ -1215,7 +1215,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Humidity Sensor",
 				"tab": "Sensor 1",            
-				"help": "The id of the humidity sensor to read from Homeassistant",
+				"help": "The id of the humidity sensor to read from Homeassistant.",
 				"type": {
 					"fieldtype": "dependentselect",
 					"action": "hasssensors",
@@ -1236,7 +1236,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Pressure Sensor",
 				"tab": "Sensor 1",            
-				"help": "The id of the pressure sensor to read from Homeassistant",
+				"help": "The id of the pressure sensor to read from Homeassistant.",
 				"type": {
 					"fieldtype": "dependentselect",
 					"action": "hasssensors",
@@ -1256,7 +1256,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"temp1" : {
 				"required": "false",
 				"description": "Max Temp",
-				"help": "Above this temperature trigger the gpio pin",
+				"help": "Above this temperature trigger the gpio pin.",
 				"tab": "Sensor 1",
 				"type": {
 					"fieldtype": "spinner",
@@ -1286,7 +1286,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"gpio1": {
 				"required": "false",
 				"description": "GPIO Pin",
-				"help": "The GPIO pin to set high when the temp is above the Max Temp",
+				"help": "The GPIO pin to set high when the temp is above the Max Temp.",
 				"type": {
 					"fieldtype": "gpio"
 				},            
@@ -1313,7 +1313,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"gpioon1": {
 				"required": "false",
 				"description": "GPIO On",
-				"help": "The Label to use when the GPIO pin is high",
+				"help": "The Label to use when the GPIO pin is high.",
 				"tab": "Sensor 1",
 				"filters": {
 					"filter": "type1",
@@ -1337,7 +1337,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"gpiooff1": {
 				"required": "false",
 				"description": "GPIO Off",
-				"help": "The Label to use when the GPIO pin is low",
+				"help": "The Label to use when the GPIO pin is low.",
 				"tab": "Sensor 1",
 				"filters": {
 					"filter": "type1",
@@ -1373,7 +1373,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Name Of Sensor",
 				"tab": "Sensor 2",
-				"help": "The name of the sensor, will be added as a variable",
+				"help": "The name of the sensor, will be added as a variable.",
 				"filters": {
 					"filter": "type2",
 					"filtertype": "show",
@@ -1398,7 +1398,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"inputpin2": {
 				"required": "false",
 				"description": "Input Pin",
-				"help": "The input pin for DHT type sensors, not required for i2c devices",
+				"help": "The input pin for DHT type sensors, not required for i2c devices.",
 				"tab": "Sensor 2",
 				"type": {
 					"fieldtype": "gpio"
@@ -1416,7 +1416,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"i2caddress2": {
 				"required": "false",
 				"description": "I2C Address",
-				"help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
+				"help": "Override the standard i2c address for a device. NOTE: This value must be hex, i.e., 0x76.",
 				"tab": "Sensor 2",
 				"type": {
 					"fieldtype": "i2c"
@@ -1439,7 +1439,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "DS18B20 Address",
 				"tab": "Sensor 2",
-				"help": "Filename in /sys/bus/w1/devices",
+				"help": "Filename in /sys/bus/w1/devices.",
 				"type": {
 					"fieldtype": "ajaxselect",
 					"url": "includes/moduleutil.php?request=Onewire",
@@ -1456,7 +1456,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"dhtxxretrycount2" : {
 				"required": "false",
 				"description": "Retry Count",
-				"help": "The number of times to retry the DHTXX sensor read",
+				"help": "The number of times to retry the DHTXX sensor read.",
 				"tab": "Sensor 2",
 				"type": {
 					"fieldtype": "spinner",
@@ -1477,7 +1477,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"dhtxxdelay2" : {
 				"required": "false",
 				"description": "Delay",
-				"help": "The delay between faild DBTXX sensor reads in milliseconds",
+				"help": "The delay between faild DBTXX sensor reads in milliseconds.",
 				"tab": "Sensor 2",
 				"type": {
 					"fieldtype": "spinner",
@@ -1498,7 +1498,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"sht31heater2" : {
 				"required": "false",
 				"description": "Enable SHT31 Heater",
-				"help": "Enable the inbuilt heater on the SHT31",
+				"help": "Enable the inbuilt heater on the SHT31.",
 				"tab": "Sensor 2",
 				"type": {
 					"fieldtype": "checkbox"
@@ -1514,7 +1514,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"sht41mode2" : {
 				"required": "false",
 				"description": "SHT4x Power Mode",
-				"help": "Sets the SHT4x power mode",
+				"help": "Sets the SHT4x power mode.",
 				"tab": "Sensor 2",
 				"type": {
 					"fieldtype": "select",
@@ -1567,7 +1567,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Filename",
 				"tab": "Sensor 2",            
-				"help": "The name of the file that will be written to the allsky/tmp/extra directory",
+				"help": "The name of the file that will be written to the allsky/tmp/extra directory.",
 				"filters": {
 					"filter": "type2",
 					"filtertype": "show",
@@ -1579,7 +1579,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"owperiod2" : {
 				"required": "false",
 				"description": "Read Every",
-				"help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
+				"help": "Reads data every x seconds. Be careful of the free 1000 request limit per day.",
 				"tab": "Sensor 2",            
 				"type": {
 					"fieldtype": "spinner",
@@ -1598,7 +1598,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"owexpire2" : {
 				"required": "false",
 				"description": "Expiry Time",
-				"help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value",
+				"help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value.",
 				"tab": "Sensor 2",            
 				"type": {
 					"fieldtype": "spinner",
@@ -1618,7 +1618,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "URL",
 				"tab": "Sensor 2",            
-				"help": "The url of your homeassistant server, will be something liek http://192.168.1.196:8123",
+				"help": "The URL of your Homeassistant server, for example: http://192.168.1.196:8123.",
 				"filters": {
 					"filter": "type2",
 					"filtertype": "show",
@@ -1631,7 +1631,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Long Term Token",
 				"tab": "Sensor 2",
-				"help": "The Homeassistant long term token, generated in your hass user profile under the security tab",
+				"help": "The Homeassistant long term token, generated in your hass user profile under the security tab.",
 				"filters": {
 					"filter": "type2",
 					"filtertype": "show",
@@ -1644,7 +1644,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Temperature Unit",
 				"tab": "Sensor 2",            
-				"help": "The temperature units used in Homeassistant",
+				"help": "The temperature units used in Homeassistant.",
 				"type": {
 					"fieldtype": "select",
 					"values": "Metric,Imperial",
@@ -1662,7 +1662,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Temperature Sensor",
 				"tab": "Sensor 2",            
-				"help": "The id of the temperature sensor to read from Homeassistant",
+				"help": "The id of the temperature sensor to read from Homeassistant.",
 				"type": {
 					"fieldtype": "dependentselect",
 					"action": "hasssensors",
@@ -1683,7 +1683,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Humidity Sensor",
 				"tab": "Sensor 2",            
-				"help": "The id of the humidity sensor to read from Homeassistant",
+				"help": "The id of the humidity sensor to read from Homeassistant.",
 				"type": {
 					"fieldtype": "dependentselect",
 					"action": "hasssensors",
@@ -1704,7 +1704,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Pressure Sensor",
 				"tab": "Sensor 2",            
-				"help": "The id of the pressure sensor to read from Homeassistant",
+				"help": "The id of the pressure sensor to read from Homeassistant.",
 				"type": {
 					"fieldtype": "dependentselect",
 					"action": "hasssensors",
@@ -1725,7 +1725,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Application Key",
 				"tab": "Sensor 2",            
-				"help": "The Ecowitt application key. This is created in your user profile on https://www.ecowitt.net/",
+				"help": "The Ecowitt application key. This is created in your user profile on https://www.ecowitt.net/.",
 				"filters": {
 					"filter": "type2",
 					"filtertype": "show",
@@ -1738,7 +1738,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "API Key",
 				"tab": "Sensor 2",            
-				"help": "The Ecowitt api key. This is created in your user profile on https://www.ecowitt.net/",
+				"help": "The Ecowitt api key. This is created in your user profile on https://www.ecowitt.net/.",
 				"filters": {
 					"filter": "type2",
 					"filtertype": "show",
@@ -1751,7 +1751,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "MAC Address",
 				"tab": "Sensor 2",            
-				"help": "The Ecowitt MAC Address. This can be found in your devices page on https://www.ecowitt.net/",
+				"help": "The Ecowitt MAC Address. This can be found in your devices page on https://www.ecowitt.net/.",
 				"filters": {
 					"filter": "type2",
 					"filtertype": "show",
@@ -1761,7 +1761,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				}    				
 			},
 			"ecowittlocalurltext2": {
-				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. The URL will look like http://192.168.1.25/get_livedata_info?. See the documentation on howto obtain this url.",
+				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. The URL will look like http://192.168.1.25/get_livedata_info?. See the documentation on how to obtain this URL.",
 				"tab": "Sensor 2",
 				"type": {
 					"fieldtype": "text",
@@ -1784,7 +1784,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Local URL",
 				"tab": "Sensor 2",            
-				"help": "The local URL of the Ecowitt Hub",
+				"help": "The local URL of the Ecowitt Hub.",
 				"filters": {
 					"filter": "type2",
 					"filtertype": "show",
@@ -1796,7 +1796,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"temp2" : {
 				"required": "false",
 				"description": "Max Temp",
-				"help": "Above this temperature trigger the gpio pin",
+				"help": "Above this temperature trigger the gpio pin.",
 				"tab": "Sensor 2",
 				"type": {
 					"fieldtype": "spinner",
@@ -1826,7 +1826,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"gpio2": {
 				"required": "false",
 				"description": "GPIO Pin",
-				"help": "The GPIO pin to set high when the temp is above the Max Temp",
+				"help": "The GPIO pin to set high when the temp is above the Max Temp.",
 				"type": {
 					"fieldtype": "gpio"
 				},            
@@ -1853,7 +1853,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"gpioon2": {
 				"required": "false",
 				"description": "GPIO On",
-				"help": "The Label to use when the GPIO pin is high",
+				"help": "The Label to use when the GPIO pin is high.",
 				"tab": "Sensor 2",
 				"filters": {
 					"filter": "type2",
@@ -1877,7 +1877,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"gpiooff2": {
 				"required": "false",
 				"description": "GPIO Off",
-				"help": "The Label to use when the GPIO pin is low",
+				"help": "The Label to use when the GPIO pin is low.",
 				"tab": "Sensor 2",
 				"filters": {
 					"filter": "type2",
@@ -1913,7 +1913,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Name Of Sensor",
 				"tab": "Sensor 3",
-				"help": "The name of the sensor, will be added as a variable",
+				"help": "The name of the sensor, will be added as a variable.",
 				"filters": {
 					"filter": "type3",
 					"filtertype": "show",
@@ -1938,7 +1938,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"inputpin3": {
 				"required": "false",
 				"description": "Input Pin",
-				"help": "The input pin for DHT type sensors, not required for i2c devices",
+				"help": "The input pin for DHT type sensors, not required for i2c devices.",
 				"tab": "Sensor 3",
 				"type": {
 					"fieldtype": "gpio"
@@ -1956,7 +1956,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"i2caddress3": {
 				"required": "false",
 				"description": "I2C Address",
-				"help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
+				"help": "Override the standard i2c address for a device. NOTE: This value must be hex, i.e., 0x76.",
 				"tab": "Sensor 3",
 				"type": {
 					"fieldtype": "i2c"
@@ -1979,7 +1979,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "DS18B20 Address",
 				"tab": "Sensor 3",
-				"help": "Filename in /sys/bus/w1/devices",
+				"help": "Filename in /sys/bus/w1/devices,",
 				"type": {
 					"fieldtype": "ajaxselect",
 					"url": "includes/moduleutil.php?request=Onewire",
@@ -1996,7 +1996,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"dhtxxretrycount3" : {
 				"required": "false",
 				"description": "Retry Count",
-				"help": "The number of times to retry the DHTXX sensor read",
+				"help": "The number of times to retry the DHTXX sensor read,",
 				"tab": "Sensor 3",
 				"type": {
 					"fieldtype": "spinner",
@@ -2017,7 +2017,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"dhtxxdelay3" : {
 				"required": "false",
 				"description": "Delay",
-				"help": "The delay between faild DBTXX sensor reads in milliseconds",
+				"help": "The delay between faild DBTXX sensor reads in milliseconds,",
 				"tab": "Sensor 3",
 				"type": {
 					"fieldtype": "spinner",
@@ -2038,7 +2038,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"sht31heater3" : {
 				"required": "false",
 				"description": "Enable SHT31 Heater",
-				"help": "Enable the inbuilt heater on the SHT31",
+				"help": "Enable the inbuilt heater on the SHT31,",
 				"tab": "Sensor 3",
 				"type": {
 					"fieldtype": "checkbox"
@@ -2054,7 +2054,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"sht41mode3" : {
 				"required": "false",
 				"description": "SHT4x Power Mode",
-				"help": "Sets the SHT4x power mode",
+				"help": "Sets the SHT4x power mode,",
 				"tab": "Sensor 3",
 				"type": {
 					"fieldtype": "select",
@@ -2070,7 +2070,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				}             
 			},     
 			"owtext3": {
-				"message": "<b style='color: #ff0000'>IMPORTANT</b> Do not use this function and the OpenWeather API module as well. If you are using this function then please remove the OpenWeather Module as both create the same overlay data",
+				"message": "<b style='color: #ff0000'>IMPORTANT</b> Do not use this function and the Open Weather Map module as well. If you are using this function then please remove the Open Weather Map module as both create the same overlay data,",
 				"tab": "Sensor 3",
 				"type": {
 					"fieldtype": "text",
@@ -2107,7 +2107,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Filename",
 				"tab": "Sensor 3",            
-				"help": "The name of the file that will be written to the allsky/tmp/extra directory",
+				"help": "The name of the file that will be written to the allsky/tmp/extra directory.",
 				"filters": {
 					"filter": "type3",
 					"filtertype": "show",
@@ -2119,7 +2119,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"owperiod3" : {
 				"required": "false",
 				"description": "Read Every",
-				"help": "Reads data every x seconds. Be careful of the free 1000 request limit per day",                
+				"help": "Reads data every x seconds. Be careful of the free 1000 request limit per day.",
 				"tab": "Sensor 3",            
 				"type": {
 					"fieldtype": "spinner",
@@ -2138,7 +2138,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"owexpire3" : {
 				"required": "false",
 				"description": "Expiry Time",
-				"help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value",
+				"help": "Number of seconds the data is valid for MUST be higher than the 'Read Every' value.",
 				"tab": "Sensor 3",            
 				"type": {
 					"fieldtype": "spinner",
@@ -2158,7 +2158,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Application Key",
 				"tab": "Sensor 3",            
-				"help": "The Ecowitt application key. This is created in your user profile on https://www.ecowitt.net/",
+				"help": "The Ecowitt application key. This is created in your user profile on https://www.ecowitt.net/.",
 				"filters": {
 					"filter": "type3",
 					"filtertype": "show",
@@ -2171,7 +2171,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "API Key",
 				"tab": "Sensor 3",            
-				"help": "The Ecowitt api key. This is created in your user profile on https://www.ecowitt.net/",
+				"help": "The Ecowitt api key. This is created in your user profile on https://www.ecowitt.net/.",
 				"filters": {
 					"filter": "type3",
 					"filtertype": "show",
@@ -2184,7 +2184,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "MAC Address",
 				"tab": "Sensor 3",            
-				"help": "The Ecowitt MAC Address. This can be found in your devices page on https://www.ecowitt.net/",
+				"help": "The Ecowitt MAC Address. This can be found in your devices page on https://www.ecowitt.net/.",
 				"filters": {
 					"filter": "type3",
 					"filtertype": "show",
@@ -2194,7 +2194,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				}    				
 			},   
 			"ecowittlocalurltext3": {
-				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. The URL will look like http://192.168.1.25/get_livedata_info?. See the documentation on howto obtain this url.",
+				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. The URL will look like http://192.168.1.25/get_livedata_info?. See the documentation on how to obtain this URL.",
 				"tab": "Sensor 3",
 				"type": {
 					"fieldtype": "text",
@@ -2217,7 +2217,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Local URL",
 				"tab": "Sensor 3",            
-				"help": "The local URL of the Ecowitt Hub",
+				"help": "The local URL of the Ecowitt Hub.",
 				"filters": {
 					"filter": "type3",
 					"filtertype": "show",
@@ -2230,7 +2230,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "URL",
 				"tab": "Sensor 3",
-				"help": "The url of your homeassistant server, will be something liek http://192.168.1.196:8123",
+				"help": "The url of your Homeassistant server, for example: http://192.168.1.196:8123.",
 				"filters": {
 					"filter": "type3",
 					"filtertype": "show",
@@ -2243,7 +2243,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Long Term Token",
 				"tab": "Sensor 3",
-				"help": "The Homeassistant long term token, generated in your hass user profile under the security tab",
+				"help": "The Homeassistant long term token, generated in your hass user profile under the security tab.",
 				"filters": {
 					"filter": "type3",
 					"filtertype": "show",
@@ -2256,7 +2256,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Temperature Unit",
 				"tab": "Sensor 3",
-				"help": "The temperature units used in Homeassistant",
+				"help": "The temperature units used in Homeassistant.",
 				"type": {
 					"fieldtype": "select",
 					"values": "Metric,Imperial",
@@ -2274,7 +2274,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Temperature Sensor",
 				"tab": "Sensor 3",
-				"help": "The id of the temperature sensor to read from Homeassistant",
+				"help": "The id of the temperature sensor to read from Homeassistant.",
 				"type": {
 					"fieldtype": "dependentselect",
 					"action": "hasssensors",
@@ -2295,7 +2295,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Humidity Sensor",
 				"tab": "Sensor 3",            
-				"help": "The id of the humidity sensor to read from Homeassistant",
+				"help": "The id of the humidity sensor to read from Homeassistant.",
 				"type": {
 					"fieldtype": "dependentselect",
 					"action": "hasssensors",
@@ -2316,7 +2316,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Pressure Sensor",
 				"tab": "Sensor 3",            
-				"help": "The id of the pressure sensor to read from Homeassistant",
+				"help": "The id of the pressure sensor to read from Homeassistant.",
 				"type": {
 					"fieldtype": "dependentselect",
 					"action": "hasssensors",
@@ -2336,7 +2336,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"temp3" : {
 				"required": "false",
 				"description": "Max Temp",
-				"help": "Above this temperature trigger the gpio pin",
+				"help": "Above this temperature trigger the gpio pin.",
 				"tab": "Sensor 3",
 				"type": {
 					"fieldtype": "spinner",
@@ -2366,7 +2366,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"gpio3": {
 				"required": "false",
 				"description": "GPIO Pin",
-				"help": "The GPIO pin to set high when the temp is above the Max Temp",
+				"help": "The GPIO pin to set high when the temp is above the Max Temp.",
 				"type": {
 					"fieldtype": "gpio"
 				},            
@@ -2393,7 +2393,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"gpioon3": {
 				"required": "false",
 				"description": "GPIO On",
-				"help": "The Label to use when the GPIO pin is high",
+				"help": "The Label to use when the GPIO pin is high.",
 				"tab": "Sensor 3",
 				"filters": {
 					"filter": "type3",
@@ -2417,7 +2417,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"gpiooff3": {
 				"required": "false",
 				"description": "GPIO Off",
-				"help": "The Label to use when the GPIO pin is low",
+				"help": "The Label to use when the GPIO pin is low.",
 				"tab": "Sensor 3",
 				"filters": {
 					"filter": "type3",
@@ -2644,41 +2644,41 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 								lon = allsky_shared.convertLatLon(lon)
 								try:
 									ow_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units={units}&appid={api_key}"
-									self.log(4,f"INFO: Reading Openweather API from - {ow_url}")
+									self.log(4, f"INFO: Reading Openweather API from - {ow_url}")
 									response = requests.get(ow_url)
 									if response.status_code == 200:
 										raw_data = response.json()
 										extra_data = self._process_ow_result(raw_data, expire, units)
 										allsky_shared.saveExtraData(file_name, extra_data, 'internal')
 										result = f'Data acquired and written to extra data file {file_name}'
-										self.log(1, f'INFO: {result}')
+										self.log(4, f'INFO: {result}')
 									else:
 										result = f'Got error from Open Weather Map API. Response code {response.status_code}'
-										self.log(0,f'ERROR: {result}')
+										self.log(0, f'ERROR in {__file}: {result}')
 								except Exception as e:
 									eType, eObject, eTraceback = sys.exc_info()            
 									result = str(e)
-									self.log(0, f'ERROR: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}')
+									self.log(0, f'ERROR in {__file}: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}')
 								allsky_shared.setLastRun(module)                            
 							else:
 								result = 'Invalid Longitude. Check the Allsky configuration'
-								self.log(0, f'ERROR: {result}')
+								self.log(0, f'ERROR in {__file}: {result}')
 						else:
 							result = 'Invalid Latitude. Check the Allsky configuration'
-							self.log(0, f'ERROR: {result}')
+							self.log(0, f'ERROR in {__file}: {result}')
 					else:
 						result = 'Missing filename for data'
-						self.log(0, f'ERROR: {result}')
+						self.log(0, f'ERROR in {__file}: {result}')
 				else:
 					result = 'Missing Open Weather Map API key'
-					self.log(0, f'ERROR: {result}')
+					self.log(0, f'ERROR in {__file}: {result}')
 			else:
 				self.log(4, f'INFO: Using Cached Openweather API data')
 
 			temperature, humidity, pressure, the_dew_point = self._get_ow_values(file_name)                
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f'ERROR: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file}: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}')
 
 		return temperature, humidity, pressure, the_dew_point	
 
@@ -2698,11 +2698,11 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				# pylint: disable=broad-exception-caught
 				except Exception as ex:
 					_, _, trace_back = sys.exc_info()
-					self.log(4, f'ERROR: Module readDS18B20 failed on line {trace_back.tb_lineno} - {ex}')
+					self.log(0, f'ERROR in {__file}: Module readDS18B20 failed on line {trace_back.tb_lineno} - {ex}')
 			else:
-				self.log(4, f'ERROR: (readDS18B20) - "{ds18b20_address}" is not a valid DS18B20 address. Please check /sys/bus/w1/devices')
+				self.log(0, f'ERROR in {__file}: (readDS18B20) - "{ds18b20_address}" is not a valid DS18B20 address. Please check /sys/bus/w1/devices')
 		else:
-			self.log(4, 'ERROR: (readDS18B20) - One Wire is not enabled. Please use the raspi-config utility to enable it')
+			self.log(0, 'ERROR in {__file}: (readDS18B20) - One Wire is not enabled. Please use the raspi-config utility to enable it')
 
 		return temperature, humidity
 
@@ -2716,7 +2716,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except:
 				result = f'Address {i2c_address} is not a valid i2c address'
-				self.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR in {__file}: {result}')
 
 		try:
 			i2c = board.I2C()
@@ -2729,7 +2729,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			humidity = htu21.relative_humidity
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(4, f'ERROR: Module read_htu21 failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file}: Module read_htu21 failed on line {eTraceback.tb_lineno} - {e}')
 			
 		return temperature, humidity
 
@@ -2743,7 +2743,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except:
 				result = f'Address {i2c_address} is not a valid i2c address'
-				self.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR in {__file}: {result}')
 
 		try:
 			i2c = board.I2C()
@@ -2755,7 +2755,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			humidity = sensor.relative_humidity
 		except ValueError as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(4, f"ERROR: Module read_ahtx0 failed on line {eTraceback.tb_lineno} - {e}")
+			self.log(0, f"ERROR in {__file}: Module read_ahtx0 failed on line {eTraceback.tb_lineno} - {e}")
 
 		return temperature, humidity
 
@@ -2771,10 +2771,10 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				humidity = dhtDevice.humidity
 			except RuntimeError as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				self.log(4, f'ERROR: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(0, f'ERROR in {__file}: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(4, f'WARNING: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(3, f'WARNING: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
 
 		return temperature, humidity
 
@@ -2791,7 +2791,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		while reading:
 			temperature, humidity = self._do_dhtxx_read(input_pin)
 			if temperature is None and humidity is None:
-				self.log(4, f'WARNING: Failed to read DHTXX on attempt {count+1}')
+				self.log(3, f'WARNING: Failed to read DHTXX on attempt {count+1}')
 				count = count + 1
 				if count > dhtxx_retry_count:
 					reading = False
@@ -2815,7 +2815,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					i2c_address_int = int(i2c_address, 16)
 				except Exception as e:
 					eType, eObject, eTraceback = sys.exc_info()
-					self.log(0, f'ERROR: Module read_bme680 failed on line {eTraceback.tb_lineno} - {e}')
+					self.log(0, f'ERROR in {__file}: Module read_bme680 failed on line {eTraceback.tb_lineno} - {e}')
 
 			if i2c_address != "":
 				sensor = bme680.BME680(i2c_address_int)
@@ -2833,7 +2833,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				pressure = sensor.data.pressure
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f'ERROR: Module read_bme680 failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file}: Module read_bme680 failed on line {eTraceback.tb_lineno} - {e}')
     
 		return temperature, humidity, pressure
 
@@ -2850,7 +2850,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				self.log(0, f'ERROR: Module read_bme280_i2c failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(0, f'ERROR in {__file}: Module read_bme280_i2c failed on line {eTraceback.tb_lineno} - {e}')
 
 		try:
 			i2c = board.I2C()
@@ -2866,7 +2866,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			pressure = bme280.pressure
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f'ERROR: Module read_bme280_i2c failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file}: Module read_bme280_i2c failed on line {eTraceback.tb_lineno} - {e}')
 
 		return temperature, humidity, pressure, altitude
 
@@ -2882,7 +2882,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except Exception as e:
 				result = f'Address {i2c_address} is not a valid i2c address'
-				self.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR in {__file}: {result}')
 					
 		try:
 			i2c = board.I2C()
@@ -2895,7 +2895,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			humidity = sensor.relative_humidity
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(4, f'ERROR: Module read_sht31 failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file}: Module read_sht31 failed on line {eTraceback.tb_lineno} - {e}')
 			return temperature, humidity
 
 		return temperature, humidity
@@ -2918,7 +2918,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except Exception as e:
 				result = f'Address {i2c_address} is not a valid i2c address'
-				self.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR in {__file}: {result}')
 					
 		try:
 			i2c = board.I2C()
@@ -2931,7 +2931,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			temperature, humidity = sensor.measurements
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(4, f'ERROR: Module _read_sht4x failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file}: Module _read_sht4x failed on line {eTraceback.tb_lineno} - {e}')
 			return temperature, humidity
 
 		return temperature, humidity
@@ -2948,7 +2948,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except Exception as e:
 				result = f'Address {i2c_address} is not a valid i2c address'
-				self.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR in {__file}: {result}')
 					
 		try:
 			i2c = board.I2C()
@@ -2964,7 +2964,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(4, f'ERROR: Module _read_scd30 failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file}: Module _read_scd30 failed on line {eTraceback.tb_lineno} - {e}')
 
 		return temperature, humidity, co2
 
@@ -3023,7 +3023,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		missing_variables = [name for name in required_vars if locals().get(name) == '']
 
 		if missing_variables:
-			self.log(0, f"Error: The following variables are not set: {', '.join(missing_variables)}")
+			self.log(0, f"ERROR in {__file}: The following variables are not set: {', '.join(missing_variables)}")
 		else:
 			temperature = allsky_shared.get_hass_sensor_value(hass_url, hass_ltt, hass_temperature)
 			humidity = allsky_shared.get_hass_sensor_value(hass_url, hass_ltt, hass_humidity)
@@ -3070,7 +3070,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		elif sensor_type == 'Homeassistant':
 			temperature, humidity, pressure = self._read_homeassistant(sensor_number) 
 		else:
-			self.log(0, 'ERROR: No sensor type defined')
+			self.log(0, 'ERROR in {__file}: No sensor type defined')
 
 		temp_units = allsky_shared.getSetting('temptype')
 		if temperature is not None and humidity is not None:
@@ -3092,7 +3092,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		return temperature, humidity, the_dew_point, pressure, rel_humidity, altitude, co2
 
 	def _debug_output(self, sensor_type, temperature, humidity, the_dew_point, pressure, rel_humidity, altitude, co2):
-		self.log(4,f'INFO: Sensor {sensor_type} read. Temperature {temperature} Humidity {humidity} Relative Humidity {rel_humidity} Dew Point {the_dew_point} Pressure {pressure} Altitude {altitude} Co2 {co2}')
+		self.log(4, f'INFO: Sensor {sensor_type} read. Temperature {temperature} Humidity {humidity} Relative Humidity {rel_humidity} Dew Point {the_dew_point} Pressure {pressure} Altitude {altitude} Co2 {co2}')
 
 	def run(self):
 		result = ''
@@ -3163,7 +3163,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 										pin.value = 0
 								except Exception as e:    
 									eType, eObject, eTraceback = sys.exc_info()
-									result = f'ERROR: Failed to set Digital IO to output {eTraceback.tb_lineno} - {e}'
+									result = f'ERROR in {__file}: Failed to set Digital IO to output {eTraceback.tb_lineno} - {e}'
 									self.log(0, result)
 								
 					if temperature is not None:
@@ -3192,7 +3192,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 		else:
 			result = 'Will run in {:.2f} seconds'.format(self._run_interval - diff)
-			self.log(1, f'INFO: {result}')
+			self.log(4, f'INFO: {result}')
 
 		return result
 

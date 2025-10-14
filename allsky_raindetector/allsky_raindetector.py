@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import os, sys, json
-import allsky_shared as s
+import allsky_shared as allsky_shared
 
 # --- NCNN backend & image utils ---
 import ncnn
@@ -10,12 +10,19 @@ import requests  # for first-time download and update
 
 metaData = {
     "name": "YOLO Rain Detector",
-    "description": "Detects raindrops using NCNN-converted YOLO model and updates overlay.",
+    "description": "Detect raindrops using NCNN-converted YOLO model and updates overlay.",
     "module": "raindetector",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "events": ["day", "night"],
     "enabled": "false",
     "changelog": {
+        "v1.0.1": [
+            {
+                "author": "Eric Claeys",
+                "authorurl": "https://github.com/AllskyTeam/allsky",
+                "changes": "Change to work with v2025.xx.xx"
+            }
+        ]
         "v1.0.0": [
             {
                 "author": "Muchen Han",
@@ -27,14 +34,16 @@ metaData = {
 }
 
 # ---------------- NCNN + Model paths & runtime constants ----------------
-MODEL_DIR          = "/opt/allsky/modules/yolo_model"
+M = allsky_shared.getEnvironmentVariable("ALLSKY_MODULE_LOCATION")
+MODEL_DIR          = f"{M}/modules/yolo_model"
 MODEL_PARAM_PATH   = f"{MODEL_DIR}/model.ncnn.param"
 MODEL_BIN_PATH     = f"{MODEL_DIR}/model.ncnn.bin"
 MODEL_VERSION_PATH = f"{MODEL_DIR}/version.txt"
 
-MODEL_PARAM_URL    = "https://github.com/MCH0202/allsky-raindetector-model/releases/download/live/model.ncnn.param"
-MODEL_BIN_URL      = "https://github.com/MCH0202/allsky-raindetector-model/releases/download/live/model.ncnn.bin"
-VERSION_URL        = "https://github.com/MCH0202/allsky-raindetector-model/releases/download/live/version.txt"
+MODEL_URL          = "https://github.com/MCH0202/allsky-raindetector-model/releases/download/live"
+MODEL_PARAM_URL    = f"{MODEL_URL}/model.ncnn.param"
+MODEL_BIN_URL      = f"{MODEL_URL}/model.ncnn.bin"
+VERSION_URL        = f"{MODEL_URL}/version.txt"
 
 #NCNN loading
 NCNN_PARAM      = MODEL_PARAM_PATH
@@ -75,7 +84,7 @@ try:
     need_download = missing_files or version_changed
 
     if need_download:
-        print("[NCNN] Fetching model artifacts...")
+        allsky_shared.log(4, "[NCNN] Fetching model artifacts...")
 
         # Download .param
         r = requests.get(MODEL_PARAM_URL, timeout=30)
@@ -101,7 +110,7 @@ try:
                 f.write(remote_ver)
 
 except Exception as e:
-    print(f"[NCNN] model setup/update failed: {e}")
+    allsky_shared.log(0, f"ERROR  in {__file}: [NCNN] model setup/update failed: {e}")
 
 # ---------------- Preload NCNN model at import ----------------
 _preloaded_net = None
@@ -114,17 +123,17 @@ try:
     if r1 == 0 and r2 == 0:
         _preloaded_net = net
     else:
-        print(f"[NCNN] preload failed: param_ret={r1}, model_ret={r2}, param={NCNN_PARAM}, bin={NCNN_BIN}")
+        allsky_shared.log(0, f"ERROR in {__file}: [NCNN] preload failed: param_ret={r1}, model_ret={r2}, param={NCNN_PARAM}, bin={NCNN_BIN}")
         _preloaded_net = None
 except Exception as e:
-    print(f"[NCNN] preload exception: {e}")
+    allsky_shared.log(0, f"ERROR in {__file}: [NCNN] preload exception: {e}")
     _preloaded_net = None
 
 
 def raindetector(params, event):
     """
     Single entrypoint for Allsky flow.
-    Loads image from s.CURRENTIMAGEPATH, runs NCNN inference,
+    Loads image from allsky_shared.CURRENTIMAGEPATH, runs NCNN inference,
     and updates overlay with rain detection state.
     """
     # --- Use preloaded net if available; otherwise try once more ---
@@ -137,7 +146,7 @@ def raindetector(params, event):
         r1 = _net.load_param(NCNN_PARAM)
         r2 = _net.load_model(NCNN_BIN)
         if r1 != 0 or r2 != 0:
-            print(f"[NCNN] on-demand load failed: param_ret={r1}, model_ret={r2}, param={NCNN_PARAM}, bin={NCNN_BIN}")
+            allsky_shared.log(0, f"ERROR in {__file} [NCNN] on-demand load failed: param_ret={r1}, model_ret={r2}, param={NCNN_PARAM}, bin={NCNN_BIN}")
             return
 
     # ---- Original constants ----
@@ -145,13 +154,13 @@ def raindetector(params, event):
     WINDOW_DURATION = timedelta(minutes=3)
 
     # ---- Status persistence path ----
-    status_path = os.path.join(s.getEnvironmentVariable("ALLSKY_CONFIG"), "overlay", "extra", "yolo_status.json")
+    status_path = os.path.join(allsky_shared.getEnvironmentVariable("ALLSKY_EXTRA"), "yolo_status.json")
 
     # ---- Input image ----
-    image_path = s.CURRENTIMAGEPATH
-    print("CURRENT_IMAGE =", image_path)
+    image_path = allsky_shared.CURRENTIMAGEPATH
+    allsky_shared.log(4, "CURRENT_IMAGE =", image_path)
     if not image_path or not os.path.isfile(image_path):
-        print("Error: CURRENT_IMAGE not found.")
+        allsky_shared.log(4, f"ERROR: in {__file} CURRENT_IMAGE not found.")
         return
 
     now = datetime.now()
@@ -163,7 +172,7 @@ def raindetector(params, event):
             with open(status_path) as f:
                 status = json.load(f)
         except Exception as e:
-            print(f"Warning: Failed to read status.json - {e}")
+            allsky_shared.log(3, f"WARNING: Failed to read status.json - {e}")
             status = {}
 
     cooldown_until_str = status.get("cooldown_until")
@@ -176,7 +185,7 @@ def raindetector(params, event):
             if now < cooldown_until:
                 in_cooldown = True
         except Exception as e:
-            print(f"Warning: Failed to parse cooldown_until: {e}")
+            allsky_shared.log(3, f"WARNING: Failed to parse cooldown_until: {e}")
 
     if in_cooldown:
         # Show previously recorded first drop time during cooldown
@@ -214,13 +223,13 @@ def raindetector(params, event):
         )
         mat_in.substract_mean_normalize([0.0, 0.0, 0.0], [1/255., 1/255., 1/255.])
         if ex.input("in0", mat_in) != 0:
-            print("[NCNN] ex.input failed")
+            allsky_shared.log(0, f"ERROR in {__file}: [NCNN] ex.input failed")
             return
 
         out = ncnn.Mat()
         ret = ex.extract("out0", out)
         if ret != 0:
-            print(f"[NCNN] ex.extract failed ret={ret}")
+            allsky_shared.log(0, f"ERROR in {__file}: [NCNN] ex.extract failed ret={ret}")
             return
 
         # Parse output: assume (5, N) or (N, 5) as [x, y, w, h, conf] for a single class
@@ -235,7 +244,7 @@ def raindetector(params, event):
                 mask = conf > NCNN_CONF_THRES
                 arr = arr[mask]
                 if arr.size:
-                    # xywh -> xyxy in 1440×1440
+                    # xywh -> xyxy in 1440Ã—1440
                     xywh = arr[:, :4]
                     xyxy = np.empty_like(xywh)
                     xyxy[:, 0] = xywh[:, 0] - xywh[:, 2] / 2
@@ -278,7 +287,7 @@ def raindetector(params, event):
                         if (now - prev_time) < timedelta(minutes=180):
                             is_new_rain = False
                     except Exception as e:
-                        print(f"Warning: Failed to parse first_raindrop_time: {e}")
+                        allsky_shared.log(3, f"WARNING: Failed to parse first_raindrop_time: {e}")
 
                 if is_new_rain:
                     first_raindrop_time_str = detection_history[0]
@@ -335,5 +344,5 @@ def raindetector(params, event):
         "AS_YOLORAINDETECTED": {"value": overlay_data["YOLO_RAINDROP_DETECTED"], "expires": 7200},
         "AS_YOLOFIRSTDROP": {"value": overlay_data["YOLO_FIRST_RAINDROP_TIME"], "expires": 7200}
     }
-    s.saveExtraData("yolo_rain.json", extraData, event=self.event)
-    print("NCNN inference complete.")
+    allsky_shared.saveExtraData("yolo_rain.json", extraData, event=self.event)
+    allsky_shared.log(4, "NCNN inference complete.")

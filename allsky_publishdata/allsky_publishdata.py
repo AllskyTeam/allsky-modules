@@ -2,7 +2,7 @@
 """ allsky_publishdata.py
 
 Part of allsky postprocess.py modules.
-https://github.com/thomasjacquin/allsky
+https://github.com/AllskyTeam/allsky
 
 This module will publish data to Redis, MQTT or REST
 
@@ -25,8 +25,8 @@ import sys
 class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
     
 	meta_data = {
-		"name": "AllSKY Redis/MQTT/REST/influxDB Data Publish",
-		"description": "Publish AllSKY data to Redis, MQTT, influxDB or REST",
+		"name": "Publish Data to Redis/MQTT/REST/influxDB",
+		"description": "Publish Allsky data to Redis, MQTT, REST, or influxDB",
 		"module": "allsky_publishdata",
 		"version": "v1.0.3",
 		"centersettings": "false",
@@ -70,13 +70,13 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			"extradata": {
 				"required": "false",
 				"description": "Extra data to export",
-				"help": "Comma seperated list of additional variables to export to json",
+				"help": "Comma seperated list of additional variables to export to json.",
 				"tab": "General"
 			},
 			"extradata1": {
 				"required": "false",
 				"description": "Extra data to export",
-				"help": "Comma seperated list of additional variables to export to json",
+				"help": "Comma seperated list of additional variables to export to json.",
 				"tab": "General",
 				"type": {
 					"fieldtype": "variable"
@@ -92,7 +92,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			},     
 			"influxhostdetails": {
 				"description": "Influx Host",
-				"help": "The url and port number of the influxdb host",
+				"help": "The url and port number of the influxdb host.",
 				"tab": "Influx",
 				"url": {
 					"id": "influxhost"
@@ -107,26 +107,26 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			"influxtoken": {
 				"required": "false",
 				"description": "InfluxDB Access Token",
-				"help": "InfluxDB user access token",
+				"help": "InfluxDB user access token.",
 				"secret": "true",         
 				"tab": "Influx"             
 			},       
 			"influxbucket": {
 				"required": "false",
 				"description": "InfluxDB Bucket",
-				"help": "Name of InfluxDB bucket",
+				"help": "Name of InfluxDB bucket.",
 				"tab": "Influx"       
 			},
 			"influxorg": {
 				"required": "false",
 				"description": "InfluxDB Organization",
-				"help": "Name of the InfluxDB organization in which the database/bucket is located. Leave default (-) if you're using InfluxDB v1 default installation",
+				"help": "Name of the InfluxDB organization in which the database/bucket is located. Leave default (-) if you're using InfluxDB v1 default installation.",
 				"tab": "Influx"         
 			},
 			"influxtypes": {
 				"required": "false",
 				"description": "Data Types",
-				"help": "Allsky datatypes that can be sent to influx",
+				"help": "Allsky datatypes that can be sent to influx.",
 				"tab": "Influx"     
 			},     
 			"redisEnabled": {
@@ -140,19 +140,19 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			"redisHost": {
 				"required": "false",
 				"description": "Address of the redis Host",
-				"help": "Host",
+				"help": "Host.",
 				"tab": "Redis"          
 			},
 			"redisPort": {
 				"required": "false",
 				"description": "Redis Port",
-				"help": "The port number for the redis server, fefaults to 6379",
+				"help": "The port number for the redis server, defaults to 6379.",
 				"tab": "Redis" 
 			},
 			"redisDatabase" : {
 				"required": "false",
 				"description": "Redis Database",
-				"help": "Select the redis database (0-3) to publish to",
+				"help": "Select the redis database (0-3) to publish to.",
 				"tab": "Redis",        
 				"type": {
 					"fieldtype": "spinner",
@@ -164,7 +164,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			"redisTimestamp": {
 				"required": "false",
 				"description": "Use timestamp",
-				"help": "Use the current timestamp as the redis key",         
+				"help": "Use the current timestamp as the redis key.",
 				"tab": "Redis",
 				"type": {
 					"fieldtype": "checkbox"
@@ -173,7 +173,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			"redisKey": {
 				"required": "false",
 				"description": "Redis Key",
-				"help": "Use a specific redis key",          
+				"help": "Use a specific redis key.",
 				"tab": "Redis" 
 			},
 			"redisPassword": {
@@ -215,7 +215,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			"mqttloopdelay": {
 				"required": "false",
 				"description": "Loop Delay(s)",
-				"help": "The loop delay, only increase this if you experience issues with messages missing in the broker",
+				"help": "The loop delay, only increase this if you experience issues with messages missing in the broker.",
 				"tab": "MQTT",
 				"type": {
 					"fieldtype": "spinner",
@@ -251,7 +251,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			"postEndpoint": {
 				"required": "false",
 				"description": "POST endpoint",
-				"help": "Host",
+				"help": "Host.",
 				"tab": "POST" 
 			},
 			"mqttQos": {
@@ -356,11 +356,11 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
         
 			else:
 				result = f'Failed to ping InfluxDB server at {influx_host}:{influx_port}'
-				self.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR in {__file}: {result}')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f'Module influxdb failed on line {eTraceback.tb_lineno} - {e}'
-			self.log(0, f'ERROR: {result}')
+			self.log(0, f'ERROR in {__file}: {result}')
    
 		return result
    
@@ -379,18 +379,18 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 				try:
 					redis_object = redis.Redis(host=redis_host, port=redis_port, db=redis_database, password=redis_password)
 					redis_object.set(redis_key, json.dumps(self._json_data))
-					self.log(1, f'INFO: Published to Redis server at {redis_host}:{redis_port}, Database: {redis_database}, Key: {redis_key}')        
+					self.log(4, f'INFO: Published to Redis server at {redis_host}:{redis_port}, Database: {redis_database}, Key: {redis_key}')        
 				except Exception as e:    
 					eType, eObject, eTraceback = sys.exc_info()
-					result = f'ERROR: Failed to connect to the Redis server at {redis_host}:{redis_port} {eTraceback.tb_lineno} - {e}'
-					self.log(0, result)      
+					result = f'Failed to connect to the Redis server at {redis_host}:{redis_port} {eTraceback.tb_lineno} - {e}'
+					self.log(0, f'ERROR in {__file}: {result}')
 			else:
 				result = f'Please specify a topic for Redis to publish to'
-				self.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR in {__file}: {result}')
 
 		else:
 			result = f'Please specify a host for Redis to publish to'
-			self.log(0, f'ERROR: {result}')
+			self.log(0, f'ERROR in {__file}: {result}')
     
 	def _send_to_mqtt(self):
 		result = ''
@@ -445,10 +445,10 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 		
 			else:
 				result = f'MQTT - Please specify a topic to publish'
-				self.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR in {__file}: {result}')
 		else:
 			result = f'MQTT - Please specify a MQTT host to publish to'
-			self.log(0, f'ERROR: {result}')
+			self.log(0, f'ERROR in {__file}: {result}')
        
 		return result
             
@@ -497,9 +497,9 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 					#variable_value = self._change_type(variable_value)
 					self._json_data[variable] = variable_value
 				else:
-					self.log(0, f'ERROR: Cannot locate environment variable {variable} specified in the extradata')
+					self.log(0, f'ERROR in {__file}: Cannot locate environment variable {variable} specified in the extradata')
 			else:
-				self.log(0, 'ERROR: Empty environment variable specified in the extradata field. Check commas!')
+				self.log(0, 'ERROR in {__file}: Empty environment variable specified in the extradata field. Check commas!')
 
 			self._json_data['utc'] = self._get_utc_timestamp()
    
@@ -513,16 +513,14 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			self._send_to_mqtt()
    
 		'''
-
-			
 		if params["postEnabled"]:
 			url = params['postEndpoint']
 			if url == "":
-				s.log(0, "ERROR: Please specify an endpoint to publish to")
+				s.log(0, "ERROR in {__file}: Please specify an endpoint to publish to")
 				return
 
 			r = requests.post(params["postEndpoint"], json=jsonData)
-			s.log(1, f"INFO: POST status code {r.status_code}")
+			s.log(4, f"INFO: POST status code {r.status_code}")
 		'''
 		return result
 

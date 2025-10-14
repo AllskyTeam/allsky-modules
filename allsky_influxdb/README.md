@@ -1,4 +1,4 @@
-# AllSky Influxdb Module
+# Save Data to influxdb Module (DEPRECATED)
 
 |   |   |
 | ------------ | ------------ |

@@ -10,7 +10,7 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "Allsky Keogram",
-		"description": "Creates a keogram.",
+		"description": "Create a keogram.",
 		"version": "v0.0.1",
 		"pythonversion": "3.10.0",
 		"centersettings": "false",
@@ -42,7 +42,7 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 			"expand" : {
 				"required": "false",
 				"description": "Expand",
-				"help": "Enable to expand keogram to the image width. (Will avoid tall skinny images)",
+				"help": "Enable to expand keogram to the image width. (Will avoid tall skinny images).",
 				"tab": "Main Settings",
 				"type": {
 					"fieldtype": "checkbox"
@@ -72,7 +72,7 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 			"resize": {
 				"required": "false",
 				"description": "Resize",
-				"help": "Resize the uploaded image.  Specify a target percent, width, height, or fixed dimensions. (Even numbers only)<ul><li>Percent of original size (eg '50<code>%</code>)</li><li>Height (eg '720<code>h</code>') <i>Width is auto-scaled</i></li><li>Width (eg '1000<code>w</code>')  <i>Height is auto-scaled</i></li><li>Fixed dimensions in WxH (eg '640<code>x</code>480')</li><li>No resizing ('0' or blank)</li></ul>",
+				"help": "Resize the uploaded image.  Specify a target percent, width, height, or fixed dimensions (even numbers only).<ul><li>Percent of original size (eg '50<code>%</code>)</li><li>Height (eg '720<code>h</code>') <i>Width is auto-scaled</i></li><li>Width (eg '1000<code>w</code>')  <i>Height is auto-scaled</i></li><li>Fixed dimensions in WxH (eg '640<code>x</code>480')</li><li>No resizing ('0' or blank).</li></ul>",
 				"tab": "Main Settings"
 			},
 
@@ -149,13 +149,13 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 			"input_dir": {
 				"required": "false",
 				"description": "Directory of Files",
-				"help": "The input directory containing image files from which to create a keogram.  eg 20250801",
+				"help": "The input directory containing image files from which to create a keogram, e.g., 20250801.",
 				"tab": "Testing and Debug"
 			},
 			"upload_test" : {
 				"required": "false",
 				"description": "Upload test keogram",
-				"help": "Enable to upload the keogram to configured Allsky websites or remote servers when using the [Test Module] button.",
+				"help": "Enable to upload the keogram to configured Allsky Websites or remote servers when using the [Test Module] button.",
 				"tab": "Testing and Debug",
 				"type": {
 					"fieldtype": "checkbox"
@@ -165,7 +165,7 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 			"html": {
 				"tab": "Help",
 				"source": "local",
-				"html": "<blockquote>This help is hard coded into the module's config. This is ok for very short text but not good for longer.</blockquote><p>I think this is goign to be disabled so that help can be consolidated in documentation, which is probably a better idea anyway.  Will see about being able to enter some plain text that is not attached to an entry field.</p>",
+				"html": "<blockquote>This help is hard coded into the module's config. This is ok for very short text but not good for longer.</blockquote><p>I think this is going to be disabled so that help can be consolidated in documentation, which is probably a better idea anyway.  Will see about being able to enter some plain text that is not attached to an entry field.</p>",
 				"type": {
 					"fieldtype": "html"
 				}
@@ -234,9 +234,9 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 		try:
 			proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
 			if proc.returncode == 0:
-				self.log(1, f"INFO: Successful: {script_str}")
+				self.log(4, f"INFO: Successful: {script_str}")
 			else:
-				self.log(0, f"ERROR: {script_str} - rc={proc.returncode}\nSTDERR:\n{proc.stderr}")
+				self.log(0, f"ERROR in {__file__}: {script_str} - rc={proc.returncode}\nSTDERR:\n{proc.stderr}")
 			return proc.returncode, proc.stdout, proc.stderr
 		
 		except Exception as e:
@@ -333,7 +333,7 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 			#	run script for that...
 
 		else:
-			self.log(0, f"ERROR: Keogram creation failed (rc={create_keo_rc}). See stderr:\n{err}")
+			self.log(0, f"ERROR in {__file__}: Keogram creation failed (rc={create_keo_rc}). See stderr:\n{err}")
 
 
 		# upload if created and user selected to upload
@@ -375,9 +375,9 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 				#run upload script
 				upload_keo_rc, out, err = self.__execute_script(upload_script_path, target, keogram_fullpath, remote_dir, target_file)
 				if upload_keo_rc == 0:
-					self.log(1, f"INFO: Keogram uploaded successfully: {os.path.join(output_dir, keo_filename)}")
+					self.log(3, f"INFO: Keogram uploaded successfully: {os.path.join(output_dir, keo_filename)}")
 				else:
-					self.log(0, f"ERROR: Failed to upload keogram to {target} (rc={create_keo_rc}). See stderr:\n{err}")
+					self.log(0, f"ERROR in {__file__}: Failed to upload keogram to {target} (rc={upload_keo_rc}). See stderr:\n{err}")
 
 			if useremoteweb:
 				target = "--remote-web"
@@ -387,9 +387,9 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 				#run upload script
 				upload_keo_rc, out, err = self.__execute_script(upload_script_path, target, keogram_fullpath, remote_dir, target_file)
 				if upload_keo_rc == 0:
-					self.log(1, f"INFO: Keogram uploaded successfully: {os.path.join(output_dir, keo_filename)}")
+					self.log(3, f"INFO: Keogram uploaded successfully: {os.path.join(output_dir, keo_filename)}")
 				else:
-					self.log(0, f"ERROR: Failed to uplaod keogram to {target} (rc={create_keo_rc}). See stderr:\n{err}")
+					self.log(0, f"ERROR in {__file__}: Failed to uplaod keogram to {target} (rc={upload_keo_rc}). See stderr:\n{err}")
 
 			# remote website need to check "upload with original name?"
 			if useremoteserver:
@@ -405,18 +405,17 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 				#run upload script
 				upload_keo_rc, out, err = self.__execute_script(upload_script_path, target, keogram_fullpath, remote_dir, target_file)
 				if upload_keo_rc == 0:
-					self.log(1, f"INFO: Keogram uploaded successfully: {os.path.join(output_dir, keo_filename)}")
+					self.log(3, f"INFO: Keogram uploaded successfully: {os.path.join(output_dir, keo_filename)}")
 				else:
-					self.log(0, f"ERROR: Failed to upload keogram to {target} (rc={create_keo_rc}). See stderr:\n{err}")
+					self.log(0, f"ERROR in {__file__}: Failed to upload keogram to {target} (rc={upload_keo_rc}). See stderr:\n{err}")
 		
 		# delete temp file if we created it
 		if os.path.exists(keogram_tmp_path):
 			os.remove(keogram_tmp_path)
 
 		result = "Daily Keogram process complete"
-		
 		self.log(1, f"INFO:  {result}")
-		#the end!
+
 		return result
   
 

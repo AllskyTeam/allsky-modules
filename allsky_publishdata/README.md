@@ -1,4 +1,4 @@
-# AllSky Publish Data Module
+# Publish Data to Redis/MQTT/REST/influxDB Module
 
 |             |                      |
 |-------------|----------------------|
@@ -6,16 +6,15 @@
 | **Level**   | Beginner             |
 | **Runs In** | Day time, Night time |
 
-This module allows for AllSky data and variables to be published to an external client such as Redis, MQTT or regular
+This module allows for Allsky data and variables to be published to an external client such as Redis, MQTT or regular
 POST. Also reads additional data from the `ALLSKY_EXTRA` folder and includes it in the message data.
 
-Following clients are supported
-
+Following clients are supported:
 - REDIS
 - MQTT
 - Requests (POST)
 
-The module contains the following options
+The module contains the following options:
 
 | Setting              | Description                                 |
 |----------------------|---------------------------------------------|
@@ -32,21 +31,20 @@ The module contains the following options
 | POST Endpoint        | Endpoint to post the data to                |
 
 ## Example output
-`Connected to MQTT Broker!
+```
+Connected to MQTT Broker!
 Channel: allsky/meta
-`
 
-```json
-{'ALLSKY_VERSION': 'v2023.05.01_02',
+{
+ 'ALLSKY_VERSION': 'v2025.11.01',
  'CAMERA_TYPE': 'RPi',
- 'CURRENT_IMAGE': '/home/chris/allsky/tmp/image-20230903211208.jpg',
+ 'CURRENT_IMAGE': '/home/pi/allsky/tmp/current_images/image-20250903211208.jpg',
  'DAY_OR_NIGHT': 'NIGHT',
  'FULL_FILENAME': 'image.jpg',
  'allskyai': {'AI_CLASSIFICATION': 'heavy_clouds',
               'AI_CONFIDENCE': 99.693,
               'AI_INFERENCE': 0.219,
               'AI_UTC': 1693768336},
- 'utc': 1693768336}
+ 'utc': 1693768336
+}
 ```
-
-

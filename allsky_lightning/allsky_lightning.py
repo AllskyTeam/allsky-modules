@@ -9,8 +9,8 @@ import sparkfun_qwiicas3935
 class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 
 	meta_data = {
-		"name": "AllSKY Lightning",
-		"description": "Detects Lightning using an as3935",
+		"name": "Lightning Detection",
+		"description": "Detects lightning using an as3935 sensor",
 		"version": "v1.0.0",
 		"module": "allsky_lightning", 
 		"centersettings": "false",
@@ -73,7 +73,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 			"i2caddress": {
 				"required": "false",
 				"description": "I2C Address",
-				"help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x03",
+				"help": "Override the standard i2c address for a device. NOTE: This value must be hex, i.e., 0x03.",
 				"type": {
 					"fieldtype": "i2c"
 				}           
@@ -81,7 +81,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 			"interruptpin": {
 				"required": "true",
 				"description": "Input Pin",
-				"help": "The input pin for the lightning sensor",
+				"help": "The input pin for the lightning sensor.",
 				"type": {
 					"fieldtype": "gpio"
 				}           
@@ -89,7 +89,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 			"maskdisturbers" : {
 				"required": "false",
 				"description": "Mask disturbers",
-				"help": "If enabled disturbers will be ignored",
+				"help": "If enabled disturbers will be ignored.",
 				"tab": "Advanced",
 				"type": {
 					"fieldtype": "checkbox"
@@ -98,7 +98,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 			"noiselevel" : {
 				"required": "false",
 				"description": "Noise level",
-				"help": "Sets the base noise level, 1 is lowest 7 is highest ambient noise",
+				"help": "Sets the base noise level, 1 is lowest 7 is highest ambient noise.",
 				"tab": "Advanced",            
 				"type": {
 					"fieldtype": "spinner",
@@ -110,7 +110,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 			"watchdogthreshold" : {
 				"required": "false",
 				"description": "Watchdog Threshold",
-				"help": "Minimum signal level to trigger the lightning verification algorithm (1-10)",
+				"help": "Minimum signal level to trigger the lightning verification algorithm (1-10).",
 				"tab": "Advanced",            
 				"type": {
 					"fieldtype": "spinner",
@@ -122,7 +122,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 			"spikerejection" : {
 				"required": "false",
 				"description": "Spike Rejection",
-				"help": "The default setting is two. The shape of the spike is analyzed during the chip's validation routine. You can round this spike at the cost of sensitivity to distant events (1-11)",
+				"help": "The default setting is two. The shape of the spike is analyzed during the chip's validation routine. You can round this spike at the cost of sensitivity to distant events (1-11).",
 				"tab": "Advanced",            
 				"type": {
 					"fieldtype": "spinner",
@@ -145,7 +145,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 			"expirestrikes" : {
 				"required": "false",
 				"description": "Expire Strikes",
-				"help": "If a strike is detected then after this number of seconds of no strikes the strikes overlay variable and strike counter will be reset. Default is 600 seconds (10 minutes)",
+				"help": "If a strike is detected then after this number of seconds of no strikes the strikes overlay variable and strike counter will be reset. Default is 600 seconds (10 minutes).",
 				"tab": "Advanced",            
 				"type": {
 					"fieldtype": "spinner",
@@ -186,7 +186,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except Exception as e:
 				result = 'Address {i2c_address} is not a valid i2c address'
-				self.log(0,"ERROR: {}".format(result))
+				self.log(0, "ERROR in {__file}: {}".format(result))
     
 		if i2c_address != "":    
 			lightning = sparkfun_qwiicas3935.Sparkfun_QwiicAS3935_I2C(i2c, i2c_address_int)
@@ -268,7 +268,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
        
 		else:
 			result = 'Lightning Detector does not appear to be connected. Please check wiring.'
-			self.log(0, 'ERROR: {result}')
+			self.log(0, 'ERROR in {__file}: {result}')
    							
 def lightning(params, event):
 	allsky_lightning = ALLSKYLIGHTNING(params, event)

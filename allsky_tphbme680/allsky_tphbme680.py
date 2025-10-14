@@ -2,7 +2,7 @@
 allsky_tphbme680.py
 
 Part of allsky postprocess.py modules.
-https://github.com/thomasjacquin/allsky
+https://github.com/AllskyTeam/allsky
 
 '''
 import allsky_shared as s
@@ -19,7 +19,7 @@ metaData = {
 	"deprecation": {
 		"fromversion": "v2024.12.06_01",
 		"removein": "v2024.12.06_01",
-		"notes": "This module has been deprecated. Please use the environment module",
+		"notes": "This module has been deprecated. Please use the Environment Monitor module",
 		"replacedby": "allsky_temp",
 		"deprecated": "true"
 	}, 
@@ -32,6 +32,6 @@ metaData = {
 }
 
 def tphbme680(params, event):
-	return "Deprecated - Please use the temp module"
+	return "Deprecated - Please use the Envorinment Monitor module"
 
 	return result

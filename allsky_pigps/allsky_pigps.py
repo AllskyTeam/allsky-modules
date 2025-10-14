@@ -2,7 +2,7 @@
 allsky_pigps.py
 
 Part of allsky postprocess.py modules.
-https://github.com/thomasjacquin/allsky
+https://github.com/AllskyTeam/allsky
 
 '''
 import allsky_shared as allsky_shared
@@ -18,13 +18,13 @@ from datetime import timedelta
 class ALLSKYGPS(ALLSKYMODULEBASE):
 
 	meta_data = {
-		"name": "AllSKY GPS",
-		"description": "Sets date/time and position from an attached GPS",
+		"name": "Get GPS Data",
+		"description": "Set date/time and position from an attached GPS",
 		"version": "v2.0.0",
-		"module": "allsky_pigps", 
+		"module": "allsky_pigps",
 		"centersettings": "false",
 		"testable": "true",
-		"group": "Data Sensor", 
+		"group": "Data Sensor",
 		"events": [
 			"periodic"
 		],
@@ -33,78 +33,78 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 			"database": {
 				"enabled": "True",
 				"table": "allsky_gps",
-    			"include_all": "false",       
+    			"include_all": "false",
     			"pk": "id",
-    			"pk_type": "int",    
+    			"pk_type": "int",
        			"time_of_day_save": {
 					"day": "always",
 					"night": "always",
 					"nightday": "always",
 					"daynight": "always",
 					"periodic": "always"
-				}    
-			},      
+				}
+			},
 			"values": {
 				"AS_PIGPSFIXDISC": {
 					"name": "${PIGPSFIXDISC}",
 					"format": "",
-					"sample": "",                
+					"sample": "",
 					"group": "GPS",
 					"description": "GPS and Allsky position discrepancy",
 					"type": "string",
 					"database": {
 						"include" : "true"
-					}      
+					}
 				},
 				"AS_PIGPSLAT": {
 					"name": "${PIGPSLAT}",
 					"format": "",
-					"sample": "",                
+					"sample": "",
 					"group": "GPS",
 					"description": "GPS Latitude",
 					"type": "latitude",
 					"database": {
 						"include" : "true"
-					} 
+					}
 				},
 				"AS_PIGPSLON": {
 					"name": "${PIGPSLON}",
 					"format": "",
-					"sample": "",                
+					"sample": "",
 					"group": "GPS",
 					"description": "GPS Longitude",
 					"type": "longitude",
 					"database": {
 						"include" : "true"
-					}   
+					}
 				},
 				"AS_PIGPSFIX": {
 					"name": "${PIGPSFIX}",
 					"format": "",
-					"sample": "",                
+					"sample": "",
 					"group": "GPS",
 					"description": "GPS Fix",
-					"type": "string"      
+					"type": "string"
 				},
 				"AS_PIGPSFIXBOOL": {
 					"name": "${PIGPSFIXBOOL}",
 					"format": "",
-					"sample": "",                
+					"sample": "",
 					"group": "GPS",
 					"description": "GPS Fix",
 					"type": "number",
 					"database": {
 						"include" : "true"
-					}       
+					}
 				}
-			}                         
+			}
 		},
 		"arguments":{
 			"warnposition": "True",
 			"setposition": "False",
 			"settime": "True",
 			"timeperiod": "60",
-			"extradataposdisc": "GPS Position differs from AllSky",
+			"extradataposdisc": "GPS Position differs from Allsky",
 			"obfuscate": "False",
 			"obfuscatelatdistance": 0,
 			"obfuscatelondistance": 0
@@ -113,73 +113,73 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 			"warnposition" : {
 				"required": "false",
 				"description": "Lat/Lon Warning",
-				"help": "Warn if the GPS position doesnt match the AllSky position",
+				"help": "Warn if the GPS position doesnt match the Allsky position.",
 				"type": {
 					"fieldtype": "checkbox"
-				}          
+				}
 			},
 			"setposition" : {
 				"required": "false",
 				"description": "Set Lat/Lon",
-				"help": "Sets the Latitude and Longitude in the AllSky Config",
+				"help": "Sets the Latitude and Longitude in the Allsky Config.",
 				"type": {
 					"fieldtype": "checkbox"
-				}          
+				}
 			},
 			"settime" : {
 				"required": "false",
 				"description": "Set Time",
-				"help": "Sets the local time, based upon timezone, from the gps data",
+				"help": "Sets the local time, based upon timezone, from the GPS data.",
 				"type": {
 					"fieldtype": "checkbox"
-				}          
-			},        
+				}
+			},
 			"timeperiod" : {
 				"required": "true",
 				"description": "Set Every",
-				"help": "How frequently (in seconds) to set the time",                
+				"help": "How frequently (in seconds) to set the time.",
 				"type": {
 					"fieldtype": "spinner",
 					"min": 60,
 					"max": 1440,
 					"step": 1
-				}          
+				}
 			},
 			"extradataposdisc": {
 				"required": "true",
 				"description": "Discrepancy Warning",
-				"help": "Message to set when the GPS coordinates differ from the AllSky settings"         
+				"help": "Message to set when the GPS coordinates differ from the Allsky settings."
 			},
 			"obfuscate" : {
 				"required": "false",
 				"description": "Obfuscate Position",
-				"help": "Adds the values below to the lat/lon to prevent youre precise location being available",
+				"help": "Adds the values below to the lat/lon to prevent youre precise location being available.",
 				"tab": "Obfuscation",
 				"type": {
 					"fieldtype": "checkbox"
-				}          
+				}
 			},
 			"obfuscatelatdistance" : {
 				"description": "Latitude Metres",
-				"help": "Number of metres to add to the latitude",
-				"tab": "Obfuscation",                       
+				"help": "Number of metres to add to the latitude.",
+				"tab": "Obfuscation",
 				"type": {
 					"fieldtype": "spinner",
 					"min": -10000,
 					"max": 10000,
 					"step": 1
-				}          
+				}
 			},
 			"obfuscatelondistance" : {
 				"description": "Longitude Metres",
-				"help": "Number of metres to add to the longitude",                
-				"tab": "Obfuscation",            
+				"help": "Number of metres to add to the longitude.",
+				"tab": "Obfuscation",
 				"type": {
 					"fieldtype": "spinner",
 					"min": -10000,
 					"max": 10000,
 					"step": 1
-				}          
+				}
 			},
 			"graph": {
 				"required": "false",
@@ -187,7 +187,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 				"type": {
 					"fieldtype": "graph"
 				}
-			}                              
+			}
 		},
 		"changelog": {
 			"v1.0.0" : [
@@ -203,8 +203,8 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 					"authorurl": "https://github.com/allskyteam",
 					"changes": "Updates for new module system"
 				}
-			]      
-		}         
+			]
+		}
 	}
 
 	def _compare_gps_and_allsky(self, lat, lon):
@@ -254,14 +254,14 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 			val = f'{val}.000'
 		
 		return val
- 
+
 	def _check_time_sync_running(self):
 		active = False
 		status = subprocess.check_output('timedatectl status | grep service', shell=True).decode('utf-8')
 		status = status.splitlines()
 		status = status[0].lower()
 		if status.find(' active') > -1:
-			active = True    
+			active = True
 
 		synced = False
 		status = subprocess.check_output('timedatectl status | grep System', shell=True).decode('utf-8')
@@ -287,7 +287,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 			'lon': ('E','W')
 		}
 		compass_str = compass[type][0 if d >= 0 else 1]
-		return '{}º{}\'{:.2f}"{}'.format(abs(d), abs(m), abs(s), compass_str) 
+		return '{}Âº{}\'{:.2f}"{}'.format(abs(d), abs(m), abs(s), compass_str)
 
 	def run(self):
 		ONEMETER = 0.00001
@@ -315,7 +315,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 		obfuscate = self.get_param('obfuscate', False, bool)
 		obfuscate_lat_distance = self.get_param('obfuscatelatdistance', 0, int)
 		obfuscate_lon_distance = self.get_param('obfuscatelondistance', 0, int)
-  
+
 		should_run, diff = allsky_shared.shouldRun('pigps', period)
 
 		gpsd = gps(mode=WATCH_ENABLE|WATCH_NEWSTYLE)
@@ -328,9 +328,9 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 							report = gpsd.next()
 							if report['class'] == 'TPV':
 								mode = getattr(report,'mode',1)
-								if mode != MODE_NO_FIX:                            
+								if mode != MODE_NO_FIX:
 									if set_time:
-										#s.log(4,"INFO: Got UTC date info {} from gpsd in {:.2f} seconds".format(gpsd.utc, timeout - time.time())) 
+										#s.log(4,"INFO: Got UTC date info {} from gpsd in {:.2f} seconds".format(gpsd.utc, timeout - time.time()))
 										offset = time.timezone if (time.localtime().tm_isdst == 0) else time.altzone
 										offset = offset / 60 / 60 * -1
 										
@@ -346,10 +346,10 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 							
 										utc = datetime.datetime(year, month, day, hour, min, sec, 0)
 										local = utc - timedelta(hours=offset)
-										self.log(4, f'INFO: GPS UTC time {utc}. Local time {local}. TZ Diff {offset}') 
+										self.log(4, f'INFO: GPS UTC time {utc}. Local time {local}. TZ Diff {offset}')
 										extra_data['AS_PIGPSUTC'] = str(utc)
 										extra_data['AS_PIGPSLOCAL'] = str(local)
-										extra_data['AS_PIGPSOFFSET'] = str(offset)                                
+										extra_data['AS_PIGPSOFFSET'] = str(offset)
 										date_string = utc.strftime("%c")
 										os.system(f'sudo date -u --set="{date_string}"')
 										result = 'Time set to {date_string}'
@@ -357,18 +357,18 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 							
 							if time.time() > timeout:
 								result = 'No date returned from gpsd'
-								self.log(1, f'ERROR: {result}')
+								self.log(0, f'ERROR in {__file}: {result}')
 								break
 					except Exception as err:
 						result = f'No GPS found. Please check gpsd is configured and running - {err}'
-						self.log(1, f'ERROR: {result}')                                                                                        
+						self.log(0, f'ERROR in {__file}: {result}')
 				else:
 					result = "Time is synchronised from the internet - Ignoring any gps data"
 					self.log(4, f'INFO: {result}')
 			else:
 				result = "Time update disabled"
 				self.log(4, f"INFO: {result}")
-			              
+
 			try:
 				if gpsd is None:
 					gpsd = gps(mode=WATCH_ENABLE|WATCH_NEWSTYLE)
@@ -387,7 +387,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 									lat = lat + (obfuscate_lat_distance * ONEMETER)
 									lon = lon + (obfuscate_lon_distance * ONEMETER)
 									self.log(4, f"INFO: Offsetting latitude by {obfuscate_lat_distance}m and longitude by {obfuscate_lon_distance}m")
-								discResult, discAllSkyLat, discAllSkyLon, strLat, strLon = self._compare_gps_and_allsky(lat, lon)
+								discResult, discAllskyLat, discAllskyLon, strLat, strLon = self._compare_gps_and_allsky(lat, lon)
 								if discResult:
 									extra_data['AS_PIGPSFIXDISC'] = extra_data_pos_disc
 								
@@ -396,10 +396,10 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 									updateData.append({"latitude": strLat})
 									updateData.append({"longitude": strLon})
 									allsky_shared.updateSetting(updateData)
-									self.log(4, f'INFO: AllSky Lat/Lon updated to {strLat},{strLon} - An AllSky restart will be required for them to take effect')
+									self.log(4, f'INFO: Allsky Lat/Lon updated to {strLat},{strLon} - An Allsky restart will be required for them to take effect')
 								else:
 									if discResult:
-										positionResult = f'GPS position differs from AllSky position. AllSky {discAllSkyLat} {discAllSkyLon}, GPS {strLat} {strLon}'
+										positionResult = f'GPS position differs from Allsky position. Allsky {discAllskyLat} {discAllskyLon}, GPS {strLat} {strLon}'
 									else:
 										positionResult = f'Lat {lat:.6f} Lon {lon:.6f} - {strLat},{strLon}'
 									result = result + f'. {positionResult}'
@@ -413,34 +413,34 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 								break
 							else:
 								self.log(4, 'INFO: No GPS Fix. gpsd returned 0 for both lat and lon')
-								break                       
+								break
 						else:
 							extra_data['AS_PIGPSFIX']['value'] = 'No'
 							extra_data['AS_PIGPSFIX']['fill'] = '#ff0000'
 							extra_data['AS_PIGPSFIXBOOL'] = 0
-                  
+
 					if time.time() > timeout:
 						result = 'No position returned from gpsd'
-						self.log(1, f'ERROR: {result}') 
-						break                    
+						self.log(0, f'ERROR in {__file}: {result}')
+						break
 			
 				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 				allsky_shared.setLastRun('pigps')
-   
+
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				result = f'ERROR: Module pigps failed on line {eTraceback.tb_lineno} - {e}'
-				self.log(1, result)   
+				result = f'ERROR in {__file}: Module pigps failed on line {eTraceback.tb_lineno} - {e}'
+				self.log(0, result)
 		else:
 			result = f'Will run in {(period - diff):.0f} seconds'
 			self.log(4, f'INFO: {result}')
-   
+
 		return result
 
 def pigps(params, event):
 	allsky_gps = ALLSKYGPS(params, event)
 	result = allsky_gps.run()
- 
+
 	return result
 
 def pigps_cleanup():

@@ -2,7 +2,7 @@
 allsky_cloud.py
 
 Part of allsky postprocess.py modules.
-https://github.com/thomasjacquin/allsky
+https://github.com/AllskyTeam/allsky
 
 '''
 import allsky_shared as allsky_shared
@@ -15,18 +15,18 @@ import adafruit_mlx90614
 class ALLSKYCLOUD(ALLSKYMODULEBASE):
 
 	meta_data = {
-		"name": "Determines cloud cover",
-		"description": "Determines cloud cover using an MLX90614",
+		"name": "Determine Cloud Cover",
+		"description": "Determine the cloud cover using an MLX90614",
 		"module": "allsky_cloud",
 		"version": "v1.0.2",
 		"testable": "true",
 		"centersettings": "false",
-		"extradatafilename": "allsk_cloud.json",
+		"extradatafilename": "allsky_cloud.json",
 		"group": "Image Analysis",
 		"deprecation": {
 			"fromversion": "v2024.12.06_02",
 			"removein": "v2024.12.06_04",
-			"notes": "This module is being deprecated due to its unreliable nature. Should anyone wish to take over the maintenance of this module please contact the Allsky team.",
+			"notes": "This module is deprecated due to its unreliable nature. If you wish to take over the maintenance of this module please contact the Allsky team.",
 			"replacedby": "None"
 		},
 		"events": [
@@ -88,7 +88,7 @@ class ALLSKYCLOUD(ALLSKYMODULEBASE):
 			"i2caddress": {
 				"required": "false",
 				"description": "I2C Address",
-				"help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76",
+				"help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x76.",
 				"tab": "Sensor",
 				"type": {
 					"fieldtype": "i2c"
@@ -97,7 +97,7 @@ class ALLSKYCLOUD(ALLSKYMODULEBASE):
 			"clearbelow" : {
 				"required": "false",
 				"description": "Clear Below &deg;C",
-				"help": "When the sky temperature is below this value the sky is assumed to be clear",
+				"help": "When the sky temperature is below this value the sky is assumed to be clear.",
 				"tab": "Settings",            
 				"type": {
 					"fieldtype": "spinner",
@@ -109,7 +109,7 @@ class ALLSKYCLOUD(ALLSKYMODULEBASE):
 			"cloudyabove" : {
 				"required": "false",
 				"description": "Cloudy Above &deg;C",
-				"help": "When the sky temperature is above this value the sky is assumed to be cloudy",
+				"help": "When the sky temperature is above this value the sky is assumed to be cloudy.",
 				"tab": "Settings",            
 				"type": {
 					"fieldtype": "spinner",
@@ -121,7 +121,7 @@ class ALLSKYCLOUD(ALLSKYMODULEBASE):
 			"advanced" : {
 				"required": "false",
 				"description": "Use advanced mode",
-				"help": "Provides a polynomial adjustment for the sky temperature",
+				"help": "Provides a polynomial adjustment for the sky temperature.",
 				"tab": "Advanced",
 				"type": {
 					"fieldtype": "checkbox"
@@ -299,7 +299,7 @@ class ALLSKYCLOUD(ALLSKYMODULEBASE):
 					i2c_address_int = int(i2c_address, 16)
 				except:
 					result = f'Address {i2c_address} is not a valid i2c address'
-					self.log(0,f'ERROR: {result}')
+					self.log(0, f'ERROR in {__file__}: {result}')
 
 			i2c = board.I2C()
 			if i2c_address != '':
@@ -325,8 +325,8 @@ class ALLSKYCLOUD(ALLSKYMODULEBASE):
 			self.log(1, f'INFO: {result}')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			result = f'ERROR: Module cloud failed on line {eTraceback.tb_lineno} - {e}'
-			self.log(4, result)
+			result = f'Module cloud failed on line {eTraceback.tb_lineno} - {e}'
+			self.log(0, f'ERROR in {__file__}: {result}')
 			
 		return result 
 

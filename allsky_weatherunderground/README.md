@@ -1,19 +1,18 @@
-# AllSky Weather Module
+# WeatherUnderground Module
 
 |   |   |
 | ------------ | ------------ |
 | **Status**  | Stable  |
 | **Level**  | Experienced  |
-| **Runs In**  | periodic  |
+| **Runs In**  | Periodic jobs  |
 
 
-This module allows data to be retreived from the Weather Underground API
-based on the openweathermap module by Alex Greenland
+This module retreives data from the Weather Underground API based on the Openweathermap module.
 
 |  Setting | Description  |
 | ------------ | ------------ |
 | API Key | Your Weather Underground API key  |
 | Station ID | Your Weather Underground Station |
 
-**NOTES:** Please visit https://www.wunderground.com/ to register for an API key
+**NOTES:** Please visit https://www.wunderground.com/ to register for an API key.
 

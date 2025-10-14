@@ -11,8 +11,8 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 	event = ''
  
 	meta_data = {
-		"name": "Current/voltage monitoring",
-		"description": "Monitors current and voltage using an ina219/ina3221",
+		"name": "Monitor Pi Current and Voltage",
+		"description": "Monitor Pi current and voltage using an ina219/ina3221",
 		"module": "allsky_power",
 		"version": "v1.0.0",
 		"centersettings": "false",
@@ -248,7 +248,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 			"i2caddress": {
 				"required": "false",
 				"description": "I2C Address",
-				"help": "Override the standard i2c address for a device. NOTE: This value must be hex i.e. 0x40",
+				"help": "Override the standard i2c address for a device. NOTE: This value must be hex, i.e., 0x40.",
 				"tab": "Sensor",
 				"type": {
 					"fieldtype": "i2c"
@@ -265,7 +265,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 			"c1enable" : {
 				"required": "false",
 				"description": "Enable Channel 1",
-				"help": "Enable channel 1 on the sensor",
+				"help": "Enable channel 1 on the sensor.",
 				"tab": "Sensor",
 				"filters": {
 					"filter": "type",
@@ -281,7 +281,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 			"c1name" : {
 				"required": "false",
 				"description": "Channel 1 name",
-				"help": "Name of the channel 1 allsky overlay variable",
+				"help": "Name of the channel 1 allsky overlay variable.",
 				"filters": {
 					"filter": "type",
 					"filtertype": "show",
@@ -294,7 +294,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 			"c2enable" : {
 				"required": "false",
 				"description": "Enable Channel 2",
-				"help": "Enable channel 2 on the sensor",
+				"help": "Enable channel 2 on the sensor.",
 				"tab": "Sensor",
 				"filters": {
 					"filter": "type",
@@ -310,7 +310,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 			"c2name" : {
 				"required": "false",
 				"description": "Channel 2 name",
-				"help": "Name of the channel 2 allsky overlay variable",
+				"help": "Name of the channel 2 allsky overlay variable.",
 				"filters": {
 					"filter": "type",
 					"filtertype": "show",
@@ -323,7 +323,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 			"c3enable" : {
 				"required": "false",
 				"description": "Enable Channel 3",
-				"help": "Enable channel 3 on the sensor",
+				"help": "Enable channel 3 on the sensor.",
 				"tab": "Sensor",
 				"filters": {
 					"filter": "type",
@@ -339,7 +339,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 			"c3name" : {
 				"required": "false",
 				"description": "Channel 3 name",
-				"help": "Name of the channel 3 allsky overlay variable",
+				"help": "Name of the channel 3 allsky overlay variable.",
 				"filters": {
 					"filter": "type",
 					"filtertype": "show",
@@ -352,7 +352,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 			"ina219name" : {
 				"required": "false",
 				"description": "Channel name",
-				"help": "Name of the channel for the allsky overlay variable",
+				"help": "Name of the channel for the allsky overlay variable.",
 				"filters": {
 					"filter": "type",
 					"filtertype": "show",
@@ -412,7 +412,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f'_ina219 failed on line {eTraceback.tb_lineno} - {e}'
-			self.log(0, f'ERROR: {result}')
+			self.log(0, f'ERROR in {__file}: {result}')
 		
 		return result, extra_data
 
@@ -473,7 +473,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f'_ina3221 failed on line {eTraceback.tb_lineno} - {e}'
-			self.log(0, f'ERROR: {result}')
+			self.log(0, f'ERROR in {__file}: {result}')
 		
 		return result, extra_data
 

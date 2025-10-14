@@ -1,4 +1,4 @@
-# AllSky ADSB module
+# ADS-B Aircraft Tracking Data Module
 
 |              |              |
 |--------------|--------------|
@@ -95,12 +95,12 @@ aircraft_X_medium_route - Medium version of the aircrafts route if available "Ci
 aircraft_X_long_route - - Long version of the aircrafts route if available "(City) Airport -> (City) Airport
 
 ### Example short form text
-WUK78 207°
+WUK78 207Â°
 
 This has the callsign and azimuth of the aircraft
 
 ### Example long form text
-WUK78 A321 207° 11Miles FL122  264kts
+WUK78 A321 207Â° 11Miles FL122  264kts
 
 This has the
 

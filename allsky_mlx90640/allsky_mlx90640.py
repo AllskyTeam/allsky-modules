@@ -2,7 +2,7 @@
 allsky_mlx90614.py
 
 Part of allsky postprocess.py modules.
-https://github.com/thomasjacquin/allsky
+https://github.com/AllskyTeam/allsky
 
 
 """
@@ -22,8 +22,8 @@ from datetime import timedelta
 class ALLSKYMLX90640(ALLSKYMODULEBASE):
 
 	meta_data = {
-		"name": "AllSky MLX90640",
-		"description": "Generates a thermal image from the MLX90640 IR Sensor",
+		"name": "Generate a thermal image",
+		"description": "Generate a thermal image from the MLX90640 IR Sensor",
 		"module": "allsky_mlx90640",
 		"centersettings": "false",
 		"version": "v1.0.2",
@@ -72,7 +72,7 @@ class ALLSKYMLX90640(ALLSKYMODULEBASE):
 			"i2caddress": {
 				"required": "false",
 				"description": "I2C Address",
-				"help": "Override the standard i2c address (0x33) for the mlx90640. NOTE: This value must be hex i.e. 0x76",
+				"help": "Override the standard i2c address (0x33) for the mlx90640. NOTE: This value must be hex, i.e., 0x76.",
 				"tab": "Sensor",
 				"type": {
 					"fieldtype": "i2c"
@@ -82,12 +82,12 @@ class ALLSKYMLX90640(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Image filename",
 				"tab": "Sensor",
-				"help": "The filename to save the image as. NOTE: Does not need the path. The image will be saved in the overlay images folder"
+				"help": "The filename to save the image as. NOTE: Does not need the path. The image will be saved in the overlay images folder."
 			},
 			"resize": {
 				"required": "false",
 				"description": "Resize Image",
-				"help": "Scales the captured image",
+				"help": "Scales the captured image.",
 				"tab": "Sensor",           
 				"type": {
 					"fieldtype": "spinner",
@@ -99,7 +99,7 @@ class ALLSKYMLX90640(ALLSKYMODULEBASE):
 			"logdata": {
 				"required": "false",
 				"description": "Log Data",
-				"help": "Log data and images. **WARNING** This will require a lot of additional disk space",
+				"help": "Log data and images. **WARNING** This will require a lot of additional disk space.",
 				"tab": "Logging",
 				"type": {"fieldtype": "checkbox"}
 			},
@@ -171,7 +171,7 @@ class ALLSKYMLX90640(ALLSKYMODULEBASE):
 				i2c_address_int = int(self._i2c_address, 16)
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				self.log(0, f'ERROR: Module (mlx906040) _get_image failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(0, f'ERROR in {__file}: Module (mlx906040) _get_image failed on line {eTraceback.tb_lineno} - {e}')
 
 		i2c = board.I2C()
 		if self._i2c_address != '':

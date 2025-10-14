@@ -6,8 +6,8 @@ import json
 class ALLSKYJSONIMPORT(ALLSKYMODULEBASE):
 
 	meta_data = {
-		"name": "Import JSON",
-		"description": "Reads data from a json web source for use in overlays",
+		"name": "Import JSON Data",
+		"description": "Read data from a JSON web source for use in overlays",
 		"module": "allsky_jsonimport",
 		"version": "v1.0.1",
 		"testable": "true",
@@ -29,7 +29,7 @@ class ALLSKYJSONIMPORT(ALLSKYMODULEBASE):
 			"period" : {
 				"required": "false",
 				"description": "Read Every",
-				"help": "Reads data every x seconds.. Zero will disable this and run the check every time the periodic jobs run",
+				"help": "Reads data every x seconds.. Zero will disable this and run the check every time the periodic jobs run.",
 				"type": {
 					"fieldtype": "spinner",
 					"min": 0,
@@ -40,17 +40,17 @@ class ALLSKYJSONIMPORT(ALLSKYMODULEBASE):
 			"jsonurl": {
 				"required": "false",
 				"description": "JSON Data URL",
-				"help": "The full URL to read the json data from"
+				"help": "The full URL to read the JSON data from."
 			},
 			"prefix": {
 				"required": "true",
 				"description": "Variable Prefix",
-				"help": "The prefix for variables - DO NOT CHANGE unless you have multiple variables that clash"
+				"help": "The prefix for variables - DO NOT CHANGE unless you have multiple variables that clash."
 			},
 			"extradatafilename": {
 				"required": "true",
 				"description": "Extra Data Filename",
-				"help": "The name of the file to create with the json data for the overlay manager"
+				"help": "The name of the file to create with the JSON data for the overlay manager."
 			}
 		},
 		"businfo": [
@@ -98,20 +98,20 @@ class ALLSKYJSONIMPORT(ALLSKYMODULEBASE):
 				result = 'Data retrieved ok'
 			except requests.exceptions.RequestException as json_exception:
 				result = f'Request Error: {json_exception}'
-				self.log(0,f'ERROR: {result}')
+				self.log(0, f'ERROR in {__file__}: {result}')
 			except json.JSONDecodeError:
 				result = 'Error decoding JSON.'
-				self.log(0,f'ERROR: {result}')            
+				self.log(0, f'ERROR in {__file__}: {result}')            
 			except Exception as json_exception:
 				result = f'An unexpected error occurred: {json_exception}'
-				self.log(0,f'ERROR: {result}')
+				self.log(0, f'ERROR in {__file__}: {result}')
 
 			allsky_shared.saveExtraData(extra_data_filename, extra_data, self.meta_data['module'], event=self.event)
 			
 			allsky_shared.setLastRun(self.meta_data['module'])
 		else:
 			result = f'Will run in {(period - diff):.2f} seconds'
-			self.log(1,f'INFO: {result}')
+			self.log(4, f'INFO: {result}')
 
 		return result
 

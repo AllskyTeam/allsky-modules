@@ -11,8 +11,8 @@ from io import BytesIO
 class ALLSKYDISCORD(ALLSKYMODULEBASE):
 
 	meta_data = {
-		"name": "Discord",
-		"description": "Posts images to a Discord server",
+		"name": "Post Image to Discord",
+		"description": "Post an image to a Discord server",
 		"version": "v1.0.3",
 		"pythonversion": "3.9.0",
 		"centersettings": "false",
@@ -45,7 +45,7 @@ class ALLSKYDISCORD(ALLSKYMODULEBASE):
 			"dayimage" : {
 				"required": "false",
 				"description": "Post Day time Images",
-				"help": "Post daytime images to the Discord Server",
+				"help": "Post daytime images to the Discord Server.",
 				"tab": "Day Time",
 				"type": {
 					"fieldtype": "checkbox"
@@ -53,7 +53,7 @@ class ALLSKYDISCORD(ALLSKYMODULEBASE):
 			},
 			"dayimageannotated" : {
 				"description": "Send Annotated Image",
-				"help": "Send the image after the overlay has been added. The discord module must be after the overlay module in the flow",
+				"help": "Send the image after the overlay has been added. This module must be after the Overlay module in the flow.",
 				"tab": "Day Time",
 				"type": {
 					"fieldtype": "checkbox"
@@ -62,7 +62,7 @@ class ALLSKYDISCORD(ALLSKYMODULEBASE):
 			"daycount" : {
 				"required": "false",
 				"description": "Daytime Count",
-				"help": "Send every (this number) frame to Discord. This is to prevent flooding the discord channels",
+				"help": "Send every (this number) frames to Discord. This is to prevent flooding the Discord channels.",
 				"tab": "Day Time",            
 				"type": {
 					"fieldtype": "spinner",
@@ -74,12 +74,12 @@ class ALLSKYDISCORD(ALLSKYMODULEBASE):
 			"dayimageurl": {
 				"required": "false",
 				"tab": "Day Time",            
-				"description": "The webhook url for day time images"
+				"description": "The webhook URL for day time images"
 			}, 
 			"nightimage" : {
 				"required": "false",
 				"description": "Post Night time Images",
-				"help": "Post Nighttime images to the Discord Server",
+				"help": "Post nighttime images to the Discord Server.",
 				"tab": "Night Time",
 				"type": {
 					"fieldtype": "checkbox"
@@ -87,7 +87,7 @@ class ALLSKYDISCORD(ALLSKYMODULEBASE):
 			},
 			"nightimageannotated" : {
 				"description": "Send Annotated Image",
-				"help": "Send the image after the overlay has been added. The discord module must be after the overlay module in the flow",
+				"help": "Send the image after the overlay has been added. This module must be after the Overlay module in the flow.",
 				"tab": "Night Time",
 				"type": {
 					"fieldtype": "checkbox"
@@ -96,7 +96,7 @@ class ALLSKYDISCORD(ALLSKYMODULEBASE):
 			"nightcount" : {
 				"required": "false",
 				"description": "Nighttime Count",
-				"help": "Send every (this number) frame to Discord. This is to prevent flooding the discord channels",
+				"help": "Send every (this number) frame to Discord. This is to prevent flooding the Discord channels.",
 				"tab": "Night Time",            
 				"type": {
 					"fieldtype": "spinner",
@@ -114,7 +114,7 @@ class ALLSKYDISCORD(ALLSKYMODULEBASE):
 			"startrails" : {
 				"required": "false",
 				"description": "Post Star Trails Images",
-				"help": "Post Star Trails images to the Discord Server",
+				"help": "Post Startrails images to the Discord Server.",
 				"tab": "Star Trails",
 				"type": {
 					"fieldtype": "checkbox"
@@ -126,11 +126,10 @@ class ALLSKYDISCORD(ALLSKYMODULEBASE):
 				"description": "The webhook url for Star Trails images"
 			},  
 
-
 			"keogram" : {
 				"required": "false",
 				"description": "Post Keograms Images",
-				"help": "Post Keograms images to the Discord Server",
+				"help": "Post Keogram images to the Discord Server.",
 				"tab": "Keograms",
 				"type": {
 					"fieldtype": "checkbox"
@@ -139,13 +138,13 @@ class ALLSKYDISCORD(ALLSKYMODULEBASE):
 			"keogramimageurl": {
 				"required": "false",
 				"tab": "Keograms",           
-				"description": "The webhook url for Star Keograms"
+				"description": "The webhook URL for Keograms"
 			},  
 
 			"timelapse" : {
 				"required": "false",
 				"description": "Post Timelapse videos",
-				"help": "Post Timelapse videos to the Discord Server",
+				"help": "Post Timelapse videos to the Discord Server.",
 				"tab": "Timelapse",
 				"type": {
 					"fieldtype": "checkbox"
@@ -240,16 +239,16 @@ class ALLSKYDISCORD(ALLSKYMODULEBASE):
 					webhook = SyncWebhook.from_url(sendURL)
 					webhook.send(file=discord_file)
 					result = f'{fileType} file {file_name} sent to Discord'
-					self.log(4,f'INFO: {result}')
+					self.log(4 ,f'INFO: {result}')
 				else:
 					result = f'{fileType} file {file_name} is too large to send to Discord. File is {file_size} bytes'
-					self.log(0, f'ERROR: {result}')
+					self.log(0, f'ERROR in {__file__}: {result}')
 			else:
 				result = f'{fileType} file ="{file_name}" not found'
-				self.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR in {__file__}: {result}')
 		else:
-			result = f'{fileType} Invalid Discord URL '
-			self.log(0, f'ERROR: {result} {sendURL}')
+			result = f'{fileType} Invalid Discord URL {sendURL}'
+			self.log(0, f'ERROR in {__file__}: {result}')
 
 		return result
 

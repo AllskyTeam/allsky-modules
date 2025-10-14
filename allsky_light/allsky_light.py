@@ -19,8 +19,8 @@ from adafruit_ltr390 import LTR390, MeasurementDelay, Resolution, Gain
 class ALLSKYLIGHT(ALLSKYMODULEBASE):
 
 	meta_data = {
-		"name": "AllSky Light Meter",
-		"description": "Estimates sky brightness from a light sensor (tls2591/tsl2561/ltr390)",
+		"name": "Light Meter",
+		"description": "Estimate sky brightness from a light sensor (tls2591/tsl2561/ltr390)",
 		"module": "allsky_light",
 		"version": "v1.0.3",
 		"centersettings": "false",
@@ -87,7 +87,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "I2C Address",
 				"tab": "Sensor",         
-				"help": "Override the standard i2c address for the sensor. NOTE: This value must be hex i.e. 0x76",
+				"help": "Override the standard i2c address for the sensor. NOTE: This value must be hex i.e. 0x76.",
 				"type": {
 					"fieldtype": "i2c"
 				},
@@ -177,7 +177,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				"required": "false",
 				"tab": "Sensor",
 				"description": "Sensor Resoluton",
-				"help": "The resolution of the internal ADC",
+				"help": "The resolution of the internal ADC.",
 				"type": {
 					"fieldtype": "select",
 					"values": "Default,13Bit,16Bit,17Bit,18Bit,19Bit,20Bit",
@@ -195,7 +195,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				"required": "false",
 				"tab": "Sensor",         
 				"description": "Gain",
-				"help": "ALS and UVS gain range",
+				"help": "ALS and UVS gain range.",
 				"type": {
 					"fieldtype": "select",
 					"values": "Default,1x,3x,6x,9x,18x",
@@ -213,7 +213,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				"required": "false",
 				"tab": "Sensor",         
 				"description": "Delay",
-				"help": "Delay between measurements, useful for power saving",
+				"help": "Delay between measurements, useful for power saving.",
 				"type": {
 					"fieldtype": "select",
 					"values": "Default,25ms,50ms,100ms,200ms,500ms,1000ms,2000ms",
@@ -291,7 +291,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				sensor = adafruit_tsl2591.TSL2591(i2c, i2caddress_int)
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				self.log(0, f'ERROR: Module readTSL2591 failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(0, f'ERROR in {__file}: Module __read_TSL2591 failed on line {eTraceback.tb_lineno} - {e}')
 		else: 
 			sensor = adafruit_tsl2591.TSL2591(i2c)
 
@@ -318,7 +318,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				self.log(4, f'TSL2591 read values - lux {lux}, infrared {infrared}, visible {visible}')
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				self.log(0, f'ERROR: Module __read_TSL2591 failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(0, f'ERROR in {__file}: Module __read_TSL2591 failed on line {eTraceback.tb_lineno} - {e}')
         
 		return lux, infrared, visible
 
@@ -333,7 +333,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				tsl = adafruit_tsl2561.TSL2561(i2c, i2caddress_int)
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				self.log(0, f'ERROR: Module readTSL2561 failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(0, f'ERROR in {__file}: Module __read_TSL2561 failed on line {eTraceback.tb_lineno} - {e}')
 		else: 
 			tsl = adafruit_tsl2561.TSL2561(i2c)
 		
@@ -377,7 +377,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except:
 				result = f"Address {i2c_address} is not a valid i2c address"
-				self.log(0,f"ERROR: {result}")
+				self.log(0, f"ERROR in {__file}: {result}")
 				ok = False
 
 		if ok:
@@ -440,7 +440,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
 				result = f"Module light (ltr390) failed on line {eTraceback.tb_lineno} - {e}"
-				self.log(1, f"ERROR: {result}")
+				self.log(0, f"ERROR in {__file}: {result}")
 
 	def __lux_to_bortle(self, lux):
 		if lux <= 0.1:
@@ -490,15 +490,15 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				except Exception as e:
 					eType, eObject, eTraceback = sys.exc_info()        
 					result = f'Failed to calculate sqm or nelm, lux = {lux}, line {eTraceback.tb_lineno} {e}'
-					self.log(0, f'ERROR: {result}')
+					self.log(0, f'ERROR in {__file}: {result}')
 			else:
 				allsky_shared.deleteExtraData(self.meta_data['extradatafilename'])
 				result = f'Error reading {sensor}'
-				self.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR in {__file}: {result}')
 		else:
 			allsky_shared.deleteExtraData(self.meta_data['extradatafilename'])
 			result = 'No sensor defined'
-			self.log(0, f'ERROR: {result}')
+			self.log(0, f'ERROR in {__file}: {result}')
 			
 		return result
 

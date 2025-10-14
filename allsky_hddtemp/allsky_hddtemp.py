@@ -2,7 +2,7 @@
 allsky_hddtemp.py
 
 Part of allsky postprocess.py modules.
-https://github.com/thomasjacquin/allsky
+https://github.com/AllskyTeam/allsky
 
 '''
 import allsky_shared as allsky_shared
@@ -13,8 +13,8 @@ import sys
 class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 
 	meta_data = {
-		"name": "HDD Temp",
-		"description": "Provides Disk Temperatures via S.M.A.R.T",
+		"name": "Output Disk Drive Temperature",
+		"description": "Output Disk Drive Temperature for use in overlays.",
 		"module": "allsky_hddtemp",
 		"version": "v1.0.1",
 		"events": [
@@ -276,7 +276,7 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 			"usecolour": {
 				"required": "false",
 				"description": "Use Colour",
-				"help": "Use colour for temperature fields",
+				"help": "Use colour for temperature fields.",
 				"type": {
 					"fieldtype": "checkbox"
 				}          
@@ -284,7 +284,7 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 			"oktemp": {
 				"required": "true",
 				"description": "Ok Temp",
-				"help": "At or below this temperature hdd temp is ok",                
+				"help": "At or below this temperature disk temperature is Ok.",
 				"type": {
 					"fieldtype": "spinner",
 					"min": 1,
@@ -295,7 +295,7 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 			"okcolour": {
 				"required": "true",
 				"description": "Ok Colour",
-				"help": "Colour for an Ok temeprature",
+				"help": "Colour for an Ok temperature.",
 				"type": {
 					"fieldtype": "colour"             
 				}                 
@@ -303,7 +303,7 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 			"badcolour": {
 				"required": "true",
 				"description": "Bad Colour",
-				"help": "Colour for a Bad temeprature",
+				"help": "Colour for a Bad temperature.",
 				"type": {
 					"fieldtype": "colour"             
 				}       

@@ -1,10 +1,11 @@
 """ allsky_script.py
 
 Part of allsky postprocess.py modules.
-https://github.com/thomasjacquin/allsky
+https://github.com/AllskyTeam/allsky
 
-This module will run a custom script
+This module runs a custom script.
 """
+
 import allsky_shared as allsky_shared
 from allsky_base import ALLSKYMODULEBASE
 import os 
@@ -13,8 +14,8 @@ import subprocess
 class ALLSKYSCRIPT(ALLSKYMODULEBASE):
 
 	meta_data = {
-		"name": "AllSKY Script",
-		"description": "Runs a custom script",
+		"name": "Run a Script",
+		"description": "Run a custom script",
 		"version": "v1.0.1",
 		"testable": "true", 
 		"events": [
@@ -34,7 +35,7 @@ class ALLSKYSCRIPT(ALLSKYMODULEBASE):
 			"scriptlocation" : {
 				"required": "true",
 				"description": "File Location",
-				"help": "The location of the script to run"
+				"help": "The location of the script to run."
 			},
 			"shellnotice": {
 				"message": "<strong>NOTE</strong> Use this with extereme caution. If you are unsure of the implications do not select this option",
@@ -51,7 +52,7 @@ class ALLSKYSCRIPT(ALLSKYMODULEBASE):
 			"useshell" : {
 				"required": "false",
 				"description": "Use Shell",
-				"help": "Runs the command in a shell",
+				"help": "Runs the command in a shell.",
 				"type": {
 					"fieldtype": "checkbox"
 				}
@@ -87,13 +88,13 @@ class ALLSKYSCRIPT(ALLSKYMODULEBASE):
 					self.log(4, f"INFO: Script result Exit Code - {script_result.returncode} Output - {script_result.stdout}")
 				else:
 					result = f"Script {script} Is NOT Executeable."
-					self.log(0, f"ERROR: {result}")
+					self.log(0, f"ERROR in {__file}: {result}")
 			else:
 				result = f"Script {script} Not Found."
-				self.log(0, f"ERROR: {result}")
+				self.log(0, f"ERROR in {__file}: {result}")
 		else:
 			result = f"Script cannot be empty."
-			self.log(0, f"ERROR: {result}")
+			self.log(0, f"ERROR in {__file}: {result}")
 		
 		return result
 

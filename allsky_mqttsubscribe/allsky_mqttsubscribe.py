@@ -15,8 +15,8 @@ import paho.mqtt.client as mqtt
 from flatten_json import flatten
 
 metaData = {
-	"name": "Subscribes to MQTT topic and gets messages",
-	"description": "Obtains datafrom given MQTT topic for use in overlay manager",
+	"name": "Get Messages From MQTT",
+	"description": "Obtain data from given MQTT topic for use in overlays",
 	"module": "allsky_mqttsubscribe",
 	"version": "v1.0.0",
 	"centersettings": "false",
@@ -42,37 +42,37 @@ metaData = {
 	    "mqttserver": {
 	        "required": "true",
 	        "description": "MQTT server to connect to",
-	        "help": "Example: 192.168.1.250"
+	        "help": "Example: 192.168.1.250."
 	    },
 	    "mqttport": {
 	        "required": "true",
 	        "description": "MQTT port to connect to",
-	        "help": "Example: 1883"
+	        "help": "Example: 1883."
 	    },
 	    "mqtttopic": {
 	        "required": "true",
 	        "description": "MQTT Topic to subscribe to",
-	        "help": "Example: astro/NINA"
+	        "help": "Example: astro/NINA."
 	    },
 	    "mqttusername": {
 	        "required": "false",
 	        "description": "MQTT Username",
-	        "help": "Username for MQTT server"
+	        "help": "Username for MQTT server."
 	    },
 	    "mqttpassword": {
 	        "required": "false",
 	        "description": "MQTT Password",
-	        "help": "Password for MQTT server"
+	        "help": "Password for MQTT server."
 	    },
 	    "extradatafilename" : {
 	        "required": "true",
 	        "description": "Extra Data Filename",
-	        "help": "The name for the extra variables file"
+	        "help": "The name for the extra variables file."
 	    },
 	    "period" : {
 	        "required": "false",
 	        "description": "Read Every",
-	        "help": "Reads data every x seconds.. Zero will disable this and run the check every time the periodic jobs run",
+	        "help": "Reads data every x seconds. Zero will disable this and run the check every time the periodic jobs run.",
 	        "type": {
 	            "fieldtype": "spinner",
 	            "min": 0,
@@ -133,10 +133,10 @@ class ALLSKYMQTTSUBSCRIBE(ALLSKYMODULEBASE):
 				# MQTT client callbacks for connection
 				def on_connect(client, userdata, flags, rc):
 					if rc == 0:
-						self.log(1, f'INFO: Connected to MQTT server {mqtt_server}:{mqtt_port}')
+						self.log(4, f'INFO: Connected to MQTT server {mqtt_server}:{mqtt_port}')
 						client.subscribe(mqtt_topic)
 					else:
-						self.log(1, f'ERROR: Connection to MQTT server failed with code {rc}')
+						self.log(0, f'ERROR in {__file}: Connection to MQTT server failed with code {rc}')
 
 				# MQTT client callbacks for message
 				def on_message(client, userdata, msg):
@@ -144,11 +144,11 @@ class ALLSKYMQTTSUBSCRIBE(ALLSKYMODULEBASE):
 					nonlocal extra_data
 					try:
 						payload = msg.payload.decode('utf-8')
-						self.log(1, f'INFO: Received message: {payload}')
+						self.log(4, f'INFO: Received message: {payload}')
 						json_data = json.loads(payload)
 						extra_data = json_data
 					except json.JSONDecodeError as e:
-						self.log(1, f'ERROR: Failed to decode JSON message: {e}')
+						self.log(0, f'ERROR in {__file}: Failed to decode JSON message: {e}')
 						result = "Invalid JSON"
 
 				# Create MQTT client and connect to the server
@@ -175,19 +175,19 @@ class ALLSKYMQTTSUBSCRIBE(ALLSKYMODULEBASE):
 				# Flatten the object (in case this is a nested JSON) and save the extra data and set the last run
 				extra_data = flatten(extra_data)
 				result = extra_data  # Update the result with the flattened data
-				self.log(1, f'INFO: Final result: {result}')
+				self.log(4, f'INFO: Final result: {result}')
 				allsky_shared.saveExtraData(extra_data_filename, extra_data)
 				allsky_shared.setLastRun(metaData['module'])
 
 			# Handle exceptions
 			except Exception as e:
-				self.log(1, f'ERROR: Failed to connect to MQTT server: {e}')
+				self.log(0, f'ERROR in {__file}: Failed to connect to MQTT server: {e}')
 				result = "Failed to connect to MQTT server"
 
 		# Return the result if the module should not run yet    
 		else:
 			result = f'Will run in {(period - diff):.2f} seconds'
-			self.log(1,f'INFO: {result}')
+			self.log(4, f'INFO: {result}')
 			return result
 
 		return result

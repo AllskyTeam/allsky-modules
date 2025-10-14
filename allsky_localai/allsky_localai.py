@@ -10,8 +10,8 @@ import time
 class ALLSKYLOCALAI(ALLSKYMODULEBASE):
         
     metaData = {
-        "name": "Local AI based cloud detection",
-        "description": "Detects clouds using local AI modules",
+        "name": "Local AI-Based Cloud Detection",
+        "description": "Detect clouds using local AI modules",
         "module": "allsky_localai",
         "version": "v1.0.0",
         "events": [
@@ -27,7 +27,7 @@ class ALLSKYLOCALAI(ALLSKYMODULEBASE):
             "model_type" : {
                 "required": "false",
                 "description": "Model",
-                "help": "The type of module being used",
+                "help": "The type of module being used.",
                 "tab": "Model",            
                 "type": {
                     "fieldtype": "select",
@@ -37,13 +37,13 @@ class ALLSKYLOCALAI(ALLSKYMODULEBASE):
             "keras_model_path" : {
                 "required": "false",
                 "description": "Model Path",
-                "help": "Full path to the Keras module file",
+                "help": "Full path to the Keras module file.",
                 "tab": "Keras"               
             },
             "keras_labels_path" : {
                 "required": "false",
                 "description": "Labels Path",
-                "help": "Full path to the Keras labels file",
+                "help": "Full path to the Keras labels file.",
                 "tab": "Keras"               
             }                  
         },
@@ -130,9 +130,9 @@ class ALLSKYLOCALAI(ALLSKYMODULEBASE):
                 elapsed_time = end_time - start_time
                 s.log(4, f'INFO: Prediction took {elapsed_time:.2f} seconds')
             else:
-                s.log(0, f'ERROR: the Keras label file {label_path} does not exist or is not readable')
+                s.log(0, f'ERROR in {__file}: the Keras label file {label_path} does not exist or is not readable')
         else:
-            s.log(0, f'ERROR: the Keras module file {model_path} does not exist or is not readable')
+            s.log(0, f'ERROR in {__file}: the Keras module file {model_path} does not exist or is not readable')
             
         return sky_state, confidence_score
         
@@ -152,8 +152,7 @@ class ALLSKYLOCALAI(ALLSKYMODULEBASE):
             extraData['AS_LOCALAI_CONFIDENCE'] = str(confidence_score)
             s.saveExtraData('allskylocalai.json',extraData)
             
-            s.log(4, f'INFO: Class: {sky_state}')
-            s.log(4, f'INFO: onfidence Score:: {confidence_score}')
+            s.log(4, f'INFO: Class: {sky_state}.  Confidence Score: {confidence_score}')
 
             end_time = time.time()
             elapsed_time = end_time - overall_start_time

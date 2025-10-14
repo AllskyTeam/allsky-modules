@@ -1,8 +1,8 @@
-# AllSky GPIO Module
+# Set a GPIO Pin Module
 
 |   |   |
 | ------------ | ------------ |
 | **Status**  | Experimental  |
 | **Level**  | Experienced  |
-| **Runs In**  | day/night transition, night/day transition  |
+| **Runs In**  | Day to Night Transition, Night to Day Transition  |
 

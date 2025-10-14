@@ -23,8 +23,8 @@ from astral import LocationInfo, Observer
 class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
     
 	meta_data = {
-		"name": "AllSky Solar System",
-		"description": "Obtains data for Solar System objects",
+		"name": "Get Solar System Data",
+		"description": "Obtain data for Solar System objects",
 		"module": "allsky_solarsystem",
 		"version": "v1.0.1",
 		"testable": "true",
@@ -332,7 +332,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			"moonEnabled": {
 				"required": "false",
 				"description": "Enable the Moon",
-				"help": "Enable calculation of Moon Data",
+				"help": "Enable calculation of Moon data.",
 				"tab": "Moon",
 				"type": {
 					"fieldtype": "checkbox"
@@ -341,7 +341,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			"moonElevation": {
 				"required": "false",
 				"description": "Minimum elevation",
-				"help": "Above this value the Moon will be considered visible",
+				"help": "Above this value the Moon will be considered visible.",
 				"tab": "Moon",
 				"type": {
 					"fieldtype": "spinner",
@@ -353,7 +353,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			"sunEnabled": {
 				"required": "false",
 				"description": "Enable the Sun",
-				"help": "Enable calculation of Sun Data",
+				"help": "Enable calculation of Sun data.",
 				"tab": "Sun",
 				"type": {
 					"fieldtype": "checkbox"
@@ -426,7 +426,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			"planetElevation": {
 				"required": "false",
 				"description": "Minimum elevation",
-				"help": "Above this value the planets will be considered visible",
+				"help": "Above this elevation the planets are considered visible.",
 				"tab": "Planets",
 				"type": {
 					"fieldtype": "spinner",
@@ -437,14 +437,14 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			},        
 			"tles": {
 				"required": "false",
-				"description": "Norad Id's",
-				"help": "List of NORAD Id's to calculate satellite positions for, satellite Id's can be found on the <a href=\"https://celestrak.org/satcat/search.php\" target=\"_blank\">Celestrak</a> website. See the documentaiton for more details",
+				"description": "Norad IDs",
+				"help": "List of NORAD IDs to calculate satellite positions for. Satellite IDs can be found on the <a href=\"https://celestrak.org/satcat/search.php\" target=\"_blank\">Celestrak</a> website. See the documentaiton for more details.",
 				"tab": "Satellites"
 			},
 			"sat_min_elevation" : {
 				"required": "true",
 				"description": "Minimum Elevation",
-				"help": "Satellites will only be classed as visible if above this elevation, in degrees and sunlit",
+				"help": "Satellites will only be classed as visible if above this elevation, in degrees and sunlit.",
 				"tab": "Satellites",                        
 				"type": {
 					"fieldtype": "spinner",
@@ -501,7 +501,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				self.log(4, 'INFO: Downloading ephemeris data')
 			self._eph = skyfield_loader('de421.bsp')
 		except Exception as err:
-			self.log(0, f'ERROR: Unable to download de421.bsp: {err}')
+			self.log(0, f'ERROR in {__file}: Unable to download de421.bsp: {err}')
 			self._enable_skyfield = False
 		self._observer_lat = allsky_shared.getSetting('latitude')
 		self._observer_lon = allsky_shared.getSetting('longitude')		
@@ -592,11 +592,11 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 
 				self.log(4, 'INFO: Moon data calculated')
 			else:
-				self.log(0, 'ERROR: Moon enabled but cannot use due to prior error initialising skyfield.')
+				self.log(0, 'ERROR in {__file}: Moon enabled but cannot use due to prior error initialising skyfield.')
 
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f'ERROR: _calculateMoon failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file}: _calculateMoon failed on line {eTraceback.tb_lineno} - {e}')
 		return True 
 
 	def _getSunTimes(self, location, date):
@@ -609,7 +609,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			sunData['elevation'] = el
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f'ERROR: _getSunTimes failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file}: _getSunTimes failed on line {eTraceback.tb_lineno} - {e}')
 		return sunData
 
 	def _getTimeZone(self):
@@ -673,7 +673,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			self.log(4, 'INFO: Sun data calculated')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f'ERROR: _calculateSun failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file}: _calculateSun failed on line {eTraceback.tb_lineno} - {e}')
 
 		return True
 
@@ -703,7 +703,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				self._extra_data[f'AS_{planet_key}_VISIBLE'] = 'No'
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f"ERROR: _set_planet_data failed on line {eTraceback.tb_lineno} - {e}")
+			self.log(0, f"ERROR in {__file}: _set_planet_data failed on line {eTraceback.tb_lineno} - {e}")
    
 	def _calculate_planets(self):
 		try:
@@ -739,7 +739,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			self.log(4, 'INFO: Planet data calculated')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f"ERROR: _calculate_planets failed on line {eTraceback.tb_lineno} - {e}")
+			self.log(0, f"ERROR in {__file}: _calculate_planets failed on line {eTraceback.tb_lineno} - {e}")
    
 	def _fetch_tle_from_celestrak(self, data_key, verify=True):
 		tle_data = {}
@@ -817,7 +817,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				self.log(4, ' TLE loaded from cache')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f"ERROR: _fetch_tle_from_celestrak failed on line {eTraceback.tb_lineno} - {e}")
+			self.log(0, f"ERROR in {__file}: _fetch_tle_from_celestrak failed on line {eTraceback.tb_lineno} - {e}")
 		return tle_data
 
 	def _calcSatellites(self):
@@ -841,7 +841,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 					counter = counter + 1
 		except Exception as e:     
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f"ERROR: _calcSatellites failed on line {eTraceback.tb_lineno} - {e}")    
+			self.log(0, f"ERROR in {__file}: _calcSatellites failed on line {eTraceback.tb_lineno} - {e}")    
 
 	def _calculate_satellite(self, tle):
 		try:
@@ -890,7 +890,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f"ERROR: _calculate_satellite failed on line {eTraceback.tb_lineno} - {e}")
+			self.log(0, f"ERROR in {__file}: _calculate_satellite failed on line {eTraceback.tb_lineno} - {e}")
    
 		return True
 
@@ -937,7 +937,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			}
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f"ERROR: _add_satellite_to_extra_data failed on line {eTraceback.tb_lineno} - {e}")    
+			self.log(0, f"ERROR in {__file}: _add_satellite_to_extra_data failed on line {eTraceback.tb_lineno} - {e}")    
   
 	def run(self):
 		# check Skyfield initilaised ok
