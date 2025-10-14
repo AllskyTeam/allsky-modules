@@ -29,51 +29,6 @@ class ALLSKYRAIN(ALLSKYMODULEBASE):
 			"periodic"
 		],
 		"extradatafilename": "allsky_rain.json",
-        "graphs": {
-			"chart1": {
-				"icon": "fas fa-chart-line",
-				"title": "Rain State",
-				"group": "Environment",
-				"main": "true",    
-				"config": {
-					"chart": {
-						"type": "spline",
-						"zooming": {
-							"type": "x"
-						}
-					},
-					"title": {
-						"text": "Rain State"
-					},
-					"xAxis": {
-						"type": "datetime",
-						"dateTimeLabelFormats": {
-							"day": "%Y-%m-%d",
-							"hour": "%H:%M"
-						}
-					},
-					"plotOptions": {
-						"series": {
-							"animation": "false"
-						}
-					},
-					"yAxis": [
-						{ 
-							"title": {
-								"text": "Raining"
-							} 
-						}
-					]
-				},
-				"series": {
-					"rain": {
-						"name": "Rain State",
-						"yAxis": 0,
-						"variable": "AS_ALLSKYRAINFLAGINT"                 
-					}           
-				}
-			}
-		},
 		"extradata": {
 			"database": {
 				"enabled": "True",
