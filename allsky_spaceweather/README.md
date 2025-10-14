@@ -1,6 +1,6 @@
-# AllSky Space Weather Module
+# Space Weather Module
 
-This module retrieves real-time space weather data from NOAA's Space Weather Prediction Center (SWPC) APIs and integrates it with your AllSky system. It provides data about solar wind conditions, geomagnetic activity (Kp index), and other space weather parameters useful for astronomical observation.
+This module retrieves real-time space weather data from NOAA's Space Weather Prediction Center (SWPC) APIs and integrates it with your Allsky system. It provides data about solar wind conditions, geomagnetic activity (Kp index), and other space weather parameters useful for astronomical observation.
 
 ## Features
 
@@ -88,7 +88,7 @@ This module uses the following NOAA SWPC APIs:
 ## Requirements
 
 - Python 3.x
-- AllSky system
+- Allsky system
 - Internet connection for API access
 - Required Python packages:
   - ephem
@@ -98,9 +98,9 @@ This module uses the following NOAA SWPC APIs:
 
 ## Notes
 
-- The minimum update period is set to 300 seconds to prevent overwhelming the NOAA APIs
-- Coordinate inputs are flexible and support both decimal degrees and cardinal directions
-- The module automatically handles spaces in coordinate inputs
+- The minimum update period is set to 300 seconds to prevent overwhelming the NOAA APIs.
+- Coordinate inputs are flexible and support both decimal degrees and cardinal directions.
+- The module automatically handles spaces in coordinate inputs.
 
 ## Contributing
 
@@ -112,5 +112,5 @@ Feel free to submit issues, fork the repository, and create pull requests for an
 
 ## Acknowledgments
 
-- Data provided by NOAA Space Weather Prediction Center
-- Built for the AllSky camera system (https://github.com/thomasjacquin/allsky)
+- Data provided by NOAA Space Weather Prediction Center.
+- Built for the AllSky camera system (https://github.com/AllskyTeam/allsky).
