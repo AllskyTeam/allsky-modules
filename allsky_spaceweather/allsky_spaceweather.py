@@ -20,7 +20,7 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "Space Weather",
-		"description": "Retrieves  space weather data from NOAA SWPC",
+		"description": "Retrieve space weather data from NOAA SWPC",
 		"module": "allsky_spaceweather",
 		"version": "v1.0.1",
 		"centersettings": "false",
@@ -94,7 +94,7 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 			"period": {
 				"required": "true",
 				"description": "Update Period",
-				"help": "How often to fetch new data (in seconds). 300 seconds minimum (5 minutes) to avoid overloading the API",
+				"help": "How often to fetch new data (in seconds). 300 seconds minimum (5 minutes) to avoid overloading the API.",
 				"type": {
 					"fieldtype": "spinner",
 					"min": 300,
@@ -153,36 +153,36 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 		temp_fmt = format(temp, ',').rstrip('0').rstrip('.') if temp != 'xxx' else temp
 
 		# Color determination logic
-		density_color = "#10e310"  # default green
+		density_color = self._GREEN
 		if isinstance(density, float):
 			if density > 6:
-				density_color = "#10e310"  # green
+				density_color = self._GREEN
 			elif 2 <= density <= 6:
-				density_color = "#ffec00"  # yellow
+				density_color = self._YELLOW
 			else:
-				density_color = "#f56b6b"  # red
+				density_color = self._RED
 
-		speed_color = "#10e310"  # default green
+		speed_color = self._GREEN
 		if isinstance(speed, float):
 			if speed > 550:
-				speed_color = "#f56b6b"  # red
+				speed_color = self._RED
 			elif 500 <= speed <= 550:
-				speed_color = "#ffec00"  # yellow
+				speed_color = self._YELLOW
 			else:
-				speed_color = "#10e310"  # green
+				speed_color = self._GREEN
 
 		temp_color = "#808080"  # default gray
 		if isinstance(temp, float):
 			if temp >= 500001:
-				temp_color = "#f56b6b"  # red
+				temp_color = self._RED
 			elif temp >= 300001:
-				temp_color = "#ffec00"  # yellow
+				temp_color = self._YELLOW
 			elif temp >= 100001:
-				temp_color = "#10e310"  # green
+				temp_color = self._GREEN
 			elif temp >= 50000:
-				temp_color = "#ffec00"  # yellow
+				temp_color = self._YELLOW
 			else:
-				temp_color = "#f56b6b"  # red
+				temp_color = self._RED
 
 		return {
 			"speed": {"value": speed, "color": speed_color},
@@ -202,8 +202,8 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 			
 			shouldRun, diff = allsky_shared.shouldRun(module, period)
 			if not shouldRun and not self._debugmode:
-				result = f'Last run {diff} seconds ago. Running every {period} seconds'
-				self.log(1, f'INFO: {result}')
+				result = f'Last run {diff} seconds ago. Running every {period} seconds.'
+				self.log(4, f'INFO: {result}')
 				return result
 
 			# Calculate sun angle
@@ -296,7 +296,7 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f"Module spaceweather failed on line {eTraceback.tb_lineno} - {e}"
-			self.log(0, f"ERROR: {result}")
+			self.log(0, f"ERROR in {__file}: {result}")
 
 		return result
 
