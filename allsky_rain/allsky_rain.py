@@ -2,13 +2,13 @@
 allsky_rain.py
 
 Part of allsky postprocess.py modules.
-https://github.com/thomasjacquin/allsky
+https://github.com/AllskyTeam/allsky
 
-This module will interface to a digital rain detector
+This module interfaces to a digital rain detector.
 
-Expected parameters:
-None
+Expected parameters: None
 '''
+
 import allsky_shared as allsky_shared
 from allsky_base import ALLSKYMODULEBASE
 import sys 
@@ -16,8 +16,8 @@ import sys
 class ALLSKYRAIN(ALLSKYMODULEBASE):
 
 	meta_data = {
-		"name": "Rain detection",
-		"description": "Detects rain via an external digital sensor",
+		"name": "Rain Detection",
+		"description": "Detect rain via an external digital sensor",
 		"module": "allsky_rain",
 		"centersettings": "false",
 		"testable": "true", 
@@ -124,7 +124,7 @@ class ALLSKYRAIN(ALLSKYMODULEBASE):
 			"inputpin": {
 				"required": "true",
 				"description": "Input Pin",
-				"help": "The input pin for the digital rain sensor",
+				"help": "The input pin for the digital rain sensor.",
 				"type": {
 					"fieldtype": "gpio"
 				}           
@@ -132,7 +132,7 @@ class ALLSKYRAIN(ALLSKYMODULEBASE):
 			"invertsensor" : {
 				"required": "false",
 				"description": "Invert Sensor",
-				"help": "Normally the sensor will be high for clear and low for rain. This settign will reverse this",
+				"help": "Normally the sensor will be high for clear and low for rain. This setting reverses that.",
 				"type": {
 					"fieldtype": "checkbox"
 				}               
@@ -197,25 +197,25 @@ class ALLSKYRAIN(ALLSKYMODULEBASE):
 						allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 
 						result = f'Rain State: Its {result_state}'
-						self.log(1, f'INFO: {result}')
+						self.log(4, f'INFO: {result}')
 					else:
 						result = f'Unable to read Rain sensor - Error reading gpio pin {input_pin}'
-						self.log(0, f'ERROR: {result}')
+						self.log(0, f'ERROR in {__file}: {result}')
 						allsky_shared.deleteExtraData(self.meta_data['extradatafilename'])
 
 				except Exception as ex:
 					result = f'Unable to read Rain sensor {ex}'
-					self.log(0, f'ERROR: {result}')
+					self.log(0, f'ERROR in {__file}: {result}')
 					allsky_shared.deleteExtraData(self.meta_data['extradatafilename'])
 			else:
 				result = f'Invalid GPIO pin ({input_pin})'
-				self.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR in {__file}: {result}')
 				allsky_shared.deleteExtraData(self.meta_data['extradatafilename'])
 
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()            
 			result = str(e)
-			self.log(0, f'ERROR: Module rain failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file}: Module rain failed on line {eTraceback.tb_lineno} - {e}')
 
 		return result
         
