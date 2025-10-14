@@ -2,11 +2,11 @@
 allsky_telescopemarker.py
 
 Part of allsky postprocess.py modules.
-https://github.com/thomasjacquin/allsky
+https://github.com/AllskyTeam/allsky
 
-This module will retrieve the current telescope position from ASCOM Remote Server and mark the current pointing position on the image
-
+This module retrieves the current telescope position from ASCOM Remote Server and marks the current pointing position on the image.
 '''
+
 import allsky_shared as allsky_shared
 from allsky_base import ALLSKYMODULEBASE
 import numpy as np
@@ -20,8 +20,8 @@ from socket import timeout
 class ALLSKYTELESCOPEMARKER(ALLSKYMODULEBASE):
 
 	meta_data = {
-		"name": "Telescope postion marker",
-		"description": "Obtains the current telescope postion from an ASCOM Remote Server",
+		"name": "Telescope Postion Marker",
+		"description": "Display the current telescope postion from an ASCOM Remote Server",
 		"module": "allsky_telescopemarker",
 		"version": "v1.0.1",
 		"centersettings": "false",
@@ -54,24 +54,24 @@ class ALLSKYTELESCOPEMARKER(ALLSKYMODULEBASE):
 			"telescope_marker_radius": {
 				"required": "false",
 				"description": "Telescope marker radius",
-				"help": "Size of the telescope marker in pixels, defaults to 30px"
+				"help": "Size of the telescope marker in pixels, defaults to 30px."
 			},
 			"telescope_marker_width": {
 				"required": "false",
 				"description": "Telescope marker width",
-				"help": "Size of the telescope marker in pixels, defaults to 5px"
+				"help": "Size of the telescope marker in pixels, defaults to 5px."
 			},
 			"telescope_marker_color": {
 				"required": "false",
 				"description": "Telescope marker color",
-				"help": "The colour to use for the marker",
+				"help": "The colour to use for the marker.",
 				"type": {
 					"fieldtype": "colour"
 				}          
 			},     
 			"observer_position": {
 				"description": "Telescope's position",
-				"help": "Define telescope postion, use current Allsky position if left empty",
+				"help": "Define telescope postion, use current Allsky position if left empty.",
 				"tab": "Telescope",
 				"lat": {
 					"id": "observer_lat"
@@ -89,7 +89,7 @@ class ALLSKYTELESCOPEMARKER(ALLSKYMODULEBASE):
 			"image_flip": {
 				"required": "true",
 				"description": "Flip x,y coordinates",
-				"help": "Flip coordinates to match sensor/lens output and AllSky settings",
+				"help": "Flip coordinates to match sensor/lens output and AllSky settings.",
 				"tab": "Allsky",                     
 				"type": {
 					"fieldtype": "select",
@@ -101,19 +101,19 @@ class ALLSKYTELESCOPEMARKER(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Allsky's sensor azimuth orentiation",
 				"tab": "Allsky",                     
-				"help": "Define allsky sensor azimuth, use 0° (top is pointing north in circular fisheye image) if left empty"
+				"help": "Define allsky sensor azimuth, use 0Â° (top is pointing north in circular fisheye image) if left empty."
 			},
 			"margin": {
 				"required": "false",
 				"description": "Allsky's image border",
 				"tab": "Allsky",                     
-				"help": "Margin from squared image to horizon fisheye lense in pixels, defaults to 0 px"
+				"help": "Margin from squared image to horizon fisheye lense in pixels, defaults to 0px."
 			},
 			"telescope_alt": {
 				"required": "true",
 				"tab": "Ascom",          
 				"description": "Telescope server altitude API url",
-				"help": "API query URL of the ASCOM Remote Server for the telescope altitude (https://ascom-standards.org/api/#/Telescope%20Specific%20Methods)",
+				"help": "API query URL of the ASCOM Remote Server for the telescope altitude (https://ascom-standards.org/api/#/Telescope%20Specific%20Methods).",
 				"type": {
 					"fieldtype": "url"
 				}          
@@ -122,7 +122,7 @@ class ALLSKYTELESCOPEMARKER(ALLSKYMODULEBASE):
 				"required": "true",
 				"tab": "Ascom",          
 				"description": "Telescope server altitude API url",
-				"help": "API query URL of the ASCOM Remote Server for the telescope azimuth (https://ascom-standards.org/api/#/Telescope%20Specific%20Methods)",
+				"help": "API query URL of the ASCOM Remote Server for the telescope azimuth (https://ascom-standards.org/api/#/Telescope%20Specific%20Methods).",
 				"type": {
 					"fieldtype": "url"
 				}         
@@ -131,7 +131,7 @@ class ALLSKYTELESCOPEMARKER(ALLSKYMODULEBASE):
 				"required": "false",
 				"tab": "Ascom",          
 				"description": "Telescope fallback position",
-				"help": "Default telescope position if ASCOM Remote Server query fails. Defaults to [(0.0,0.0)]"
+				"help": "Default telescope position if ASCOM Remote Server query fails. Defaults to [(0.0,0.0)]."
 			}             
 		},
 		"changelog": {
@@ -262,13 +262,11 @@ class ALLSKYTELESCOPEMARKER(ALLSKYMODULEBASE):
 			y = allsky_shared.image.shape[0] - y
 
 		# Draw a red circle to mark the position
-		print(f'x = {x}')
-		print(f'y = {y}')
-		print(f'xc = {x - int(telescope_marker_radius/2)}')
-		print(f'yc = {y - int(telescope_marker_radius/2)}')
-		print(f'marker rad = {telescope_marker_radius}')
-		print(f'marker col = {telescope_marker_color}')
-		print(f'marker wid = {telescope_marker_width}')
+		self.log(4, f'x = {x}, y = {y}')
+		self.log(4, f'xc = {x - int(telescope_marker_radius/2)}, yc = {y - int(telescope_marker_radius/2)}')
+		self.log(4, f'marker rad = {telescope_marker_radius}')
+		self.log(4, f'marker col = {telescope_marker_color}')
+		self.log(4, f'marker wid = {telescope_marker_width}')
 		allsky_shared.image = cv2.circle(allsky_shared.image, (x - int(telescope_marker_radius/2), y - int(telescope_marker_radius/2)), telescope_marker_radius, telescope_marker_color, telescope_marker_width)
 		#allsky_shared.image = cv2.circle(allsky_shared.image, (500, 500), 100, (255,0,0), 5)
 		
