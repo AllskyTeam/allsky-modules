@@ -19,7 +19,7 @@ trying to calaculate sky quality or star counts if it's raining.
 
 The following variables are set by this module and can be used in modules:
 
-|  Variable set | Description  |
+|  Variable  | Description  |
 | ----------------------- | ------------ |
 | AS_RAINSTATE | Either "Raining" or "Not Raining".  |
 | AS_ALLSKYRAINFLAG  | Either True if it's raining, or False if it's not. |
