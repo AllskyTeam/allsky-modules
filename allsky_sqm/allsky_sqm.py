@@ -2,16 +2,11 @@
 allsky_sqm.py
 
 Part of allsky postprocess.py modules.
-https://github.com/thomasjacquin/allsky
+https://github.com/AllskyTeam/allsky
 
 Portions of this code are from indi-allsky https://github.com/aaronwmorris/indi-allsky
-
-Changelog:
-v1.0.1 by Damian Grocholski (Mr-Groch)
-- Use of weightedSqmAvg inspired by indi-allsky (https://github.com/aaronwmorris/indi-allsky)
-- Added example default formula
-
 '''
+
 import allsky_shared as allsky_shared
 from allsky_base import ALLSKYMODULEBASE
 import cv2
@@ -22,7 +17,7 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 
 	meta_data = {
 		"name": "Sky Quality",
-		"description": "Estimates sky quality from captured images",
+		"description": "Estimate sky quality from captured images",
 		"module": "allsky_sqm",
 		"version": "v1.0.1",
 		"events": [
@@ -57,7 +52,7 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 			"mask" : {
 				"required": "false",
 				"description": "Mask Path",
-				"help": "The name of the image mask. This mask is applied prior to calculating the sky quality",
+				"help": "The name of the image mask. This mask is applied prior to calculating the sky quality.",
 				"type": {
 					"fieldtype": "image"
 				}
@@ -65,7 +60,7 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 			"roi": {
 				"required": "false",
 				"description": "Region of Interest",
-				"help": "The area of the image to check for sky quality. Format is x1,y1,x2,y2",
+				"help": "The area of the image to check for sky quality. Format is x1,y1,x2,y2.",
 				"type": {
 					"fieldtype": "roi"
 				}
@@ -73,7 +68,7 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 			"roifallback" : {
 				"required": "false",
 				"description": "Fallback %",
-				"help": "If no ROI is set then this % of the image, from the center will be used",
+				"help": "If no ROI is set then this % of the image, from the center will be used.",
 				"type": {
 					"fieldtype": "spinner",
 					"min": 1,
@@ -84,12 +79,12 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 			"formula": {
 				"required": "false",
 				"description": "Adjustment Forumla",
-				"help": "Formula to adjust the read mean value, default can be a good starting point. This forumla can use only Pythons inbuilt maths functions and basic mathematical operators. Please see the documentation for more details of the formula variables available"
+				"help": "Formula to adjust the read mean value, default can be a good starting point. This forumla can use only Pythons inbuilt maths functions and basic mathematical operators. Please see the documentation for more details of the formula variables available."
 			},
 			"debug" : {
 				"required": "false",
 				"description": "Enable debug mode",
-				"help": "If selected each stage of the detection will generate images in the allsky tmp debug folder",
+				"help": "If selected each stage of the detection will generate images in the allsky tmp debug folder.",
 				"tab": "Debug",
 				"type": {
 					"fieldtype": "checkbox"
@@ -98,7 +93,7 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 			"debugimage" : {
 				"required": "false",
 				"description": "Debug Image",
-				"help": "Image to use for debugging. DO NOT set this unless you know what you are doing",
+				"help": "Image to use for debugging. DO NOT set this unless you know what you are doing.",
 				"tab": "Debug"
 			}
 		},
@@ -165,9 +160,9 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 			image = cv2.imread(debug_image)
 			if image is None:
 				image = allsky_shared.image
-				self.log(0, f'WARNING: Debug image set to {debug_image} but cannot be found, using latest allsky image')
+				self.log(1, f'WARNING: Debug image set to {debug_image} but cannot be found, using latest allsky image')
 			else:
-				self.log(0, f'WARNING: Using debug image {debug_image}')
+				self.log(1, f'WARNING: Using debug image {debug_image}')
 		else:
 			image = allsky_shared.image
 
@@ -189,7 +184,7 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 				if debug:
 					allsky_shared.write_debug_image(self.meta_data['module'], 'masked-image.png', gray_image)
 			else:
-				self.log(0, 'ERROR: Source image and mask dimensions do not match')
+				self.log(0, 'ERROR in {__file}: Source image and mask dimensions do not match')
 
 		image_height, image_width = gray_image.shape[:2]
 		try:
@@ -200,9 +195,9 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 			y2 = int(roi_list[3])
 		except:
 			if len(roi) > 0:
-				self.log(0, f'ERROR: SQM ROI is invalid, falling back to {roi_fallback}% of image')
+				self.log(0, f'ERROR in {__file}: SQM ROI is invalid, falling back to {roi_fallback}% of image')
 			else:
-				self.log(1, f'INFO: SQM ROI not set, falling back to {roi_fallback}% of image')
+				self.log(4, f'INFO: SQM ROI not set, falling back to {roi_fallback}% of image')
 			fallback_adj = (100 / roi_fallback)
 			x1 = int((image_width / 2) - (image_width / fallback_adj))
 			y1 = int((image_height / 2) - (image_height / fallback_adj))
@@ -224,19 +219,19 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 
 		result = f'Final SQM Mean calculated as {sqm_avg}, weighted {weighted_sqm_avg}'
 		if formula != '':
-			self.log(1, f'INFO: SQM Mean calculated as {sqm_avg}, weighted {weighted_sqm_avg}')
+			self.log(4, f'INFO: SQM Mean calculated as {sqm_avg}, weighted {weighted_sqm_avg}')
 			try:
 				sqm = float(self._evaluate(formula, sqm_avg, weighted_sqm_avg))
 				result = f'Final SQM calculated as {sqm}'
-				self.log(1, f'INFO: Ran Formula: {formula}')
-				self.log(1, f'INFO: {result}')
+				self.log(4, f'INFO: Ran Formula: {formula}')
+				self.log(4, f'INFO: {result}')
 			except Exception as e:
 				result = "Error " + str(e)
 				sqm = weighted_sqm_avg
-				self.log(0, f'ERROR: {result}')
+				self.log(0, f'ERROR in {__file}: {result}')
 		else:
 			sqm = weighted_sqm_avg
-			self.log(1, f'INFO: {result}')
+			self.log(4, f'INFO: {result}')
 
 		extra_data['AS_SQM'] = sqm
 		allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
