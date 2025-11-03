@@ -22,7 +22,7 @@ metaData = {
                 "authorurl": "https://github.com/AllskyTeam/allsky",
                 "changes": "Change to work with v2025.xx.xx"
             }
-        ]
+        ],
         "v1.0.0": [
             {
                 "author": "Muchen Han",
