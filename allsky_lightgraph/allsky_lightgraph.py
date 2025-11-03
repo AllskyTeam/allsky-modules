@@ -236,7 +236,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			"elev_width": {
 				"required": "true",
 				"description": "Width",
-				"help": "Total with for the graph".,
+				"help": "Total with for the graph",
 				"tab": "Elevation",
 				"type": {
 					"fieldtype": "spinner",

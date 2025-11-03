@@ -528,7 +528,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			"invertrelay" : {
 				"required": "false",
 				"description": "Invert Relay",
-				"help": "Select this option if the relay is wired to activate on the GPIO pin going Low".,
+				"help": "Select this option if the relay is wired to activate on the GPIO pin going Low",
 				"tab": "Heater",
 				"type": {
 					"fieldtype": "checkbox"

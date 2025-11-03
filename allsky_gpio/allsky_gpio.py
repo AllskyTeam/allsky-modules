@@ -79,7 +79,7 @@ class ALLSKYGPIO(ALLSKYMODULEBASE):
 			gpio_pin = self.get_param('gpio', 0, int)
 			gpio_state = self.get_param('state', False, bool)
 
-			if gpio_pin is not 0:
+			if gpio_pin != 0:
 				result = allsky_shared.set_gpio_pin(gpio_pin, gpio_state)
 				if result:
 					extra_data = {}
