@@ -1507,7 +1507,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				allsky_shared.set_last_run('allskydew')
 
 			else:
-				self.log(4, f'INFO: Will run in {format(frequency - diff)} seconds'
+				self.log(4, f'INFO: Will run in {format(frequency - diff)} seconds')
 		else:
 			if heater_pin != 0:
 				heater_pin = allsky_shared.get_gpio_pin(heater_pin)
