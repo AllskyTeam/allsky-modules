@@ -6,7 +6,7 @@ import time
 import sys
 import ephem
 import requests
-import locale
+import math
 
 from math import radians
 from math import degrees
@@ -59,7 +59,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 					"format": "{dp=2|deg}",
 					"type": "azimuth",
 					"description": "The Moons azimuth",
-          			"dbtype": "float",     
+          "dbtype": "float",     
 					"database": {
 						"include" : "true"
 					}     
@@ -69,7 +69,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 					"format": "{dp=2|deg}",     
 					"type": "elevation",
 					"description": "The Moons elevation",
-          			"dbtype": "float",     
+          "dbtype": "float",     
 					"database": {
 						"include" : "true"
 					}     
@@ -550,6 +550,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				az_temp = str(moon.az).split(":")
 				#moon_azimuth = az_temp[0]
 				#moon_elevation = round(degrees(moon.alt),2)
+
 				moon_azimuth = moon.az
 				moon_elevation = moon.alt
 				moon_illumination = round(moon.phase, 2)
@@ -570,8 +571,8 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				moon_next_full_timestamp = self._convert_ephem_date(next_full_moon)
 				moon_next_new_timestamp = self._convert_ephem_date(next_new_moon)
 
-				self._extra_data['AS_MOON_AZIMUTH'] = moon_azimuth
-				self._extra_data['AS_MOON_ELEVATION'] = moon_elevation
+				self._extra_data['AS_MOON_AZIMUTH'] = math.degrees(moon_azimuth)
+				self._extra_data['AS_MOON_ELEVATION'] = math.degrees(moon_elevation)
 				self._extra_data['AS_MOON_ILLUMINATION'] = moon_illumination
 				self._extra_data['AS_MOON_SYMBOL'] = moon_phase_symbol
 
