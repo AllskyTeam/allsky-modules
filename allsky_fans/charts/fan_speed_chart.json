@@ -4,6 +4,7 @@
     "title": "Fan PWM Speed",
     "type": "line",
     "table": "allsky_fans",
+    "main": true,
     "yAxis": [
         {
             "title": {
