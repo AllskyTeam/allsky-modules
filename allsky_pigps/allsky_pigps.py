@@ -357,11 +357,11 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 							
 							if time.time() > timeout:
 								result = 'No date returned from gpsd'
-								self.log(0, f'ERROR in {__file}: {result}')
+								self.log(0, f'ERROR in {__file__}: {result}')
 								break
 					except Exception as err:
 						result = f'No GPS found. Please check gpsd is configured and running - {err}'
-						self.log(0, f'ERROR in {__file}: {result}')
+						self.log(0, f'ERROR in {__file__}: {result}')
 				else:
 					result = "Time is synchronised from the internet - Ignoring any gps data"
 					self.log(4, f'INFO: {result}')
