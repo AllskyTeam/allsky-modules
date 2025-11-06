@@ -309,11 +309,11 @@ class ALLSKYPMSX003(ALLSKYMODULEBASE):
 			self.log(4, f'INFO: {result}')
 		except PmsSensorException:
 			result = 'Cannot connect to the sensor'
-			self.log(0, f'ERROR in {__file__: {result}')
+			self.log(0, f'ERROR in {__file__}: {result}')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f'Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}'
-			self.log(0, f'ERROR in {__file__: {result}')      
+			self.log(0, f'ERROR in {__file__}: {result}')      
 
 		return result
 

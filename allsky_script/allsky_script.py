@@ -88,13 +88,13 @@ class ALLSKYSCRIPT(ALLSKYMODULEBASE):
 					self.log(4, f"INFO: Script result Exit Code - {script_result.returncode} Output - {script_result.stdout}")
 				else:
 					result = f"Script {script} Is NOT Executeable."
-					self.log(0, f"ERROR in {__file__: {result}")
+					self.log(0, f"ERROR in {__file__}: {result}")
 			else:
 				result = f"Script {script} Not Found."
-				self.log(0, f"ERROR in {__file__: {result}")
+				self.log(0, f"ERROR in {__file__}: {result}")
 		else:
 			result = f"Script cannot be empty."
-			self.log(0, f"ERROR in {__file__: {result}")
+			self.log(0, f"ERROR in {__file__}: {result}")
 		
 		return result
 

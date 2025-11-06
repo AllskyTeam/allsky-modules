@@ -155,22 +155,22 @@ class ALLSKYRAIN(ALLSKYMODULEBASE):
 						self.log(4, f'INFO: {result}')
 					else:
 						result = f'Unable to read Rain sensor - Error reading gpio pin {input_pin}'
-						self.log(0, f'ERROR in {__file__: {result}')
+						self.log(0, f'ERROR in {__file__}: {result}')
 						allsky_shared.deleteExtraData(self.meta_data['extradatafilename'])
 
 				except Exception as ex:
 					result = f'Unable to read Rain sensor {ex}'
-					self.log(0, f'ERROR in {__file__: {result}')
+					self.log(0, f'ERROR in {__file__}: {result}')
 					allsky_shared.deleteExtraData(self.meta_data['extradatafilename'])
 			else:
 				result = f'Invalid GPIO pin ({input_pin})'
-				self.log(0, f'ERROR in {__file__: {result}')
+				self.log(0, f'ERROR in {__file__}: {result}')
 				allsky_shared.deleteExtraData(self.meta_data['extradatafilename'])
 
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()            
 			result = str(e)
-			self.log(0, f'ERROR in {__file__: Module rain failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file__}: Module rain failed on line {eTraceback.tb_lineno} - {e}')
 
 		return result
         
