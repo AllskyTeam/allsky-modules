@@ -130,9 +130,9 @@ class ALLSKYLOCALAI(ALLSKYMODULEBASE):
                 elapsed_time = end_time - start_time
                 s.log(4, f'INFO: Prediction took {elapsed_time:.2f} seconds')
             else:
-                s.log(0, f'ERROR in {__file}: the Keras label file {label_path} does not exist or is not readable')
+                s.log(0, f'ERROR in {__file__}: the Keras label file {label_path} does not exist or is not readable')
         else:
-            s.log(0, f'ERROR in {__file}: the Keras module file {model_path} does not exist or is not readable')
+            s.log(0, f'ERROR in {__file__}: the Keras module file {model_path} does not exist or is not readable')
             
         return sky_state, confidence_score
         

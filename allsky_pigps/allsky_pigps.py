@@ -421,7 +421,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 
 					if time.time() > timeout:
 						result = 'No position returned from gpsd'
-						self.log(0, f'ERROR in {__file}: {result}')
+						self.log(0, f'ERROR in {__file__}: {result}')
 						break
 			
 				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
@@ -429,7 +429,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				result = f'ERROR in {__file}: Module pigps failed on line {eTraceback.tb_lineno} - {e}'
+				result = f'ERROR in {__file__}: Module pigps failed on line {eTraceback.tb_lineno} - {e}'
 				self.log(0, result)
 		else:
 			result = f'Will run in {(period - diff):.0f} seconds'

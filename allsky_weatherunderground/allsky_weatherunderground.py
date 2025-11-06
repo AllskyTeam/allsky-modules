@@ -288,14 +288,14 @@ class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
 							self.log(4, f'INFO: {result}')
 						except Exception as e:
 							eType, eObject, eTraceback = sys.exc_info()
-							result = f'ERROR in {__file}: Failed to download weather underground data {eTraceback.tb_lineno} - {e}'
+							result = f'ERROR in {__file__: Failed to download weather underground data {eTraceback.tb_lineno} - {e}'
 							self.log(0, result)
 					else:
 						result = 'Missing WeatherUnderground Station ID'
-						self.log(0, f'ERROR in {__file}: {result}')
+						self.log(0, f'ERROR in {__file__: {result}')
 				else:
 					result = 'Missing WeatherUnderground API key'
-					self.log(0, f'ERROR in {__file}: {result}')
+					self.log(0, f'ERROR in {__file__: {result}')
 				allsky_shared.setLastRun(module)
 			else:
 				result = f'Last run {diff} seconds ago. Running every {period} seconds'
@@ -303,7 +303,7 @@ class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f'Module weatherunderground failed on line {eTraceback.tb_lineno} - {e}'
-			self.log(0, f'ERROR in {__file}: {result}')
+			self.log(0, f'ERROR in {__file__: {result}')
 			
 		return result
 

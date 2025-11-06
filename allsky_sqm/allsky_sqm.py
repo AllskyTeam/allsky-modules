@@ -184,7 +184,7 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 				if debug:
 					allsky_shared.write_debug_image(self.meta_data['module'], 'masked-image.png', gray_image)
 			else:
-				self.log(0, 'ERROR in {__file}: Source image and mask dimensions do not match')
+				self.log(0, 'ERROR in {__file__: Source image and mask dimensions do not match')
 
 		image_height, image_width = gray_image.shape[:2]
 		try:
@@ -195,7 +195,7 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 			y2 = int(roi_list[3])
 		except:
 			if len(roi) > 0:
-				self.log(0, f'ERROR in {__file}: SQM ROI is invalid, falling back to {roi_fallback}% of image')
+				self.log(0, f'ERROR in {__file__: SQM ROI is invalid, falling back to {roi_fallback}% of image')
 			else:
 				self.log(4, f'INFO: SQM ROI not set, falling back to {roi_fallback}% of image')
 			fallback_adj = (100 / roi_fallback)
@@ -228,7 +228,7 @@ class ALLSKYSQM(ALLSKYMODULEBASE):
 			except Exception as e:
 				result = "Error " + str(e)
 				sqm = weighted_sqm_avg
-				self.log(0, f'ERROR in {__file}: {result}')
+				self.log(0, f'ERROR in {__file__: {result}')
 		else:
 			sqm = weighted_sqm_avg
 			self.log(4, f'INFO: {result}')

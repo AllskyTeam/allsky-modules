@@ -110,7 +110,7 @@ try:
                 f.write(remote_ver)
 
 except Exception as e:
-    allsky_shared.log(0, f"ERROR  in {__file}: [NCNN] model setup/update failed: {e}")
+    allsky_shared.log(0, f"ERROR  in {__file__: [NCNN] model setup/update failed: {e}")
 
 # ---------------- Preload NCNN model at import ----------------
 _preloaded_net = None
@@ -123,10 +123,10 @@ try:
     if r1 == 0 and r2 == 0:
         _preloaded_net = net
     else:
-        allsky_shared.log(0, f"ERROR in {__file}: [NCNN] preload failed: param_ret={r1}, model_ret={r2}, param={NCNN_PARAM}, bin={NCNN_BIN}")
+        allsky_shared.log(0, f"ERROR in {__file__: [NCNN] preload failed: param_ret={r1}, model_ret={r2}, param={NCNN_PARAM}, bin={NCNN_BIN}")
         _preloaded_net = None
 except Exception as e:
-    allsky_shared.log(0, f"ERROR in {__file}: [NCNN] preload exception: {e}")
+    allsky_shared.log(0, f"ERROR in {__file__: [NCNN] preload exception: {e}")
     _preloaded_net = None
 
 
@@ -146,7 +146,7 @@ def raindetector(params, event):
         r1 = _net.load_param(NCNN_PARAM)
         r2 = _net.load_model(NCNN_BIN)
         if r1 != 0 or r2 != 0:
-            allsky_shared.log(0, f"ERROR in {__file} [NCNN] on-demand load failed: param_ret={r1}, model_ret={r2}, param={NCNN_PARAM}, bin={NCNN_BIN}")
+            allsky_shared.log(0, f"ERROR in {__file__ [NCNN] on-demand load failed: param_ret={r1}, model_ret={r2}, param={NCNN_PARAM}, bin={NCNN_BIN}")
             return
 
     # ---- Original constants ----
@@ -160,7 +160,7 @@ def raindetector(params, event):
     image_path = allsky_shared.CURRENTIMAGEPATH
     allsky_shared.log(4, "CURRENT_IMAGE =", image_path)
     if not image_path or not os.path.isfile(image_path):
-        allsky_shared.log(4, f"ERROR: in {__file} CURRENT_IMAGE not found.")
+        allsky_shared.log(4, f"ERROR: in {__file__ CURRENT_IMAGE not found.")
         return
 
     now = datetime.now()
@@ -223,13 +223,13 @@ def raindetector(params, event):
         )
         mat_in.substract_mean_normalize([0.0, 0.0, 0.0], [1/255., 1/255., 1/255.])
         if ex.input("in0", mat_in) != 0:
-            allsky_shared.log(0, f"ERROR in {__file}: [NCNN] ex.input failed")
+            allsky_shared.log(0, f"ERROR in {__file__: [NCNN] ex.input failed")
             return
 
         out = ncnn.Mat()
         ret = ex.extract("out0", out)
         if ret != 0:
-            allsky_shared.log(0, f"ERROR in {__file}: [NCNN] ex.extract failed ret={ret}")
+            allsky_shared.log(0, f"ERROR in {__file__: [NCNN] ex.extract failed ret={ret}")
             return
 
         # Parse output: assume (5, N) or (N, 5) as [x, y, w, h, conf] for a single class

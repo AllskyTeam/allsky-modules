@@ -412,7 +412,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f'_ina219 failed on line {eTraceback.tb_lineno} - {e}'
-			self.log(0, f'ERROR in {__file}: {result}')
+			self.log(0, f'ERROR in {__file__: {result}')
 		
 		return result, extra_data
 
@@ -473,7 +473,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f'_ina3221 failed on line {eTraceback.tb_lineno} - {e}'
-			self.log(0, f'ERROR in {__file}: {result}')
+			self.log(0, f'ERROR in {__file__: {result}')
 		
 		return result, extra_data
 

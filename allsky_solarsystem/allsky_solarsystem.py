@@ -501,7 +501,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				self.log(4, 'INFO: Downloading ephemeris data')
 			self._eph = skyfield_loader('de421.bsp')
 		except Exception as err:
-			self.log(0, f'ERROR in {__file}: Unable to download de421.bsp: {err}')
+			self.log(0, f'ERROR in {__file__: Unable to download de421.bsp: {err}')
 			self._enable_skyfield = False
 		self._observer_lat = allsky_shared.getSetting('latitude')
 		self._observer_lon = allsky_shared.getSetting('longitude')		
@@ -593,11 +593,11 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 
 				self.log(4, 'INFO: Moon data calculated')
 			else:
-				self.log(0, 'ERROR in {__file}: Moon enabled but cannot use due to prior error initialising skyfield.')
+				self.log(0, 'ERROR in {__file__: Moon enabled but cannot use due to prior error initialising skyfield.')
 
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f'ERROR in {__file}: _calculateMoon failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file__: _calculateMoon failed on line {eTraceback.tb_lineno} - {e}')
 		return True 
 
 	def _getSunTimes(self, location, date):
@@ -610,7 +610,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			sunData['elevation'] = el
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f'ERROR in {__file}: _getSunTimes failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file__: _getSunTimes failed on line {eTraceback.tb_lineno} - {e}')
 		return sunData
 
 	def _getTimeZone(self):
@@ -674,7 +674,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			self.log(4, 'INFO: Sun data calculated')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f'ERROR in {__file}: _calculateSun failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file__: _calculateSun failed on line {eTraceback.tb_lineno} - {e}')
 
 		return True
 
@@ -704,7 +704,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				self._extra_data[f'AS_{planet_key}_VISIBLE'] = 'No'
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f"ERROR in {__file}: _set_planet_data failed on line {eTraceback.tb_lineno} - {e}")
+			self.log(0, f"ERROR in {__file__: _set_planet_data failed on line {eTraceback.tb_lineno} - {e}")
    
 	def _calculate_planets(self):
 		try:
@@ -740,7 +740,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			self.log(4, 'INFO: Planet data calculated')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f"ERROR in {__file}: _calculate_planets failed on line {eTraceback.tb_lineno} - {e}")
+			self.log(0, f"ERROR in {__file__: _calculate_planets failed on line {eTraceback.tb_lineno} - {e}")
    
 	def _fetch_tle_from_celestrak(self, data_key, verify=True):
 		tle_data = {}
@@ -818,7 +818,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				self.log(4, ' TLE loaded from cache')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f"ERROR in {__file}: _fetch_tle_from_celestrak failed on line {eTraceback.tb_lineno} - {e}")
+			self.log(0, f"ERROR in {__file__: _fetch_tle_from_celestrak failed on line {eTraceback.tb_lineno} - {e}")
 		return tle_data
 
 	def _calcSatellites(self):
@@ -842,7 +842,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 					counter = counter + 1
 		except Exception as e:     
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f"ERROR in {__file}: _calcSatellites failed on line {eTraceback.tb_lineno} - {e}")    
+			self.log(0, f"ERROR in {__file__: _calcSatellites failed on line {eTraceback.tb_lineno} - {e}")    
 
 	def _calculate_satellite(self, tle):
 		try:
@@ -891,7 +891,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f"ERROR in {__file}: _calculate_satellite failed on line {eTraceback.tb_lineno} - {e}")
+			self.log(0, f"ERROR in {__file__: _calculate_satellite failed on line {eTraceback.tb_lineno} - {e}")
    
 		return True
 
@@ -938,7 +938,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			}
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f"ERROR in {__file}: _add_satellite_to_extra_data failed on line {eTraceback.tb_lineno} - {e}")    
+			self.log(0, f"ERROR in {__file__: _add_satellite_to_extra_data failed on line {eTraceback.tb_lineno} - {e}")    
   
 	def run(self):
 		# check Skyfield initilaised ok

@@ -186,7 +186,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except Exception as e:
 				result = 'Address {i2c_address} is not a valid i2c address'
-				self.log(0, "ERROR in {__file}: {}".format(result))
+				self.log(0, "ERROR in {__file__}: {}".format(result))
     
 		if i2c_address != "":    
 			lightning = sparkfun_qwiicas3935.Sparkfun_QwiicAS3935_I2C(i2c, i2c_address_int)
@@ -268,7 +268,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
        
 		else:
 			result = 'Lightning Detector does not appear to be connected. Please check wiring.'
-			self.log(0, 'ERROR in {__file}: {result}')
+			self.log(0, 'ERROR in {__file__}: {result}')
    							
 def lightning(params, event):
 	allsky_lightning = ALLSKYLIGHTNING(params, event)

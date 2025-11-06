@@ -136,7 +136,7 @@ class ALLSKYMQTTSUBSCRIBE(ALLSKYMODULEBASE):
 						self.log(4, f'INFO: Connected to MQTT server {mqtt_server}:{mqtt_port}')
 						client.subscribe(mqtt_topic)
 					else:
-						self.log(0, f'ERROR in {__file}: Connection to MQTT server failed with code {rc}')
+						self.log(0, f'ERROR in {__file__}: Connection to MQTT server failed with code {rc}')
 
 				# MQTT client callbacks for message
 				def on_message(client, userdata, msg):
@@ -148,7 +148,7 @@ class ALLSKYMQTTSUBSCRIBE(ALLSKYMODULEBASE):
 						json_data = json.loads(payload)
 						extra_data = json_data
 					except json.JSONDecodeError as e:
-						self.log(0, f'ERROR in {__file}: Failed to decode JSON message: {e}')
+						self.log(0, f'ERROR in {__file__}: Failed to decode JSON message: {e}')
 						result = "Invalid JSON"
 
 				# Create MQTT client and connect to the server
@@ -181,7 +181,7 @@ class ALLSKYMQTTSUBSCRIBE(ALLSKYMODULEBASE):
 
 			# Handle exceptions
 			except Exception as e:
-				self.log(0, f'ERROR in {__file}: Failed to connect to MQTT server: {e}')
+				self.log(0, f'ERROR in {__file__}: Failed to connect to MQTT server: {e}')
 				result = "Failed to connect to MQTT server"
 
 		# Return the result if the module should not run yet    

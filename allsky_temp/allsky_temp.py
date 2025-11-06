@@ -2556,31 +2556,31 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 										self.log(4, f'INFO: {result}')
 									else:
 										result = f'Got error from Open Weather Map API. Response code {response.status_code}'
-										self.log(0, f'ERROR in {__file}: {result}')
+										self.log(0, f'ERROR in {__file__}: {result}')
 								except Exception as e:
 									eType, eObject, eTraceback = sys.exc_info()            
 									result = str(e)
-									self.log(0, f'ERROR in {__file}: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}')
+									self.log(0, f'ERROR in {__file__}: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}')
 								allsky_shared.setLastRun(module)                            
 							else:
 								result = 'Invalid Longitude. Check the Allsky configuration'
-								self.log(0, f'ERROR in {__file}: {result}')
+								self.log(0, f'ERROR in {__file__}: {result}')
 						else:
 							result = 'Invalid Latitude. Check the Allsky configuration'
-							self.log(0, f'ERROR in {__file}: {result}')
+							self.log(0, f'ERROR in {__file__}: {result}')
 					else:
 						result = 'Missing filename for data'
-						self.log(0, f'ERROR in {__file}: {result}')
+						self.log(0, f'ERROR in {__file__}: {result}')
 				else:
 					result = 'Missing Open Weather Map API key'
-					self.log(0, f'ERROR in {__file}: {result}')
+					self.log(0, f'ERROR in {__file__}: {result}')
 			else:
 				self.log(4, f'INFO: Using Cached Openweather API data')
 
 			temperature, humidity, pressure, the_dew_point = self._get_ow_values(file_name)                
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f'ERROR in {__file}: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file__}: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}')
 
 		return temperature, humidity, pressure, the_dew_point	
 
@@ -2600,11 +2600,11 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				# pylint: disable=broad-exception-caught
 				except Exception as ex:
 					_, _, trace_back = sys.exc_info()
-					self.log(0, f'ERROR in {__file}: Module readDS18B20 failed on line {trace_back.tb_lineno} - {ex}')
+					self.log(0, f'ERROR in {__file__}: Module readDS18B20 failed on line {trace_back.tb_lineno} - {ex}')
 			else:
-				self.log(0, f'ERROR in {__file}: (readDS18B20) - "{ds18b20_address}" is not a valid DS18B20 address. Please check /sys/bus/w1/devices')
+				self.log(0, f'ERROR in {__file__}: (readDS18B20) - "{ds18b20_address}" is not a valid DS18B20 address. Please check /sys/bus/w1/devices')
 		else:
-			self.log(0, 'ERROR in {__file}: (readDS18B20) - One Wire is not enabled. Please use the raspi-config utility to enable it')
+			self.log(0, 'ERROR in {__file__}: (readDS18B20) - One Wire is not enabled. Please use the raspi-config utility to enable it')
 
 		return temperature, humidity
 
@@ -2618,7 +2618,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except:
 				result = f'Address {i2c_address} is not a valid i2c address'
-				self.log(0, f'ERROR in {__file}: {result}')
+				self.log(0, f'ERROR in {__file__}: {result}')
 
 		try:
 			i2c = board.I2C()
@@ -2631,7 +2631,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			humidity = htu21.relative_humidity
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f'ERROR in {__file}: Module read_htu21 failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file__}: Module read_htu21 failed on line {eTraceback.tb_lineno} - {e}')
 			
 		return temperature, humidity
 
@@ -2645,7 +2645,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except:
 				result = f'Address {i2c_address} is not a valid i2c address'
-				self.log(0, f'ERROR in {__file}: {result}')
+				self.log(0, f'ERROR in {__file__}: {result}')
 
 		try:
 			i2c = board.I2C()
@@ -2657,7 +2657,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			humidity = sensor.relative_humidity
 		except ValueError as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f"ERROR in {__file}: Module read_ahtx0 failed on line {eTraceback.tb_lineno} - {e}")
+			self.log(0, f"ERROR in {__file__}: Module read_ahtx0 failed on line {eTraceback.tb_lineno} - {e}")
 
 		return temperature, humidity
 
@@ -2673,7 +2673,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				humidity = dhtDevice.humidity
 			except RuntimeError as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				self.log(0, f'ERROR in {__file}: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(0, f'ERROR in {__file__}: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			self.log(3, f'WARNING: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
@@ -2717,7 +2717,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					i2c_address_int = int(i2c_address, 16)
 				except Exception as e:
 					eType, eObject, eTraceback = sys.exc_info()
-					self.log(0, f'ERROR in {__file}: Module read_bme680 failed on line {eTraceback.tb_lineno} - {e}')
+					self.log(0, f'ERROR in {__file__}: Module read_bme680 failed on line {eTraceback.tb_lineno} - {e}')
 
 			if i2c_address != "":
 				sensor = bme680.BME680(i2c_address_int)
@@ -2735,7 +2735,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				pressure = sensor.data.pressure
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f'ERROR in {__file}: Module read_bme680 failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file__}: Module read_bme680 failed on line {eTraceback.tb_lineno} - {e}')
     
 		return temperature, humidity, pressure
 
@@ -2752,7 +2752,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				self.log(0, f'ERROR in {__file}: Module read_bme280_i2c failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(0, f'ERROR in {__file__}: Module read_bme280_i2c failed on line {eTraceback.tb_lineno} - {e}')
 
 		try:
 			i2c = board.I2C()
@@ -2768,7 +2768,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			pressure = bme280.pressure
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f'ERROR in {__file}: Module read_bme280_i2c failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file__}: Module read_bme280_i2c failed on line {eTraceback.tb_lineno} - {e}')
 
 		return temperature, humidity, pressure, altitude
 
@@ -2784,7 +2784,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except Exception as e:
 				result = f'Address {i2c_address} is not a valid i2c address'
-				self.log(0, f'ERROR in {__file}: {result}')
+				self.log(0, f'ERROR in {__file__}: {result}')
 					
 		try:
 			i2c = board.I2C()
@@ -2797,7 +2797,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			humidity = sensor.relative_humidity
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f'ERROR in {__file}: Module read_sht31 failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file__}: Module read_sht31 failed on line {eTraceback.tb_lineno} - {e}')
 			return temperature, humidity
 
 		return temperature, humidity
@@ -2820,7 +2820,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except Exception as e:
 				result = f'Address {i2c_address} is not a valid i2c address'
-				self.log(0, f'ERROR in {__file}: {result}')
+				self.log(0, f'ERROR in {__file__}: {result}')
 					
 		try:
 			i2c = board.I2C()
@@ -2833,7 +2833,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			temperature, humidity = sensor.measurements
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f'ERROR in {__file}: Module _read_sht4x failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file__}: Module _read_sht4x failed on line {eTraceback.tb_lineno} - {e}')
 			return temperature, humidity
 
 		return temperature, humidity
@@ -2850,7 +2850,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except Exception as e:
 				result = f'Address {i2c_address} is not a valid i2c address'
-				self.log(0, f'ERROR in {__file}: {result}')
+				self.log(0, f'ERROR in {__file__}: {result}')
 					
 		try:
 			i2c = board.I2C()
@@ -2866,7 +2866,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f'ERROR in {__file}: Module _read_scd30 failed on line {eTraceback.tb_lineno} - {e}')
+			self.log(0, f'ERROR in {__file__}: Module _read_scd30 failed on line {eTraceback.tb_lineno} - {e}')
 
 		return temperature, humidity, co2
 
@@ -2925,7 +2925,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		missing_variables = [name for name in required_vars if locals().get(name) == '']
 
 		if missing_variables:
-			self.log(0, f"ERROR in {__file}: The following variables are not set: {', '.join(missing_variables)}")
+			self.log(0, f"ERROR in {__file__}: The following variables are not set: {', '.join(missing_variables)}")
 		else:
 			temperature = allsky_shared.get_hass_sensor_value(hass_url, hass_ltt, hass_temperature)
 			humidity = allsky_shared.get_hass_sensor_value(hass_url, hass_ltt, hass_humidity)
@@ -2972,7 +2972,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		elif sensor_type == 'Homeassistant':
 			temperature, humidity, pressure = self._read_homeassistant(sensor_number) 
 		else:
-			self.log(0, 'ERROR in {__file}: No sensor type defined')
+			self.log(0, f'ERROR in {__file__}: No sensor type defined')
 
 		temp_units = allsky_shared.getSetting('temptype')
 		if temperature is not None and humidity is not None:
@@ -3065,7 +3065,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 										pin.value = 0
 								except Exception as e:    
 									eType, eObject, eTraceback = sys.exc_info()
-									result = f'ERROR in {__file}: Failed to set Digital IO to output {eTraceback.tb_lineno} - {e}'
+									result = f'ERROR in {__file__}: Failed to set Digital IO to output {eTraceback.tb_lineno} - {e}'
 									self.log(0, result)
 								
 					if temperature is not None:

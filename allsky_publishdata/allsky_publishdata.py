@@ -356,11 +356,11 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
         
 			else:
 				result = f'Failed to ping InfluxDB server at {influx_host}:{influx_port}'
-				self.log(0, f'ERROR in {__file}: {result}')
+				self.log(0, f'ERROR in {__file__: {result}')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f'Module influxdb failed on line {eTraceback.tb_lineno} - {e}'
-			self.log(0, f'ERROR in {__file}: {result}')
+			self.log(0, f'ERROR in {__file__: {result}')
    
 		return result
    
@@ -383,14 +383,14 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 				except Exception as e:    
 					eType, eObject, eTraceback = sys.exc_info()
 					result = f'Failed to connect to the Redis server at {redis_host}:{redis_port} {eTraceback.tb_lineno} - {e}'
-					self.log(0, f'ERROR in {__file}: {result}')
+					self.log(0, f'ERROR in {__file__: {result}')
 			else:
 				result = f'Please specify a topic for Redis to publish to'
-				self.log(0, f'ERROR in {__file}: {result}')
+				self.log(0, f'ERROR in {__file__: {result}')
 
 		else:
 			result = f'Please specify a host for Redis to publish to'
-			self.log(0, f'ERROR in {__file}: {result}')
+			self.log(0, f'ERROR in {__file__: {result}')
     
 	def _send_to_mqtt(self):
 		result = ''
@@ -445,10 +445,10 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 		
 			else:
 				result = f'MQTT - Please specify a topic to publish'
-				self.log(0, f'ERROR in {__file}: {result}')
+				self.log(0, f'ERROR in {__file__: {result}')
 		else:
 			result = f'MQTT - Please specify a MQTT host to publish to'
-			self.log(0, f'ERROR in {__file}: {result}')
+			self.log(0, f'ERROR in {__file__: {result}')
        
 		return result
             
@@ -497,9 +497,9 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 					#variable_value = self._change_type(variable_value)
 					self._json_data[variable] = variable_value
 				else:
-					self.log(0, f'ERROR in {__file}: Cannot locate environment variable {variable} specified in the extradata')
+					self.log(0, f'ERROR in {__file__: Cannot locate environment variable {variable} specified in the extradata')
 			else:
-				self.log(0, 'ERROR in {__file}: Empty environment variable specified in the extradata field. Check commas!')
+				self.log(0, 'ERROR in {__file__: Empty environment variable specified in the extradata field. Check commas!')
 
 			self._json_data['utc'] = self._get_utc_timestamp()
    
@@ -516,7 +516,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 		if params["postEnabled"]:
 			url = params['postEndpoint']
 			if url == "":
-				s.log(0, "ERROR in {__file}: Please specify an endpoint to publish to")
+				s.log(0, "ERROR in {__file__: Please specify an endpoint to publish to")
 				return
 
 			r = requests.post(params["postEndpoint"], json=jsonData)

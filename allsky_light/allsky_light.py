@@ -291,7 +291,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				sensor = adafruit_tsl2591.TSL2591(i2c, i2caddress_int)
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				self.log(0, f'ERROR in {__file}: Module __read_TSL2591 failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(0, f'ERROR in {__file__}: Module __read_TSL2591 failed on line {eTraceback.tb_lineno} - {e}')
 		else: 
 			sensor = adafruit_tsl2591.TSL2591(i2c)
 
@@ -318,7 +318,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				self.log(4, f'TSL2591 read values - lux {lux}, infrared {infrared}, visible {visible}')
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				self.log(0, f'ERROR in {__file}: Module __read_TSL2591 failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(0, f'ERROR in {__file__}: Module __read_TSL2591 failed on line {eTraceback.tb_lineno} - {e}')
         
 		return lux, infrared, visible
 
@@ -333,7 +333,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				tsl = adafruit_tsl2561.TSL2561(i2c, i2caddress_int)
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				self.log(0, f'ERROR in {__file}: Module __read_TSL2561 failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(0, f'ERROR in {__file__}: Module __read_TSL2561 failed on line {eTraceback.tb_lineno} - {e}')
 		else: 
 			tsl = adafruit_tsl2561.TSL2561(i2c)
 		
@@ -377,7 +377,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				i2c_address_int = int(i2c_address, 16)
 			except:
 				result = f"Address {i2c_address} is not a valid i2c address"
-				self.log(0, f"ERROR in {__file}: {result}")
+				self.log(0, f"ERROR in {__file__}: {result}")
 				ok = False
 
 		if ok:
@@ -440,7 +440,7 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 			except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
 				result = f"Module light (ltr390) failed on line {eTraceback.tb_lineno} - {e}"
-				self.log(0, f"ERROR in {__file}: {result}")
+				self.log(0, f"ERROR in {__file__}: {result}")
 
 	def __lux_to_bortle(self, lux):
 		if lux <= 0.1:
@@ -490,15 +490,15 @@ class ALLSKYLIGHT(ALLSKYMODULEBASE):
 				except Exception as e:
 					eType, eObject, eTraceback = sys.exc_info()        
 					result = f'Failed to calculate sqm or nelm, lux = {lux}, line {eTraceback.tb_lineno} {e}'
-					self.log(0, f'ERROR in {__file}: {result}')
+					self.log(0, f'ERROR in {__file__}: {result}')
 			else:
 				allsky_shared.deleteExtraData(self.meta_data['extradatafilename'])
 				result = f'Error reading {sensor}'
-				self.log(0, f'ERROR in {__file}: {result}')
+				self.log(0, f'ERROR in {__file__}: {result}')
 		else:
 			allsky_shared.deleteExtraData(self.meta_data['extradatafilename'])
 			result = 'No sensor defined'
-			self.log(0, f'ERROR in {__file}: {result}')
+			self.log(0, f'ERROR in {__file__}: {result}')
 			
 		return result
 
