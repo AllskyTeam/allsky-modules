@@ -2673,7 +2673,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				humidity = dhtDevice.humidity
 			except RuntimeError as e:
 				eType, eObject, eTraceback = sys.exc_info()
-				self.log(0, f'ERROR in {__file__}: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
+				self.log(3 f'ERROR in {__file__}: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			self.log(3, f'WARNING: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
