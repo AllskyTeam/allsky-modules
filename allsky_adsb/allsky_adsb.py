@@ -424,8 +424,15 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 						aircraft['flight'] = aircraft['hex'].rstrip()
 
 					if 'ias' not in aircraft:
-						if 'gs' in aircraft:
-							aircraft['ias'] = aircraft['gs']
+							if 'gs' in aircraft:
+									aircraft['ias'] = aircraft['gs']
+							else:
+									if 'speed' in aircraft:
+										aircraft['ias'] = aircraft['speed']
+
+					if 'alt_baro' not in aircraft:
+							if 'altitude' in aircraft:
+									aircraft['alt_baro'] = aircraft['altitude']
 
 					if 'ias' in aircraft:
 						if 'lat' in aircraft:
@@ -479,8 +486,15 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 					flight = aircraft['flight'] if 'flight' in aircraft else 'Unknown'
 
 					if 'ias' not in aircraft:
-						if 'gs' in aircraft:
-							aircraft['ias'] = aircraft['gs']
+							if 'gs' in aircraft:
+									aircraft['ias'] = aircraft['gs']
+							else:
+									if 'speed' in aircraft:
+										aircraft['ias'] = aircraft['speed']
+
+					if 'alt_baro' not in aircraft:
+							if 'altitude' in aircraft:
+									aircraft['alt_baro'] = aircraft['altitude']
 								
 					if 'lat' in aircraft:
 						if 'alt_baro' in aircraft:
@@ -606,8 +620,15 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 				for aircraft in aircraft_data['aircraft']:
 					
 					if 'ias' not in aircraft:
-						if 'gs' in aircraft:
-							aircraft['ias'] = aircraft['gs']
+							if 'gs' in aircraft:
+									aircraft['ias'] = aircraft['gs']
+							else:
+									if 'speed' in aircraft:
+										aircraft['ias'] = aircraft['speed']
+
+					if 'alt_baro' not in aircraft:
+							if 'altitude' in aircraft:
+									aircraft['alt_baro'] = aircraft['altitude']
 							
 					flight = aircraft['flight'] if 'flight' in aircraft else 'Unknown'                    
 					if 'lat' in aircraft:
