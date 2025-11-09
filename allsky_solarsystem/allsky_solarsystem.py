@@ -760,7 +760,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 
 			if file_age > 2:
 				if data_key[0].isdigit():
-					response = requests.get(f'https://www.celestrak.com/NORAD/elements/gp.php?CATNR={data_key}', timeout=5)
+					response = requests.get(f'https://celestrak.org/NORAD/elements/gp.php?CATNR={data_key}', timeout=5)
 					response.raise_for_status()
 
 					if response.text == 'No GP data found':
