@@ -1185,7 +1185,10 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			rel_humidity = float(rel_humidity)
 		if altitude is not None:
 			altitude = float(altitude)
-												
+
+		if temperature is None:
+			self.log(0, f'ERROR failed to read the Allsky Core temperature. Is the Environment module installed and configured?')
+    
 		return temperature, humidity, pressure, rel_humidity, altitude
 
 	def _temperature_to_pwm_duty(self, temp):
@@ -1388,7 +1391,6 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 								altitude = round(altitude, 0)
         
 							self._debug_output(sensor_type, temperature, humidity, dew_point, heat_index, pressure, rel_humidity, altitude)
-        
 							if temperature is not None:
 								last_on_seconds = 0
 								if allsky_shared.db_has_key('dewheaterontime'):
