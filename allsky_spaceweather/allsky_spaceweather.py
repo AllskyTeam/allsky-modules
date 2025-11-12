@@ -290,7 +290,7 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 			# Save data to file
 			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], space_weather_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 			result = f"Space weather data successfully written to {self.meta_data['extradatafilename']}"
-			self.log(1, f"INFO: {result}")
+			self.log(4, f'INFO: {result}')
 			allsky_shared.setLastRun(module)
 
 		except Exception as e:
