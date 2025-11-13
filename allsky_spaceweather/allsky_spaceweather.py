@@ -201,8 +201,7 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 			module = self.meta_data['module']
 			
 			shouldRun, diff = allsky_shared.shouldRun(module, period)
-            # FIX: self._debugmode does not exist:   if not shouldRun and not self._debugmode:
-			if not shouldRun:
+			if not shouldRun and not self.debugmode:
 				result = f'Last run {diff} seconds ago. Running every {period} seconds.'
 				self.log(4, f'INFO: {result}')
 				return result
