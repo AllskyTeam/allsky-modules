@@ -1281,7 +1281,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		elif sensor_type == 'Allsky':
 			temperature, humidity, pressure, rel_humidity, altitude = self._read_allsky()
 		else:
-			self.log(0, 'ERROR in {__file__}: No sensor type defined')
+			self.log(0, f'ERROR in {__file__}: No sensor type defined')
 
 		if temperature is not None and humidity is not None:
 			the_dew_point = dew_point(temperature, humidity).c
