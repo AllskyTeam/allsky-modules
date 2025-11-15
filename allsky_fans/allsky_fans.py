@@ -68,7 +68,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				},
 				"AS_FANS_TEMPERATURE1": {
 					"name": "${FANS_TEMPERATURE1}",
-					"format": "{dp=2|deg|unit}",
+					"format": "{dp=2|deg|temp_unit}",
 					"sample": "",
 					"group": "Fan",
 					"description": "Fan 1 module Temperature",
@@ -76,7 +76,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				},
 				"AS_FANS_TEMP_LIMIT1": {
 					"name": "${FANS_TEMP_LIMIT1}",
-					"format": "{dp=2|deg|unit}",
+					"format": "{dp=2|deg|temp_unit}",
 					"sample": "",
 					"group": "Fan",
 					"description": "Fan 1 Activation Temperature",
@@ -132,7 +132,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				},
 				"AS_FANS_TEMPERATURE2": {
 					"name": "${FANS_TEMPERATURE2}",
-					"format": "{dp=2|deg|unit}",
+					"format": "{dp=2|deg|temp_unit}",
 					"sample": "",
 					"group": "Fan",
 					"description": "Fan 2 module Temperature",
@@ -140,7 +140,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				},
 				"AS_FANS_TEMP_LIMIT2": {
 					"name": "${FANS_TEMP_LIMIT2}",
-					"format": "{dp=2|deg|unit}",
+					"format": "{dp=2|deg|temp_unit}",
 					"sample": "",
 					"group": "Fan",
 					"description": "Fan 2 Activation Temperature",

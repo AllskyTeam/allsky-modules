@@ -72,7 +72,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				},              
 				"AS_DEWCONTROLAMBIENT": {
 					"name": "${DEWCONTROLAMBIENT}",
-					"format": "{dp=2|deg|unit}",
+					"format": "{dp=2|deg|temp_unit}",
 					"sample": "",                 
 					"group": "Dew Heater",
 					"description": "Dew Heater Ambient",
@@ -80,7 +80,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				},
 				"AS_DEWCONTROLDEW": {
 					"name": "${DEWCONTROLDEW}",
-					"format": "{dp=2|deg|unit}",
+					"format": "{dp=2|deg|temp_unit}",
 					"sample": "",                 
 					"group": "Dew Heater",
 					"description": "Dew heater Dew Point",
