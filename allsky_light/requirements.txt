@@ -1,2 +1,3 @@
 adafruit-circuitpython-tsl2591
 adafruit-circuitpython-tsl2561
+adafruit-circuitpython-ltr390
