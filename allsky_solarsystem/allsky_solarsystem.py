@@ -78,11 +78,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 					"group": "Solar System",
 					"format": "{yesno}",     
 					"type": "bool",
-					"description": "Is the Moon visible",
-          			"dbtype": "bool",
-					"database": {
-						"include" : "true"
-					}     
+					"description": "Is the Moon visible"
 				},
 				"AS_MOON_ILLUMINATION": {
 					"group": "Solar System",
@@ -240,7 +236,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				"AS_JUPITER_VISIBLE": {
 					"group": "Solar System",
 					"type": "bool",
-					"description": "Is Mars Jupiter"
+					"description": "Is Jupiter visible"
 				},
 				"AS_SATURN_ELEVATION": {
 					"group": "Solar System",
@@ -257,7 +253,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				"AS_SATURN_VISIBLE": {
 					"group": "Solar System",
 					"type": "bool",
-					"description": "Is Mars Saturn"
+					"description": "Is Saturn visible"
 				},
 				"AS_URANUS_ELEVATION": {
 					"group": "Solar System",
@@ -274,7 +270,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				"AS_URANUS_VISIBLE": {
 					"group": "Solar System",
 					"type": "bool",
-					"description": "Is Mars Uranus"
+					"description": "Is Uranus visible"
 				},
 				"AS_NEPTUNE_ELEVATION": {
 					"group": "Solar System",
@@ -291,7 +287,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				"AS_NEPTUNE_VISIBLE": {
 					"group": "Solar System",
 					"type": "bool",
-					"description": "Is Mars Neptune"
+					"description": "Is Neptune visible"
 				},
 				"AS_PLUTO_ELEVATION": {
 					"group": "Solar System",
@@ -308,7 +304,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				"AS_PLUTO_VISIBLE": {
 					"group": "Solar System",
 					"type": "bool",
-					"description": "Is Mars Pluto"
+					"description": "Is Pluto visible"
 				}
 			}
 		},    
@@ -566,7 +562,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				moon_set_timestamp = self._convert_ephem_date(moon_set)
 
 				next_full_moon = ephem.next_full_moon(observer.date)
-				next_new_moon = ephem.next_new_moon(next_full_moon)
+				next_new_moon = ephem.next_new_moon(observer.date)
 
 				moon_next_full_timestamp = self._convert_ephem_date(next_full_moon)
 				moon_next_new_timestamp = self._convert_ephem_date(next_new_moon)
