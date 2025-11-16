@@ -232,65 +232,77 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 				}
 			}
 
-			# Fetch and process solar wind data
-			response = requests.get(self._urls['wind'])
-			wind_data = json.loads(response.content)
-			solar_wind = self._process_solar_wind_data(wind_data)
-			
-			space_weather_data.update({
-				"SWX_SWIND_SPEED": {
-					"value": solar_wind["speed"]["value"],
-					"fill": solar_wind["speed"]["color"],
-					"expires": 0
-				},
-				"SWX_SWIND_DENSITY": {
-					"value": solar_wind["density"]["value"],
-					"fill": solar_wind["density"]["color"],
-					"expires": 0
-				},
-				"SWX_SWIND_TEMP": {
-					"value": solar_wind["temp"]["value"],
-					"fill": solar_wind["temp"]["color"],
+			try:
+				# Fetch and process solar wind data
+				response = requests.get(self._urls['wind'])
+				wind_data = json.loads(response.content)
+				solar_wind = self._process_solar_wind_data(wind_data)
+				
+				space_weather_data.update({
+					"SWX_SWIND_SPEED": {
+						"value": solar_wind["speed"]["value"],
+						"fill": solar_wind["speed"]["color"],
+						"expires": 0
+					},
+					"SWX_SWIND_DENSITY": {
+						"value": solar_wind["density"]["value"],
+						"fill": solar_wind["density"]["color"],
+						"expires": 0
+					},
+					"SWX_SWIND_TEMP": {
+						"value": solar_wind["temp"]["value"],
+						"fill": solar_wind["temp"]["color"],
+						"expires": 0
+					}
+				})
+			except Exception as e:
+				result = f"Module spaceweather failed getting space winds - {e}"
+				self.log(4, f"ERROR in {__file__}: {result}")
+  
+			try:  
+				# Fetch and process Kp index
+				response = requests.get(self._urls['kp'])
+				kp_data = json.loads(response.content)
+				kp_value = float(kp_data[-1][1])
+				kp_color = self._GREEN
+				if kp_value > 5:
+					kp_color = self._RED
+				elif kp_value >= 4:
+					kp_color = self._YELLOW
+
+				space_weather_data["SWX_KPDATA"] = {
+					"value": kp_value,
+					"fill": kp_color,
 					"expires": 0
 				}
-			})
+			except Exception as e:
+				result = f"Module spaceweather failed getting kp index - {e}"
+				self.log(4, f"ERROR in {__file__}: {result}")
+    
+			try:    
+				# Fetch and process Bz data
+				response = requests.get(self._urls['bz'])
+				bz_data = json.loads(response.content)
+				bz_value = float(bz_data[-1][3])
+				bz_color = self._GREEN
+				if bz_value <= -15:
+					bz_color = self._RED
+				elif bz_value <= -6:
+					bz_color = self._YELLOW
 
-			# Fetch and process Kp index
-			response = requests.get(self._urls['kp'])
-			kp_data = json.loads(response.content)
-			kp_value = float(kp_data[-1][1])
-			kp_color = self._GREEN
-			if kp_value > 5:
-				kp_color = self._RED
-			elif kp_value >= 4:
-				kp_color = self._YELLOW
-
-			space_weather_data["SWX_KPDATA"] = {
-				"value": kp_value,
-				"fill": kp_color,
-				"expires": 0
-			}
-
-			# Fetch and process Bz data
-			response = requests.get(self._urls['bz'])
-			bz_data = json.loads(response.content)
-			bz_value = float(bz_data[-1][3])
-			bz_color = self._GREEN
-			if bz_value <= -15:
-				bz_color = self._RED
-			elif bz_value <= -6:
-				bz_color = self._YELLOW
-
-			space_weather_data["SWX_BZDATA"] = {
-				"value": bz_value,
-				"fill": bz_color,
-				"expires": 0
-			}
-
+				space_weather_data["SWX_BZDATA"] = {
+					"value": bz_value,
+					"fill": bz_color,
+					"expires": 0
+				}
+			except Exception as e:
+				result = f"Module spaceweather failed getting bz data - {e}"
+				self.log(4, f"ERROR in {__file__}: {result}")
+    
 			# Save data to file
 			allsky_shared.saveExtraData(self.meta_data['extradatafilename'], space_weather_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 			result = f"Space weather data successfully written to {self.meta_data['extradatafilename']}"
-			self.log(4, f'INFO: {result}')
+			self.log(1, f"INFO: {result}")
 			allsky_shared.setLastRun(module)
 
 		except Exception as e:
