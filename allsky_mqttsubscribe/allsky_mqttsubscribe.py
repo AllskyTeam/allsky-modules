@@ -19,6 +19,11 @@ metaData = {
     "module": "allsky_mqttsubscribe",
     "version": "v1.0.0",    
     "events": [
+        "day",
+        "night",
+        "endofnight",
+        "daynight",
+        "nightday",
         "periodic"
     ],
     "experimental": "false",
