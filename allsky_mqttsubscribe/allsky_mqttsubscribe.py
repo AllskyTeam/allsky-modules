@@ -17,11 +17,16 @@ metaData = {
     "name": "Subscribes to MQTT topic and gets messages",
     "description": "Obtains JSON payload from given MQTT topic for use in overlay manager",
     "module": "allsky_mqttsubscribe",
-    "version": "v1.0.0",    
+    "version": "v2.0.0",    
     "events": [
+        "day",
+        "night",
+        "endofnight",
+        "daynight",
+        "nightday",
         "periodic"
     ],
-    "experimental": "true",
+    "experimental": "false",
     "arguments":{
         "extradatafilename": "allskymqttsubscribe.json",
         "period": 60,
@@ -181,7 +186,7 @@ def mqttsubscribe(params, event):
     return result
 
 # Cleanup function to be called when the module is disabled
-def mqttimport_cleanup():
+def mqttsubscribe_cleanup():
     moduleData = {
         "metaData": metaData,
         "cleanup": {
