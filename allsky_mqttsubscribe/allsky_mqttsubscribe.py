@@ -17,7 +17,7 @@ metaData = {
     "name": "Subscribes to MQTT topic and gets messages",
     "description": "Obtains JSON payload from given MQTT topic for use in overlay manager",
     "module": "allsky_mqttsubscribe",
-    "version": "v1.0.0",    
+    "version": "v2.0.0",    
     "events": [
         "day",
         "night",
