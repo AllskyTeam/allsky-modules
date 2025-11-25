@@ -21,7 +21,7 @@ metaData = {
     "events": [
         "periodic"
     ],
-    "experimental": "true",
+    "experimental": "false",
     "arguments":{
         "extradatafilename": "allskymqttsubscribe.json",
         "period": 60,
@@ -181,7 +181,7 @@ def mqttsubscribe(params, event):
     return result
 
 # Cleanup function to be called when the module is disabled
-def mqttimport_cleanup():
+def mqttsubscribe_cleanup():
     moduleData = {
         "metaData": metaData,
         "cleanup": {
