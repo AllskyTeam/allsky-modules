@@ -1,5 +1,5 @@
 '''
-allsky_imageenhancer.py
+allsky_image_tuning.py
 
 Part of allsky postprocess.py modules.
 https://github.com/thomasjacquin/allsky
@@ -19,7 +19,7 @@ import numpy as np
 metaData = {
     "name": "Allsky Image Enhancer",
     "description": "Advanced control: Saturation, Contrast, Gamma, Sharpening, and Denoise",
-    "module": "allsky_imageenhancer",
+    "module": "allsky_image_tuning",
     "version": "v2.1.0",
     "events": [
         "night",
@@ -111,9 +111,9 @@ metaData = {
     }
 }
 
-def imageenhancer(params, event):
+def image_tuning(params, event):
     '''
-    Main entry point for the image enhancer module.
+    Main entry point for the image tuning module.
     
     This module applies various image enhancements including:
     - Noise Reduction (first step to clean the image)
@@ -232,7 +232,7 @@ def imageenhancer(params, event):
     s.log(4, f"INFO: {msg}")
     return msg
 
-def imageenhancer_cleanup():
+def image_tuning_cleanup():
     '''
     Cleanup function called when module is removed or disabled.
     Currently no cleanup needed for this module.

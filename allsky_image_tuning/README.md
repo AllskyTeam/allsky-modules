@@ -1,6 +1,6 @@
-# Allsky Image Enhancer Module
+# Allsky Image Tuning Module
 
-Image enhancement module for AllSky providing control over image quality parameters.
+Image tuning module for AllSky providing control over image quality parameters.
 
 ## Description
 
