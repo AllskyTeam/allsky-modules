@@ -17,7 +17,7 @@ import cv2
 import numpy as np
 
 metaData = {
-    "name": "Allsky Image Enhancer",
+    "name": "Image Tuning",
     "description": "Advanced control: Saturation, Contrast, Gamma, Sharpening, and Denoise",
     "module": "allsky_imagetuning",
     "version": "v2.1.0",
