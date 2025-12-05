@@ -150,8 +150,8 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			"timeout": 10,
 			"local_adsb_url": "",
 			"observer_altitude": 0,
-			"opensky_username": "",
-			"opensky_password": "",
+			"opensky_clientid": "",
+			"opensky_secret": "",
 			"opensky_lat_min": 0,
 			"opensky_lon_min": 0,
 			"opensky_lat_max": 0,
@@ -225,10 +225,10 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 					]
 				}             
 			},
-			"opensky_username": {
+			"opensky_clientid": {
 				"required": "false",
-				"description": "OpenSky Username",
-				"help": "Your Opensky Network username. See the module documentation for details on the API limits with and without a username.",
+				"description": "OpenSky Client Id",
+				"help": "Your Opensky client id. See the module documentation for details on the API limits with and without a clientid.",
 				"tab": "Data Source",
 				"secret": "true",    
 				"filters": {
@@ -239,10 +239,10 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 					]
 				}            
 			},
-			"opensky_password": {
+			"opensky_secret": {
 				"required": "false",
-				"description": "OpenSky Password",
-				"help": "Your Opensky Network password.",
+				"description": "OpenSky Secret",
+				"help": "Your Opensky Network secret.",
 				"tab": "Data Source",
 				"secret": "true",    
 				"filters": {
@@ -256,7 +256,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			"opensky_lat_min": {
 				"required": "false",
 				"description": "Min latitude",
-				"help": "The minimum latitude of the bounding box. Use a site like http://bboxfinder.com/ to determine the bounding box.",
+				"help": "The minimum latitude of the bounding box. Use a site like <a href='http://bboxfinder.com/' target='_blank'>http://bboxfinder.com/</a> to determine the bounding box.",
 				"tab": "Data Source",
 				"filters": {
 					"filter": "data_source",
@@ -548,6 +548,19 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			
 		return found_aircraft, result
 
+	def _opensky_get_access_token(self, client_id, secret):
+		data = {
+				"grant_type": "client_credentials",
+				"client_id": client_id,
+				"client_secret": secret
+		}
+
+		response = requests.post("https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token", data=data)
+		response.raise_for_status()
+		token = response.json()["access_token"]
+		allsky_shared.db_update('opensky_access_token', token)
+		return token
+
 	def _opensky_adsb(self, observer_location, timeout):
 		''' Retreives data from Opensky
 		'''
@@ -558,18 +571,32 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 		lon_min = self.get_param('opensky_lon_min', 0, float)  
 		lat_max = self.get_param('opensky_lat_max', 0, float)  
 		lon_max = self.get_param('opensky_lon_max', 0, float)  
-		username = self.get_param('opensky_username', None, str, True)
-		password = self.get_param('opensky_password', None, str, True)
+		client_id = self.get_param('opensky_clientid', None, str, True)
+		secret = self.get_param('opensky_secret', None, str, True)
 
 		url = f'https://opensky-network.org/api/states/all?lamin={lat_min}&lamax={lat_max}&lomin={lon_min}&lomax={lon_max}'
 		self.log(4, 'INFO: Getting data from OpenSky Network')
 
 		try:
-			if username is not None and password is not None:
-				response = requests.get(url,timeout=timeout,auth=(username, password))
-			else:
-				response = requests.get(url,timeout=timeout)
+			self.log(4, 'INFO: Getting Access Token')    
+			token = allsky_shared.db_get('opensky_access_token')
+			if token is None:
+				token = self._opensky_get_access_token(client_id, secret)
+    
+			headers = {
+					"Authorization": f"Bearer {token}"
+			}   
+			response = requests.get(url,timeout=timeout, headers=headers)
 
+			if response.status_code == 401:
+				self.log(4, 'INFO: Access token expired, getting a new one')
+				token = self._opensky_get_access_token(client_id, secret)
+		
+				headers = {
+						"Authorization": f"Bearer {token}"
+				}   
+				response = requests.get(url,timeout=timeout, headers=headers)
+    
 			if response.status_code == 200:
 				aircraft_data = response.json()
 
