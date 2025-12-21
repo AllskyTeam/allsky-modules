@@ -237,16 +237,21 @@ def light(params, event):
             lux, infrared, visible = readTSL2561(params)
                 
         if lux is not None:
-            sqm = math.log10(lux / 108000) / -0.45
-            nelm = 7.93 - 5.0 * math.log10((pow(10, (4.316 - (sqm / 5.0))) + 1.0))
-            
-            extraData = {}
-            extraData["AS_LIGHTLUX"] = str(lux)
-            extraData["AS_LIGHTNELM"] = str(nelm)
-            extraData["AS_LIGHTSQM"] = str(sqm)
-            s.saveExtraData("allskylight.json",extraData)
-            result = f"Lux {lux}, NELM {nelm}, SQM {sqm}"
-            s.log(4, f"INFO: {result}")
+            try:
+                sqm = math.log10(lux / 108000) / -0.45
+                nelm = 7.93 - 5.0 * math.log10((pow(10, (4.316 - (sqm / 5.0))) + 1.0))
+                
+                extraData = {}
+                extraData["AS_LIGHTLUX"] = str(lux)
+                extraData["AS_LIGHTNELM"] = str(nelm)
+                extraData["AS_LIGHTSQM"] = str(sqm)
+                s.saveExtraData("allskylight.json",extraData)
+                result = f"Lux {lux}, NELM {nelm}, SQM {sqm}"
+                s.log(4, f"INFO: {result}")
+            except Exception as e:
+                eType, eObject, eTraceback = sys.exc_info()
+                s.log(0, f"ERROR: Module light calculation failed on line {eTraceback.tb_lineno} - {e}")
+                s.deleteExtraData(extradatafilename)
         else:
             s.deleteExtraData(extradatafilename)
             s.log(0, f'ERROR: Error reading {sensor}')
