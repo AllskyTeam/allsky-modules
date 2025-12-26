@@ -198,8 +198,8 @@ class ALLSKYESP32ROUND(ALLSKYMODULEBASE):
 
         enabled34 = self.get_param('enable34', False, bool)
         enabled4 = self.get_param('enable4', False, bool)
-        size34 = self.get_param('size', 800, int)  
-        size4 = self.get_param('size', 720, int)  
+        size34 = self.get_param('size34', 800, int)  
+        size4 = self.get_param('size4', 720, int)  
         filename34 = self.get_param('filename34', 'resized_34', str) 
         filename4 = self.get_param('filename4', 'resized_4', str) 
         
