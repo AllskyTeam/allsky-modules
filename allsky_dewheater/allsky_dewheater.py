@@ -183,7 +183,8 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			"extrausepwm": "false",
 			"enabledebug": "False",
 			"debugtemperature": 0,
-			"debugdewpoint": 0
+			"debugdewpoint": 0,
+			"debugpwm": 0
 		},
 		"argumentdetails": {
 			"type" : {
@@ -609,6 +610,25 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 					"fieldtype": "checkbox"
 				}
 			},
+			"debugpwm": {
+				"required": "false",
+				"description": "Fixed Duty Cycle %",
+				"help": "Sets a fixed duty cycle percentage (0 - 100), this overrides EVERYTHING.",
+				"tab": "Debug",
+				"filters": {
+					"filter": "enabledebug",
+					"filtertype": "show",
+					"values": [
+						"enabledebug"
+					]
+				},            
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 100,
+					"step": 1
+				}
+			},   
 			"debugtemperature": {
 				"required": "false",
 				"description": "Temperature Value",
@@ -1215,14 +1235,19 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 
 		return result
 
-	def _turn_heater_on(self, heater_pin, invert_relay, extra=False, use_pwm=False, duty_cycle=0):
+	def _turn_heater_on(self, heater_pin, invert_relay, extra=False, use_pwm=False, duty_cycle=0, debug_duty_cycle=0):
 		if extra:
 			type = 'Extra'
 		else:
 			type = 'Heater'
 
 		if use_pwm:
-			duty_cycle_percent = round((duty_cycle / 65535) * 100,2)
+			if debug_duty_cycle == 0:
+				duty_cycle_percent = round((duty_cycle / 65535) * 100,2)
+			else:
+				duty_cycle_percent = debug_duty_cycle
+				duty_cycle = round((duty_cycle_percent / 100) * 65535)
+		
 			result = f'Turning {type} on using PWM on pin {heater_pin}. Duty Cycle {duty_cycle} ({duty_cycle_percent}%)'
 			self.log(4, f'INFO: {result}')
 			self._set_pwm_state(heater_pin, duty_cycle)
@@ -1341,6 +1366,12 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		debug_mode = self.get_param('enabledebug', False, bool)
 		debug_temperature = self.get_param('debugtemperature', 0, int)
 		debug_dew_point = self.get_param('debugdewpoint', 0, int)
+		debug_pwm = self.get_param('debugpwm', 0, int)
+  
+		if not debug_mode:
+			debug_temperature = 0
+			debug_dew_point = 0
+			debug_pwm = 0
 
 		tod = self._get_time_of_day(); 
 						
@@ -1375,6 +1406,9 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 								pressure = 0
 								rel_humidity = 0
 								altitude = 0
+								if debug_pwm > 0:
+									use_pwm = True
+         
 							if temperature is not None:
 								temperature = round(temperature, 2)
 							if humidity is not None:
@@ -1407,9 +1441,9 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 									result = f'Temperature below forced level of {force}'
 									self.log(4, f'INFO: {result}')
 									duty_cycle = 65535         
-									self._turn_heater_on(heater_pin, invert_relay, False, use_pwm, duty_cycle)
+									self._turn_heater_on(heater_pin, invert_relay, False, use_pwm, duty_cycle, debug_pwm)
 									if extra_pin != 0:
-										self._turn_heater_on(extra_pin, invert_extra_pin, True, extra_use_pwm, duty_cycle)
+										self._turn_heater_on(extra_pin, invert_extra_pin, True, extra_use_pwm, duty_cycle, debug_pwm)
 									heater = True
 								else:                           
 									if ((temperature - limit) <= dew_point):
@@ -1421,9 +1455,9 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 
 										#duty_cycle = round(temp_dew_diff * 10, 2)
 										duty_cycle = self._temperature_to_pwm_duty(temp_dew_diff)
-										self._turn_heater_on(heater_pin, invert_relay, False, use_pwm, duty_cycle)
+										self._turn_heater_on(heater_pin, invert_relay, False, use_pwm, duty_cycle, debug_pwm)
 										if extra_pin != 0:
-											self._turn_heater_on(extra_pin, invert_extra_pin, True, extra_use_pwm, duty_cycle)
+											self._turn_heater_on(extra_pin, invert_extra_pin, True, extra_use_pwm, duty_cycle, debug_pwm)
 										heater = True
 									else:
 										result = f'Temperature of {temperature} outside limit of {limit} and dewPoint of {dew_point}'
@@ -1548,3 +1582,4 @@ def dewheater_cleanup():
 		}
 	}
 	allsky_shared.cleanup_module(moduleData)
+
