@@ -2,7 +2,9 @@ import allsky_shared as allsky_shared
 from allsky_base import ALLSKYMODULEBASE
 
 import sys
+import datetime
 import board
+import adafruit_ina260
 from barbudor_ina3221.full import *
 from adafruit_ina219 import ADCResolution, BusVoltageRange, INA219
 
@@ -12,9 +14,9 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
  
 	meta_data = {
 		"name": "Monitor Pi Current and Voltage",
-		"description": "Monitor Pi current and voltage using an ina219/ina3221",
+		"description": "Monitor Pi current and voltage using an ina219/ina260/ina3221",
 		"module": "allsky_power",
-		"version": "v1.0.0",
+		"version": "v1.1.0",
 		"centersettings": "false",
 		"testable": "true",
 		"events": [
@@ -225,13 +227,13 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 		}, 
 		"arguments":{
 			"type": "",
-			"i2caddress": "",
+			"i2caddress": "0x40",
 			"c1enable": "false",
 			"c1name": "",
 			"c2enable": "false",
 			"c2name": "",
 			"c3enable": "false",
-			"c3name": ""               
+			"c3name": ""        
 		},
 		"argumentdetails": {
 			"type" : {
@@ -241,7 +243,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 				"tab": "Sensor",
 				"type": {
 					"fieldtype": "select",
-					"values": "None,ina219,ina3221",
+					"values": "None,ina219,ina260,ina3221",
 					"default": "None"
 				}
 			},     
@@ -258,6 +260,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"filtertype": "show",
 					"values": [
 						"ina219",
+						"ina260",
 						"ina3221"
 					]
 				}                 
@@ -286,7 +289,8 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"filter": "type",
 					"filtertype": "show",
 					"values": [
-						"ina3221"
+						"ina3221",
+						"ina260"      
 					]
 				},         
 				"tab": "Sensor"         
@@ -348,27 +352,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					]
 				},         
 				"tab": "Sensor"         
-			},
-			"ina219name" : {
-				"required": "false",
-				"description": "Channel name",
-				"help": "Name of the channel for the allsky overlay variable.",
-				"filters": {
-					"filter": "type",
-					"filtertype": "show",
-					"values": [
-						"ina219"
-					]
-				},         
-				"tab": "Sensor"         
-			},
-			"graph": {
-				"required": "false",
-				"tab": "History",
-				"type": {
-					"fieldtype": "graph"
-				}
-			}	      
+			}     
 		},
 		"businfo": [
 			"i2c"
@@ -380,18 +364,89 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					"authorurl": "https://github.com/allskyteam",
 					"changes": "Initial Release"
 				}
-			]                                            
+			],
+			"v1.1.0" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": [
+						"Added support for ina260 sensor",
+						"Fixed i2c address handling for all sensors"
+					]
+				},
+				{
+					"author": "Kumar Challa",
+					"authorurl": "https://github.com/chvvkumar",
+					"changes": "Addition of the ina260 sensor"
+				}    
+			]     
 		}  
 	}
- 
+
+	def _ina260(self):
+		result = 'Ina260 read ok'
+		extra_data = {}
+
+		try:
+    
+			i2c_address = self.get_param('i2caddress', '0x40', str)    
+			if i2c_address != '':
+				try:
+					i2c_address_int = int(i2c_address, 16)
+				except:
+					result = f'Address {i2c_address} is not a valid i2c address'
+					self.log(0, f'ERROR in {__file__}: {result}')
+    
+
+			i2c = board.I2C()
+			if i2c_address != '':
+				ina260 = adafruit_ina260.INA260(i2c, i2c_address_int)
+			else:
+				ina260 = adafruit_ina260.INA260(i2c)
+
+			bus_voltage = 0
+			shunt_voltage = 0
+			current = ina260.current
+			power = ina260.power
+			voltage = ina260.voltage
+
+			channel_name = self.get_param(f'c1name', f'INA219_C1', str, True) 
+			extra_data[f'AS_POWER_NAME1'] = channel_name
+			extra_data[f'AS_POWER_VOLTAGE1'] = voltage
+			extra_data[f'AS_POWER_CURRENT1'] = current
+			extra_data[f'AS_POWER_BUS_VOLTAGE1'] = bus_voltage
+			extra_data[f'AS_POWER_SHUNT_VOLTAGE1'] = shunt_voltage
+			extra_data[f'AS_POWER_POWER1'] = power
+			extra_data[f'AS_POWER_TIME1'] = str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
+
+			self.log(4, f'INFO: voltage {voltage}, current {current}. Bus Voltage {bus_voltage}, Shunt Voltage {shunt_voltage}, Power {power}')
+
+		except Exception as e:
+			eType, eObject, eTraceback = sys.exc_info()
+			result = f'_ina260 failed on line {eTraceback.tb_lineno} - {e}'
+			self.log(0, f'ERROR in {__file__}: {result}')
+		
+		return result, extra_data
+
 	def _ina219(self):
 		result = 'Ina219 read ok'
 		extra_data = {}
 
 		try:
-			i2c_bus = board.I2C()
-
-			ina219 = INA219(i2c_bus)
+    
+			i2c_address = self.get_param('i2caddress', '0x40', str)    
+			if i2c_address != '':
+				try:
+					i2c_address_int = int(i2c_address, 16)
+				except:
+					result = f'Address {i2c_address} is not a valid i2c address'
+					self.log(0, f'ERROR in {__file__}: {result}')
+    
+			i2c = board.I2C()
+			if i2c_address != '':
+				ina219 = INA219(i2c, i2c_address_int)
+			else:
+				ina219 = INA219(i2c)
 
 			bus_voltage = ina219.bus_voltage
 			shunt_voltage = ina219.shunt_voltage
@@ -406,6 +461,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 			extra_data[f'AS_POWER_BUS_VOLTAGE1'] = bus_voltage
 			extra_data[f'AS_POWER_SHUNT_VOLTAGE1'] = shunt_voltage
 			extra_data[f'AS_POWER_POWER1'] = power
+			extra_data[f'AS_POWER_TIME1'] = str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
 
 			self.log(4, f'INFO: voltage {voltage}, current {current}. Bus Voltage {bus_voltage}, Shunt Voltage {shunt_voltage}, Power {power}')
 
@@ -434,8 +490,20 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 		extra_data = {}
 
 		try:
-			i2cBus = board.I2C()
-			ina3221 = INA3221(i2cBus)
+    
+			i2c_address = self.get_param('i2caddress', '0x40', str)    
+			if i2c_address != '':
+				try:
+					i2c_address_int = int(i2c_address, 16)
+				except:
+					result = f'Address {i2c_address} is not a valid i2c address'
+					self.log(0, f'ERROR in {__file__}: {result}')
+    
+			i2c = board.I2C()
+			if i2c_address != '':
+				ina3221 = INA3221(i2c, i2c_address_int)
+			else:
+				ina3221 = INA3221(i2c)
 
 			if INA3221.IS_FULL_API:
 				ina3221.update(reg=C_REG_CONFIG,
@@ -467,6 +535,7 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 					extra_data[f'AS_POWER_BUS_VOLTAGE{i}'] = bus_voltage
 					extra_data[f'AS_POWER_SHUNT_VOLTAGE{i}'] = shunt_voltage
 					extra_data[f'AS_POWER_POWER{i}'] = power
+					extra_data[f'AS_POWER_TIME{i}'] = str(datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
 
 			if not channel_read:
 				result = 'No channels are enabled so none read'
@@ -487,7 +556,10 @@ class ALLSKYPOWER(ALLSKYMODULEBASE):
 			if sensor_type == 'ina219':
 				result, extra_data = self._ina219()       
 			else:
-				result = f'power module - invalid sensor type "{sensor_type}"'
+				if sensor_type == 'ina260':
+					result, extra_data = self._ina260()         
+				else:
+					result = f'power module - invalid sensor type "{sensor_type}"'
 
 		allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 		self.log(4, f'INFO: {result}')
@@ -510,4 +582,3 @@ def power_cleanup():
 		}
 	}
 	allsky_shared.cleanupModule(moduleData)
-
