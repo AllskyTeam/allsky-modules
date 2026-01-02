@@ -7,10 +7,13 @@ import sys
 import ephem
 import requests
 import math
+import datetime as dt
 
 from math import radians
 from math import degrees
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone as dt_timezone
+from typing import Any, Dict, List, Sequence, Tuple
+from dataclasses import dataclass
 
 from skyfield.api import EarthSatellite, load, wgs84, Loader, Topos
 from skyfield.api import N, S, E, W
@@ -20,6 +23,11 @@ from pytz import timezone
 from astral.sun import sun, azimuth, elevation, night
 from astral import LocationInfo, Observer
 
+try:
+    from zoneinfo import ZoneInfo
+except Exception:
+    ZoneInfo = None
+    
 class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
     
 	meta_data = {
@@ -309,7 +317,8 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			}
 		},    
 		"arguments": {
-			"moonEnabled": "false",
+			"elevation": "0",
+    	"moonEnabled": "false",
 			"moonElevation": "5",
 			"sunEnabled": "false",
 			"planetMercuryEnabled": "false",
@@ -322,9 +331,26 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			"planetPlutoEnabled": "false",
 			"planetElevation": "5",
 			"tles": "",
-			"sat_min_elevation": 15
+			"sat_min_elevation": "15",
+			"issEnabled": "false",
+			"issPassDays": "5",
+			"issNumPass": "5",
+			"issVisibleOnly": "true",
+			"issPassDaysMinMaxElevation": "30"
 		},
 		"argumentdetails": {
+			"elevation": {
+				"required": "false",
+				"description": "Observer Elevation",
+				"help": "Your elevation in metres above sea level.",
+				"tab": "General",
+				"type": {
+					"fieldtype": "spinner",
+					"min": -100,
+					"max": 5000,
+					"step": 1
+				}           
+			},    
 			"moonEnabled": {
 				"required": "false",
 				"description": "Enable the Moon",
@@ -430,7 +456,88 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 					"max": 90,
 					"step": 1
 				}           
-			},        
+			},    
+			"issEnabled": {
+				"required": "false",
+				"description": "Enable ISS",
+				"tab": "ISS",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"issVisibleOnly": {
+				"required": "false",
+				"description": "Visible Only",
+				"help": "Only show visible ISS passes",
+				"tab": "ISS",
+				"type": {
+					"fieldtype": "checkbox"
+				},
+				"filters": {
+					"filter": "issEnabled",
+					"filtertype": "show",
+					"values": [
+						"issEnabled"
+					]
+				}    
+			},   
+			"issPassDays": {
+				"required": "false",
+				"description": "Pass days",
+				"help": "The number of days ahead to look for ISS passes over your location. 0 will disable the ISS pass calculations.",
+				"tab": "ISS",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 20,
+					"step": 1
+				},
+				"filters": {
+					"filter": "issEnabled",
+					"filtertype": "show",
+					"values": [
+						"issEnabled"
+					]
+				}               
+			},
+			"issNumPass": {
+				"required": "false",
+				"description": "Number Of Pass",
+				"help": "The number of passes to return when looking ahead. NOTE: the result may be less than this number",
+				"tab": "ISS",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 20,
+					"step": 1
+				},
+				"filters": {
+					"filter": "issEnabled",
+					"filtertype": "show",
+					"values": [
+						"issEnabled"
+					]
+				}               
+			},   
+			"issPassDaysMinMaxElevation": {
+				"required": "false",
+				"description": "Min Elevation",
+				"help": "Only show passes above this max elevation.",
+				"tab": "ISS",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 90,
+					"step": 1
+				},
+				"filters": {
+					"filter": "issEnabled",
+					"filtertype": "show",
+					"values": [
+						"issEnabled"
+					]
+				}               
+			},     
 			"tles": {
 				"required": "false",
 				"description": "Norad IDs",
@@ -448,7 +555,20 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 					"max": 90,
 					"step": 1
 				}
-			}         
+			},
+			"sat_notice" : {
+				"tab": "Satellites",      
+				"message": "DO NOT include ISS in this tab, use the ISS tab instead. Including it here will just slow down the processing time for the satellites.",
+				"type": {
+					"fieldtype": "text",
+					"style": {
+						"width": "full",
+						"alert": {
+							"class": "warning"
+						}
+					}
+				} 			
+			}           
 		},
 		"enabled": "false",
 		"businfo": [
@@ -482,27 +602,48 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 	_custom_fields = {}
 
 	def __init__(self, params, event):
-		super().__init__(params, event)
-		allsky_shared.setupForCommandLine()
-		self._overlay_folder = allsky_shared.getEnvironmentVariable('ALLSKY_OVERLAY')
-		self._tmp_folder = os.path.join(self._overlay_folder, 'tmp')
-		self._overlay_tle_folder = os.path.join(self._tmp_folder , 'tle')
-		self._enable_skyfield = True
 		try:
-			ephemeris_path = os.path.join(self._tmp_folder, 'de421.bsp')
-			skyfield_loader = Loader(self._tmp_folder, verbose=False)
-			if (skyfield_loader.exists(ephemeris_path)):
-				self.log(4, 'INFO: Using cached ephemeris data')
-			else:
-				self.log(4, 'INFO: Downloading ephemeris data')
-			self._eph = skyfield_loader('de421.bsp')
-		except Exception as err:
-			self.log(0, f'ERROR in {__file__}: Unable to download de421.bsp: {err}')
-			self._enable_skyfield = False
-		self._observer_lat = allsky_shared.getSetting('latitude')
-		self._observer_lon = allsky_shared.getSetting('longitude')		
-		self._visible = {}
-  
+			super().__init__(params, event)
+			allsky_shared.setupForCommandLine()
+			self._overlay_folder = allsky_shared.getEnvironmentVariable('ALLSKY_OVERLAY')
+			self._tmp_folder = os.path.join(self._overlay_folder, 'tmp')
+			self._overlay_tle_folder = os.path.join(self._tmp_folder , 'tle')
+			self._enable_skyfield = True
+			try:
+				ephemeris_path = os.path.join(self._tmp_folder, 'de421.bsp')
+				skyfield_loader = Loader(self._tmp_folder, verbose=False)
+				if (skyfield_loader.exists(ephemeris_path)):
+					self.log(4, 'INFO: Using cached ephemeris data')
+				else:
+					self.log(4, 'INFO: Downloading ephemeris data')
+				self._eph = skyfield_loader('de421.bsp')
+			except Exception as err:
+				self.log(0, f'ERROR in {__file__}: Unable to download de421.bsp: {err}')
+				self._enable_skyfield = False
+		
+			self._earth = self._eph["earth"]
+			self._sun = self._eph["sun"]
+						
+			self._observer_lat = allsky_shared.getSetting('latitude')
+			self._observer_lon = allsky_shared.getSetting('longitude')
+			self._observer_elevation = self.get_param('elevation', 0, int)
+		
+			lat = allsky_shared.convertLatLon(self._observer_lat)
+			lon = allsky_shared.convertLatLon(self._observer_lon)
+			self._observer = wgs84.latlon(lat, lon, elevation_m=self._observer_elevation)
+
+			self._obs_bary = self._earth + self._observer 
+						
+			self._visible = {}
+
+			self._ts = load.timescale()
+			self._tz_name, self._tz = self._getTimeZone()
+		except Exception as e:
+			eType, eObject, eTraceback = sys.exc_info()
+			L = eTraceback.tb_lineno
+			self.log(0, f"ERROR in {__file__}: __init__ failed on line {L} - {e}")	
+		
+    
 	def _initialiseExtraData(self):
 		self._extra_data = {}
 
@@ -528,6 +669,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				observer = ephem.Observer()
 				observer.lat = lat
 				observer.long = lon
+				observer.elevation = self._observer_elevation
 				moon = ephem.Moon()
 				obs_date = datetime.now() - timedelta(seconds=utc_offset)
 				observer.date = obs_date
@@ -610,15 +752,22 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		return sunData
 
 	def _getTimeZone(self):
+		tz = "UTC"
 		try:
-			file = open('/etc/timezone', 'r')
-			tz = file.readline()
-			tz = tz.strip()
-			file.close()
-		except:
-			tz = "Europe/London"
+				raw = Path("/etc/timezone").read_text(encoding="utf-8").strip()
+				if raw:
+						tz = raw
+		except Exception:
+				pass
 
+		if ZoneInfo is not None:
+				try:
+						ZoneInfo(tz)
+				except Exception:
+						tz = "UTC"
+						
 		return tz, timezone(tz)
+  
 
 	def _calculateSun(self):
 		try:
@@ -627,7 +776,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			lon = allsky_shared.convertLatLon(self._observer_lon)
 
 			tzName, tz = self._getTimeZone()
-			location = Observer(lat, lon, 0)
+			location = Observer(lat, lon, self._observer_elevation)
 
 			today = datetime.now(tz)
 			tomorrow = today + timedelta(days = 1)
@@ -707,7 +856,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			earth = self._eph['earth']
 			latitude = allsky_shared.convertLatLon(self._observer_lat)
 			longitude = allsky_shared.convertLatLon(self._observer_lon)
-			observer_location = earth + Topos(latitude_degrees=latitude, longitude_degrees=longitude)
+			observer_location = earth + Topos(latitude_degrees=latitude, longitude_degrees=longitude, elevation_m=0)
 			
 			if self.get_param('planetMercuryEnabled', False, bool):       
 				self._set_planet_data(self._eph['MERCURY BARYCENTER'], observer_location, 'Mercury')
@@ -815,8 +964,10 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			self.log(0, f"ERROR in {__file__}: _fetch_tle_from_celestrak failed on line {eTraceback.tb_lineno} - {e}")
+   
 		return tle_data
 
+	'''
 	def _calcSatellites(self):
 		try:
 			satellites = self.get_param('tles', '', str)   
@@ -827,7 +978,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				for tle_key in satelliteArray:
 					tle_data = self._fetch_tle_from_celestrak(tle_key)
 					for _, tle in tle_data.items():
-						self._calculate_satellite(tle)
+						self._calculate_satellite(tle, False)
 			
 			
 				self._visible = dict(sorted(self._visible.items(), key=lambda item: item[1]['elevation'], reverse=True))
@@ -839,103 +990,359 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		except Exception as e:     
 			eType, eObject, eTraceback = sys.exc_info()
 			self.log(0, f"ERROR in {__file__}: _calcSatellites failed on line {eTraceback.tb_lineno} - {e}")    
+		'''
 
-	def _calculate_satellite(self, tle):
+	def _tz_dt(self, d: dt.datetime, tzname: str) -> dt.datetime:
+			if d.tzinfo is None:
+					d = d.replace(tzinfo=dt.timezone.utc)
+			if tzname.upper() == "UTC" or ZoneInfo is None:
+					return d.astimezone(dt.timezone.utc)
+			return d.astimezone(ZoneInfo(tzname))
+    
+	def _calcSatellites(self):
+
+		results = {}
+  
 		try:
-			try:
-				sat_min_elevation = int(self._params['sat_min_elevation'])
-			except:
-				sat_min_elevation = 15
-			
-			latitude = allsky_shared.convertLatLon(self._observer_lat)
-			longitude = allsky_shared.convertLatLon(self._observer_lon)
-			altitude = 0
-			
-			observer_location = Topos(latitude_degrees=latitude, longitude_degrees=longitude, elevation_m=altitude)
-
-			time_scale = load.timescale()
-			sat_time = time_scale.now()
-
-			satellite = EarthSatellite(tle['line2'], tle['line3'], tle['line1'], time_scale)
-			self.log(4, f' Calculating {satellite.name}')
-			norad_id = str(satellite.model.satnum)
-
-			difference = satellite - observer_location
-
-			topocentric = difference.at(sat_time)
-			alt, az, distance = topocentric.altaz()
-			sunlit = satellite.at(sat_time).is_sunlit(self._eph)
-
-			visible = False
-			if alt.degrees > sat_min_elevation and sunlit:
-				visible = True
-	
-			self._add_satellite_to_extra_data(norad_id, alt, az, distance, satellite.name, visible)
-
-			if visible:
-				self._extra_data['AS_' + norad_id + 'VISIBLE'] = 'Yes'
-				self._visible[norad_id] = {
-					'norad_id': norad_id,
-					'name': satellite.name,
-					'elevation': alt.degrees,
-					'alt' : alt,
-					'az': az,
-					'distance': distance
-				}
+			iss_enabled = self.get_param('issEnabled', False, bool)
+			iss_visible_only = self.get_param('issVisibleOnly', False, bool)
+			norad_ids_list = self.get_param('tles', '', str)
+			iss_pass_days = self.get_param('issPassDays', '', str)
+			iss_min_max_alt_deg = self.get_param('issPassDaysMinMaxElevation', '', str)
+			min_event_alt_deg = self.get_param('sat_min_elevation', '', str)
+			twilight_sun_alt_deg = allsky_shared.get_setting('angle')
+			iss_max_passes = self.get_param('issNumPass', 3, int)
+   
+			if not norad_ids_list.strip():
+					norad_ids = []
 			else:
-				self._extra_data['AS_' + norad_id + 'VISIBLE'] = 'No'
+					norad_ids = [v.strip() for v in norad_ids_list.split(',') if v.strip()]
 
+			if iss_enabled and '25544' not in norad_ids:
+				norad_ids.append('25544')
+			
+			for norad_id in norad_ids:
+				tle_data = self._fetch_tle_from_celestrak(norad_id.strip())
+				sat = EarthSatellite(
+					tle_data[0]['line2'],
+					tle_data[0]['line3'],
+					tle_data[0]['line1']
+				)
+
+				satnum = getattr(sat.model, "satnum", None)
+				sat_key = str(satnum) if satnum is not None else sat.name
+
+				if norad_id == '25544' and iss_enabled:
+					passes = self._find_passes(
+								sat=sat,
+								days=iss_pass_days,
+								visible_only=iss_visible_only,
+								min_max_alt_deg=iss_min_max_alt_deg,
+								min_event_alt_deg=min_event_alt_deg,
+								twilight_sun_alt_deg=twilight_sun_alt_deg,
+								max_passes=iss_max_passes,
+						)
+				else:
+					passes = []
+     
+				results[sat_key] = {
+						"name": sat.name,
+						"norad_id": satnum,
+						"tle_epoch_local": self._tz_dt(
+								sat.epoch.utc_datetime().replace(tzinfo=dt.timezone.utc),
+								self._tz_name,
+						).isoformat(),
+						"tle_age_days": float(self._ts.now() - sat.epoch),
+						"position_now": self._satellite_position_now(sat),
+						"passes": passes
+				}
+    
+				self._add_satellite_to_extra_data(results[sat_key])
+     
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f"ERROR in {__file__}: _calculate_satellite failed on line {eTraceback.tb_lineno} - {e}")
-   
+			L = eTraceback.tb_lineno
+			self.log(0, f"ERROR in {__file__}: _calcSatellites failed on line {L} - {e}")	
+		  
 		return True
 
-	def _add_satellite_to_extra_data(self, norad_id, alt, az, distance, name, visible, prefix=''):
+	def _satellite_position_now(self, sat: EarthSatellite, twilight_sun_alt_deg: float = -6.0) -> Dict[str, Any]:
 		try:
-			self._custom_fields[f'AS_{prefix}{norad_id}_ID'] = {
-				'value': norad_id,
-				'group': 'Solar System',
-				'type': 'string',
-				'description': 'Satellite id'
+			t = self._ts.now()
+
+			topo = (sat - self._observer).at(t)
+			alt, az, dist = topo.altaz()
+
+			sub = sat.at(t).subpoint()
+
+			sat_sunlit = bool(sat.at(t).is_sunlit(self._eph))
+			sun_alt = self._sun_altitude_deg(t)
+			observer_dark = sun_alt < float(twilight_sun_alt_deg)
+			above_horizon = alt.degrees > 0.0
+
+			is_visible = bool(sat_sunlit and observer_dark and above_horizon)
+			
+			return {
+					"time_local": self._tz_dt(
+							t.utc_datetime().replace(tzinfo=dt.timezone.utc),
+							self._tz_name,
+					).isoformat(),
+					"alt_deg": float(alt.degrees),
+					"az_deg": float(az.degrees),
+					"range_km": float(dist.km),
+					"sat_alt_km": float(sub.elevation.km),
+					"subpoint": {
+							"lat_deg": float(sub.latitude.degrees),
+							"lon_deg": float(sub.longitude.degrees),
+							"elevation": float(sub.elevation.km),
+							"elevation_m": float(sub.elevation.m)
+					},
+					"sunlit": sat_sunlit,
+					"sun_alt_deg": sun_alt,
+					"observer_dark": observer_dark,
+					"above_horizon": above_horizon,
+					"is_visible": is_visible
 			}
-			self._custom_fields[f'AS_{prefix}{norad_id}_NAME'] = {
-				'value': name,
-				'group': 'Solar System',
-				'type': 'string',
-				'description': 'Satellite name'
-			}   
-			self._custom_fields[f'AS_{prefix}{norad_id}_ALT'] = {
-				'value': float(alt.degrees),      
-				'group': 'Solar System',
-				'type': 'elevation',
-    			"format": "{dp=2|deg}",    
-				'description': 'Satellite altitude'
+   
+		except Exception as e:
+			eType, eObject, eTraceback = sys.exc_info()
+			L = eTraceback.tb_lineno
+			self.log(0, f"ERROR in {__file__}: _satellite_position_now failed on line {L} - {e}")	
+   
+		return {}
+
+	def _find_passes(
+			self,
+			sat: EarthSatellite,
+			days: float,
+			visible_only: bool = False,
+			min_max_alt_deg: float = 0.0,
+			min_event_alt_deg: float = 0.0,
+			twilight_sun_alt_deg: float = -6.0,
+			max_passes: int = 3,
+	) -> List[Dict[str, Any]]:
+			t0 = self._ts.now()
+			t1 = t0 + float(days)
+
+			times, events = sat.find_events(self._observer, t0, t1, altitude_degrees=float(min_event_alt_deg))
+
+			passes: List[Dict[str, Any]] = []
+			i = 0
+			while i < len(events) - 2 and len(passes) < int(max_passes):
+					if events[i] == 0 and events[i + 1] == 1 and events[i + 2] == 2:
+							tr, tc, ts_ = times[i], times[i + 1], times[i + 2]
+
+							r_alt, r_az, _ = (sat - self._observer).at(tr).altaz()
+							c_alt, c_az, _ = (sat - self._observer).at(tc).altaz()
+							s_alt, s_az, _ = (sat - self._observer).at(ts_).altaz()
+
+							max_alt = float(c_alt.degrees)
+							if max_alt < float(min_max_alt_deg):
+									i += 3
+									continue
+
+							r_flags = self._event_flags(sat, tr, twilight_sun_alt_deg)
+							c_flags = self._event_flags(sat, tc, twilight_sun_alt_deg)
+							s_flags = self._event_flags(sat, ts_, twilight_sun_alt_deg)
+
+							pass_visible_any = bool(r_flags["visible"] or c_flags["visible"] or s_flags["visible"])
+							if visible_only and not pass_visible_any:
+									i += 3
+									continue
+
+							rise_dt_utc = tr.utc_datetime().replace(tzinfo=dt.timezone.utc)
+							culm_dt_utc = tc.utc_datetime().replace(tzinfo=dt.timezone.utc)
+							set_dt_utc = ts_.utc_datetime().replace(tzinfo=dt.timezone.utc)
+
+							rise_local = self._tz_dt(rise_dt_utc, self._tz_name)
+							culm_local = self._tz_dt(culm_dt_utc, self._tz_name)
+							set_local = self._tz_dt(set_dt_utc, self._tz_name)
+
+							duration_s = int((set_dt_utc - rise_dt_utc).total_seconds())
+
+							passes.append(
+									{
+											"rise": {
+													"time_local": rise_local.isoformat(),
+													"alt_deg": float(r_alt.degrees),
+													"az_deg": float(r_az.degrees),
+													**r_flags,
+											},
+											"culmination": {
+													"time_local": culm_local.isoformat(),
+													"alt_deg": float(c_alt.degrees),
+													"az_deg": float(c_az.degrees),
+													"max_alt_deg": max_alt,
+													**c_flags,
+											},
+											"set": {
+													"time_local": set_local.isoformat(),
+													"alt_deg": float(s_alt.degrees),
+													"az_deg": float(s_az.degrees),
+													**s_flags,
+											},
+											"duration_s": duration_s,
+											"pass_visible_any": pass_visible_any,
+									}
+							)
+
+							i += 3
+					else:
+							i += 1
+
+			return passes
+      
+	def _sun_altitude_deg(self, t) -> float:
+			alt, _, _ = (self._sun - self._obs_bary).at(t).altaz()
+			return float(alt.degrees)
+      
+	def _event_flags(self, sat: EarthSatellite, t, twilight_sun_alt_deg: float) -> Dict[str, Any]:
+			sat_sunlit = bool(sat.at(t).is_sunlit(self._eph))
+			sun_alt = self._sun_altitude_deg(t)
+			observer_dark = sun_alt < float(twilight_sun_alt_deg)
+			visible = sat_sunlit and observer_dark
+			return {
+					"sat_sunlit": sat_sunlit,
+					"sun_alt_deg": sun_alt,
+					"observer_dark": observer_dark,
+					"visible": visible,
 			}
-			self._custom_fields[f'AS_{prefix}{norad_id}_AZ'] = {
-				'value': float(az.degrees),
-				'group': 'Solar System',
-				'type': 'azimuth',
-    			"format": "{int|deg}", 
-				'description': 'Satellite azimuth'
-			}
-			self._custom_fields[f'AS_{prefix}{norad_id}_DISTANCE'] = {
-				'value': float(distance.km),
-				'group': 'Solar System',
-				'type': 'number',
-				'description': 'Satellite distance in KM'
-			}
-			self._custom_fields[f'AS_{prefix}{norad_id}_VISIBLE'] = {
-				'value': visible,
-				'group': 'Solar System',
-				'type': 'bool',
-				"format": "{yesno}",
-				'description': 'Satellite visible'
-			}
+
+
+	def _iso_to_unix(self, ts: str) -> int:
+			dt = datetime.fromisoformat(ts)
+			return int(dt.timestamp())
+
+	def _add_satellite_to_extra_data(self, data, prefix=''):
+           
+		try:
+				if data['position_now']:
+					altitude = data['position_now']['subpoint']['elevation']
+					az = data['position_now']['az_deg']
+					ele = data['position_now']['alt_deg']
+					distance = data['position_now']['range_km']
+					visible = data['position_now']['is_visible']
+					norad_id = data['norad_id']
+					name = data['name']
+			
+					if norad_id == 25544:
+						self._custom_fields[f'AS_{prefix}{norad_id}_VISIBLE_PASSES'] = {
+							'value': 'None Found',
+							'group': 'Solar System',
+							'type': 'string',
+							'description': f'Text flag for no passes available'
+						}
+			
+						if data['passes']:
+				
+							visible_count = sum(
+									1 for p in data['passes'] if p.get('pass_visible_any', False)
+							)
+
+							self._custom_fields[f'AS_{prefix}{norad_id}_VISIBLE_PASSES']['value'] = 'None Found' if visible_count == 0 else ''
+
+							for index, sat_pass in enumerate(data['passes'], start=1):
+									rise = sat_pass['rise']
+									culm = sat_pass['culmination']
+									set_ = sat_pass['set']
+         
+									self._custom_fields[f'AS_{prefix}{norad_id}_PASS{index}_RISE_TIME'] = {
+										'value': self._iso_to_unix(rise['time_local']),
+										'group': 'Solar System',
+										'format': '{timeformat}',
+										'type': 'date',
+										'description': f'ISS Pass {index} Rise Time'
+									}
+         
+									self._custom_fields[f'AS_{prefix}{norad_id}_PASS{index}_CUL_TIME'] = {
+										'value': self._iso_to_unix(culm['time_local']),
+										'group': 'Solar System',
+										'format': '{timeformat}',
+										'type': 'date',
+										'description': f'ISS Pass {index} Culmination Time'
+									}
+
+									self._custom_fields[f'AS_{prefix}{norad_id}_PASS{index}_SET_TIME'] = {
+										'value': self._iso_to_unix(set_['time_local']),
+										'group': 'Solar System',
+										'format': '{timeformat}',
+										'type': 'date',
+										'description': f'ISS Pass {index} Set Time'
+									}
+                       
+									self._custom_fields[f'AS_{prefix}{norad_id}_PASS{index}_DURATION'] = {
+										'value': sat_pass['duration_s'],
+										'group': 'Solar System',
+										'format': '{dp=0}',
+										'type': 'date',
+										'description': f'ISS Pass {index} Duration in seconds'
+									}
+
+									self._custom_fields[f'AS_{prefix}{norad_id}_PASS{index}_MAX_ELE'] = {
+										'value': culm['max_alt_deg'],
+										'group': 'Solar System',
+										'format': '{dp=2}',
+										'type': 'elevation',
+										'description': f'ISS Pass {index} Max Elevation in degrees'
+									}
+                               
+									self._custom_fields[f'AS_{prefix}{norad_id}_PASS{index}_VISIBLE'] = {
+										'value': sat_pass['pass_visible_any'],
+										'group': 'Solar System',
+										'type': 'bool',
+										'description': f'ISS Pass {index} Visible'
+									}
+     
+					self._custom_fields[f'AS_{prefix}{norad_id}_ID'] = {
+						'value': norad_id,
+						'group': 'Solar System',
+						'type': 'string',
+						'description': 'Satellite id'
+					}
+					self._custom_fields[f'AS_{prefix}{norad_id}_NAME'] = {
+						'value': name,
+						'group': 'Solar System',
+						'type': 'string',
+						'description': 'Satellite name'
+					}   
+					self._custom_fields[f'AS_{prefix}{norad_id}_ELE'] = {
+						'value': float(ele),      
+						'group': 'Solar System',
+						'type': 'elevation',
+						'format': '{dp=2|deg}',    
+						'description': 'Satellite altitude'
+					}
+					self._custom_fields[f'AS_{prefix}{norad_id}_AZ'] = {
+						'value': float(az),
+						'group': 'Solar System',
+						'type': 'azimuth',
+						'format': '{int|deg}', 
+						'description': 'Satellite azimuth'
+					}
+					self._custom_fields[f'AS_{prefix}{norad_id}_ALT'] = {
+						'value': float(altitude),      
+						'group': 'Solar System',
+						'type': 'number',
+						'format': '{dp=2}',
+						'description': 'Satellite altitude'
+					}   
+					self._custom_fields[f'AS_{prefix}{norad_id}_DISTANCE'] = {
+						'value': float(distance),
+						'group': 'Solar System',
+						'type': 'number',
+						'description': 'Satellite distance in KM'
+					}
+					self._custom_fields[f'AS_{prefix}{norad_id}_VISIBLE'] = {
+						'value': visible,
+						'group': 'Solar System',
+						'type': 'bool',
+						'format': '{yesno}',
+						'description': 'Satellite visible'
+					}
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			self.log(0, f"ERROR in {__file__}: _add_satellite_to_extra_data failed on line {eTraceback.tb_lineno} - {e}")    
-  
+          
 	def run(self):
 		# check Skyfield initilaised ok
 		self._initialiseExtraData()
@@ -951,7 +1358,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		self._calcSatellites()
 
 		self._saveExtraData()
-		
+
 		return 'OK'
 
 def solarsystem(params, event):
@@ -971,3 +1378,4 @@ def solarsystem_cleanup():
 	    }
 	}
 	allsky_shared.cleanupModule(moduleData)
+

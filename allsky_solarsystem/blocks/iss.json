@@ -40,7 +40,7 @@
                     "text": "Elevation:"
                 },
                 "col2": {
-                    "text": "${AS_25544_ALT}"
+                    "text": "${AS_25544_ELE}"
                 }
             },
             "issrow5": {

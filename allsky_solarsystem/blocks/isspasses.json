@@ -1,0 +1,88 @@
+{
+    "planetsblock": {
+        "name": "ISS Passes",
+        "description": "Next 3 ISS Passes",
+        "fields": {
+            "issrow0": {
+                "col1": {
+                    "text": "Rise Time"
+                },
+                "col2": {
+                    "text": "Culmination Time"
+                },
+                "col3": {
+                    "text": "Set Time"
+                },
+                "col4": {
+                    "text": "Duration"
+                },
+                "col5": {
+                    "text": "Max Elevation"
+                },
+                "col6": {
+                    "text": "Visible"
+                }                
+            },            
+            "issrow1": {
+                "col1": {
+                    "text": "${AS_25544_PASS1_RISE_TIME}"
+                },
+                "col2": {
+                    "text": "${AS_25544_PASS1_CUL_TIME}"
+                },
+                "col3": {
+                    "text": "${AS_25544_PASS1_SET_TIME}"
+                },
+                "col4": {
+                    "text": "${AS_25544_PASS1_DURATION}"
+                },
+                "col5": {
+                    "text": "${AS_25544_PASS1_MAX_ELE}"
+                },
+                "col6": {
+                    "text": "${AS_25544_PASS1_VISIBLE}"
+                }
+            },
+            "issrow2": {
+                "col1": {
+                    "text": "${AS_25544_PASS2_RISE_TIME}"
+                },
+                "col2": {
+                    "text": "${AS_25544_PASS2_CUL_TIME}"
+                },
+                "col3": {
+                    "text": "${AS_25544_PASS2_SET_TIME}"
+                },
+                "col4": {
+                    "text": "${AS_25544_PASS2_DURATION}"
+                },
+                "col5": {
+                    "text": "${AS_25544_PASS2_MAX_ELE}"
+                },
+                "col6": {
+                    "text": "${AS_25544_PASS2_VISIBLE}"
+                }
+            },
+            "issrow3": {
+                "col1": {
+                    "text": "${AS_25544_PASS3_RISE_TIME}"
+                },
+                "col2": {
+                    "text": "${AS_25544_PASS3_CUL_TIME}"
+                },
+                "col3": {
+                    "text": "${AS_25544_PASS3_SET_TIME}"
+                },
+                "col4": {
+                    "text": "${AS_25544_PASS3_DURATION}"
+                },
+                "col5": {
+                    "text": "${AS_25544_PASS3_MAX_ELE}"
+                },
+                "col6": {
+                    "text": "${AS_25544_PASS3_VISIBLE}"
+                }
+            }
+        }
+    }
+}
