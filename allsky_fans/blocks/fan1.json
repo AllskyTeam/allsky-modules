@@ -1,0 +1,24 @@
+{
+    "allskyfan1block": {
+        "name": "Fan 1",
+        "description": "Fan 1 Data",
+        "fields": {
+            "asrow1": {
+                "col1": {
+                    "text": "State:"
+                },
+                "col2": {
+                    "text": "${AS_FANS_FAN_STATE1}"
+                }
+            },
+            "asrow2": {
+                "col1": {
+                    "text": "PWM %:"
+                },
+                "col2": {
+                    "text": "${AS_FANS_PWM_DUTY_PERCENT1}"
+                }
+            }
+        }
+    }
+}

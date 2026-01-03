@@ -1,0 +1,32 @@
+{
+    "allskychannel1block": {
+        "name": "Channel 1",
+        "description": "Channel 1 Power data",
+        "fields": {
+            "asrow1": {
+                "col1": {
+                    "text": "Voltage:"
+                },
+                "col2": {
+                    "text": "${POWER_VOLTAGE1}"
+                }
+            },
+            "asrow2": {
+                "col1": {
+                    "text": "Current:"
+                },
+                "col2": {
+                    "text": "${POWER_CURRENT1}"
+                }
+            },
+            "asrow3": {
+                "col1": {
+                    "text": "Power:"
+                },
+                "col2": {
+                    "text": "${POWER_CURRENT1}"
+                }
+            }
+        }
+    }
+}
