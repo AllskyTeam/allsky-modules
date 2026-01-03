@@ -34,7 +34,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		"name": "Get Solar System Data",
 		"description": "Obtain data for Solar System objects",
 		"module": "allsky_solarsystem",
-		"version": "v1.0.1",
+		"version": "v1.1.0",
 		"testable": "true",
 		"centersettings": "false",
 		"group": "Data Capture",   
@@ -54,12 +54,12 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
     			"pk_type": "int",
     			"include_all": "false",       
        			"time_of_day_save": {
-					"day": "enabled",
-					"night": "enabled",
-					"nightday": "never",
-					"daynight": "never",
-					"periodic": "enabled"
-				}         
+							"day": "enabled",
+							"night": "enabled",
+							"nightday": "never",
+							"daynight": "never",
+							"periodic": "enabled"
+						}         
 			},          
 			"values": {
 				"AS_MOON_AZIMUTH": {
@@ -329,14 +329,16 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			"planetUranusEnabled": "false",
 			"planetNeptuneEnabled": "false",
 			"planetPlutoEnabled": "false",
-			"planetElevation": "5",
+			"planetElevation": "10",
 			"tles": "",
-			"sat_min_elevation": "15",
+			"sat_min_elevation": "10",
 			"issEnabled": "false",
 			"issPassDays": "5",
 			"issNumPass": "5",
 			"issVisibleOnly": "true",
-			"issPassDaysMinMaxElevation": "30"
+			"issPassDaysMinMaxElevation": "15",
+			"issdebugPasses": "false",
+			"issAOSLOSelevation": "10"
 		},
 		"argumentdetails": {
 			"elevation": {
@@ -480,7 +482,23 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 						"issEnabled"
 					]
 				}    
-			},   
+			},
+			"issdebugPasses": {
+				"required": "false",
+				"description": "Debug Passes",
+				"help": "Displays pass data when testing the module",
+				"tab": "ISS",
+				"type": {
+					"fieldtype": "checkbox"
+				},
+				"filters": {
+					"filter": "issEnabled",
+					"filtertype": "show",
+					"values": [
+						"issEnabled"
+					]
+				}    
+			},
 			"issPassDays": {
 				"required": "false",
 				"description": "Pass days",
@@ -518,11 +536,30 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 						"issEnabled"
 					]
 				}               
-			},   
+			},  
+			"issAOSLOSelevation": {
+				"required": "false",
+				"description": "AOS/LOS Elevation",
+				"help": "The elevation at witch AOS/LOS is calculated.",
+				"tab": "ISS",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 90,
+					"step": 1
+				},
+				"filters": {
+					"filter": "issEnabled",
+					"filtertype": "show",
+					"values": [
+						"issEnabled"
+					]
+				}               
+			}, 
 			"issPassDaysMinMaxElevation": {
 				"required": "false",
 				"description": "Min Elevation",
-				"help": "Only show passes above this max elevation.",
+				"help": "Only show passes where the culmination is above this elevation.",
 				"tab": "ISS",
 				"type": {
 					"fieldtype": "spinner",
@@ -587,7 +624,18 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 					"authorurl": "https://github.com/allskyteam",
 					"changes": "Updates for new variables system"
 				}
-			]     
+			],
+			"v1.1.0" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": [
+       			"Refactored satellite code",
+						"Split ISS into its own settings",
+						"Added passes overlay data to ISS"
+          ]
+				}
+			]       
 		}
 	}
     
@@ -642,8 +690,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			eType, eObject, eTraceback = sys.exc_info()
 			L = eTraceback.tb_lineno
 			self.log(0, f"ERROR in {__file__}: __init__ failed on line {L} - {e}")	
-		
-    
+		  
 	def _initialiseExtraData(self):
 		self._extra_data = {}
 
@@ -768,7 +815,6 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 						
 		return tz, timezone(tz)
   
-
 	def _calculateSun(self):
 		try:
 
@@ -967,31 +1013,6 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
    
 		return tle_data
 
-	'''
-	def _calcSatellites(self):
-		try:
-			satellites = self.get_param('tles', '', str)   
-			satellites = satellites.strip()
-			
-			if satellites != '':
-				satelliteArray = list(map(str.strip, satellites.split(',')))
-				for tle_key in satelliteArray:
-					tle_data = self._fetch_tle_from_celestrak(tle_key)
-					for _, tle in tle_data.items():
-						self._calculate_satellite(tle, False)
-			
-			
-				self._visible = dict(sorted(self._visible.items(), key=lambda item: item[1]['elevation'], reverse=True))
-				counter = 1
-				for key, item in self._visible.items():
-					prefix = f'VISIBLE{counter}_'
-					self._add_satellite_to_extra_data(item['norad_id'], item['alt'], item['az'], item['distance'], item['name'], True, prefix)
-					counter = counter + 1
-		except Exception as e:     
-			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f"ERROR in {__file__}: _calcSatellites failed on line {eTraceback.tb_lineno} - {e}")    
-		'''
-
 	def _tz_dt(self, d: dt.datetime, tzname: str) -> dt.datetime:
 			if d.tzinfo is None:
 					d = d.replace(tzinfo=dt.timezone.utc)
@@ -1007,11 +1028,13 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			iss_enabled = self.get_param('issEnabled', False, bool)
 			iss_visible_only = self.get_param('issVisibleOnly', False, bool)
 			norad_ids_list = self.get_param('tles', '', str)
-			iss_pass_days = self.get_param('issPassDays', '', str)
+			iss_pass_days = self.get_param('issPassDays', 0, int)
 			iss_min_max_alt_deg = self.get_param('issPassDaysMinMaxElevation', '', str)
 			min_event_alt_deg = self.get_param('sat_min_elevation', '', str)
 			twilight_sun_alt_deg = allsky_shared.get_setting('angle')
 			iss_max_passes = self.get_param('issNumPass', 3, int)
+			iss_debug_passes = self.get_param('issdebugPasses', False, bool)   
+			iss_aos_los_elevation = self.get_param('issAOSLOSelevation', 10, int)
    
 			if not norad_ids_list.strip():
 					norad_ids = []
@@ -1032,13 +1055,13 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				satnum = getattr(sat.model, "satnum", None)
 				sat_key = str(satnum) if satnum is not None else sat.name
 
-				if norad_id == '25544' and iss_enabled:
+				if norad_id == '25544' and iss_enabled and iss_pass_days > 0:
 					passes = self._find_passes(
 								sat=sat,
 								days=iss_pass_days,
 								visible_only=iss_visible_only,
 								min_max_alt_deg=iss_min_max_alt_deg,
-								min_event_alt_deg=min_event_alt_deg,
+								min_event_alt_deg=iss_aos_los_elevation,
 								twilight_sun_alt_deg=twilight_sun_alt_deg,
 								max_passes=iss_max_passes,
 						)
@@ -1056,6 +1079,20 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 						"position_now": self._satellite_position_now(sat),
 						"passes": passes
 				}
+
+				if iss_debug_passes:
+					for i, p in enumerate(passes, start=1):
+							rise = p["rise"]
+							culm = p["culmination"]
+							set_ = p["set"]
+
+							print(f"Pass {i}")
+							print(f"  Rise: {rise['time_local']}  alt={rise['alt_deg']:.1f}° az={rise['az_deg']:.1f}°")
+							print(f"  Max : {culm['time_local']} alt={culm['max_alt_deg']:.1f}° az={culm['az_deg']:.1f}°")
+							print(f"  Set : {set_['time_local']}  alt={set_['alt_deg']:.1f}° az={set_['az_deg']:.1f}°")
+							print(f"  Duration: {p['duration_s']} s")
+							print(f"  Visible any: {p['pass_visible_any']}")
+							print()
     
 				self._add_satellite_to_extra_data(results[sat_key])
      
@@ -1190,6 +1227,8 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 					else:
 							i += 1
 
+			self.log(4, f'INFO: Found {len(passes)} passes for {sat.name}, min culmination altitude {min_max_alt_deg} deg')
+
 			return passes
       
 	def _sun_altitude_deg(self, t) -> float:
@@ -1207,7 +1246,6 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 					"observer_dark": observer_dark,
 					"visible": visible,
 			}
-
 
 	def _iso_to_unix(self, ts: str) -> int:
 			dt = datetime.fromisoformat(ts)
