@@ -688,7 +688,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 				else:
 					self.log(0, f'ERROR in {__file__}: Cannot locate environment variable {variable} specified in the extradata')
 			else:
-				self.log(0, 'ERROR in {__file__}: Empty environment variable specified in the extradata field. Check commas!')
+				self.log(0, f'ERROR in {__file__}: Empty environment variable specified in the extradata field. Check commas!')
 
 			self._json_data['utc'] = self._get_utc_timestamp()
    
