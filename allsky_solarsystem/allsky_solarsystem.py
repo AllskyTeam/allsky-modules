@@ -520,7 +520,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			},
 			"issNumPass": {
 				"required": "false",
-				"description": "Number Of Pass",
+				"description": "Number Of Passes",
 				"help": "The number of passes to return when looking ahead. NOTE: the result may be less than this number",
 				"tab": "ISS",
 				"type": {
@@ -577,6 +577,9 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			},     
 			"tles": {
 				"required": "false",
+				"type": {
+					"fieldtype": "satpicker"
+				},
 				"description": "Norad IDs",
 				"help": "List of NORAD IDs to calculate satellite positions for. Satellite IDs can be found on the <a href=\"https://celestrak.org/satcat/search.php\" target=\"_blank\">Celestrak</a> website. See the documentaiton for more details.",
 				"tab": "Satellites"
