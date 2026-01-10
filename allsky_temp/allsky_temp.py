@@ -2476,8 +2476,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		pressure = None
 		the_dew_point = None
 
-		allskyPath = allsky_shared.getEnvironmentVariable('ALLSKY_HOME')
-		extra_data_fileName = os.path.join(allskyPath, 'config', 'overlay', 'extra', file_name)
+		extra_path = allsky_shared.get_extra_dir(True)
+		extra_data_fileName = os.path.join(extra_path, file_name)
 
 		if os.path.isfile(extra_data_fileName):
 			file_modified_time = int(os.path.getmtime(extra_data_fileName))
@@ -2577,7 +2577,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			else:
 				self.log(4, f'INFO: Using Cached Openweather API data')
 
-			temperature, humidity, pressure, the_dew_point = self._get_ow_values(file_name)                
+			temperature, humidity, pressure, the_dew_point = self._get_ow_values(file_name)
+
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			self.log(0, f'ERROR in {__file__}: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}')
