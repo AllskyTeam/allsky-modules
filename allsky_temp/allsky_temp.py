@@ -189,6 +189,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"gpio1": "",
 			"gpioon1": "On",
 			"gpiooff1": "Off",
+			"invertgpio1": "False",   
 			"owapikey1": "",        
 			"owfilename1": "",        
 			"owperiod1": "",        
@@ -213,6 +214,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"gpio2": "",
 			"gpioon2": "On",
 			"gpiooff2": "Off",
+			"invertgpio2": "False",    
 			"owapikey2": "",        
 			"owfilename2": "",        
 			"owperiod2": "",        
@@ -236,6 +238,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"gpio3": "",
 			"gpioon3": "On",
 			"gpiooff3": "Off",
+			"invertgpio3": "False",   
 			"owapikey3": "",
 			"owfilename3": "",
 			"owperiod3": "",
@@ -1212,6 +1215,33 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}                      
 			},
+			"invertgpio1" : {
+				"required": "false",
+				"description": "Invert GPIO",
+				"help": "Select this option if the device is wired to activate on the GPIO pin going Low",
+				"tab": "Sensor 1",
+				"type": {
+					"fieldtype": "checkbox"
+				},
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",              
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather",
+						"SCD30",
+						"BME680"
+					]
+				}    
+			},   
 			"gpioon1": {
 				"required": "false",
 				"description": "GPIO On",
@@ -1752,6 +1782,33 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}                     
 			},
+			"invertgpio2" : {
+				"required": "false",
+				"description": "Invert GPIO",
+				"help": "Select this option if the device is wired to activate on the GPIO pin going Low",
+				"tab": "Sensor 2",
+				"type": {
+					"fieldtype": "checkbox"
+				},
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",              
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather",
+						"SCD30",
+						"BME680"
+					]
+				}    
+			},    
 			"gpioon2": {
 				"required": "false",
 				"description": "GPIO On",
@@ -2292,6 +2349,33 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}                    
 			},
+			"invertgpio3" : {
+				"required": "false",
+				"description": "Invert GPIO",
+				"help": "Select this option if the device is wired to activate on the GPIO pin going Low",
+				"tab": "Sensor 3",
+				"type": {
+					"fieldtype": "checkbox"
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",              
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather",
+						"SCD30",
+						"BME680"
+					]
+				}    
+			},    
 			"gpioon3": {
 				"required": "false",
 				"description": "GPIO On",
@@ -3019,6 +3103,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				if sensor_type != 'None':
 					self.log(4, f'INFO: Reading sensor {sensor_number}, {sensor_type}')
 					name = self.get_param('name' + sensor_number, 'Unknown', str)
+					invert_gpio = self.get_param('invertgpio' + sensor_number, False, bool)     
 					max_temp_key = "temp" + sensor_number
 					max_temp = self.get_param(max_temp_key, -1, float)       
 					
@@ -3052,18 +3137,16 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						if temperature is not None and sensor_number != "": 
 							if max_temp != -1 and gpio_pin != -1:
 								try:
-									gpio = allsky_shared.getGPIOPin(gpio_pin)
-									pin = DigitalInOut(gpio)
-									pin.switch_to_output()                   
+                          
 									if temperature > max_temp:
-										gpio_value = True
-						
-										self.log(4, f'INFO: Temperature {temperature} is greater than {max_temp} so enabling GPIO {gpio_pin}')
-										pin.value = 1
+										gpio_value = 'off' if invert_gpio else 'on'
+										self.log(4, f'INFO: Temperature {temperature} is greater than {max_temp} so enabling GPIO {gpio_pin} {gpio_value}.')
 									else:
-										gpio_value = False
-										self.log(4, f'INFO: Temperature {temperature} is less than {max_temp} so disabling GPIO {gpio_pin}')
-										pin.value = 0
+										gpio_value = 'on' if invert_gpio else 'off'
+										self.log(4, f'INFO: Temperature {temperature} is less than {max_temp} so disabling GPIO {gpio_pin} {gpio_value}.')
+          
+									allsky_shared.set_gpio_pin(gpio_pin, gpio_value)
+                   
 								except Exception as e:    
 									eType, eObject, eTraceback = sys.exc_info()
 									result = f'ERROR in {__file__}: Failed to set Digital IO to output {eTraceback.tb_lineno} - {e}'
