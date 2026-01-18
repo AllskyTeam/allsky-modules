@@ -1,0 +1,5 @@
+# Issue installing via APT-GET
+# need to use pip3 install adafruit-circuitpython-ina219
+# adafruit-circuitpython-ina219
+
+python3-smbus

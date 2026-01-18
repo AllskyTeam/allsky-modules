@@ -1,0 +1,3 @@
+adafruit-circuitpython-ina219
+adafruit-circuitpython-register
+adafruit-circuitpython-busdevice
