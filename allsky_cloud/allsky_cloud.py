@@ -49,7 +49,7 @@ class ALLSKYCLOUD(ALLSKYMODULEBASE):
 					"name": "${CLOUDSKY}",
 					"format": "",
 					"sample": "",                 
-					"group": "Clous",
+					"group": "Cloud",
 					"description": "Sky Temperature",
 					"type": "number"
 				},
