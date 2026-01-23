@@ -881,7 +881,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 
 		return extraData
 
-	def _get_openweather_Value(self, field, json_data, file_modified_time):
+	def _get_openweather_value(self, field, json_data, file_modified_time):
 		result = False    
 
 		if field in json_data:
@@ -896,7 +896,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				
 		return result
 
-	def _get_openwaether_values(self, file_name):
+	def _get_openweather_values(self, file_name):
 		temperature = None
 		humidity = None
 		pressure = None
@@ -909,10 +909,10 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			file_modified_time = int(os.path.getmtime(extra_data_fileName))
 			with open(extra_data_fileName,"r") as file:
 				json_data = json.load(file)
-				temperature = self._get_openweather_Value('AS_OWTEMP', json_data, file_modified_time)
-				humidity = self._get_openweather_Value('AS_OWHUMIDITY', json_data, file_modified_time)
-				pressure = self._get_openweather_Value('AS_OWPRESSURE', json_data, file_modified_time)
-				dewPoint = self._get_openweather_Value('AS_OWDEWPOINT', json_data, file_modified_time)
+				temperature = self._get_openweather_value('AS_OWTEMP', json_data, file_modified_time)
+				humidity = self._get_openweather_value('AS_OWHUMIDITY', json_data, file_modified_time)
+				pressure = self._get_openweather_value('AS_OWPRESSURE', json_data, file_modified_time)
+				dewPoint = self._get_openweather_value('AS_OWDEWPOINT', json_data, file_modified_time)
 
 		return temperature, humidity, pressure, dewPoint
 	
