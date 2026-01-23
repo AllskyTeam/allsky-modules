@@ -902,8 +902,8 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		pressure = None
 		dewPoint = None
 
-		allsky_path = allsky_shared.get_environment_variable('ALLSKY_HOME')
-		extra_data_fileName = os.path.join(allsky_path, 'config', 'overlay', 'extra', file_name)
+		allsky_extra_path = allsky_shared.get_environment_variable('ALLSKY_EXTRA')
+		extra_data_fileName = os.path.join(allsky_extra_path, file_name)
 
 		if os.path.isfile(extra_data_fileName):
 			file_modified_time = int(os.path.getmtime(extra_data_fileName))
