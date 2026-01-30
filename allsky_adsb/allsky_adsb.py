@@ -431,6 +431,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 										aircraft['ias'] = aircraft['speed']
 
 					if 'alt_baro' not in aircraft:
+							aircraft['alt_baro'] = 0
 							if 'altitude' in aircraft:
 									aircraft['alt_baro'] = aircraft['altitude']
 
@@ -493,6 +494,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 										aircraft['ias'] = aircraft['speed']
 
 					if 'alt_baro' not in aircraft:
+							aircraft['alt_baro'] = 0       
 							if 'altitude' in aircraft:
 									aircraft['alt_baro'] = aircraft['altitude']
 								
@@ -654,6 +656,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 										aircraft['ias'] = aircraft['speed']
 
 					if 'alt_baro' not in aircraft:
+							aircraft['alt_baro'] = 0       
 							if 'altitude' in aircraft:
 									aircraft['alt_baro'] = aircraft['altitude']
 							
