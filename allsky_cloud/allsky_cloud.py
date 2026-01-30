@@ -326,7 +326,7 @@ class ALLSKYCLOUD(ALLSKYMODULEBASE):
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			result = f'Module cloud failed on line {eTraceback.tb_lineno} - {e}'
-			self.log(0, f'ERROR in {__file__}: {result}')
+			self.log(4, f'ERROR in {__file__}: {result}')
 			
 		return result 
 
