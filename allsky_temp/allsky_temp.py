@@ -11,6 +11,7 @@ import os
 import json
 import requests
 import board
+import glob
 from pathlib import Path
 
 from meteocalc import dew_point, Temp
@@ -25,7 +26,6 @@ from adafruit_bme280 import basic as adafruit_bme280
 from adafruit_htu21d import HTU21D
 from meteocalc import dew_point
 from digitalio import DigitalInOut, Direction, Pull
-from DS18B20dvr.DS18B20 import DS18B20
 
 class ALLSKYTEMP(ALLSKYMODULEBASE):
 
@@ -2669,30 +2669,42 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 		return temperature, humidity, pressure, the_dew_point	
 
-	def _read_ds18B20(self, sensor_number):
-		humidity = None
-		temperature = None
+	def _read_ds18B20(self, sensor_number=None, retries=3):
+			"""
+			Read DS18x20 temperature in Celsius.
+			Returns float or raises RuntimeError.
+			"""
+			humidity = None
+			temperature = None
+			
+			device_id = self.get_param('ds18b20address' + sensor_number, '', str)    
 
-		ds18b20_address = self.get_param('ds18b20address' + sensor_number, '', str)    
-		one_wire_base_dir = Path('/sys/bus/w1/devices/')
-		one_wire_sensor_dir = Path(os.path.join(one_wire_base_dir, ds18b20_address))
-	
-		if one_wire_base_dir.is_dir():
-			if one_wire_sensor_dir.is_dir():
-				try:
-					device = DS18B20(ds18b20_address)
-					temperature = device.read_temperature()
-				# pylint: disable=broad-exception-caught
-				except Exception as ex:
-					_, _, trace_back = sys.exc_info()
-					self.log(0, f'ERROR in {__file__}: Module readDS18B20 failed on line {trace_back.tb_lineno} - {ex}')
+			W1_BASE = "/sys/bus/w1/devices"
+
+			if device_id:
+					devices = [f"{W1_BASE}/{device_id}/w1_slave"]
 			else:
-				self.log(0, f'ERROR in {__file__}: (readDS18B20) - "{ds18b20_address}" is not a valid DS18B20 address. Please check /sys/bus/w1/devices')
-		else:
-			self.log(0, 'ERROR in {__file__}: (readDS18B20) - One Wire is not enabled. Please use the raspi-config utility to enable it')
+					devices = glob.glob(f"{W1_BASE}/28-*/w1_slave")
 
-		return temperature, humidity
+			if not devices:
+					self.log(0, f'ERROR in {__file__}: (readDS18B20) - "{device_id}" is not a valid DS18B20 address. Please check /sys/bus/w1/devices')     
 
+			path = devices[0]
+
+			for _ in range(retries):
+					with open(path, "r") as f:
+							lines = f.read().splitlines()
+
+					# CRC check
+					if lines[0].strip().endswith("YES"):
+							temp_milli = int(lines[1].split("t=")[1])
+							temperature = round(temp_milli / 1000.0, 2)
+							return temperature, humidity
+
+					time.sleep(0.2)
+
+			self.log(0,"ERROR in {__file__}: Module _read_ds18B20, DS18B20 CRC check failed")
+  
 	def _read_htu21(self, sensor_number):
 		temperature = None
 		humidity = None
