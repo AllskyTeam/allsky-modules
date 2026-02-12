@@ -1,2 +1,3 @@
 barbudor-circuitpython-ina3221
 adafruit-circuitpython-ina219
+adafruit-circuitpython-ina260
