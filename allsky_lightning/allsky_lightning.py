@@ -79,7 +79,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
 				}           
 			},
 			"interruptpin": {
-				"required": "true",
+				"required": "false",
 				"description": "Input Pin",
 				"help": "The input pin for the lightning sensor.",
 				"type": {
