@@ -1,1 +1,1 @@
-sparkfun_qwiicas3935
+sparkfun-circuitpython-qwiicas3935

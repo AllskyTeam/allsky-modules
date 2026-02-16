@@ -268,7 +268,7 @@ class ALLSKYLIGHTNING(ALLSKYMODULEBASE):
        
 		else:
 			result = 'Lightning Detector does not appear to be connected. Please check wiring.'
-			self.log(0, 'ERROR in {__file__}: {result}')
+			self.log(0, f'ERROR in {__file__}: {result}')
    							
 def lightning(params, event):
 	allsky_lightning = ALLSKYLIGHTNING(params, event)
