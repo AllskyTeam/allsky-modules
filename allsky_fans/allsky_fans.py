@@ -587,7 +587,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 	def _set_gpio_pin_state(self, state):
 		if self._invert_relay:
 			state = not state
-		print(f'Setting GPIO pin {self._fan_pin} to {"ON" if state else "OFF"} for Fan {self._fan_number}')			
+	
 		result = allsky_shared.set_gpio_pin(self._fan_pin, state, f"Fan {self._fan_number}")
 
 		return result
