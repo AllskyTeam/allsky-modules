@@ -587,8 +587,8 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 	def _set_gpio_pin_state(self, state):
 		if self._invert_relay:
 			state = not state
-			
-		result = allsky_shared.set_gpio_pin(self._fan_pin, state)
+		print(f'Setting GPIO pin {self._fan_pin} to {"ON" if state else "OFF"} for Fan {self._fan_number}')			
+		result = allsky_shared.set_gpio_pin(self._fan_pin, state, f"Fan {self._fan_number}")
 
 		return result
 
@@ -660,7 +660,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				model = allsky_shared.get_pi_info(allsky_shared.PI_INFO_MODEL)
 				if model in self._pwm_map:
 					pwm_duty_cycle = self._temperature_to_pwm_duty(self._temperature, pwm_min, pwm_max)
-					pwm_result = allsky_shared.set_pwm(self._fan_pin, pwm_duty_cycle)
+					pwm_result = allsky_shared.set_pwm(self._fan_pin, pwm_duty_cycle, "Fan {self._fan_number}")
 					status = True
 					if pwm_result:
 						pwm_enabled = 1
