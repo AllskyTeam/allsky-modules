@@ -660,7 +660,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				model = allsky_shared.get_pi_info(allsky_shared.PI_INFO_MODEL)
 				if model in self._pwm_map:
 					pwm_duty_cycle = self._temperature_to_pwm_duty(self._temperature, pwm_min, pwm_max)
-					pwm_result = allsky_shared.set_pwm(self._fan_pin, pwm_duty_cycle, "Fan {self._fan_number}")
+					pwm_result = allsky_shared.set_pwm(self._fan_pin, pwm_duty_cycle, f"Fan {self._fan_number}")
 					status = True
 					if pwm_result:
 						pwm_enabled = 1
