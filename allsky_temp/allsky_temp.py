@@ -3157,7 +3157,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 										gpio_value = 'on' if invert_gpio else 'off'
 										self.log(4, f'INFO: Temperature {temperature} is less than {max_temp} so disabling GPIO {gpio_pin} {gpio_value}.')
           
-									allsky_shared.set_gpio_pin(gpio_pin, gpio_value)
+									allsky_shared.set_gpio_pin(gpio_pin, gpio_value, f"Temp {sensor_number}")
                    
 								except Exception as e:    
 									eType, eObject, eTraceback = sys.exc_info()

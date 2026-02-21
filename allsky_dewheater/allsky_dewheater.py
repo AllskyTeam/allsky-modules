@@ -1223,7 +1223,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			return int(ratio * 65535)
 
 	def _set_pwm_state(self, heater_pin, duty_cycle):
-		result = allsky_shared.set_pwm(heater_pin, duty_cycle)
+		result = allsky_shared.set_pwm(heater_pin, duty_cycle, "Dew")
 
 		return result
 
@@ -1231,7 +1231,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		if invert_relay:
 			state = not state
 
-		result = allsky_shared.set_gpio_pin(heater_pin, state)
+		result = allsky_shared.set_gpio_pin(heater_pin, state, "Dew")
 
 		return result
 
