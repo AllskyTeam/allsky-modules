@@ -102,6 +102,14 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 					"description": "Dew Heater Status",
 					"type": "gpio"
 				},
+				"AS_DEWCONTROLLIMIT": {
+					"name": "${DEWCONTROLLIMIT}",
+					"format": "{onoff}",
+					"sample": "",                 
+					"group": "Dew Heater",
+					"description": "Dew Heater Limit",
+					"type": "number"
+				},    
 				"AS_DEWCONTROLHEATERINT": {
 					"name": "${DEWCONTROLHEATERINT}",
 					"format": "",
@@ -1473,6 +1481,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 								extraData['AS_DEWCONTROLHEATERINT'] = 1 if heater else 0
 								extraData['AS_DEWCONTROLAMBIENT'] = temperature
 								extraData['AS_DEWCONTROLDEW'] = dew_point
+								extraData['AS_DEWCONTROLLIMIT'] = limit        
 								extraData['AS_DEWCONTROLHUMIDITY'] = humidity
 								extraData['AS_DEWCONTROLPWMDUTYCYCLE'] = 100
 								extraData['AS_DEWCONTROLPWMPERCENT'] = 100 if heater else 0         
@@ -1557,6 +1566,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			extra_data['AS_DEWCONTROLAMBIENT'] = 0
 			extra_data['AS_DEWCONTROLDEW'] = 0
 			extra_data['AS_DEWCONTROLHUMIDITY'] = 0
+			extraData['AS_DEWCONTROLLIMIT'] = 0   
 			extra_data['AS_DEWCONTROLHEATER'] = 'Disabled'
 			allsky_shared.save_extra_data(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
 				
