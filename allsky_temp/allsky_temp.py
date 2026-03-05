@@ -24,9 +24,9 @@ from DS18B20dvr.DS18B20 import DS18B20
     
 metaData = {
     "name": "Temperature Monitor",
-    "description": "Reads upto 3 temperature sensors",
+    "description": "Reads upto 3 temperature sensors, and can be used to control GPIO output/s",
     "module": "allsky_temp",
-    "version": "v1.0.1",
+    "version": "v1.1.1",
     "events": [
         "periodic",
         "night"
@@ -46,7 +46,9 @@ metaData = {
         "dhtxxdelay1" : "500",
         "sht31heater1": "False",
         "temp1": "",
+        "deadband1": "1",
         "gpio1": "",
+        "gpioinvert1": "False",
         "gpioon1": "On",
         "gpiooff1": "Off",
         "sht41mode1": "0xE0",
@@ -60,7 +62,9 @@ metaData = {
         "dhtxxdelay2" : "500",
         "sht31heater2": "False",
         "temp2": "",
+        "deadband2": "1",
         "gpio2": "",
+        "gpioinvert2": "False",
         "gpioon2": "On",
         "gpiooff2": "Off",
         "sht41mode2": "0xE0",
@@ -74,7 +78,9 @@ metaData = {
         "dhtxxdelay3" : "500",
         "sht31heater3": "False",
         "temp3": "",
+        "deadband3": "1",
         "gpio3": "",
+        "gpioinvert3": "False",
         "gpioon3": "On",
         "gpiooff3": "Off",
         "sht41mode3": "0xE0"
@@ -204,6 +210,18 @@ metaData = {
                 "step": 1
             }
         },        
+        "deadband1" : {
+            "required": "false",
+            "description": "Deadband Range",
+            "help": "Deadband around Max Temp before changing state of the gpio pin",
+            "tab": "Sensor 1",
+            "type": {
+                "fieldtype": "spinner",
+                "min": 1,
+                "max": 10,
+                "step": 1
+            }            
+        },        
         "gpio1": {
             "required": "false",
             "description": "GPIO Pin",
@@ -213,7 +231,15 @@ metaData = {
             },            
             "tab": "Sensor 1"         
         },
-
+        "gpioinvert1" : {
+            "required": "false",
+            "description": "GPIO Invert Output",
+            "help": "Normally a GPIO pin will go high to enable a relay. Selecting this option if the relay is wired to activate on the GPIO pin going Low",
+            "tab": "Sensor 1",
+            "type": {
+                "fieldtype": "checkbox"
+            }
+        },
         "gpioon1": {
             "required": "false",
             "description": "GPIO On",
@@ -321,6 +347,18 @@ metaData = {
                 "step": 1
             }
         },        
+        "deadband2" : {
+            "required": "false",
+            "description": "Deadband Range",
+            "help": "Deadband around Max Temp before changing state of the gpio pin",
+            "tab": "Sensor 2",
+            "type": {
+                "fieldtype": "spinner",
+                "min": 1,
+                "max": 10,
+                "step": 1
+            }
+        },        
         "gpio2": {
             "required": "false",
             "description": "GPIO Pin",
@@ -329,6 +367,15 @@ metaData = {
             "type": {
                 "fieldtype": "gpio"
             }           
+        },
+        "gpioinvert2" : {
+            "required": "false",
+            "description": "GPIO Invert Output",
+            "help": "Normally a GPIO pin will go high to enable a relay. Selecting this option if the relay is wired to activate on the GPIO pin going Low",
+            "tab": "Sensor 2",
+            "type": {
+                "fieldtype": "checkbox"
+            }
         },        
         "gpioon2": {
             "required": "false",
@@ -437,6 +484,18 @@ metaData = {
                 "step": 1
             }
         },        
+        "deadband3" : {
+            "required": "false",
+            "description": "Deadband Range",
+            "help": "Deadband around Max Temp before changing state of the gpio pin",
+            "tab": "Sensor 3",
+            "type": {
+                "fieldtype": "spinner",
+                "min": 1,
+                "max": 10,
+                "step": 1
+            }
+        },        
         "gpio3": {
             "required": "false",
             "description": "GPIO Pin",
@@ -445,6 +504,15 @@ metaData = {
             "type": {
                 "fieldtype": "gpio"
             }           
+        },
+        "gpioinvert3" : {
+            "required": "false",
+            "description": "GPIO Invert Output",
+            "help": "Normally a GPIO pin will go high to enable a relay. Selecting this option if the relay is wired to activate on the GPIO pin going Low",
+            "tab": "Sensor 3",
+            "type": {
+                "fieldtype": "checkbox"
+            }
         },
         "gpioon3": {
             "required": "false",
@@ -478,7 +546,14 @@ metaData = {
                 "authorurl": "https://github.com/allskyteam",
                 "changes": "Added DS1820"
             }
-        ]                                                 
+        ],
+        "v1.1.1" : [
+            {
+                "author": "Neil Blanchard",
+                "authorurl": "",
+                "changes": "Added GPIO Initial State, GPIO Invert, and Deadband value control"
+            }
+        ]                                                    
     }
 }
 
@@ -770,16 +845,18 @@ def temp(params, event):
     extraData = {}
     extradatafilename = params['extradatafilename']
     frequency = int(params["frequency"])
-    shouldRun, diff = s.shouldRun('allskytemp', frequency)    
+    shouldRun, diff = s.shouldRun('allskytemp', frequency)
     
     if shouldRun:
         now = int(time.time())
-        s.dbUpdate("allskytemp", now)                
+        s.dbUpdate("allskytemp", now)
+               
         for sensorNumber in range(1,4):
             sensorType = params["type" + str(sensorNumber)]
 
             if sensorType != 'None':
                 s.log(4,f"INFO: Reading sensor {sensorNumber}, {sensorType}")
+                result += "Reading sensor " + str(sensorNumber) + " '"
                 try:
                     inputpin = int(params["inputpin" + str(sensorNumber)])
                 except ValueError:
@@ -792,16 +869,22 @@ def temp(params, event):
                 sht41mode = params["sht41mode" + str(sensorNumber)]
                 ds18b20address = params["ds18b20address" + str(sensorNumber)]
                 name = params["name" + str(sensorNumber)]
+                result += name + "', "
 
                 try:
                     maxTemp = int(params["temp" + str(sensorNumber)])
                 except ValueError:
                     maxTemp = -1
-                    
+
+                try:
+                    deadbandTemp = int(params["deadband" + str(sensorNumber)])
+                except ValueError:
+                    deadbandTemp = 1
+
                 try:
                     gpioPin = int(params["gpio" + str(sensorNumber)])
                 except ValueError:
-                    gpioPin = -1                    
+                    gpioPin = -1
         
                 temperature = 0
                 humidity = 0
@@ -810,48 +893,96 @@ def temp(params, event):
 
                 temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude = getSensorReading(sensorType, inputpin, i2caddress, ds18b20address, dhtxxretrycount, dhtxxdelay, sht31heater, sht41mode, params)
                 debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude)
+                result += "temperature: " + str(temperature) + ", " + "humidity: " + str(humidity) + ", " + "dewPoint: " + str(dewPoint) + ", "
 
                 gpioValue = 'N/A'
+                ctrlState = 'UNKNOWN'
                 if temperature is not None: 
                     if maxTemp != -1 and gpioPin != -1:
+                        result += "maxTemp: " + str(maxTemp) + ", "
+                        result += "deadbandTemp: " + str(deadbandTemp) + ", "
                         gpio = s.getGPIOPin(gpioPin)
-                        pin = DigitalInOut(gpio)
-                        pin.switch_to_output()                   
-                        if temperature > maxTemp:
+                        gpioStartupState = params['gpiostartupstate' + str(sensorNumber)]
+                        gpioInvert = params['gpioinvert' + str(sensorNumber)]
+                        result += "- GPIO: pin: " + str(gpioPin) + ", invert: " + str(gpioInvert) + ", "
+                        
+                        if temperature >= (maxTemp + deadbandTemp):
+                            ctrlState = f'equal to or greater than {maxTemp} plus {deadbandTemp}'
+                            pin = DigitalInOut(gpio)
+                            pin.switch_to_output()
                             gpioValue = 'On'
+                            result += "Temperature is equal to or greater than maxTemp + deadbandTemp: " + str(maxTemp + deadbandTemp) + ", "
                             if 'gpioon' + str(sensorNumber) in params:
                                 gpioValue = params['gpioon' + str(sensorNumber)]
             
-                            s.log(4, f'INFO: Temperature {temperature} is greater than {maxTemp} so enabling GPIO {gpioPin}')
-                            pin.value = 1
-                        else:
+                            s.log(4, f'INFO: Temperature {temperature} is equal to or greater than {maxTemp} plus {deadbandTemp} so enabling GPIO {gpioPin}')
+                            if gpioInvert:
+                                pin.value = 0
+                            else:
+                                pin.value = 1
+
+                            result += " output: " + str(pin.value) + ", desc: " + gpioValue + " "
+                            if s.dbHasKey("AS_TEMPMON_GPIOSTATE" + str(sensorNumber)):
+                                s.dbUpdate("AS_TEMPMON_GPIOSTATE" + str(sensorNumber), gpioValue)
+                            else:
+                                s.dbAdd("AS_TEMPMON_GPIOSTATE" + str(sensorNumber), gpioValue)
+
+                        elif temperature > (maxTemp - deadbandTemp) and temperature < (maxTemp + deadbandTemp):
+                            ctrlState = f'within deadband {maxTemp} +/- {deadbandTemp}'
+                            if s.dbHasKey("AS_TEMPMON_GPIOSTATE" + str(sensorNumber)):
+                                gpioValue = s.dbGet("AS_TEMPMON_GPIOSTATE" + str(sensorNumber))
+                            
+                            result += "Temperature is within deadband (eg maxTemp +/- deadbandTemp) so no change to GPIO state, "
+                            result += " gpioValue: " + str(gpioValue) + ", "
+                            s.log(4, f'INFO: Temperature {temperature} is within deadband (eg {maxTemp} +/- {deadbandTemp}) so no change to GPIO {gpioPin}')
+                            pass
+                            
+                        elif temperature <= (maxTemp - deadbandTemp):
+                            ctrlState = f'equal to or less than {maxTemp} plus {deadbandTemp}'
+                            pin = DigitalInOut(gpio)
+                            pin.switch_to_output()
                             gpioValue = 'Off'
+                            result += "Temperature is equal to or less than maxTemp - deadbandTemp: " + str(maxTemp - deadbandTemp) + ", "
                             if 'gpiooff' + str(sensorNumber) in params:
                                 gpioValue = params['gpiooff' + str(sensorNumber)]
-                            s.log(4, f'INFO: Temperature {temperature} is less than {maxTemp} so disabling GPIO {gpioPin}')
-                            pin.value = 0
+                            s.log(4, f'INFO: Temperature {temperature} is equal to or less than {maxTemp} minus {deadbandTemp} so disabling GPIO {gpioPin}')
+                            if gpioInvert:
+                                pin.value = 1
+                            else:
+                                pin.value = 0
+
+                            result += " output: " + str(pin.value) + ", desc: " + gpioValue + " "
+                            if s.dbHasKey("AS_TEMPMON_GPIOSTATE" + str(sensorNumber)):
+                                s.dbUpdate("AS_TEMPMON_GPIOSTATE" + str(sensorNumber), gpioValue)
+                            else:
+                                s.dbAdd("AS_TEMPMON_GPIOSTATE" + str(sensorNumber), gpioValue)
                     
                 if temperature is not None:
-                    extraData["AS_GPIOSTATE" + str(sensorNumber)] = gpioValue                   
-                    extraData["AS_TEMPSENSOR" + str(sensorNumber)] = str(sensorType)
-                    extraData["AS_TEMPSENSORNAME" + str(sensorNumber)] = name
-                    extraData["AS_TEMPAMBIENT" + str(sensorNumber)] = str(temperature)
-                    extraData["AS_TEMPDEW" + str(sensorNumber)] = str(dewPoint)
-                    extraData["AS_TEMPHUMIDITY" + str(sensorNumber)] = str(humidity)
+                    extraData["AS_TEMPMON_MAXTEMP" + str(sensorNumber)] = maxTemp
+                    extraData["AS_TEMPMON_DEADBAND" + str(sensorNumber)] = deadbandTemp
+                    extraData["AS_TEMPMON_CONTROLSTATE" + str(sensorNumber)] = ctrlState
+                    extraData["AS_TEMPMON_GPIOSTATE" + str(sensorNumber)] = gpioValue                   
+                    extraData["AS_TEMPMON_SENSOR" + str(sensorNumber)] = str(sensorType)
+                    extraData["AS_TEMPMON_SENSORNAME" + str(sensorNumber)] = name
+                    extraData["AS_TEMPMON_AMBIENT" + str(sensorNumber)] = str(temperature)
+                    extraData["AS_TEMPMON_DEW" + str(sensorNumber)] = str(dewPoint)
+                    extraData["AS_TEMPMON_HUMIDITY" + str(sensorNumber)] = str(humidity)
                     if pressure is not None:
-                        extraData["AS_TEMPPRESSURE" + str(sensorNumber)] = pressure
+                        extraData["AS_TEMPMON_PRESSURE" + str(sensorNumber)] = pressure
                     if relHumidity is not None:
-                        extraData["AS_TEMPRELHUMIDITY" + str(sensorNumber)] = relHumidity
+                        extraData["AS_TEMPMON_RELHUMIDITY" + str(sensorNumber)] = relHumidity
                     if altitude is not None:
-                        extraData["AS_TEMPALTITUDE" + str(sensorNumber)] = altitude
+                        extraData["AS_TEMPMON_ALTITUDE" + str(sensorNumber)] = altitude
 
         s.saveExtraData(extradatafilename,extraData)
+        result += "... completed ok."
 
     else:
         result = 'Will run in {:.2f} seconds'.format(frequency - diff)
         s.log(1,"INFO: {}".format(result))
 
     return result
+
 
 def temp_cleanup():
     moduleData = {
