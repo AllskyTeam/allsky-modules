@@ -1017,7 +1017,7 @@ def dewheater(params, event):
                                     turnHeaterOff(extrapin, invertextrapin, True)
                                 heater = 'Off'
                             elif force != 0 and temperature <= force:
-                                result = "Temperature below forced level {}".format(force)
+                                result += "Temperature below forced level {}".format(force)
                                 s.log(1,"INFO: {}".format(result))
                                 turnHeaterOn(heaterpin, invertrelay)
                                 if extrapin != 0:
@@ -1029,20 +1029,23 @@ def dewheater(params, event):
                                     if extrapin != 0:
                                         turnHeaterOn(extrapin, invertextrapin)
                                     heater = 'On'
-                                    result = "Temperature within limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
+                                    result += "Temperature is within limit - temperature {}, limit {}, dewPoint {} ".format(temperature, limit, dewPoint)
+                                    result += "- Heater is {} ".format(heater)
                                     s.log(1,"INFO: {}".format(result))
                                 else:
-                                    result = "Temperature outside limit temperature {}, limit {}, dewPoint {}".format(temperature, limit, dewPoint)
-                                    s.log(1,"INFO: {}".format(result))
                                     turnHeaterOff(heaterpin, invertrelay)
                                     if extrapin != 0:
                                         turnHeaterOff(extrapin, invertextrapin, True)
                                     heater = 'Off'
+                                    result += "Temperature is outside limit - temperature {}, limit {}, dewPoint {} ".format(temperature, limit, dewPoint)
+                                    result += "- Heater is {} ".format(heater)
+                                    s.log(1,"INFO: {}".format(result))
                                 
                             extraData = {}
                             extraData["AS_DEWCONTROLSENSOR"] = str(sensorType)
                             extraData["AS_DEWCONTROLAMBIENT"] = str(temperature)
                             extraData["AS_DEWCONTROLDEW"] = str(dewPoint)
+                            extraData["AS_DEWCONTROLLIMIT"] = str(limit)
                             extraData["AS_DEWCONTROLHUMIDITY"] = str(humidity)
                             extraData["AS_DEWCONTROLHEATER"] = heater
                             if pressure is not None:
@@ -1055,13 +1058,14 @@ def dewheater(params, event):
                             s.saveExtraData(extradatafilename,extraData)
 
                             debugOutput(sensorType, temperature, humidity, dewPoint, heatIndex, pressure, relHumidity, altitude)
+                            result += "... completed ok."
 
                         else:
-                            result = "Failed to read sensor"
+                            result += "Failed to read sensor"
                             s.log(0, "ERROR: {}".format(result))
                             s.deleteExtraData(extradatafilename)
                     else:
-                        result = "Not run. Only running every {}s. Last ran {}s ago".format(frequency, lastRunSecs)
+                        result += "Not run. Only running every {}s. Last ran {}s ago".format(frequency, lastRunSecs)
                         s.log(1,"INFO: {}".format(result))
                 else:
                     now = int(time.time())
@@ -1079,13 +1083,13 @@ def dewheater(params, event):
                         heater = 'Off'
             else:
                 s.deleteExtraData(extradatafilename)
-                result = "heater pin not defined or invalid"
+                result += "heater pin not defined or invalid"
                 s.log(0,"ERROR: {}".format(result))
 
             s.setLastRun('allskydew')
 
         else:
-            result = 'Will run in {:.2f} seconds'.format(frequency - diff)
+            result += 'Will run in {:.2f} seconds'.format(frequency - diff)
             s.log(1,"INFO: {}".format(result))
     else:
         if heaterpin != 0:
@@ -1099,11 +1103,12 @@ def dewheater(params, event):
         extraData["AS_DEWCONTROLSENSOR"] = str(sensorType)
         extraData["AS_DEWCONTROLAMBIENT"] = 0
         extraData["AS_DEWCONTROLDEW"] = 0
+        extraData["AS_DEWCONTROLLIMIT"] = 0
         extraData["AS_DEWCONTROLHUMIDITY"] = 0
         extraData["AS_DEWCONTROLHEATER"] = "Disabled"
         s.saveExtraData(extradatafilename,extraData)
             
-        result = 'Dew control disabled during the day'
+        result += 'Dew control disabled during the day'
         s.log(1,f"INFO: {result}")
         
     return result
