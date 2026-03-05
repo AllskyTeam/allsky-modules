@@ -33,7 +33,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		"name": "Environment Monitor",
 		"description": "Obtain environment data (temperature/humidity) from external sensors",
 		"module": "allsky_temp",
-		"version": "v1.0.2",
+		"version": "v1.0.3",
 		"events": [
 			"periodic",
 			"day",
@@ -143,7 +143,31 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					"group": "Environment",
 					"description": "Co2 from ${AS_TEMPSENSORNAME${COUNT}}",
 					"type": "number"
-				}    
+				},
+				"AS_MAXTEMP${COUNT}": {
+					"name": "${MAXTEMP${COUNT}}",
+					"format": "",
+					"sample": "",                 
+					"group": "Environment",
+					"description": "Maximum temperature from ${AS_TEMPSENSORNAME${COUNT}}",
+					"type": "number"
+				},
+				"AS_DEADBAND${COUNT}": {
+					"name": "${DEADBAND${COUNT}}",
+					"format": "",
+					"sample": "",                 
+					"group": "Environment",
+					"description": "Deadband for ${AS_TEMPSENSORNAME${COUNT}}",
+					"type": "number"
+				},
+				"AS_CONTROLSTATE${COUNT}": {
+					"name": "${CONTROLSTATE${COUNT}}",
+					"format": "",
+					"sample": "",                 
+					"group": "Environment",
+					"description": "Control state for ${AS_TEMPSENSORNAME${COUNT}}",
+					"type": "string"
+				}             
 			}                         
 		},
 		"arguments":{
@@ -175,6 +199,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"hasstemp": "",
 			"hasshumidity": "",
 			"hasspressure": "",
+			"deadband": "0",   
 
 			"type1": "None",
 			"name1": "",
@@ -199,7 +224,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"ecowittapikey1": "",
 			"ecowittmac1": "",
 			"ecowittlocalurl1": "",
-
+			"deadband1": "0",
    
 			"type2": "None",
 			"name2": "",
@@ -224,6 +249,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"ecowittapikey2": "",
 			"ecowittmac2": "",
 			"ecowittlocalurl2": "",
+			"deadband2": "0",
    				
 			"type3": "None",
 			"name3": "",
@@ -247,8 +273,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"ecowittapplication3": "",
 			"ecowittapikey3": "",
 			"ecowittmac3": "",
-			"ecowittlocalur3": ""
-   
+			"ecowittlocalur3": "",
+			"deadband3": "0"   
    			
 		},
 		"argumentdetails": {
@@ -311,7 +337,19 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Core",
 				"help": "The name of the sensor, will be added as a variable.",
 				"disabled": "true"            
-			},        
+			},
+			"deadband" : {
+					"required": "false",
+					"description": "Deadband Range",
+					"help": "Deadband around Max Temp before changing state of the gpio pin",
+					"tab": "Core",
+					"type": {
+							"fieldtype": "spinner",
+							"min": 1,
+							"max": 10,
+							"step": 1
+					}            
+			},         
 			"inputpin": {
 				"required": "false",
 				"description": "Input Pin",
@@ -746,6 +784,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"SHT31",
 						"DHT22",
 						"DHT11",
+      			"SHT4x",
 						"AM2302",
 						"BME280-I2C",
 						"HTU21",
@@ -759,7 +798,19 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"Homeassistant"
 					]
 				}            
-			},        
+			},
+			"deadband1" : {
+					"required": "false",
+					"description": "Deadband Range",
+					"help": "Deadband around Max Temp before changing state of the gpio pin",
+					"tab": "Sensor 1",
+					"type": {
+							"fieldtype": "spinner",
+							"min": 1,
+							"max": 10,
+							"step": 1
+					}            
+			},      
 			"inputpin1": {
 				"required": "false",
 				"description": "Input Pin",
@@ -1313,6 +1364,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"SHT31",
 						"DHT22",
 						"DHT11",
+      			"SHT4x",      
 						"AM2302",
 						"BME280-I2C",
 						"HTU21",
@@ -1326,7 +1378,19 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"Homeassistant"      
 					]
 				}            
-			},        
+			},
+			"deadband2" : {
+					"required": "false",
+					"description": "Deadband Range",
+					"help": "Deadband around Max Temp before changing state of the gpio pin",
+					"tab": "Sensor 2",
+					"type": {
+							"fieldtype": "spinner",
+							"min": 1,
+							"max": 10,
+							"step": 1
+					}            
+			},       
 			"inputpin2": {
 				"required": "false",
 				"description": "Input Pin",
@@ -1880,6 +1944,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"SHT31",
 						"DHT22",
 						"DHT11",
+      			"SHT4x",      
 						"AM2302",
 						"BME280-I2C",
 						"HTU21",
@@ -1893,7 +1958,19 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"Homeassistant"
 					]
 				}            
-			},        
+			},
+			"deadband3" : {
+					"required": "false",
+					"description": "Deadband Range",
+					"help": "Deadband around Max Temp before changing state of the gpio pin",
+					"tab": "Sensor 3",
+					"type": {
+							"fieldtype": "spinner",
+							"min": 1,
+							"max": 10,
+							"step": 1
+					}            
+			},           
 			"inputpin3": {
 				"required": "false",
 				"description": "Input Pin",
@@ -2462,7 +2539,24 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"Added new meta options for better structure in the module manager"
 					]
 				}
-			]                                                          
+			],
+			"v1.0.3" : [
+				{
+					"author": "Neil nbl1268",
+					"authorurl": "https://github.com/nbl1268",
+					"changes": [
+						"Add Deadband logic",
+						"Added addition extra data values"
+					]
+				},
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": [
+						"Fixed bug with sht4x sensor name"
+					]
+				}    
+			]                                                              
 		}
 	}
 
@@ -3115,7 +3209,10 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				if sensor_type != 'None':
 					self.log(4, f'INFO: Reading sensor {sensor_number}, {sensor_type}')
 					name = self.get_param('name' + sensor_number, 'Unknown', str)
-					invert_gpio = self.get_param('invertgpio' + sensor_number, False, bool)     
+					invert_gpio = self.get_param('invertgpio' + sensor_number, False, bool)
+					dead_band = self.get_param('deadband' + sensor_number, 0, int)
+					control_state = "Unknown"
+     
 					max_temp_key = "temp" + sensor_number
 					max_temp = self.get_param(max_temp_key, -1, float)       
 					
@@ -3146,23 +3243,36 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 					if sensor_number != '':
 						gpio_value = False
-						if temperature is not None and sensor_number != "": 
+						if temperature is not None: 
 							if max_temp != -1 and gpio_pin != -1:
 								try:
-                          
-									if temperature > max_temp:
+									if temperature >= (max_temp + dead_band):
 										gpio_value = 'off' if invert_gpio else 'on'
-										self.log(4, f'INFO: Temperature {temperature} is greater than {max_temp} so enabling GPIO {gpio_pin} {gpio_value}.')
-									else:
+										allsky_shared.set_gpio_pin(gpio_pin, gpio_value, f"Temp {sensor_number}")
+										control_state = f"Temperature {temperature} is greater than {max_temp} plus deadband {dead_band} so enabling GPIO {gpio_pin}."
+										self.log(4, f'INFO: Temperature {temperature} is greater than {max_temp} plus deadband {dead_band} so enabling GPIO {gpio_pin}.')
+									elif temperature <= (max_temp - dead_band):
 										gpio_value = 'on' if invert_gpio else 'off'
-										self.log(4, f'INFO: Temperature {temperature} is less than {max_temp} so disabling GPIO {gpio_pin} {gpio_value}.')
-          
-									allsky_shared.set_gpio_pin(gpio_pin, gpio_value, f"Temp {sensor_number}")
-                   
+										allsky_shared.set_gpio_pin(gpio_pin, gpio_value, f"Temp {sensor_number}")
+										control_state = f"Temperature {temperature} is less than {max_temp} plus deadband {dead_band} so disabling GPIO {gpio_pin}."
+										self.log(4, f'INFO: Temperature {temperature} is less than {max_temp} plus deadband {dead_band} so disabling GPIO {gpio_pin}.')
+									else:
+										control_state = f"Temperature {temperature} is within the deadband range of {max_temp} so leaving GPIO {gpio_pin} as is."
+										self.log(4, f'INFO: Temperature {temperature} is within the deadband range of {max_temp} so leaving GPIO {gpio_pin} as is.')
 								except Exception as e:    
 									eType, eObject, eTraceback = sys.exc_info()
 									result = f'ERROR in {__file__}: Failed to set Digital IO to output {eTraceback.tb_lineno} - {e}'
 									self.log(0, result)
+							else:
+								if max_temp == -1:
+									control_state = f"Temperature reading failed so leaving GPIO {gpio_pin} as is."
+									self.log(4, f'INFO: Temperature reading failed so leaving GPIO {gpio_pin} as is.')
+								else:
+									control_state = f"GPIO not enabled for sensor {sensor_number}."
+									self.log(4, f'INFO: GPIO not enabled for sensor {sensor_number}.')
+						else:
+							control_state = f"Temperature reading failed so leaving GPIO {gpio_pin} as is."
+							self.log(4, f'INFO: Temperature reading failed so leaving GPIO {gpio_pin} as is.')
 								
 					if temperature is not None:
 						if sensor_number != '':
@@ -3172,6 +3282,9 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						extra_data['AS_TEMP' + sensor_number] = temperature
 						extra_data['AS_DEW' + sensor_number] = the_dew_point
 						extra_data['AS_HUMIDITY' + sensor_number] = humidity
+						extra_data['AS_MAXTEMP' + sensor_number] = max_temp
+						extra_data['AS_DEADBAND' + sensor_number] = dead_band
+						extra_data['AS_CONTROLSTATE' + sensor_number] = control_state
 						if pressure is not None:
 							extra_data["AS_PRESSURE" + sensor_number] = pressure
 						if rel_humidity is not None:
