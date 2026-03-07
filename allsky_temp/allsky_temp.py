@@ -862,7 +862,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					"id": "dhtxxpower1"
 				},
 				"filters": {
-					"filter": "type3",
+					"filter": "type1",
 					"filtertype": "show",
 					"values": [
 						"DHT22",
@@ -1460,7 +1460,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					"id": "dhtxxpower2"
 				},
 				"filters": {
-					"filter": "type3",
+					"filter": "type2",
 					"filtertype": "show",
 					"values": [
 						"DHT22",
