@@ -33,7 +33,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		"name": "Environment Monitor",
 		"description": "Obtain environment data (temperature/humidity) from external sensors",
 		"module": "allsky_temp",
-		"version": "v1.0.3",
+		"version": "v1.0.4",
 		"events": [
 			"periodic",
 			"day",
@@ -208,6 +208,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"ds18b20address1": "",
 			"dhtxxretrycount1": "2",
 			"dhtxxdelay1" : "500",
+			"dhtxxpower1" : "",   
 			"sht31heater1": "False",
 			"sht41mode": "0xE0",
 			"temp1": "",
@@ -225,6 +226,9 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"ecowittmac1": "",
 			"ecowittlocalurl1": "",
 			"deadband1": "0",
+			"temp_offset1": "0",
+   		"pressure_offset1": "0",
+			"humidity_offset1": "0", 
    
 			"type2": "None",
 			"name2": "",
@@ -233,6 +237,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"ds18b20address2": "",
 			"dhtxxretrycount2": "2",
 			"dhtxxdelay2" : "500",
+			"dhtxxpower2" : "",   
 			"sht31heater2": "False",
 			"sht41mode": "0xE0",     
 			"temp2": "",
@@ -250,7 +255,10 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"ecowittmac2": "",
 			"ecowittlocalurl2": "",
 			"deadband2": "0",
-   				
+			"temp_offset2": "0",
+   		"pressure_offset2": "0",
+			"humidity_offset2": "0", 
+      				
 			"type3": "None",
 			"name3": "",
 			"inputpin3": "",
@@ -258,6 +266,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"ds18b20address3": "",
 			"dhtxxretrycount3": "2",
 			"dhtxxdelay3" : "500",
+			"dhtxxpower3" : "",
 			"sht31heater3": "False",
 			"sht41mode": "0xE0",     
 			"temp3": "",
@@ -274,7 +283,10 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"ecowittapikey3": "",
 			"ecowittmac3": "",
 			"ecowittlocalur3": "",
-			"deadband3": "0"   
+			"deadband3": "0",
+			"temp_offset3": "0",
+   		"pressure_offset3": "0",
+			"humidity_offset3": "0"   
    			
 		},
 		"argumentdetails": {
@@ -349,7 +361,11 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 							"max": 10,
 							"step": 1
 					}            
-			},         
+			},
+
+
+     
+          
 			"inputpin": {
 				"required": "false",
 				"description": "Input Pin",
@@ -810,7 +826,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 							"max": 10,
 							"step": 1
 					}            
-			},      
+			},   
 			"inputpin1": {
 				"required": "false",
 				"description": "Input Pin",
@@ -829,6 +845,32 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}            
 			},
+			"dht221": {
+				"required": "false",
+				"description": "Retry Settings",
+				"tab": "Sensor 1",
+				"type": {
+					"fieldtype": "dht22"
+				},    
+				"retry": {
+					"id": "dhtxxretrycount1"
+				},
+				"delay": {
+					"id": "dhtxxdelay1"
+				},
+				"power": {
+					"id": "dhtxxpower1"
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"DHT22",
+						"DHT11",
+						"AM2302"
+					]
+				}       
+			},     
 			"i2caddress1": {
 				"required": "false",
 				"description": "I2C Address",
@@ -866,48 +908,6 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					"filtertype": "show",
 					"values": [
 						"DS18B20"
-					]
-				}             
-			},        
-			"dhtxxretrycount1" : {
-				"required": "false",
-				"description": "Retry Count",
-				"help": "The number of times to retry the DHTXX sensor read.",
-				"tab": "Sensor 1",
-				"type": {
-					"fieldtype": "spinner",
-					"min": 0,
-					"max": 5,
-					"step": 1
-				},
-				"filters": {
-					"filter": "type1",
-					"filtertype": "show",
-					"values": [
-						"DHT22",
-						"DHT11",
-						"AM2302"
-					]
-				}             
-			},
-			"dhtxxdelay1" : {
-				"required": "false",
-				"description": "Delay",
-				"help": "The delay between faild DBTXX sensor reads in milliseconds.",
-				"tab": "Sensor 1",
-				"type": {
-					"fieldtype": "spinner",
-					"min": 0,
-					"max": 5000,
-					"step": 1
-				},
-				"filters": {
-					"filter": "type1",
-					"filtertype": "show",
-					"values": [
-						"DHT22",
-						"DHT11",
-						"AM2302"
 					]
 				}             
 			},
@@ -1208,7 +1208,41 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"Homeassistant"
 					]
 				}    				
-			},    
+			},   
+   		"offset1": {
+				"description": "Sensor Offsets",
+				"tab": "Sensor 1",
+				"temp": {
+					"id": "temp_offset1"
+				},
+				"pressure": {
+					"id": "pressure_offset1"				
+				},
+				"humidity": {
+					"id": "humidity_offset1"				
+				},
+				"type": {
+					"fieldtype": "offset"
+				},
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather",
+						"SCD30",
+						"BME680"
+					]
+				}    
+			},
 			"temp1" : {
 				"required": "false",
 				"description": "Max Temp",
@@ -1409,6 +1443,32 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}            
 			},
+			"dht222": {
+				"required": "false",
+				"description": "Retry Settings",
+				"tab": "Sensor 2",
+				"type": {
+					"fieldtype": "dht22"
+				},    
+				"retry": {
+					"id": "dhtxxretrycount2"
+				},
+				"delay": {
+					"id": "dhtxxdelay2"
+				},
+				"power": {
+					"id": "dhtxxpower2"
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"DHT22",
+						"DHT11",
+						"AM2302"
+					]
+				}       
+			},     
 			"i2caddress2": {
 				"required": "false",
 				"description": "I2C Address",
@@ -1449,48 +1509,6 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}             
 			},        
-			"dhtxxretrycount2" : {
-				"required": "false",
-				"description": "Retry Count",
-				"help": "The number of times to retry the DHTXX sensor read.",
-				"tab": "Sensor 2",
-				"type": {
-					"fieldtype": "spinner",
-					"min": 0,
-					"max": 5,
-					"step": 1
-				},
-				"filters": {
-					"filter": "type2",
-					"filtertype": "show",
-					"values": [
-						"DHT22",
-						"DHT11",
-						"AM2302"
-					]
-				}             
-			},
-			"dhtxxdelay2" : {
-				"required": "false",
-				"description": "Delay",
-				"help": "The delay between faild DBTXX sensor reads in milliseconds.",
-				"tab": "Sensor 2",
-				"type": {
-					"fieldtype": "spinner",
-					"min": 0,
-					"max": 5000,
-					"step": 1
-				},
-				"filters": {
-					"filter": "type2",
-					"filtertype": "show",
-					"values": [
-						"DHT22",
-						"DHT11",
-						"AM2302"
-					]
-				}             
-			},
 			"sht31heater2" : {
 				"required": "false",
 				"description": "Enable SHT31 Heater",
@@ -1788,7 +1806,41 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"Ecowitt Local"
 					]
 				}    				
-			},                
+			},    
+   		"offset2": {
+				"description": "Sensor Offsets",
+				"tab": "Sensor 2",
+				"temp": {
+					"id": "temp_offset2"
+				},
+				"pressure": {
+					"id": "pressure_offset2"
+				},
+				"humidity": {
+					"id": "humidity_offset2"				
+				},
+				"type": {
+					"fieldtype": "offset"
+				},
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather",
+						"SCD30",
+						"BME680"
+					]
+				}     
+			},          
 			"temp2" : {
 				"required": "false",
 				"description": "Max Temp",
@@ -1974,7 +2026,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"inputpin3": {
 				"required": "false",
 				"description": "Input Pin",
-				"help": "The input pin for DHT type sensors, not required for i2c devices.",
+				"help": "DHTxx Input pin",    
 				"tab": "Sensor 3",
 				"type": {
 					"fieldtype": "gpio"
@@ -1988,7 +2040,33 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"AM2302"
 					]
 				}            
-			},
+			},   
+			"dht223": {
+				"required": "false",
+				"description": "Retry Settings",
+				"tab": "Sensor 3",
+				"type": {
+					"fieldtype": "dht22"
+				},    
+				"retry": {
+					"id": "dhtxxretrycount3"
+				},
+				"delay": {
+					"id": "dhtxxdelay3"
+				},
+				"power": {
+					"id": "dhtxxpower3"
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"DHT22",
+						"DHT11",
+						"AM2302"
+					]
+				}       
+			},   
 			"i2caddress3": {
 				"required": "false",
 				"description": "I2C Address",
@@ -2026,48 +2104,6 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					"filtertype": "show",
 					"values": [
 						"DS18B20"
-					]
-				}             
-			},        
-			"dhtxxretrycount3" : {
-				"required": "false",
-				"description": "Retry Count",
-				"help": "The number of times to retry the DHTXX sensor read,",
-				"tab": "Sensor 3",
-				"type": {
-					"fieldtype": "spinner",
-					"min": 0,
-					"max": 5,
-					"step": 1
-				},
-				"filters": {
-					"filter": "type3",
-					"filtertype": "show",
-					"values": [
-						"DHT22",
-						"DHT11",
-						"AM2302"
-					]
-				}             
-			},
-			"dhtxxdelay3" : {
-				"required": "false",
-				"description": "Delay",
-				"help": "The delay between faild DBTXX sensor reads in milliseconds,",
-				"tab": "Sensor 3",
-				"type": {
-					"fieldtype": "spinner",
-					"min": 0,
-					"max": 5000,
-					"step": 1
-				},
-				"filters": {
-					"filter": "type3",
-					"filtertype": "show",
-					"values": [
-						"DHT22",
-						"DHT11",
-						"AM2302"
 					]
 				}             
 			},
@@ -2368,7 +2404,41 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"Homeassistant"
 					]
 				}    				
-			},        
+			},
+   		"offset3": {
+				"description": "Sensor Offsets",
+				"tab": "Sensor 3",
+				"temp": {
+					"id": "temp_offset3"
+				},
+				"pressure": {
+					"id": "pressure_offset3"
+				},
+				"humidity": {
+					"id": "humidity_offset3"
+				},
+				"type": {
+					"fieldtype": "offset"
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather",
+						"SCD30",
+						"BME680"
+					]
+				}     
+			},            
 			"temp3" : {
 				"required": "false",
 				"description": "Max Temp",
@@ -2556,7 +2626,17 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"Fixed bug with sht4x sensor name"
 					]
 				}    
-			]                                                              
+			],
+			"v1.0.4" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": [
+						"Added offsets for temp, humidity and pressure",
+      			"Added option to power DHTxx from GPIO pin"
+					]
+				}
+			]                                                               
 		}
 	}
 
@@ -2881,6 +2961,12 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		dhtxx_retry_count = self.get_param('dhtxxretrycount' + sensor_number, 0, int)
 		dhtxx_delay = self.get_param('dhtxxdelay' + sensor_number, 0, int)
 
+		dhtxx_power = self.get_param('dhtxxpower' + sensor_number, 0, int)
+
+		if dhtxx_power != 0:
+					allsky_shared.set_gpio_pin(dhtxx_power, "on", f"Sensor {sensor_number} Power DHTxx")
+					time.sleep(1)
+
 		while reading:
 			temperature, humidity = self._do_dhtxx_read(input_pin)
 			if temperature is None and humidity is None:
@@ -2893,6 +2979,9 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			else:
 				reading = False
 
+		if dhtxx_power != 0:
+    			allsky_shared.set_gpio_pin(dhtxx_power, "off")
+       
 		return temperature, humidity
 
 	def _read_bme680(self, sensor_number):
@@ -3184,8 +3273,11 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					
 		return temperature, humidity, the_dew_point, pressure, rel_humidity, altitude, co2
 
-	def _debug_output(self, sensor_type, temperature, humidity, the_dew_point, pressure, rel_humidity, altitude, co2):
+	def _debug_output(self, sensor_type, temperature, humidity, the_dew_point, pressure, rel_humidity, altitude, co2, temp_offset, humidity_offset, pressure_offset):
 		self.log(4, f'INFO: Sensor {sensor_type} read. Temperature {temperature} Humidity {humidity} Relative Humidity {rel_humidity} Dew Point {the_dew_point} Pressure {pressure} Altitude {altitude} Co2 {co2}')
+  
+		if temp_offset != 0 or humidity_offset != 0 or pressure_offset != 0:
+			self.log(4, f'INFO: Offsets applied. Temperature offset {temp_offset} Humidity offset {humidity_offset} Pressure offset {pressure_offset}')
 
 	def run(self):
 		result = ''
@@ -3211,6 +3303,11 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					name = self.get_param('name' + sensor_number, 'Unknown', str)
 					invert_gpio = self.get_param('invertgpio' + sensor_number, False, bool)
 					dead_band = self.get_param('deadband' + sensor_number, 0, int)
+     
+					temp_offset = self.get_param('temp_offset' + sensor_number, 0, int)
+					pressure_offset = self.get_param('pressure_offset' + sensor_number, 0, int)
+					humidity_offset = self.get_param('humidity_offset' + sensor_number, 0, int)
+          
 					control_state = "Unknown"
      
 					max_temp_key = "temp" + sensor_number
@@ -3226,12 +3323,15 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 					temperature, humidity, the_dew_point, pressure, rel_humidity, altitude, co2 = self._get_sensor_reading(sensor_type, sensor_number)
 					if temperature is not None:
+						temperature = temperature + temp_offset
 						temperature = round(temperature, 2)
 					if humidity is not None:
+						humidity = humidity + humidity_offset	
 						humidity = round(humidity, 2)
 					if the_dew_point is not None:
 						the_dew_point = round(the_dew_point, 2)
 					if pressure is not None:
+						pressure = pressure + pressure_offset
 						pressure = round(pressure, 0)
 					if rel_humidity is not None:
 						rel_humidity = round(rel_humidity, 2)
@@ -3239,7 +3339,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						altitude = round(altitude, 0)
 					if co2 is not None:
 						co2 = round(co2, 0)      
-					self._debug_output(sensor_type, temperature, humidity, the_dew_point, pressure, rel_humidity, altitude, co2)
+					self._debug_output(sensor_type, temperature, humidity, the_dew_point, pressure, rel_humidity, altitude, co2, temp_offset, humidity_offset, pressure_offset)
 
 					if sensor_number != '':
 						gpio_value = False
@@ -3264,10 +3364,6 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 									result = f'ERROR in {__file__}: Failed to set Digital IO to output {eTraceback.tb_lineno} - {e}'
 									self.log(0, result)
 							else:
-								if max_temp == -1:
-									control_state = f"Temperature reading failed so leaving GPIO {gpio_pin} as is."
-									self.log(4, f'INFO: Temperature reading failed so leaving GPIO {gpio_pin} as is.')
-								else:
 									control_state = f"GPIO not enabled for sensor {sensor_number}."
 									self.log(4, f'INFO: GPIO not enabled for sensor {sensor_number}.')
 						else:
