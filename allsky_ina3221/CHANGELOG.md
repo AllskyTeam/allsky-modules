@@ -5,10 +5,7 @@
 ## v2.0.0 — 2026-03-07
 
 ### Breaking Changes
-- Replaced `barbudor_ina3221` library with `adafruit-circuitpython-ina3221`. Update your Pi with:
-  ```
-  pip3 install adafruit-circuitpython-ina3221 --break-system-packages
-  ```
+- Replaced `barbudor_ina3221` library with `adafruit-circuitpython-ina3221`. 
 - Channel reading API updated internally to use 0-based index property access (`ina[n].bus_voltage`) instead of method calls (`ina3221.bus_voltage(channel)`)
 
 ### New Features
