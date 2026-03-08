@@ -300,8 +300,8 @@ def publishdata(params, event):
             s.log(0, "ERROR: MQTT - Please specify a MQTT host to publish to")
             return
 
-        if params["mqttusesecure"]:
-            client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
+#        if params["mqttusesecure"]:
+#            client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
 
         client.connect(params["mqttHost"], int(params["mqttPort"]))
 
