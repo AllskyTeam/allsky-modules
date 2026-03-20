@@ -1,4 +1,3 @@
-#TODO - Fix QOS 2 on MQTT
 """ allsky_publishdata.py
 
 Part of allsky postprocess.py modules.
@@ -24,6 +23,7 @@ from typing import Optional, Union
 import ssl
 import threading
 import uuid
+import re
 
 class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
     
@@ -31,7 +31,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 		"name": "Publish Data to Redis/MQTT/REST/influxDB",
 		"description": "Publish Allsky data to Redis, MQTT, REST, or influxDB",
 		"module": "allsky_publishdata",
-		"version": "v1.0.3",
+		"version": "v1.0.4",
 		"centersettings": "false",
 		"testable": "true",
 		"group": "Data Export",
@@ -59,6 +59,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			"redisPassword": "",
 			"redisList": "",
 			"mqttEnabled": "false",
+			"hadiscovery": "true",   
 			"mqttusesecure": "true",
 			"mqttHost": "",
 			"mqttPort": "1883",
@@ -222,6 +223,14 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 					"fieldtype": "checkbox"
 				}
 			},
+			"hadiscovery": {
+				"required": "false",
+				"description": "Enable HA Discovery",
+				"tab": "MQTT",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},   
 			"mqttusesecure": {
 				"required": "false",
 				"description": "Use Secure Connection",
@@ -351,14 +360,120 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 						"Added influxdb"
 					]
 				}
-			]                                                         
+			],
+			"v1.0.4" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": [
+						"Added Home Assistant MQTT discovery for published values"
+					]
+				}
+			]
 		}    
 	}
     
 	_required_variables = {}
 	_all_variables = {}
 	_json_data = {}
- 
+
+	def _get_device_name(self):
+		return os.uname().nodename
+
+	def _slugify(self, value):
+		slug = re.sub(r'[^a-zA-Z0-9_-]+', '_', str(value).strip())
+		slug = slug.strip('_').lower()
+		if not slug:
+			slug = 'allsky'
+		return slug
+
+	def _build_mqtt_connection(self):
+		mqtt_username = self.get_param('mqttUsername', '', str)
+		mqtt_password = self.get_param('mqttPassword', '', str)
+		mqtt_secure = self.get_param('mqttusesecure', True, bool)
+		mqtt_host = self.get_param('mqttHost', '127.0.0.1', str, True)
+		mqtt_port = self.get_param('mqttPort', 8883, int)
+		mqtt_qos = self.get_param('mqttQos', 2, int)
+		mqtt_self = self.get_param('mqttSelfSigned', False, bool)
+		mqtt_pem = self.get_param('mqttpem', '', str, True)
+
+		if mqtt_self:
+			certs = mqtt_pem
+		else:
+			certs = "/etc/ssl/certs/ca-certificates.crt"
+
+		return {
+			"username": mqtt_username,
+			"password": mqtt_password,
+			"use_secure": mqtt_secure,
+			"host": mqtt_host,
+			"port": mqtt_port,
+			"qos": mqtt_qos,
+			"ca_cert": certs
+		}
+
+	def _get_ha_sensor_config(self, variable_name, variable_meta, state_topic):
+		variable_slug = self._slugify(variable_name)
+		device_name = self._get_device_name()
+		device_slug = self._slugify(device_name)
+		device_id = f'allsky_{device_slug}'
+		component = 'sensor'
+		value_template = "{{ value_json['" + variable_name + "'] }}"
+		config = {
+			"name": variable_meta.get('description', variable_name),
+			"object_id": f'{device_slug}_{variable_slug}',
+			"unique_id": f'{device_id}_{variable_slug}',
+			"state_topic": state_topic,
+			"value_template": value_template,
+			"device": {
+				"identifiers": [device_id],
+				"name": f'Allsky {device_name}',
+				"manufacturer": "Allsky",
+				"model": "Allsky Camera",
+				"sw_version": self.meta_data['version']
+			}
+		}
+
+		variable_type = variable_meta.get('type', 'string')
+		if variable_type == 'bool':
+			component = 'binary_sensor'
+			config['payload_on'] = 'ON'
+			config['payload_off'] = 'OFF'
+			config['value_template'] = "{{ 'ON' if value_json['" + variable_name + "'] else 'OFF' }}"
+		elif variable_type == 'temperature':
+			config['device_class'] = 'temperature'
+		elif variable_type == 'humidity':
+			config['device_class'] = 'humidity'
+			config['unit_of_measurement'] = '%'
+		elif variable_type == 'pressure':
+			config['device_class'] = 'atmospheric_pressure'
+		elif variable_type == 'distance':
+			config['device_class'] = 'distance'
+		elif variable_type == 'speed':
+			config['device_class'] = 'speed'
+
+		discovery_topic = f'homeassistant/{component}/{device_id}/{variable_slug}/config'
+
+		return discovery_topic, config
+
+	def _get_ha_discovery_messages(self, state_topic):
+		messages = []
+
+		for variable in self._required_variables:
+			clean_variable = variable.strip()
+			if not clean_variable or clean_variable not in self._all_variables:
+				continue
+
+			variable_meta = self._all_variables.get(clean_variable, {})
+			discovery_topic, config = self._get_ha_sensor_config(clean_variable, variable_meta, state_topic)
+			messages.append({
+				"topic": discovery_topic,
+				"payload": json.dumps(config),
+				"retain": True
+			})
+
+		return messages
+
 	def _send_to_influxdb(self):
 		result = ''
 		influx_host = self.get_param('influxhost', '', str)
@@ -449,12 +564,11 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			result = f'Please specify a host for Redis to publish to'
 			self.log(0, f'ERROR in {__file__}: {result}')
 
-	def _publish_mqtt_tls(
+	def _publish_mqtt_messages_tls(
 			self,
 			host: str,
 			port: int,
-			topic: str,
-			payload: Union[str, bytes],
+			messages,
 			*,
 			username: Optional[str] = None,
 			password: Optional[str] = None,
@@ -505,8 +619,6 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			if not client_id:
 					client_id = f"client-{uuid.uuid4().hex[:8]}"
 
-			result_ok = False
-
 			client = mqtt.Client(client_id=client_id, clean_session=True)
 
 			if username:
@@ -553,66 +665,66 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			# We still attempt publish only if connected OK per event timing,
 			# but paho won't publish if not connected anyway.
 
-			try:
-					info = client.publish(topic, payload=payload, qos=qos, retain=retain)
-			except Exception as e:
-					client.loop_stop()
-					self.log(4, f"Publish call failed: {e}")
-					return False
-
-			# Wait for publish (event for all QoS; QoS 0 may be immediate)
-			if not publish_evt.wait(timeout=publish_timeout):
-					# Fallback: check helper flag
+			for message in messages:
+					publish_evt.clear()
+					message_topic = message['topic']
+					message_payload = message['payload']
+					message_qos = message.get('qos', qos)
+					message_retain = message.get('retain', retain)
 					try:
-							if not info.is_published():
-									client.loop_stop()
-									self.log(4, "Publish timeout")
-									return False
-					except Exception:
+							info = client.publish(message_topic, payload=message_payload, qos=message_qos, retain=message_retain)
+					except Exception as e:
 							client.loop_stop()
-							self.log(4, "Publish status unknown (timeout)")
+							self.log(4, f"Publish call failed for {message_topic}: {e}")
 							return False
+
+					if not publish_evt.wait(timeout=publish_timeout):
+							try:
+									if not info.is_published():
+											client.loop_stop()
+											self.log(4, f"Publish timeout for {message_topic}")
+											return False
+							except Exception:
+									client.loop_stop()
+									self.log(4, f"Publish status unknown for {message_topic}")
+									return False
 
 			try:
 					client.disconnect()
-					result_ok = True
 			finally:
 					client.loop_stop()
 
 			self.log(4, "Data Published")
-			return result_ok
+			return True
 			
 	def _send_to_mqtt(self):
 		result = ''
 		mqtt_topic = self.get_param('mqttTopic', 'allsky', str, True)
-		mqtt_username = self.get_param('mqttUsername', '', str)
-		mqtt_password = self.get_param('mqttPassword', '', str)
-		mqtt_secure = self.get_param('mqttusesecure', True, bool)
-		mqtt_host = self.get_param('mqttHost', '127.0.0.1', str, True)
-		mqtt_port = self.get_param('mqttPort', 8883, int)
-		mqtt_qos = self.get_param('mqttQos', 2, int)
-		mqtt_self = self.get_param('mqttSelfSigned', False, bool)
-		mqtt_pem = self.get_param('mqttpem', '', str, True)
-
-		if mqtt_self:
-			certs = mqtt_pem
-		else:
-			certs = "/etc/ssl/certs/ca-certificates.crt"
+		ha_discovery = self.get_param('hadiscovery', True, bool)    
+		connection = self._build_mqtt_connection()
+		messages = []
+		if ha_discovery:
+			messages = self._get_ha_discovery_messages(mqtt_topic)
+			self.log(4, "INFO: Adding HomeAssistant Discovery")
+		messages.append({
+			"topic": mqtt_topic,
+			"payload": json.dumps(self._json_data),
+			"retain": False
+		})
 
 		try:
-			result = self._publish_mqtt_tls(
-					host=mqtt_host,
-					port=mqtt_port,
-					topic=mqtt_topic,
-					payload=json.dumps(self._json_data),
-					username=mqtt_username,
-					password=mqtt_password,
-					ca_cert=certs,
+			result = self._publish_mqtt_messages_tls(
+					host=connection['host'],
+					port=connection['port'],
+					messages=messages,
+					username=connection['username'],
+					password=connection['password'],
+					ca_cert=connection['ca_cert'],
 					tls_version="TLSv1_2",
-					qos=mqtt_qos,
+					qos=connection['qos'],
 					retain=False,
-					use_secure = mqtt_secure,
-					client_id=mqtt_username
+					use_secure=connection['use_secure'],
+					client_id=connection['username']
 			)
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
