@@ -439,18 +439,37 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			component = 'binary_sensor'
 			config['payload_on'] = 'ON'
 			config['payload_off'] = 'OFF'
-			config['value_template'] = "{{ 'ON' if value_json['" + variable_name + "'] else 'OFF' }}"
+			config['value_template'] = "{{ 'ON' if (value_json['" + variable_name + "'] | string | lower) in ['true', 'on', 'yes', '1'] else 'OFF' }}"
 		elif variable_type == 'temperature':
 			config['device_class'] = 'temperature'
+			config['unit_of_measurement'] = '°C'
+			config['state_class'] = 'measurement'
+		elif variable_type == 'number':
+			config['state_class'] = 'measurement'
 		elif variable_type == 'humidity':
 			config['device_class'] = 'humidity'
 			config['unit_of_measurement'] = '%'
+			config['state_class'] = 'measurement'
 		elif variable_type == 'pressure':
 			config['device_class'] = 'atmospheric_pressure'
+			config['unit_of_measurement'] = 'hPa'
+			config['state_class'] = 'measurement'
 		elif variable_type == 'distance':
 			config['device_class'] = 'distance'
+			config['unit_of_measurement'] = 'm'
+			config['state_class'] = 'measurement'
 		elif variable_type == 'speed':
 			config['device_class'] = 'speed'
+			config['state_class'] = 'measurement'
+		elif variable_type == 'azimuth':
+			config['unit_of_measurement'] = '°'
+			config['state_class'] = 'measurement'
+		elif variable_type == 'elevation':
+			config['unit_of_measurement'] = '°'
+			config['state_class'] = 'measurement'
+		elif variable_type == 'altitude':
+			config['unit_of_measurement'] = 'm'
+			config['state_class'] = 'measurement'
 
 		discovery_topic = f'homeassistant/{component}/{device_id}/{variable_slug}/config'
 
@@ -759,6 +778,19 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 		return int(utc_timestamp)
   
 	def _change_type(self, value):
+		if isinstance(value, bool):
+			return value
+
+		if isinstance(value, (int, float)):
+			return value
+
+		if value is None:
+			return value
+
+		value = str(value).strip()
+		if value == '':
+			return value
+
 		if value.lower() in ['true', 'false'] or value.lower() in ['on', 'off']:
 			if value == 'true' or value == 'on':
 				value = True
@@ -780,6 +812,17 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			pass
 		
 		return value
+
+	def _coerce_json_value(self, value, variable_type):
+		if variable_type == 'bool':
+			return self._change_type(value)
+
+		if variable_type not in ['string', 'date', 'bool']:
+			converted_value = self._change_type(value)
+			if isinstance(converted_value, (int, float)):
+				return converted_value
+
+		return value
 			
 	def run(self):
 		result = 'No result returned'
@@ -795,8 +838,10 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			clean_variable = variable.strip()
 			if clean_variable:
 				if clean_variable in self._all_variables:
-					variable_value = self._all_variables[clean_variable]['value']
-					self._json_data[clean_variable] = variable_value
+					variable_data = self._all_variables[clean_variable]
+					variable_value = variable_data['value']
+					variable_type = variable_data.get('type', 'string')
+					self._json_data[clean_variable] = self._coerce_json_value(variable_value, variable_type)
 				else:
 					self.log(0, f'ERROR in {__file__}: Cannot locate environment variable {variable} specified in the extradata')
 			else:
