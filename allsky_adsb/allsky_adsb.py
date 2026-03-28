@@ -36,6 +36,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 		"centersettings": "false",
 		"extradatafilename": "allsky_adsb.json", 
 		"extradata": {
+			"schema_version": 2,
 			"database": {
 				"enabled": "True",
 				"table": "allsky_adsb",
@@ -54,6 +55,37 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 				"count": 20,
 				"firstblank": "false"
 			},
+			"migrations": [
+				{
+					"from_schema_version": 1,
+					"to_schema_version": 2,
+					"breaking": "true",
+					"title": "ADS-B extra data names changed",
+					"message": "Aircraft extra-data keys were renamed to the AS_* format. Update overlays, templates, and integrations that still use the older aircraft_* keys.",
+					"changes": {
+						"renamed": {
+							"aircraft_${COUNT}_hex": "AS_HEX_AIRCRAFT${COUNT}",
+							"aircraft_${COUNT}_type": "AS_TYPE_AIRCRAFT${COUNT}",
+							"aircraft_${COUNT}_owner": "AS_OWNER_AIRCRAFT${COUNT}",
+							"aircraft_${COUNT}_registration": "AS_REGISTRATION_AIRCRAFT${COUNT}",
+							"aircraft_${COUNT}_manufacturer": "AS_MANUFACTURER_AIRCRAFT${COUNT}",
+							"aircraft_${COUNT}_military": "AS_MILITARY_AIRCRAFT${COUNT}",
+							"aircraft_${COUNT}_text": "AS_TEXT_AIRCRAFT${COUNT}",
+							"aircraft_${COUNT}_longtext": "AS_LONGTEXT_AIRCRAFT${COUNT}",
+							"aircraft_${COUNT}_short_route": "AS_SHORT_ROUTE_AIRCRAFT${COUNT}",
+							"aircraft_${COUNT}_medium_route": "AS_MEDIUM_ROUTE_AIRCRAFT${COUNT}",
+							"aircraft_${COUNT}_long_route": "AS_LONG_ROUTE_AIRCRAFT${COUNT}"
+						},
+						"added": [
+							"AS_DISTANCE_AIRCRAFT${COUNT}",
+							"AS_AZIMUTH_AIRCRAFT${COUNT}",
+							"AS_ELEVATION_AIRCRAFT${COUNT}",
+							"AS_ALTITUDE_AIRCRAFT${COUNT}"
+						],
+						"removed": []
+					}
+				}
+			],
 			"values": {
 				"AS_TOTAL_AIRCRAFT": {
 					"group": "ADSB Data",
@@ -431,7 +463,6 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 										aircraft['ias'] = aircraft['speed']
 
 					if 'alt_baro' not in aircraft:
-							aircraft['alt_baro'] = 0
 							if 'altitude' in aircraft:
 									aircraft['alt_baro'] = aircraft['altitude']
 
@@ -494,7 +525,6 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 										aircraft['ias'] = aircraft['speed']
 
 					if 'alt_baro' not in aircraft:
-							aircraft['alt_baro'] = 0       
 							if 'altitude' in aircraft:
 									aircraft['alt_baro'] = aircraft['altitude']
 								
@@ -656,7 +686,6 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 										aircraft['ias'] = aircraft['speed']
 
 					if 'alt_baro' not in aircraft:
-							aircraft['alt_baro'] = 0       
 							if 'altitude' in aircraft:
 									aircraft['alt_baro'] = aircraft['altitude']
 							

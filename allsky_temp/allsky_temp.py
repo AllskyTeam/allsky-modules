@@ -45,6 +45,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		"testable": "true",
 		"extradatafilename": "allsky_temp.json",
 		"extradata": {
+			"schema_version": 2,
 			"info": {
 				"count": 5,
 				"firstblank": "true"
@@ -63,6 +64,35 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					"periodic": "always"
 				}      
 			},   
+			"migrations": [
+				{
+					"from_schema_version": 1,
+					"to_schema_version": 2,
+					"breaking": "true",
+					"title": "Environment monitor extra data names changed",
+					"message": "Temperature monitor extra-data keys were renamed from the AS_TEMPMON_* format to the current AS_* format. Update overlays, templates, and integrations that still use the older names.",
+					"changes": {
+						"renamed": {
+							"AS_TEMPMON_MAXTEMP${COUNT}": "AS_MAXTEMP${COUNT}",
+							"AS_TEMPMON_DEADBAND${COUNT}": "AS_DEADBAND${COUNT}",
+							"AS_TEMPMON_CONTROLSTATE${COUNT}": "AS_CONTROLSTATE${COUNT}",
+							"AS_TEMPMON_GPIOSTATE${COUNT}": "AS_GPIOSTATE${COUNT}",
+							"AS_TEMPMON_SENSOR${COUNT}": "AS_TEMPSENSOR${COUNT}",
+							"AS_TEMPMON_SENSORNAME${COUNT}": "AS_TEMPSENSORNAME${COUNT}",
+							"AS_TEMPMON_AMBIENT${COUNT}": "AS_TEMP${COUNT}",
+							"AS_TEMPMON_DEW${COUNT}": "AS_DEW${COUNT}",
+							"AS_TEMPMON_HUMIDITY${COUNT}": "AS_HUMIDITY${COUNT}",
+							"AS_TEMPMON_PRESSURE${COUNT}": "AS_PRESSURE${COUNT}",
+							"AS_TEMPMON_RELHUMIDITY${COUNT}": "AS_RELHUMIDITY${COUNT}",
+							"AS_TEMPMON_ALTITUDE${COUNT}": "AS_ALTITUDE${COUNT}"
+						},
+						"added": [
+							"AS_CO2${COUNT}"
+						],
+						"removed": []
+					}
+				}
+			],
 			"values": {       
 				"AS_GPIOSTATE${COUNT}": {
 					"name": "${GPIOSTATE${COUNT}}",
@@ -94,7 +124,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					"sample": "",                
 					"group": "Environment",
 					"description": "Temperature from ${AS_TEMPSENSORNAME${COUNT}}",
-					"type": "temperature"
+					"type": "temperature",
+					"source": "sensor"
 				},
 				"AS_DEW${COUNT}": {
 					"name": "${DEW${COUNT}}",
@@ -110,7 +141,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					"sample": "",                  
 					"group": "Environment",
 					"description": "Humidity from ${AS_TEMPSENSORNAME${COUNT}}",
-					"type": "number"
+					"type": "number",
+					"source": "sensor"     
 				},
 				"AS_PRESSURE${COUNT}": {
 					"name": "${PRESSURE${COUNT}}",
@@ -118,7 +150,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Environment",
 					"description": "Pressure from ${AS_TEMPSENSORNAME${COUNT}}",
-					"type": "number"
+					"type": "number",
+					"source": "sensor"     
 				},
 				"AS_RELHUMIDITY${COUNT}": {
 					"name": "${RELHUMIDITY${COUNT}}",
@@ -134,7 +167,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Environment",
 					"description": "Altitude from ${AS_TEMPSENSORNAME${COUNT}}",
-					"type": "number"
+					"type": "number",
+					"source": "sensor"     
 				},
 				"AS_CO2${COUNT}": {
 					"name": "${CO2${COUNT}}",
@@ -142,7 +176,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Environment",
 					"description": "Co2 from ${AS_TEMPSENSORNAME${COUNT}}",
-					"type": "number"
+					"type": "number",
+					"source": "sensor"     
 				},
 				"AS_MAXTEMP${COUNT}": {
 					"name": "${MAXTEMP${COUNT}}",
@@ -339,7 +374,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Core",
 				"type": {
 					"fieldtype": "select",
-					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather,Ecowitt,Ecowitt Local,Homeassistant",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather,Ecowitt,Ecowitt Local,Homeassistant,Allsky Sensor",
 					"default": "None"
 				}
 			},
@@ -364,6 +399,23 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			},
 
 
+			"allskysensor": {
+				"required": "false",
+				"description": "Allsky Sensor",
+				"help": "The Allsky Sensor to use.",
+				"tab": "Core",
+				"type": {
+					"fieldtype": "allskysensor"
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"Allsky Sensor"
+					]
+				}            
+			},
+   
      
           
 			"inputpin": {

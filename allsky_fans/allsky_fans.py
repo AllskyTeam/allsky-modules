@@ -35,6 +35,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		"extradatafilename": "allsky_fans.json",
 		"group": "Environment Control",
 		"extradata": {
+			"schema_version": 2,
 			"database": {
 				"enabled": "True",
 				"table": "allsky_fans",
@@ -49,6 +50,43 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					"periodic": "always"
 				}
 			},
+			"migrations": [
+				{
+					"from_schema_version": 1,
+					"to_schema_version": 2,
+					"breaking": "true",
+					"title": "Fan control extra data names changed",
+					"message": "Fan control extra-data keys were renamed from the older OTH_* format to the AS_FANS_* format. Update overlays, templates, and integrations that still use the older names.",
+					"changes": {
+						"renamed": {
+							"OTH_FANS": "AS_FANS_FAN_STATE1",
+							"OTH_FANT": "AS_FANS_TEMP_LIMIT1",
+							"OTH_USE_PWM": "AS_FANS_USE_PWM1",
+							"OTH_PWM_ENABLED": "AS_FANS_PWM_ENABLED1",
+							"OTH_PWM_DUTY_CYCLE": "AS_FANS_PWM_DUTY_CYCLE1",
+							"OTH_TEMPERATURE": "AS_FANS_TEMPERATURE1"
+						},
+						"added": [
+							"AS_FANS_ENABLE1",
+							"AS_FANS_PWM_DUTY_PERCENT1",
+							"AS_FANS_ENABLE2",
+							"AS_FANS_FAN_STATE2",
+							"AS_FANS_TEMPERATURE2",
+							"AS_FANS_TEMP_LIMIT2",
+							"AS_FANS_USE_PWM2",
+							"AS_FANS_PWM_ENABLED2",
+							"AS_FANS_PWM_DUTY_CYCLE2",
+							"AS_FANS_PWM_DUTY_PERCENT2"
+						],
+						"removed": [
+							"OTH_PRESSURE",
+							"OTH_ALTITUDE",
+							"OTH_HUMIDITY",
+							"OTH_rel_humidity"
+						]
+					}
+				}
+			],
 			"values": {
 				"AS_FANS_ENABLE1": {
 					"name": "${FANS_ENABLE1}",
