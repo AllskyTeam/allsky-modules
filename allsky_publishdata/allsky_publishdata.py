@@ -31,7 +31,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 		"name": "Publish Data to Redis/MQTT/REST/influxDB",
 		"description": "Publish Allsky data to Redis, MQTT, REST, or influxDB",
 		"module": "allsky_publishdata",
-		"version": "v1.0.4",
+		"version": "v1.0.5",
 		"centersettings": "false",
 		"testable": "true",
 		"group": "Data Export",
@@ -73,12 +73,6 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			"postEndpoint": ""
 		},
 		"argumentdetails": {
-			"extradata1": {
-				"required": "false",
-				"description": "Extra data to export",
-				"help": "Comma seperated list of additional variables to export to json.",
-				"tab": "General"
-			},
 			"extradata": {
 				"required": "false",
 				"description": "Extra data to export",
@@ -369,7 +363,16 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 						"Added Home Assistant MQTT discovery for published values"
 					]
 				}
-			]
+			],
+			"v1.0.5" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": [
+						"Fixed bugs"
+					]
+				}
+			]   
 		}    
 	}
     
