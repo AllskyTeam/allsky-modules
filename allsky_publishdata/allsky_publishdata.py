@@ -229,6 +229,12 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Use Secure Connection",
 				"tab": "MQTT",
+				"layout": {
+					"row": "mqtt-secure",
+					"title": "Secure Connection",
+					"label": "Use SSL",
+					"width": 4
+				},    
 				"type": {
 					"fieldtype": "checkbox"
 				} 
@@ -240,6 +246,12 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 				"type": {
 					"fieldtype": "checkbox"
 				},
+				"layout": {
+					"row": "mqtt-secure",
+					"title": "Secure Connection",
+					"label": "Use Self Signed Certs",
+					"width": 4
+				},     
 				"filters": {
 					"filter": "mqttusesecure",
 					"filtertype": "show",
