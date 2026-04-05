@@ -19,7 +19,7 @@ metaData = {
     "name": "Space Weather",
     "description": "Retrieves and processes space weather data from NOAA SWPC for use in AllSky overlays",
     "module": "allsky_spaceweather",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "events": [
         "periodic"
     ],
@@ -64,16 +64,45 @@ metaData = {
                 "authorurl": "https://github.com/jcauthen78/",
                 "changes": "Initial Release"
             }
+        ],
+        "v1.0.1": [
+            {
+                "author": "Jim Cauthen",
+                "authorurl": "https://github.com/jcauthen78/",
+                "changes": "Fixed NOAA API format handling (list-of-lists vs list-of-dicts), added per-endpoint error handling and HTTP status checks"
+            }
         ]
     }
 }
 
-def get_color(value, ranges, colors):
-    """Helper function to determine color based on value ranges"""
-    for i in range(len(ranges) - 1):
-        if ranges[i] <= value < ranges[i+1]:
-            return colors[i]
-    return colors[-1]
+# ---------------------------------------------------------------------------
+# Helper: extract a value from a NOAA API record that may be either a list
+# (old format: [time_tag, val1, val2, ...]) or a dict (new format:
+# {"time_tag": "...", "Kp": "...", ...}).
+# ---------------------------------------------------------------------------
+def get_record_value(record, index_or_key, key_name=None):
+    """
+    Retrieve a value from a NOAA API record.
+    
+    Handles both formats:
+      - list-of-lists:  record[index_or_key]
+      - list-of-dicts:  record[key_name]  (falls back to index_or_key if key_name is None)
+    
+    Args:
+        record:       A single data row (list or dict)
+        index_or_key: Integer index for list format, or string key for dict format
+        key_name:     Explicit dict key to use when record is a dict. If None,
+                      index_or_key is used directly (works when it's a string).
+    Returns:
+        The raw value (usually a string) from the record.
+    """
+    if isinstance(record, dict):
+        # Dict format – use the explicit key name if provided
+        k = key_name if key_name is not None else index_or_key
+        return record[k]
+    else:
+        # List format – use the integer index
+        return record[index_or_key]
 
 def safe_float_conversion(data, default='xxx'):
     """Safely convert string to float with default value"""
@@ -82,11 +111,38 @@ def safe_float_conversion(data, default='xxx'):
     except (TypeError, ValueError):
         return default
 
+def fetch_json(url, label=""):
+    """
+    Fetch JSON from a NOAA SWPC endpoint with HTTP status checking.
+    
+    Args:
+        url:   The API URL
+        label: Human-readable label for log messages
+    Returns:
+        Parsed JSON data (list or dict), or None on failure.
+    """
+    response = requests.get(url, timeout=30)
+    if response.status_code != 200:
+        s.log(0, f"ERROR: {label} API returned HTTP {response.status_code}")
+        return None
+    try:
+        data = json.loads(response.content)
+    except json.JSONDecodeError as e:
+        s.log(0, f"ERROR: {label} API returned invalid JSON: {e}")
+        return None
+    # Sanity check: must be a non-empty list
+    if not isinstance(data, list) or len(data) < 2:
+        s.log(0, f"ERROR: {label} API returned unexpected data structure")
+        return None
+    return data
+
 def process_solar_wind_data(data):
     """Process solar wind data and return formatted values with colors"""
-    density = safe_float_conversion(data[-1][1])
-    speed = safe_float_conversion(data[-1][2])
-    temp = safe_float_conversion(data[-1][3])
+    # --- Get the last record, handling both list and dict formats ---
+    last = data[-1]
+    density = safe_float_conversion(get_record_value(last, 1, "density"))
+    speed   = safe_float_conversion(get_record_value(last, 2, "speed"))
+    temp    = safe_float_conversion(get_record_value(last, 3, "temperature"))
     temp_fmt = format(temp, ',').rstrip('0').rstrip('.') if temp != 'xxx' else temp
 
     # Color determination logic
@@ -170,60 +226,78 @@ def spaceweather(params, event):
             }
         }
 
+        # ---------------------------------------------------------------
         # Fetch and process solar wind data
-        response = requests.get(urls["wind"])
-        wind_data = json.loads(response.content)
-        solar_wind = process_solar_wind_data(wind_data)
+        # ---------------------------------------------------------------
+        wind_data = fetch_json(urls["wind"], "Solar Wind")
+        if wind_data is not None:
+            try:
+                solar_wind = process_solar_wind_data(wind_data)
+                space_weather_data.update({
+                    "SWX_SWIND_SPEED": {
+                        "value": solar_wind["speed"]["value"],
+                        "fill": solar_wind["speed"]["color"],
+                        "expires": 0
+                    },
+                    "SWX_SWIND_DENSITY": {
+                        "value": solar_wind["density"]["value"],
+                        "fill": solar_wind["density"]["color"],
+                        "expires": 0
+                    },
+                    "SWX_SWIND_TEMP": {
+                        "value": solar_wind["temp"]["value"],
+                        "fill": solar_wind["temp"]["color"],
+                        "expires": 0
+                    }
+                })
+            except Exception as e:
+                s.log(0, f"ERROR: Failed to process solar wind data: {e}")
         
-        space_weather_data.update({
-            "SWX_SWIND_SPEED": {
-                "value": solar_wind["speed"]["value"],
-                "fill": solar_wind["speed"]["color"],
-                "expires": 0
-            },
-            "SWX_SWIND_DENSITY": {
-                "value": solar_wind["density"]["value"],
-                "fill": solar_wind["density"]["color"],
-                "expires": 0
-            },
-            "SWX_SWIND_TEMP": {
-                "value": solar_wind["temp"]["value"],
-                "fill": solar_wind["temp"]["color"],
-                "expires": 0
-            }
-        })
-
+        # ---------------------------------------------------------------
         # Fetch and process Kp index
-        response = requests.get(urls["kp"])
-        kp_data = json.loads(response.content)
-        kp_value = float(kp_data[-1][1])
-        kp_color = "#10e310"  # default green
-        if kp_value > 5:
-            kp_color = "#f56b6b"  # red
-        elif kp_value >= 4:
-            kp_color = "#ffec00"  # yellow
+        # ---------------------------------------------------------------
+        kp_data = fetch_json(urls["kp"], "Kp Index")
+        if kp_data is not None:
+            try:
+                last_kp = kp_data[-1]
+                # Handle both list and dict formats for Kp value
+                kp_value = float(get_record_value(last_kp, 1, "Kp"))
+                kp_color = "#10e310"  # default green
+                if kp_value > 5:
+                    kp_color = "#f56b6b"  # red
+                elif kp_value >= 4:
+                    kp_color = "#ffec00"  # yellow
 
-        space_weather_data["SWX_KPDATA"] = {
-            "value": kp_value,
-            "fill": kp_color,
-            "expires": 0
-        }
+                space_weather_data["SWX_KPDATA"] = {
+                    "value": kp_value,
+                    "fill": kp_color,
+                    "expires": 0
+                }
+            except Exception as e:
+                s.log(0, f"ERROR: Failed to process Kp data: {e}")
 
+        # ---------------------------------------------------------------
         # Fetch and process Bz data
-        response = requests.get(urls["bz"])
-        bz_data = json.loads(response.content)
-        bz_value = float(bz_data[-1][3])
-        bz_color = "#10e310"  # default green
-        if bz_value <= -15:
-            bz_color = "#f56b6b"  # red
-        elif bz_value <= -6:
-            bz_color = "#ffec00"  # yellow
+        # ---------------------------------------------------------------
+        bz_data = fetch_json(urls["bz"], "Bz")
+        if bz_data is not None:
+            try:
+                last_bz = bz_data[-1]
+                # Handle both list and dict formats for Bz value
+                bz_value = float(get_record_value(last_bz, 3, "bz_gsm"))
+                bz_color = "#10e310"  # default green
+                if bz_value <= -15:
+                    bz_color = "#f56b6b"  # red
+                elif bz_value <= -6:
+                    bz_color = "#ffec00"  # yellow
 
-        space_weather_data["SWX_BZDATA"] = {
-            "value": bz_value,
-            "fill": bz_color,
-            "expires": 0
-        }
+                space_weather_data["SWX_BZDATA"] = {
+                    "value": bz_value,
+                    "fill": bz_color,
+                    "expires": 0
+                }
+            except Exception as e:
+                s.log(0, f"ERROR: Failed to process Bz data: {e}")
 
         # Save data to file
         s.saveExtraData(params["filename"], space_weather_data)
