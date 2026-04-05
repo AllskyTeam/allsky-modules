@@ -250,17 +250,13 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 		}
 
 		try:
-				# Get period from params, enforce minimum of 300 seconds
-				period = self.get_param('period', 300, int)
-    
-				module = self.meta_data['module']
-				
-				shouldRun, diff = allsky_shared.shouldRun(module, period)
-				if not shouldRun:
-						result = f"Last run {diff} seconds ago. Running every {period} seconds"
-						allsky_shared.log(1, f"INFO: {result}")
-						return result
+			# Get period from params, enforce minimum of 300 seconds
+			period = self.get_param('period', 300, int)
 
+			module = self.meta_data['module']
+			
+			shouldRun, diff = allsky_shared.shouldRun(module, period)
+			if shouldRun or self.debugmode:
 				# Calculate sun angle
 				utcnow = datetime.datetime.now(tz=pytz.UTC)
 				dtUtc = utcnow.replace(microsecond=0, tzinfo=None)
@@ -359,12 +355,16 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 								}
 						except Exception as e:
 								allsky_shared.log(0, f"ERROR: Failed to process Bz data: {e}")
-        
+				
 						# Save data to file
 						allsky_shared.saveExtraData(self.meta_data['extradatafilename'], space_weather_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 						result = f"Space weather data successfully written to {self.meta_data['extradatafilename']}"
 						self.log(1, f"INFO: {result}")
 						allsky_shared.setLastRun(module)
+
+			else:
+					result = f"Last run {diff} seconds ago. Running every {period} seconds"
+					allsky_shared.log(1, f"INFO: {result}")
 
 		except Exception as e:
 				eType, eObject, eTraceback = sys.exc_info()
