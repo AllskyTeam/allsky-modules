@@ -76,13 +76,13 @@ def hddtemp(params, event):
             name = dev.name.upper()
             tempData = dev.attributes[194]
             if tempData is not None:
-                 def smart_temp_signed(val):
-                     if val is None:
-                         return None
-                 return val - 256 if val > 127 else val
+                def smart_temp_signed(val):
+                    if val is None:
+                        return None
+                    return val - 256 if val > 127 else val
 
-                 temp = smart_temp_signed(tempData.raw_int)
-                 tempMax = smart_temp_signed(tempData.worst)
+                temp = smart_temp_signed(tempData.raw_int)
+                tempMax = smart_temp_signed(tempData.worst)
 
                 if temp is not None:
                     hddName = f"AS_HDD{name}TEMP"
