@@ -23,7 +23,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 		"name": "ADS-B Aircraft Tracking Data",
 		"description": "Provide aircraft data for display on images",
 		"module": "allsky_adsb",    
-		"version": "v2.0.0",
+		"version": "v2.0.1",
 		"group": "Data Capture",
 		"events": [
 			"periodic",
@@ -31,10 +31,17 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			"night"
 		],
 		"enabled": "false",    
-		"experimental": "true",
+		"experimental": "false",
 		"testable": "true",  
 		"centersettings": "false",
-		"extradatafilename": "allsky_adsb.json", 
+		"extradatafilename": "allsky_adsb.json",
+		"tools": {
+			"update": {
+				"title": "Update Database",
+				"description": "Update the database with the latest aircraft data.",
+    		"tool" : "build_database.py"
+			}
+		},
 		"extradata": {
 			"schema_version": 2,
 			"database": {
@@ -429,7 +436,14 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 					"authorurl": "https://github.com/allskyteam",
 					"changes": "Updates for new module system"
 				}
-			]   
+			],
+			"v2.0.1" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Added ability to update aircraft database"
+				}
+			]      
 		}
 	}
 
