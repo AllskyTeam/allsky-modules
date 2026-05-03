@@ -20,7 +20,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 	meta_data = {
 		"name": "Get GPS Data",
 		"description": "Set date/time and position from an attached GPS",
-		"version": "v2.0.0",
+		"version": "v2.0.1",
 		"module": "allsky_pigps",
 		"centersettings": "false",
 		"testable": "true",
@@ -202,6 +202,13 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 					"author": "Alex Greenland",
 					"authorurl": "https://github.com/allskyteam",
 					"changes": "Updates for new module system"
+				}
+			],
+			"v2.0.1" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Prevent no fix error being sent to allsky"
 				}
 			]
 		}
@@ -421,7 +428,7 @@ class ALLSKYGPS(ALLSKYMODULEBASE):
 
 					if time.time() > timeout:
 						result = 'No position returned from gpsd'
-						self.log(0, f'ERROR in {__file__}: {result}')
+						self.log(1, f'ERROR in {__file__}: {result}')
 						break
 			
 				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
