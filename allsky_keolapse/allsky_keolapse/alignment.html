@@ -29,11 +29,25 @@ Konva and jQuery are already loaded by the modules page.
 	<div id="keolapse-align-stage" tabindex="0"
 		style="outline:none; border:1px solid #444; background:#111; cursor:crosshair; min-height:120px;">
 	</div>
+	<div style="margin-top:6px;">
+		<span style="margin-right:6px;">Centre</span>
+		<div class="btn-group btn-group-sm" role="group" aria-label="Move centre">
+			<button type="button" class="btn btn-default" data-ka-nudge="-1,0,0" title="Move centre left (Shift = 10 px, hold to repeat)">&#9664;</button>
+			<button type="button" class="btn btn-default" data-ka-nudge="0,-1,0" title="Move centre up (Shift = 10 px, hold to repeat)">&#9650;</button>
+			<button type="button" class="btn btn-default" data-ka-nudge="0,1,0" title="Move centre down (Shift = 10 px, hold to repeat)">&#9660;</button>
+			<button type="button" class="btn btn-default" data-ka-nudge="1,0,0" title="Move centre right (Shift = 10 px, hold to repeat)">&#9654;</button>
+		</div>
+		<span style="margin:0 6px 0 14px;">Radius</span>
+		<div class="btn-group btn-group-sm" role="group" aria-label="Change radius">
+			<button type="button" class="btn btn-default" data-ka-nudge="0,0,-1" title="Shrink circle (Shift = 10 px, hold to repeat)">&minus;</button>
+			<button type="button" class="btn btn-default" data-ka-nudge="0,0,1" title="Grow circle (Shift = 10 px, hold to repeat)">+</button>
+		</div>
+		<span id="keolapse-align-readout" style="font-family:monospace; margin-left:14px;"></span>
+	</div>
 	<div class="help-block" style="margin-top:6px; margin-bottom:0;">
-		<span id="keolapse-align-readout" style="font-family:monospace;"></span><br>
 		Drag the circle to move it, drag the square handle (or use the mouse wheel) to resize.
-		Keyboard (click the image first): arrow keys move the centre, <code>+</code>/<code>-</code>
-		change the radius; hold Shift for steps of 10 pixels.
+		Buttons and keyboard (click the image first) move the centre / change the radius by
+		1 pixel; hold Shift for steps of 10. Hold a button down to repeat.
 	</div>
 </div>
 <script>
@@ -325,6 +339,30 @@ Konva and jQuery are already loaded by the modules page.
 			writeSettings(Math.floor(native.w / 2), Math.floor(native.h / 2), c.r);
 			redraw();
 		});
+
+		// Nudge buttons: one step per press, Shift for 10 px, hold to repeat
+		var repeatDelay = null;
+		var repeatTimer = null;
+		function stopRepeat() {
+			clearTimeout(repeatDelay);
+			clearInterval(repeatTimer);
+			repeatDelay = repeatTimer = null;
+		}
+		$('#keolapse-align [data-ka-nudge]').on('mousedown touchstart', function (e) {
+			e.preventDefault();
+			stopRepeat();
+			var parts = String($(this).data('ka-nudge')).split(',').map(Number);
+			var step = e.shiftKey ? 10 : 1;
+			var fire = function () {
+				nudge(parts[0] * step, parts[1] * step, parts[2] * step);
+			};
+			fire();
+			repeatDelay = setTimeout(function () {
+				repeatTimer = setInterval(fire, 60);
+			}, 400);
+		});
+		$('#keolapse-align [data-ka-nudge]').on('mouseleave', stopRepeat);
+		$(document).on('mouseup.keolapsealign touchend.keolapsealign touchcancel.keolapsealign', stopRepeat);
 
 		container.addEventListener('wheel', function (e) {
 			e.preventDefault();
