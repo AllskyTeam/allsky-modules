@@ -177,8 +177,10 @@ Konva and jQuery are already loaded by the modules page.
 
 		// Fit the dialog width but also cap the height so the settings
 		// fields below stay on screen; centre the canvas when narrower
-		// than the dialog.
-		var maxHeight = 420;
+		// than the dialog. The cap adapts to the browser window: roughly
+		// everything not needed by the dialog chrome and the field rows,
+		// clamped between 360 and 560 px.
+		var maxHeight = Math.max(360, Math.min(560, (window.innerHeight || 800) - 420));
 		scale = Math.min(
 			containerWidth / (native.w + 2 * margin),
 			maxHeight / (native.h + 2 * margin)
