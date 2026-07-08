@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "module": "allsky_keolapse",
-  "generated_utc": "2026-07-08T15:31:39Z",
+  "generated_utc": "2026-07-08T16:59:06Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
@@ -15,8 +15,8 @@
       "mode": "644"
     },
     "allsky_keolapse/alignment.html": {
-      "sha256": "b8976f27df8b01da16cabb56a5e561e497b40bab96464f8d656d5a563a829f59",
-      "size": 18296,
+      "sha256": "494c15c04ae5c91f0a7c14d2373d618d3f4b4024adf6becc8f306d0661779461",
+      "size": 19740,
       "mode": "644"
     }
   },

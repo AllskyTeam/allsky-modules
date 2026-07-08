@@ -9,9 +9,13 @@ into the standard settings fields (circle_radius_factor,
 center_x_offset, center_y_offset), so the Save button works unchanged
 and the numeric fields remain usable as a fallback.
 
+The dialog may render this fragment more than once (multiple layout
+containers), so everything is class-based and the script keeps exactly
+one live instance, attached to whichever copy is actually visible.
+
 Konva and jQuery are already loaded by the modules page.
 -->
-<div id="keolapse-align" style="margin-bottom:15px;">
+<div class="keolapse-align" style="margin-bottom:15px;">
 	<div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; margin-bottom:12px;">
 		<div class="btn-group btn-group-sm" role="group" aria-label="Display mode">
 			<button type="button" class="btn btn-default active" data-ka-mode="outline">Outline</button>
@@ -21,13 +25,13 @@ Konva and jQuery are already loaded by the modules page.
 		</div>
 		<span style="display:inline-flex; align-items:center; gap:8px;">
 			Mask opacity
-			<input type="range" id="keolapse-align-opacity" min="20" max="100" value="85"
+			<input type="range" class="keolapse-align-opacity" min="20" max="100" value="85"
 				style="width:110px; margin:0;" title="Mask opacity">
 		</span>
-		<button type="button" class="btn btn-default btn-sm" id="keolapse-align-reset"
+		<button type="button" class="btn btn-default btn-sm keolapse-align-reset"
 			style="margin-left:auto;" title="Reset the circle to the image centre">Reset to centre</button>
 	</div>
-	<div id="keolapse-align-stage"
+	<div class="keolapse-align-stage"
 		style="outline:none; border:1px solid #444; background:#111; cursor:crosshair; min-height:120px;">
 	</div>
 	<div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px 24px; margin-top:12px;">
@@ -48,8 +52,8 @@ Konva and jQuery are already loaded by the modules page.
 			</span>
 		</span>
 	</div>
-	<div id="keolapse-align-readout" style="font-family:monospace; margin-top:10px;"></div>
-	<div id="keolapse-align-savenote" style="margin-top:10px; font-weight:bold; font-size:1.15em; color:#e67e22;">
+	<div class="keolapse-align-readout" style="font-family:monospace; margin-top:10px;"></div>
+	<div class="keolapse-align-savenote" style="margin-top:10px; font-weight:bold; font-size:1.15em; color:#e67e22;">
 		Important: the circle settings are only stored after you click <u>Save</u> below
 		<em>and then</em> the green <u>Save</u> button in the Module Manager.
 	</div>
@@ -65,42 +69,64 @@ Konva and jQuery are already loaded by the modules page.
 (function () {
 	'use strict';
 
-	var FIELD_FACTOR = '#circle_radius_factor';
-	var FIELD_CX = '#center_x_offset';
-	var FIELD_CY = '#center_y_offset';
-	var FIELD_KH = '#keogram_height';
-	var FIELD_CP = '#circle_padding';
-	var FIELD_SP = '#start_position';
-
-	var container = document.getElementById('keolapse-align-stage');
-	if (!container || typeof Konva === 'undefined') {
+	if (typeof Konva === 'undefined' || typeof jQuery === 'undefined') {
 		return;
 	}
 
+	// The fragment (and this script) may be inserted several times per
+	// dialog. Keep exactly one live instance: each execution tears down
+	// the previous one and takes over.
+	if (window.__keolapseAlign && typeof window.__keolapseAlign.destroy === 'function') {
+		window.__keolapseAlign.destroy();
+	}
+
+	var $root = null;			// the visible .keolapse-align this instance drives
+	var container = null;		// its stage div (DOM element)
 	var stage = null;
-	var native = { w: 0, h: 0 };	// capture image size in native pixels
-	var scale = 1;					// stage pixels per native pixel
-	var margin = 0;					// native-pixel margin around the image so the ring stays visible
+	var nodes = {};
+	var native = { w: 0, h: 0 };
+	var scale = 1;
+	var margin = 0;
 	var mode = 'outline';
 	var maskOpacity = 0.85;
-	var writingFields = false;		// guard against change-event feedback loops
+	var writingFields = false;
 	var initialised = false;
+	var loading = false;
+	var pollTimer = null;
 
-	var nodes = {};					// Konva nodes, created once in buildStage()
+	window.__keolapseAlign = { destroy: destroy };
 
-	function fieldNum(selector, fallback) {
-		var value = parseFloat($(selector).val());
+	function destroy() {
+		if (pollTimer) {
+			clearInterval(pollTimer);
+			pollTimer = null;
+		}
+		$(document).off('.keolapsealign');
+		if (stage) {
+			stage.destroy();
+			stage = null;
+		}
+	}
+
+	// Settings fields can also exist in more than one copy: read the
+	// first, write to every copy so they stay consistent.
+	function fieldSel(id) {
+		return 'input[id="' + id + '"], select[id="' + id + '"]';
+	}
+
+	function readField(id, fallback) {
+		var value = parseFloat($(fieldSel(id)).first().val());
 		return isNaN(value) ? fallback : value;
 	}
 
 	function readSettings() {
 		return {
-			factor: fieldNum(FIELD_FACTOR, 0.47),
-			cxOff: Math.round(fieldNum(FIELD_CX, 0)),
-			cyOff: Math.round(fieldNum(FIELD_CY, 0)),
-			keoHeight: Math.round(fieldNum(FIELD_KH, 175)),
-			padding: Math.round(fieldNum(FIELD_CP, 5)),
-			startPos: Math.round(fieldNum(FIELD_SP, 12))
+			factor: readField('circle_radius_factor', 0.47),
+			cxOff: Math.round(readField('center_x_offset', 0)),
+			cyOff: Math.round(readField('center_y_offset', 0)),
+			keoHeight: Math.round(readField('keogram_height', 175)),
+			padding: Math.round(readField('circle_padding', 5)),
+			startPos: Math.round(readField('start_position', 12))
 		};
 	}
 
@@ -116,11 +142,11 @@ Konva and jQuery are already loaded by the modules page.
 	function writeSettings(cx, cy, r) {
 		var minDim = Math.min(native.w, native.h);
 		writingFields = true;
-		$(FIELD_CX).val(cx - Math.floor(native.w / 2)).trigger('change');
-		$(FIELD_CY).val(cy - Math.floor(native.h / 2)).trigger('change');
-		$(FIELD_FACTOR).val((r / minDim).toFixed(4)).trigger('change');
+		$(fieldSel('center_x_offset')).val(cx - Math.floor(native.w / 2)).trigger('change');
+		$(fieldSel('center_y_offset')).val(cy - Math.floor(native.h / 2)).trigger('change');
+		$(fieldSel('circle_radius_factor')).val((r / minDim).toFixed(4)).trigger('change');
 		writingFields = false;
-		$('#keolapse-align-savenote').html(
+		$root.find('.keolapse-align-savenote').html(
 			'&#9888; NOT SAVED YET! Click <u>Save</u> below, <em>then</em> the green ' +
 			'<u>Save</u> button in the Module Manager &mdash; only then are the circle settings stored.'
 		);
@@ -153,7 +179,7 @@ Konva and jQuery are already loaded by the modules page.
 		var stageHeight = (native.h + 2 * margin) * scale;
 
 		stage = new Konva.Stage({
-			container: 'keolapse-align-stage',
+			container: container,	// pass the element: ids may be duplicated
 			width: containerWidth,
 			height: stageHeight
 		});
@@ -182,7 +208,7 @@ Konva and jQuery are already loaded by the modules page.
 			}));
 		}
 
-		// Mask covering everything except the sky disc ("outside" mode).
+		// Mask covering everything except the sky disc ("surround" mode).
 		// Clockwise rect + anticlockwise arc -> the disc becomes a hole.
 		nodes.maskOutside = new Konva.Shape({
 			fill: 'black',
@@ -199,7 +225,7 @@ Konva and jQuery are already loaded by the modules page.
 		});
 		layer.add(nodes.maskOutside);
 
-		// Black disc filling the inner circle ("inside" mode)
+		// Disc filling the inner circle (black or white)
 		nodes.maskInside = new Konva.Circle({ fill: 'black', listening: false, visible: false });
 		layer.add(nodes.maskInside);
 
@@ -322,7 +348,7 @@ Konva and jQuery are already loaded by the modules page.
 
 		nodes.layer.batchDraw();
 
-		$('#keolapse-align-readout').text(
+		$root.find('.keolapse-align-readout').text(
 			'centre ' + c.cx + ', ' + c.cy +
 			'  (offset ' + (c.cx - Math.floor(native.w / 2)) + ', ' + (c.cy - Math.floor(native.h / 2)) + ')' +
 			'  radius ' + c.r + ' px' +
@@ -339,19 +365,19 @@ Konva and jQuery are already loaded by the modules page.
 	}
 
 	function bindControls() {
-		$('#keolapse-align [data-ka-mode]').on('click', function () {
-			$('#keolapse-align [data-ka-mode]').removeClass('active');
+		$root.find('[data-ka-mode]').on('click', function () {
+			$root.find('[data-ka-mode]').removeClass('active');
 			$(this).addClass('active');
 			mode = $(this).data('ka-mode');
 			redraw();
 		});
 
-		$('#keolapse-align-opacity').on('input change', function () {
+		$root.find('.keolapse-align-opacity').on('input change', function () {
 			maskOpacity = this.value / 100;
 			redraw();
 		});
 
-		$('#keolapse-align-reset').on('click', function () {
+		$root.find('.keolapse-align-reset').on('click', function () {
 			var c = circleFromSettings(readSettings());
 			writeSettings(Math.floor(native.w / 2), Math.floor(native.h / 2), c.r);
 			redraw();
@@ -365,7 +391,7 @@ Konva and jQuery are already loaded by the modules page.
 			clearInterval(repeatTimer);
 			repeatDelay = repeatTimer = null;
 		}
-		$('#keolapse-align [data-ka-nudge]').on('mousedown touchstart', function (e) {
+		$root.find('[data-ka-nudge]').on('mousedown touchstart', function (e) {
 			e.preventDefault();
 			stopRepeat();
 			var parts = String($(this).data('ka-nudge')).split(',').map(Number);
@@ -378,7 +404,7 @@ Konva and jQuery are already loaded by the modules page.
 				repeatTimer = setInterval(fire, 60);
 			}, 400);
 		});
-		$('#keolapse-align [data-ka-nudge]').on('mouseleave', stopRepeat);
+		$root.find('[data-ka-nudge]').on('mouseleave', stopRepeat);
 		$(document).on('mouseup.keolapsealign touchend.keolapsealign touchcancel.keolapsealign', stopRepeat);
 
 		container.addEventListener('wheel', function (e) {
@@ -421,12 +447,14 @@ Konva and jQuery are already loaded by the modules page.
 		});
 
 		// Keep the canvas in sync when the numeric fields are edited directly
-		$([FIELD_FACTOR, FIELD_CX, FIELD_CY, FIELD_KH, FIELD_CP, FIELD_SP].join(', '))
-			.on('change input', function () {
-				if (!writingFields) {
-					redraw();
-				}
-			});
+		var syncSel = ['circle_radius_factor', 'center_x_offset', 'center_y_offset',
+			'keogram_height', 'circle_padding', 'start_position']
+			.map(fieldSel).join(', ');
+		$(document).on('change.keolapsealign input.keolapsealign', syncSel, function () {
+			if (!writingFields) {
+				redraw();
+			}
+		});
 	}
 
 	function loadImage(url, done) {
@@ -440,26 +468,44 @@ Konva and jQuery are already loaded by the modules page.
 		}
 	}
 
-	function init() {
-		if (initialised || !$(container).is(':visible') || !$(container).width()) {
-			return;
+	// Attach to the first VISIBLE copy of the fragment with a usable width.
+	// Returns true once the widget is up so callers can stop retrying.
+	function tryInit() {
+		if (initialised) {
+			return true;
 		}
-		initialised = true;
+		if (loading) {
+			return false;
+		}
+
+		var candidates = $('.keolapse-align').filter(function () {
+			return $(this).is(':visible') && $(this).width() > 50;
+		});
+		if (!candidates.length) {
+			return false;
+		}
+		$root = candidates.first();
+		container = $root.find('.keolapse-align-stage')[0];
+		if (!container) {
+			return false;
+		}
+
+		loading = true;
 
 		var start = function (image) {
+			loading = false;
 			native.w = image ? image.naturalWidth : 1280;
 			native.h = image ? image.naturalHeight : 960;
 			if (buildStage(image)) {
+				initialised = true;
 				bindControls();
 				redraw();
-			} else {
-				initialised = false;	// container was hidden after all; retry on next event
 			}
 		};
 
 		if (window.KEOLAPSE_ALIGN_IMAGE) {	// test-harness override
 			loadImage(window.KEOLAPSE_ALIGN_IMAGE, start);
-			return;
+			return false;
 		}
 
 		$.ajax({
@@ -476,16 +522,26 @@ Konva and jQuery are already loaded by the modules page.
 		}).fail(function () {
 			start(null);
 		});
+
+		return false;
 	}
 
-	// The dialog exists in the DOM when this script runs, but it is not
-	// visible yet and the Image tab may not be the active one. Initialise
-	// on whichever event first makes the container measurable. Delegated,
-	// namespaced handlers survive the .off('shown.bs.modal') calls that
-	// modules.js makes on the dialog element itself.
-	$(document).off('.keolapsealign');
-	$(document).on('shown.bs.modal.keolapsealign', '#module-settings-dialog', init);
-	$(document).on('shown.bs.tab.keolapsealign', '#module-settings-dialog a[data-toggle="tab"]', init);
-	init();
+	// Initialisation triggers: whatever mechanism shows the dialog or the
+	// Image tab, one of these catches it. The poll is the belt-and-braces
+	// fallback (cheap: a no-op once initialised or when the fragment is
+	// removed from the DOM).
+	$(document).on('shown.bs.modal.keolapsealign shown.bs.tab.keolapsealign', tryInit);
+	$(document).on('click.keolapsealign', function () {
+		setTimeout(tryInit, 100);
+	});
+	pollTimer = setInterval(function () {
+		if (tryInit()) {
+			clearInterval(pollTimer);
+			pollTimer = null;
+		} else if (initialised === false && $('.keolapse-align').length === 0) {
+			destroy();	// dialog was removed before we ever initialised
+		}
+	}, 500);
+	tryInit();
 })();
 </script>
