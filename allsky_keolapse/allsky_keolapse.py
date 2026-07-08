@@ -281,7 +281,7 @@ class ALLSKYKEOLAPSE(ALLSKYMODULEBASE):
 		"name": "Keolapse Generator",
 		"description": "Creates a timelapse video with the keogram wrapped as a ring around the sky image",
 		"module": "allsky_keolapse",
-		"version": "v0.9.2",
+		"version": "v0.9.3",
 		"pythonversion": "3.10.0",
 		"centersettings": "false",
 		"testable": "true",
@@ -450,16 +450,24 @@ class ALLSKYKEOLAPSE(ALLSKYMODULEBASE):
 					"step": 10
 				}
 			},
+			"alignment_ui": {
+				"tab": "Image",
+				"source": "file",
+				"file": "alignment.html",
+				"type": {
+					"fieldtype": "html"
+				}
+			},
 			"circle_radius_factor": {
 				"required": "true",
 				"description": "Circle Radius Factor",
-				"help": "Factor to determine circle radius relative to image width (0.1 to 1.0).",
+				"help": "Factor to determine circle radius relative to the smaller image dimension (0.1 to 1.0). Usually set with the alignment tool above.",
 				"tab": "Image",
 				"type": {
 					"fieldtype": "spinner",
 					"min": 0.1,
 					"max": 1.0,
-					"step": 0.01
+					"step": 0.0001
 				}
 			},
 			"center_x_offset": {
@@ -661,6 +669,17 @@ class ALLSKYKEOLAPSE(ALLSKYMODULEBASE):
 		},
 		"businfo": [],
 		"changelog": {
+			"v0.9.3": [
+				{
+					"author": "Andy Felong",
+					"authorurl": "https://github.com/AndyOfLinux",
+					"changes": [
+						"Added interactive circle alignment tool to the Image tab: the current capture image is shown with the keogram ring circles overlaid; drag or use arrow keys to move the centre, drag the handle / mouse wheel / +- keys to resize",
+						"Alignment tool includes black mask display modes (disc or surround) with adjustable opacity for fine alignment against the sky image",
+						"Circle Radius Factor spinner step reduced from 0.01 to 0.0001 for pixel-level radius control"
+					]
+				}
+			],
 			"v0.9.2": [
 				{
 					"author": "Andy Felong",
