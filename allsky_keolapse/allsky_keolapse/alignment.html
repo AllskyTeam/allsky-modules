@@ -26,7 +26,7 @@ Konva and jQuery are already loaded by the modules page.
 		<button type="button" class="btn btn-default btn-sm pull-right" id="keolapse-align-reset"
 			title="Reset the circle to the image centre">Reset to centre</button>
 	</div>
-	<div id="keolapse-align-stage" tabindex="0"
+	<div id="keolapse-align-stage"
 		style="outline:none; border:1px solid #444; background:#111; cursor:crosshair; min-height:120px;">
 	</div>
 	<div style="margin-top:6px;">
@@ -46,8 +46,9 @@ Konva and jQuery are already loaded by the modules page.
 	</div>
 	<div class="help-block" style="margin-top:6px; margin-bottom:0;">
 		Drag the circle to move it, drag the square handle (or use the mouse wheel) to resize.
-		Buttons and keyboard (click the image first) move the centre / change the radius by
-		1 pixel; hold Shift for steps of 10. Hold a button down to repeat.
+		Buttons and arrow / <code>+</code> / <code>-</code> keys move the centre and change the
+		radius by 1 pixel; hold Shift for steps of 10. Hold a button down to repeat.
+		Keys work whenever you are not typing in a field.
 	</div>
 </div>
 <script>
@@ -370,7 +371,17 @@ Konva and jQuery are already loaded by the modules page.
 			nudge(0, 0, e.deltaY < 0 ? step : -step);
 		}, { passive: false });
 
-		container.addEventListener('keydown', function (e) {
+		// Page-level keyboard handler: active whenever the alignment tool is
+		// on screen and the user is not typing in a form field, so no
+		// click-to-focus is needed first.
+		$(document).on('keydown.keolapsealign', function (e) {
+			if (!stage || !$(container).is(':visible')) {
+				return;
+			}
+			var tag = (e.target.tagName || '').toLowerCase();
+			if (tag === 'input' || tag === 'select' || tag === 'textarea' || e.target.isContentEditable) {
+				return;
+			}
 			var step = e.shiftKey ? 10 : 1;
 			var handled = true;
 			switch (e.key) {
@@ -386,8 +397,6 @@ Konva and jQuery are already loaded by the modules page.
 				e.preventDefault();
 			}
 		});
-
-		container.addEventListener('mousedown', function () { container.focus(); });
 
 		// Keep the canvas in sync when the numeric fields are edited directly
 		$([FIELD_FACTOR, FIELD_CX, FIELD_CY, FIELD_KH, FIELD_CP, FIELD_SP].join(', '))

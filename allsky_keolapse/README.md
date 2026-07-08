@@ -23,8 +23,12 @@ start-position tick):
 
 - **Drag** the circle to move its centre; **drag the square handle** or use
   the **mouse wheel** to resize it.
-- **Keyboard** (click the image first): arrow keys move the centre 1 pixel,
-  `+`/`-` change the radius; hold **Shift** for steps of 10 pixels.
+- **Nudge buttons** below the image move the centre and change the radius
+  1 pixel per click (Shift-click = 10 pixels, hold to repeat) — handy on
+  tablets and touchscreens.
+- **Keyboard**: arrow keys move the centre 1 pixel, `+`/`-` change the
+  radius; hold **Shift** for steps of 10 pixels. Keys are active whenever
+  the tool is on screen and you are not typing in a field.
 - **Display modes**: *Outline* (circles only), *Black disc* (fills the inner
   circle) and *Black surround* (blacks out everything outside the circle) —
   the mask modes make small misalignments against the sky much easier to
