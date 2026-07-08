@@ -1,22 +1,22 @@
 {
   "schema_version": 1,
   "module": "allsky_keolapse",
-  "generated_utc": "2026-07-08T15:19:09Z",
+  "generated_utc": "2026-07-08T15:31:39Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
-      "sha256": "733e428f70d4ba0da5f1446b35a6a8329acd6bf6b34fff02f12747fd0619c1be",
-      "size": 4062,
+      "sha256": "a0cc25f8ba4154f51c15cd611f5ead254f3dd9ccb92330be3f7b11590654f4e6",
+      "size": 4330,
       "mode": "644"
     },
     "allsky_keolapse.py": {
-      "sha256": "1f868b305df6a81de9699cb2ae1809a56f54427e5496f9e4ba113c35eb7a5322",
-      "size": 57503,
+      "sha256": "f5ebffc3b3be3d74cd40c162d999f2836947986f5b6f6c58c46e8e098cdbb7b4",
+      "size": 57640,
       "mode": "644"
     },
     "allsky_keolapse/alignment.html": {
-      "sha256": "51d189c050888b79b18767512d2fcb8a06f1b772beade31f229d83681766d30c",
-      "size": 17597,
+      "sha256": "b8976f27df8b01da16cabb56a5e561e497b40bab96464f8d656d5a563a829f59",
+      "size": 18296,
       "mode": "644"
     }
   },

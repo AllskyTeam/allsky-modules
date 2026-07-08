@@ -31,15 +31,21 @@ start-position tick):
   keys) change the radius 1 pixel; **PageUp** / **PageDown** change it
   10 pixels. Keys are active whenever the tool is on screen and you are
   not typing in a field.
-- **Display modes**: *Outline* (circles only), *Black disc* (fills the inner
-  circle) and *Black surround* (blacks out everything outside the circle) —
-  the mask modes make small misalignments against the sky much easier to
-  see. Mask opacity is adjustable.
+- **Display modes**: *Outline* (circles only), *Black disc* / *White disc*
+  (fill the inner circle) and *Black surround* (blacks out everything
+  outside the circle) — the mask modes make small misalignments against
+  the sky much easier to see. Mask opacity is adjustable.
 
 All adjustments write directly into the standard **Circle Radius Factor**,
 **Center X Offset** and **Center Y Offset** settings, so the numeric
 spinners keep working and nothing changes in how the module reads its
-configuration. Press **Save** as usual to store the result.
+configuration.
+
+**Saving is a two-step process** (standard Allsky behaviour): click
+**Save** in the module settings dialog, *then* the green **Save** button
+in the Module Manager toolbar. The settings are only written to disk
+after the second step — the tool shows a bold reminder once you have
+unsaved changes.
 
 ## Settings pulled from core Allsky
 

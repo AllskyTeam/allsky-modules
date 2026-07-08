@@ -15,8 +15,9 @@ Konva and jQuery are already loaded by the modules page.
 	<div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; margin-bottom:12px;">
 		<div class="btn-group btn-group-sm" role="group" aria-label="Display mode">
 			<button type="button" class="btn btn-default active" data-ka-mode="outline">Outline</button>
-			<button type="button" class="btn btn-default" data-ka-mode="inside">Black disc</button>
-			<button type="button" class="btn btn-default" data-ka-mode="outside">Black surround</button>
+			<button type="button" class="btn btn-default" data-ka-mode="inside-black">Black disc</button>
+			<button type="button" class="btn btn-default" data-ka-mode="inside-white">White disc</button>
+			<button type="button" class="btn btn-default" data-ka-mode="outside-black">Black surround</button>
 		</div>
 		<span style="display:inline-flex; align-items:center; gap:8px;">
 			Mask opacity
@@ -48,6 +49,10 @@ Konva and jQuery are already loaded by the modules page.
 		</span>
 	</div>
 	<div id="keolapse-align-readout" style="font-family:monospace; margin-top:10px;"></div>
+	<div id="keolapse-align-savenote" style="margin-top:10px; font-weight:bold; font-size:1.15em; color:#e67e22;">
+		Important: the circle settings are only stored after you click <u>Save</u> below
+		<em>and then</em> the green <u>Save</u> button in the Module Manager.
+	</div>
 	<div class="help-block" style="margin-top:8px; margin-bottom:0;">
 		Drag the circle to move it, drag the square handle (or use the mouse wheel) to resize.
 		Buttons move 1 pixel per click, Shift-click for 10, hold to repeat.
@@ -115,6 +120,10 @@ Konva and jQuery are already loaded by the modules page.
 		$(FIELD_CY).val(cy - Math.floor(native.h / 2)).trigger('change');
 		$(FIELD_FACTOR).val((r / minDim).toFixed(4)).trigger('change');
 		writingFields = false;
+		$('#keolapse-align-savenote').html(
+			'&#9888; NOT SAVED YET! Click <u>Save</u> below, <em>then</em> the green ' +
+			'<u>Save</u> button in the Module Manager &mdash; only then are the circle settings stored.'
+		);
 	}
 
 	function clampCircle(c) {
@@ -296,11 +305,13 @@ Konva and jQuery are already loaded by the modules page.
 
 		nodes.maskInside.setAttrs({
 			x: x, y: y, radius: c.r * scale,
-			visible: mode === 'inside', opacity: maskOpacity
+			fill: mode === 'inside-white' ? 'white' : 'black',
+			visible: mode === 'inside-black' || mode === 'inside-white',
+			opacity: maskOpacity
 		});
 		nodes.maskOutside.setAttrs({
 			kaCircle: c,
-			visible: mode === 'outside', opacity: maskOpacity
+			visible: mode === 'outside-black', opacity: maskOpacity
 		});
 
 		nodes.mover.setAttrs({ x: x, y: y, radius: Math.max(10, c.r * scale) });
