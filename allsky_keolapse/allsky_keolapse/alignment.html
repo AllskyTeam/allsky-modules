@@ -175,12 +175,24 @@ Konva and jQuery are already loaded by the modules page.
 		// matching the automatic expansion the module performs.
 		margin = settings.keoHeight + settings.padding + 40;
 
-		scale = containerWidth / (native.w + 2 * margin);
-		var stageHeight = (native.h + 2 * margin) * scale;
+		// Fit the dialog width but also cap the height so the settings
+		// fields below stay on screen; centre the canvas when narrower
+		// than the dialog.
+		var maxHeight = 420;
+		scale = Math.min(
+			containerWidth / (native.w + 2 * margin),
+			maxHeight / (native.h + 2 * margin)
+		);
+		var stageWidth = Math.round((native.w + 2 * margin) * scale);
+		var stageHeight = Math.round((native.h + 2 * margin) * scale);
+		container.style.width = stageWidth + 'px';
+		container.style.maxWidth = '100%';
+		container.style.marginLeft = 'auto';
+		container.style.marginRight = 'auto';
 
 		stage = new Konva.Stage({
 			container: container,	// pass the element: ids may be duplicated
-			width: containerWidth,
+			width: stageWidth,
 			height: stageHeight
 		});
 
