@@ -11,45 +11,49 @@ and the numeric fields remain usable as a fallback.
 
 Konva and jQuery are already loaded by the modules page.
 -->
-<div id="keolapse-align" style="margin-bottom:10px;">
-	<div style="margin-bottom:6px;">
+<div id="keolapse-align" style="margin-bottom:15px;">
+	<div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; margin-bottom:12px;">
 		<div class="btn-group btn-group-sm" role="group" aria-label="Display mode">
 			<button type="button" class="btn btn-default active" data-ka-mode="outline">Outline</button>
 			<button type="button" class="btn btn-default" data-ka-mode="inside">Black disc</button>
 			<button type="button" class="btn btn-default" data-ka-mode="outside">Black surround</button>
 		</div>
-		<span style="display:inline-block; margin-left:12px; vertical-align:middle;">
+		<span style="display:inline-flex; align-items:center; gap:8px;">
 			Mask opacity
 			<input type="range" id="keolapse-align-opacity" min="20" max="100" value="85"
-				style="width:110px; vertical-align:middle;" title="Mask opacity">
+				style="width:110px; margin:0;" title="Mask opacity">
 		</span>
-		<button type="button" class="btn btn-default btn-sm pull-right" id="keolapse-align-reset"
-			title="Reset the circle to the image centre">Reset to centre</button>
+		<button type="button" class="btn btn-default btn-sm" id="keolapse-align-reset"
+			style="margin-left:auto;" title="Reset the circle to the image centre">Reset to centre</button>
 	</div>
 	<div id="keolapse-align-stage"
 		style="outline:none; border:1px solid #444; background:#111; cursor:crosshair; min-height:120px;">
 	</div>
-	<div style="margin-top:6px;">
-		<span style="margin-right:6px;">Centre</span>
-		<div class="btn-group btn-group-sm" role="group" aria-label="Move centre">
-			<button type="button" class="btn btn-default" data-ka-nudge="-1,0,0" title="Move centre left (Shift = 10 px, hold to repeat)">&#9664;</button>
-			<button type="button" class="btn btn-default" data-ka-nudge="0,-1,0" title="Move centre up (Shift = 10 px, hold to repeat)">&#9650;</button>
-			<button type="button" class="btn btn-default" data-ka-nudge="0,1,0" title="Move centre down (Shift = 10 px, hold to repeat)">&#9660;</button>
-			<button type="button" class="btn btn-default" data-ka-nudge="1,0,0" title="Move centre right (Shift = 10 px, hold to repeat)">&#9654;</button>
-		</div>
-		<span style="margin:0 6px 0 14px;">Radius</span>
-		<div class="btn-group btn-group-sm" role="group" aria-label="Change radius">
-			<button type="button" class="btn btn-default" data-ka-nudge="0,0,-1" title="Shrink circle (Shift = 10 px, hold to repeat)">&minus;</button>
-			<button type="button" class="btn btn-default" data-ka-nudge="0,0,1" title="Grow circle (Shift = 10 px, hold to repeat)">+</button>
-		</div>
-		<span id="keolapse-align-readout" style="font-family:monospace; margin-left:14px;"></span>
+	<div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px 24px; margin-top:12px;">
+		<span style="display:inline-flex; align-items:center; gap:8px;">
+			Centre
+			<span class="btn-group btn-group-sm" role="group" aria-label="Move centre">
+				<button type="button" class="btn btn-default" data-ka-nudge="-1,0,0" title="Move centre left 1 px (Shift-click = 10 px, hold to repeat)">&#9664;</button>
+				<button type="button" class="btn btn-default" data-ka-nudge="0,-1,0" title="Move centre up 1 px (Shift-click = 10 px, hold to repeat)">&#9650;</button>
+				<button type="button" class="btn btn-default" data-ka-nudge="0,1,0" title="Move centre down 1 px (Shift-click = 10 px, hold to repeat)">&#9660;</button>
+				<button type="button" class="btn btn-default" data-ka-nudge="1,0,0" title="Move centre right 1 px (Shift-click = 10 px, hold to repeat)">&#9654;</button>
+			</span>
+		</span>
+		<span style="display:inline-flex; align-items:center; gap:8px;">
+			Radius
+			<span class="btn-group btn-group-sm" role="group" aria-label="Change radius">
+				<button type="button" class="btn btn-default" data-ka-nudge="0,0,-1" title="Shrink circle 1 px (Shift-click = 10 px, hold to repeat)">&minus;</button>
+				<button type="button" class="btn btn-default" data-ka-nudge="0,0,1" title="Grow circle 1 px (Shift-click = 10 px, hold to repeat)">+</button>
+			</span>
+		</span>
 	</div>
-	<div class="help-block" style="margin-top:6px; margin-bottom:0;">
+	<div id="keolapse-align-readout" style="font-family:monospace; margin-top:10px;"></div>
+	<div class="help-block" style="margin-top:8px; margin-bottom:0;">
 		Drag the circle to move it, drag the square handle (or use the mouse wheel) to resize.
-		Buttons and arrow keys move the centre 1 pixel; <code>=</code> grows and
-		<code>-</code> shrinks the radius 1 pixel. Hold Shift for steps of 10 &mdash; note that
-		<code>+</code> (Shift and <code>=</code>) is therefore always a 10 pixel step.
-		Hold a button down to repeat. Keys work whenever you are not typing in a field.
+		Buttons move 1 pixel per click, Shift-click for 10, hold to repeat.
+		Keyboard: arrow keys move the centre 1 pixel (with Shift, 10);
+		<code>+</code> / <code>-</code> change the radius 1 pixel, PageUp / PageDown change it 10.
+		Keys work on any keyboard layout, whenever you are not typing in a field.
 	</div>
 </div>
 <script>
@@ -383,6 +387,10 @@ Konva and jQuery are already loaded by the modules page.
 			if (tag === 'input' || tag === 'select' || tag === 'textarea' || e.target.isContentEditable) {
 				return;
 			}
+			// Arrows accelerate with Shift; the radius keys ignore Shift so
+			// they behave the same on every keyboard layout (on many layouts
+			// typing '+' or '=' already involves Shift). PageUp/PageDown are
+			// the layout-independent 10 px radius steps.
 			var step = e.shiftKey ? 10 : 1;
 			var handled = true;
 			switch (e.key) {
@@ -390,8 +398,10 @@ Konva and jQuery are already loaded by the modules page.
 				case 'ArrowRight': nudge(step, 0, 0); break;
 				case 'ArrowUp': nudge(0, -step, 0); break;
 				case 'ArrowDown': nudge(0, step, 0); break;
-				case '+': case '=': nudge(0, 0, step); break;
-				case '-': case '_': nudge(0, 0, -step); break;
+				case '+': case '=': nudge(0, 0, 1); break;
+				case '-': case '_': nudge(0, 0, -1); break;
+				case 'PageUp': nudge(0, 0, 10); break;
+				case 'PageDown': nudge(0, 0, -10); break;
 				default: handled = false;
 			}
 			if (handled) {

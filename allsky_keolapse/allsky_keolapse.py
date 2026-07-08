@@ -677,6 +677,7 @@ class ALLSKYKEOLAPSE(ALLSKYMODULEBASE):
 						"Added interactive circle alignment tool to the Image tab: the current capture image is shown with the keogram ring circles overlaid; drag or use arrow keys to move the centre, drag the handle / mouse wheel / +- keys to resize",
 						"Alignment tool includes black mask display modes (disc or surround) with adjustable opacity for fine alignment against the sky image",
 						"On-screen nudge buttons (centre arrows, radius +/-) with Shift-click for 10 px steps and hold-to-repeat, for mouse and touch use",
+						"Keyboard shortcuts work on any keyboard layout: +/- and = change the radius 1 px regardless of Shift, PageUp/PageDown change it 10 px; improved toolbar and control row spacing",
 						"Circle Radius Factor spinner step reduced from 0.01 to 0.0001 for pixel-level radius control"
 					]
 				}

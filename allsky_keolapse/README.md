@@ -26,10 +26,10 @@ start-position tick):
 - **Nudge buttons** below the image move the centre and change the radius
   1 pixel per click (Shift-click = 10 pixels, hold to repeat) — handy on
   tablets and touchscreens.
-- **Keyboard**: arrow keys move the centre 1 pixel; `=` grows and `-`
-  shrinks the radius 1 pixel. Hold **Shift** for steps of 10 pixels — since
-  `+` is typed as Shift+`=`, a plus is always a 10 pixel step (numpad `+`
-  is 1 pixel). Keys are active whenever the tool is on screen and you are
+- **Keyboard** (works on any keyboard layout): arrow keys move the centre
+  1 pixel, or 10 with **Shift** held. `+` / `-` (or `=`, or the numpad
+  keys) change the radius 1 pixel; **PageUp** / **PageDown** change it
+  10 pixels. Keys are active whenever the tool is on screen and you are
   not typing in a field.
 - **Display modes**: *Outline* (circles only), *Black disc* (fills the inner
   circle) and *Black surround* (blacks out everything outside the circle) —
