@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "module": "allsky_keotimelapse",
+  "generated_utc": "2026-07-25T07:33:47Z",
+  "hash_algorithm": "sha256",
+  "files": {
+    "README.md": {
+      "sha256": "c28c61e008e966d9db4e7d6ecb2c5a81d3eb5909c58ac5c5f46f6c185e975f8b",
+      "size": 5788,
+      "mode": "644"
+    },
+    "allsky_keotimelapse.py": {
+      "sha256": "e73bd43ae8466a18c8e77eb496a371b987788fb38c5024755761f783ef75f149",
+      "size": 78737,
+      "mode": "644"
+    }
+  },
+  "file_count": 2
+}
