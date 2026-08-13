@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "module": "allsky_spaceweather",
-  "generated_utc": "2026-06-02T20:38:05Z",
+  "generated_utc": "2026-08-13T08:12:35Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
@@ -10,8 +10,8 @@
       "mode": "644"
     },
     "allsky_spaceweather.py": {
-      "sha256": "8381aadf2a2d1dcc4b2762504df92046a366dd57cc14b85f3387b4cb43cc567b",
-      "size": 12103,
+      "sha256": "d6c92fa1dce1d647b7919678f681adce35b34e69891084f87f28b28f68f4c48d",
+      "size": 12382,
       "mode": "755"
     },
     "requirements.txt": {
