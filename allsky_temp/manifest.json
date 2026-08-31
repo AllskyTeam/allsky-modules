@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "module": "allsky_temp",
-  "generated_utc": "2026-06-02T20:38:05Z",
+  "generated_utc": "2026-08-31T20:49:29Z",
   "hash_algorithm": "sha256",
   "files": {
     "allsky_temp.py": {
