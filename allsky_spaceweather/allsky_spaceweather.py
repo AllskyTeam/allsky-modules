@@ -119,12 +119,19 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"changes": "Updates for new module system"
 				}
 			],
-      "v1.0.2": [
-      	{
-          "author": "Jim Cauthen",
-          "authorurl": "https://github.com/jcauthen78/",
-          "changes": "Fixed NOAA API format handling (list-of-lists vs list-of-dicts), added per-endpoint error handling and HTTP status checks"
-        }
+			"v1.0.2": [
+				{
+				"author": "Jim Cauthen",
+				"authorurl": "https://github.com/jcauthen78/",
+				"changes": "Fixed NOAA API format handling (list-of-lists vs list-of-dicts), added per-endpoint error handling and HTTP status checks"
+				}
+			],
+			"v1.0.3": [
+				{
+				"author": "Kentner Cottingham (Agent assisted)",
+				"authorurl": "https://github.com/NightRide/",
+				"changes": "Updated to call new NOAA API endpoints published in 2026."
+				}
 			]     
 		}
 	}
@@ -194,9 +201,9 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 			"""Process solar wind data and return formatted values with colors"""
 			# --- Get the last record, handling both list and dict formats ---
 			last = data[-1]
-			density = self._safe_float_conversion(data[-1][1])
-			speed = self._safe_float_conversion(data[-1][2])
-			temp = self._safe_float_conversion(data[-1][3])
+			density = self._safe_float_conversion(self._get_record_value(last, 1, "proton_density"))
+			speed = self._safe_float_conversion(self._get_record_value(last, 2, "proton_speed"))
+			temp = self._safe_float_conversion(self._get_record_value(last, 3, "proton_temperature"))
 			temp_fmt = format(temp, ',').rstrip('0').rstrip('.') if temp != 'xxx' else temp
 
 
@@ -245,9 +252,9 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 		
 		# API endpoints
 		urls = {
-				"wind": "https://services.swpc.noaa.gov/products/solar-wind/plasma-6-hour.json",
+				"wind": "https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json",
 				"kp": "https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json",
-				"bz": "https://services.swpc.noaa.gov/products/solar-wind/mag-6-hour.json"
+				"bz": "https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json"
 		}
 
 		try:

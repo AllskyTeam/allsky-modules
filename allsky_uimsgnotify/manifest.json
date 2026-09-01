@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "module": "allsky_uimsgnotify",
+  "generated_utc": "2026-08-31T20:49:29Z",
+  "hash_algorithm": "sha256",
+  "files": {
+    "README.md": {
+      "sha256": "182175052b8bc57058f90a013bae108736593426c0fbeaabd57f7487a7fd3828",
+      "size": 5237,
+      "mode": "644"
+    },
+    "allsky_uimsgnotify.py": {
+      "sha256": "87f634c70a494369617104940a0d32b26a1648d99ecaa91ce21b2f4123ff242c",
+      "size": 28043,
+      "mode": "644"
+    }
+  },
+  "file_count": 2
+}

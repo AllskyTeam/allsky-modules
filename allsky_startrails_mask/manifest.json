@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "module": "allsky_startrails_mask",
+  "generated_utc": "2026-08-31T20:49:29Z",
+  "hash_algorithm": "sha256",
+  "files": {
+    "README.md": {
+      "sha256": "edd2a1bfa690aa1635e270db56013b4326bee7298f8eca2a4e4f1cada0c0ae28",
+      "size": 3032,
+      "mode": "644"
+    },
+    "allsky_startrails_mask.py": {
+      "sha256": "2cf087cd8b8cd05536a773b97c5064810a992415fa02e4d7c25431ca78f71fe0",
+      "size": 20829,
+      "mode": "644"
+    }
+  },
+  "file_count": 2
+}

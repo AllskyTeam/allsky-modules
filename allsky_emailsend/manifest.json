@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "module": "allsky_emailsend",
+  "generated_utc": "2026-08-31T20:49:28Z",
+  "hash_algorithm": "sha256",
+  "files": {
+    "README.md": {
+      "sha256": "6a96c02b3fa0ce9ff35adb2850f04a2955f423e1774b31c19531f2babfbe7d45",
+      "size": 3444,
+      "mode": "644"
+    },
+    "allsky_emailsend.py": {
+      "sha256": "0d57d1b76fcc78c286a2a8fd751ccef26dc3b0b289510bb0c214b3e6a8997b74",
+      "size": 16083,
+      "mode": "644"
+    }
+  },
+  "file_count": 2
+}
