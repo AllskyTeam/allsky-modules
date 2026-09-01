@@ -1,0 +1,561 @@
+<!--
+Keolapse circle alignment widget.
+
+Rendered inside the module settings dialog via the 'html' fieldtype
+(source: file). Draws the current capture image on a Konva stage with
+the keogram ring circles overlaid, and lets the user position/size the
+circle with the mouse or keyboard. All changes are written straight
+into the standard settings fields (circle_radius_factor,
+center_x_offset, center_y_offset), so the Save button works unchanged
+and the numeric fields remain usable as a fallback.
+
+The dialog may render this fragment more than once (multiple layout
+containers), so everything is class-based and the script keeps exactly
+one live instance, attached to whichever copy is actually visible.
+
+Konva and jQuery are already loaded by the modules page.
+-->
+<div class="keolapse-align" style="margin-bottom:15px;">
+	<div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; margin-bottom:12px;">
+		<div class="btn-group btn-group-sm" role="group" aria-label="Display mode">
+			<button type="button" class="btn btn-default active" data-ka-mode="outline">Outline</button>
+			<button type="button" class="btn btn-default" data-ka-mode="inside-black">Black disc</button>
+			<button type="button" class="btn btn-default" data-ka-mode="inside-white">White disc</button>
+			<button type="button" class="btn btn-default" data-ka-mode="outside-black">Black surround</button>
+		</div>
+		<span style="display:inline-flex; align-items:center; gap:8px;">
+			Mask opacity
+			<input type="range" class="keolapse-align-opacity" min="20" max="100" value="85"
+				style="width:110px; margin:0;" title="Mask opacity">
+		</span>
+		<button type="button" class="btn btn-default btn-sm keolapse-align-reset"
+			style="margin-left:auto;" title="Reset the circle to the image centre">Reset to centre</button>
+	</div>
+	<div class="keolapse-align-stage"
+		style="outline:none; border:1px solid #444; background:#111; cursor:crosshair; min-height:120px;">
+	</div>
+	<div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px 24px; margin-top:12px;">
+		<span style="display:inline-flex; align-items:center; gap:8px;">
+			Centre
+			<span class="btn-group btn-group-sm" role="group" aria-label="Move centre">
+				<button type="button" class="btn btn-default" data-ka-nudge="-1,0,0" title="Move centre left 1 px (Shift-click = 10 px, hold to repeat)">&#9664;</button>
+				<button type="button" class="btn btn-default" data-ka-nudge="0,-1,0" title="Move centre up 1 px (Shift-click = 10 px, hold to repeat)">&#9650;</button>
+				<button type="button" class="btn btn-default" data-ka-nudge="0,1,0" title="Move centre down 1 px (Shift-click = 10 px, hold to repeat)">&#9660;</button>
+				<button type="button" class="btn btn-default" data-ka-nudge="1,0,0" title="Move centre right 1 px (Shift-click = 10 px, hold to repeat)">&#9654;</button>
+			</span>
+		</span>
+		<span style="display:inline-flex; align-items:center; gap:8px;">
+			Radius
+			<span class="btn-group btn-group-sm" role="group" aria-label="Change radius">
+				<button type="button" class="btn btn-default" data-ka-nudge="0,0,-1" title="Shrink circle 1 px (Shift-click = 10 px, hold to repeat)">&minus;</button>
+				<button type="button" class="btn btn-default" data-ka-nudge="0,0,1" title="Grow circle 1 px (Shift-click = 10 px, hold to repeat)">+</button>
+			</span>
+		</span>
+	</div>
+	<div class="keolapse-align-readout" style="font-family:monospace; margin-top:10px;"></div>
+	<div class="keolapse-align-savenote" style="margin-top:10px; font-weight:bold; font-size:1.15em; color:#e67e22;">
+		Important: the circle settings are only stored after you click <u>Save</u> below
+		<em>and then</em> the green <u>Save</u> button in the Module Manager.
+	</div>
+	<div class="help-block" style="margin-top:8px; margin-bottom:0;">
+		Drag the circle to move it, drag the square handle (or use the mouse wheel) to resize.
+		Buttons move 1 pixel per click, Shift-click for 10, hold to repeat.
+		Keyboard: arrow keys move the centre 1 pixel (with Shift, 10);
+		<code>+</code> / <code>-</code> change the radius 1 pixel, PageUp / PageDown change it 10.
+		Keys work on any keyboard layout, whenever you are not typing in a field.
+	</div>
+</div>
+<script>
+(function () {
+	'use strict';
+
+	if (typeof Konva === 'undefined' || typeof jQuery === 'undefined') {
+		return;
+	}
+
+	// The fragment (and this script) may be inserted several times per
+	// dialog. Keep exactly one live instance: each execution tears down
+	// the previous one and takes over.
+	if (window.__keolapseAlign && typeof window.__keolapseAlign.destroy === 'function') {
+		window.__keolapseAlign.destroy();
+	}
+
+	var $root = null;			// the visible .keolapse-align this instance drives
+	var container = null;		// its stage div (DOM element)
+	var stage = null;
+	var nodes = {};
+	var native = { w: 0, h: 0 };
+	var scale = 1;
+	var margin = 0;
+	var mode = 'outline';
+	var maskOpacity = 0.85;
+	var writingFields = false;
+	var initialised = false;
+	var loading = false;
+	var pollTimer = null;
+
+	window.__keolapseAlign = { destroy: destroy };
+
+	function destroy() {
+		if (pollTimer) {
+			clearInterval(pollTimer);
+			pollTimer = null;
+		}
+		$(document).off('.keolapsealign');
+		if (stage) {
+			stage.destroy();
+			stage = null;
+		}
+	}
+
+	// Settings fields can also exist in more than one copy: read the
+	// first, write to every copy so they stay consistent.
+	function fieldSel(id) {
+		return 'input[id="' + id + '"], select[id="' + id + '"]';
+	}
+
+	function readField(id, fallback) {
+		var value = parseFloat($(fieldSel(id)).first().val());
+		return isNaN(value) ? fallback : value;
+	}
+
+	function readSettings() {
+		return {
+			factor: readField('circle_radius_factor', 0.47),
+			cxOff: Math.round(readField('center_x_offset', 0)),
+			cyOff: Math.round(readField('center_y_offset', 0)),
+			keoHeight: Math.round(readField('keogram_height', 175)),
+			padding: Math.round(readField('circle_padding', 5)),
+			startPos: Math.round(readField('start_position', 12))
+		};
+	}
+
+	// Circle geometry in native pixels, mirroring detect_circle() in the module
+	function circleFromSettings(s) {
+		return {
+			cx: Math.floor(native.w / 2) + s.cxOff,
+			cy: Math.floor(native.h / 2) + s.cyOff,
+			r: Math.round(Math.min(native.w, native.h) * s.factor)
+		};
+	}
+
+	function writeSettings(cx, cy, r) {
+		var minDim = Math.min(native.w, native.h);
+		writingFields = true;
+		$(fieldSel('center_x_offset')).val(cx - Math.floor(native.w / 2)).trigger('change');
+		$(fieldSel('center_y_offset')).val(cy - Math.floor(native.h / 2)).trigger('change');
+		$(fieldSel('circle_radius_factor')).val((r / minDim).toFixed(4)).trigger('change');
+		writingFields = false;
+		$root.find('.keolapse-align-savenote').html(
+			'&#9888; NOT SAVED YET! Click <u>Save</u> below, <em>then</em> the green ' +
+			'<u>Save</u> button in the Module Manager &mdash; only then are the circle settings stored.'
+		);
+	}
+
+	function clampCircle(c) {
+		var minDim = Math.min(native.w, native.h);
+		c.r = Math.max(Math.round(minDim * 0.1), Math.min(Math.round(minDim * 1.0), Math.round(c.r)));
+		c.cx = Math.max(Math.floor(native.w / 2) - 500, Math.min(Math.floor(native.w / 2) + 500, Math.round(c.cx)));
+		c.cy = Math.max(Math.floor(native.h / 2) - 500, Math.min(Math.floor(native.h / 2) + 500, Math.round(c.cy)));
+		return c;
+	}
+
+	// native -> stage coordinates (margin shifts the image away from the stage edge)
+	function sx(x) { return (x + margin) * scale; }
+	function sy(y) { return (y + margin) * scale; }
+
+	function buildStage(image) {
+		var containerWidth = $(container).width();
+		if (!containerWidth) {
+			return false;
+		}
+
+		var settings = readSettings();
+		// Leave room for the ring even when it extends past the image edge,
+		// matching the automatic expansion the module performs.
+		margin = settings.keoHeight + settings.padding + 40;
+
+		// Fit the dialog width but also cap the height so the settings
+		// fields below stay on screen; centre the canvas when narrower
+		// than the dialog. The cap adapts to the browser window: roughly
+		// everything not needed by the dialog chrome and the field rows,
+		// clamped between 360 and 560 px.
+		var maxHeight = Math.max(360, Math.min(560, (window.innerHeight || 800) - 420));
+		scale = Math.min(
+			containerWidth / (native.w + 2 * margin),
+			maxHeight / (native.h + 2 * margin)
+		);
+		var stageWidth = Math.round((native.w + 2 * margin) * scale);
+		var stageHeight = Math.round((native.h + 2 * margin) * scale);
+		container.style.width = stageWidth + 'px';
+		container.style.maxWidth = '100%';
+		container.style.marginLeft = 'auto';
+		container.style.marginRight = 'auto';
+
+		stage = new Konva.Stage({
+			container: container,	// pass the element: ids may be duplicated
+			width: stageWidth,
+			height: stageHeight
+		});
+
+		var layer = new Konva.Layer();
+		stage.add(layer);
+
+		if (image) {
+			layer.add(new Konva.Image({
+				image: image,
+				x: sx(0), y: sy(0),
+				width: native.w * scale,
+				height: native.h * scale
+			}));
+		} else {
+			layer.add(new Konva.Rect({
+				x: sx(0), y: sy(0),
+				width: native.w * scale,
+				height: native.h * scale,
+				fill: '#223'
+			}));
+			layer.add(new Konva.Text({
+				x: sx(0) + 10, y: sy(0) + 10,
+				text: 'Current capture image could not be loaded - circles are still adjustable',
+				fontSize: 14, fill: '#ccc'
+			}));
+		}
+
+		// Mask covering everything except the sky disc ("surround" mode).
+		// Clockwise rect + anticlockwise arc -> the disc becomes a hole.
+		nodes.maskOutside = new Konva.Shape({
+			fill: 'black',
+			listening: false,
+			visible: false,
+			sceneFunc: function (ctx, shape) {
+				var c = shape.getAttr('kaCircle');
+				ctx.beginPath();
+				ctx.rect(0, 0, stage.width(), stage.height());
+				ctx.arc(sx(c.cx), sy(c.cy), c.r * scale, 0, Math.PI * 2, true);
+				ctx.closePath();
+				ctx.fillShape(shape);
+			}
+		});
+		layer.add(nodes.maskOutside);
+
+		// Disc filling the inner circle (black or white)
+		nodes.maskInside = new Konva.Circle({ fill: 'black', listening: false, visible: false });
+		layer.add(nodes.maskInside);
+
+		// Keogram ring band, lightly shaded
+		nodes.ringBand = new Konva.Ring({ fill: 'rgba(255,255,255,0.08)', listening: false });
+		layer.add(nodes.ringBand);
+
+		// The three debug circles, same colours as the module's test images
+		nodes.inner = new Konva.Circle({ stroke: '#00ff00', strokeWidth: 1.5, listening: false });
+		nodes.ringStart = new Konva.Circle({ stroke: '#4488ff', strokeWidth: 1, listening: false });
+		nodes.ringOuter = new Konva.Circle({ stroke: '#ffff00', strokeWidth: 1, listening: false });
+		layer.add(nodes.inner, nodes.ringStart, nodes.ringOuter);
+
+		nodes.cross = new Konva.Shape({
+			stroke: '#ff00ff', strokeWidth: 1.5, listening: false,
+			sceneFunc: function (ctx, shape) {
+				var c = shape.getAttr('kaCircle');
+				var x = sx(c.cx), y = sy(c.cy);
+				ctx.beginPath();
+				ctx.moveTo(x - 10, y); ctx.lineTo(x + 10, y);
+				ctx.moveTo(x, y - 10); ctx.lineTo(x, y + 10);
+				ctx.strokeShape(shape);
+			}
+		});
+		layer.add(nodes.cross);
+
+		// Keogram start-position tick (12 = top, 3 = right, 6 = bottom, 9 = left)
+		nodes.startTick = new Konva.Shape({
+			stroke: '#ff8800', strokeWidth: 2, listening: false,
+			sceneFunc: function (ctx, shape) {
+				var c = shape.getAttr('kaCircle');
+				var s = shape.getAttr('kaSettings');
+				var angle = { 12: -90, 3: 0, 6: 90, 9: 180 }[s.startPos];
+				if (angle === undefined) { angle = -90; }
+				angle = angle * Math.PI / 180;
+				var r1 = (c.r + s.padding) * scale;
+				var r2 = (c.r + s.padding + s.keoHeight) * scale;
+				var x = sx(c.cx), y = sy(c.cy);
+				ctx.beginPath();
+				ctx.moveTo(x + r1 * Math.cos(angle), y + r1 * Math.sin(angle));
+				ctx.lineTo(x + r2 * Math.cos(angle), y + r2 * Math.sin(angle));
+				ctx.strokeShape(shape);
+			}
+		});
+		layer.add(nodes.startTick);
+
+		// Invisible draggable disc used to move the centre
+		nodes.mover = new Konva.Circle({ fill: 'rgba(0,0,0,0.001)', draggable: true });
+		nodes.mover.on('mouseenter', function () { container.style.cursor = 'move'; });
+		nodes.mover.on('mouseleave', function () { container.style.cursor = 'crosshair'; });
+		nodes.mover.on('dragmove', function () {
+			var c = clampCircle({
+				cx: (nodes.mover.x() / scale) - margin,
+				cy: (nodes.mover.y() / scale) - margin,
+				r: circleFromSettings(readSettings()).r
+			});
+			writeSettings(c.cx, c.cy, c.r);
+			redraw();
+		});
+		layer.add(nodes.mover);
+
+		// Square handle on the circle edge used to resize
+		nodes.handle = new Konva.Rect({
+			width: 12, height: 12, fill: '#00ff00', stroke: '#003300',
+			strokeWidth: 1, draggable: true
+		});
+		nodes.handle.on('mouseenter', function () { container.style.cursor = 'ew-resize'; });
+		nodes.handle.on('mouseleave', function () { container.style.cursor = 'crosshair'; });
+		nodes.handle.on('dragmove', function () {
+			var settings = readSettings();
+			var c = circleFromSettings(settings);
+			var hx = (nodes.handle.x() + 6) / scale - margin;
+			var hy = (nodes.handle.y() + 6) / scale - margin;
+			c.r = Math.sqrt(Math.pow(hx - c.cx, 2) + Math.pow(hy - c.cy, 2));
+			c = clampCircle(c);
+			writeSettings(c.cx, c.cy, c.r);
+			redraw();
+		});
+		layer.add(nodes.handle);
+
+		nodes.layer = layer;
+		return true;
+	}
+
+	function redraw() {
+		if (!stage) {
+			return;
+		}
+		var settings = readSettings();
+		var c = circleFromSettings(settings);
+		var x = sx(c.cx), y = sy(c.cy);
+
+		nodes.inner.setAttrs({ x: x, y: y, radius: c.r * scale });
+		nodes.ringStart.setAttrs({ x: x, y: y, radius: (c.r + settings.padding) * scale });
+		nodes.ringOuter.setAttrs({ x: x, y: y, radius: (c.r + settings.padding + settings.keoHeight) * scale });
+		nodes.ringBand.setAttrs({
+			x: x, y: y,
+			innerRadius: (c.r + settings.padding) * scale,
+			outerRadius: (c.r + settings.padding + settings.keoHeight) * scale
+		});
+		nodes.cross.setAttr('kaCircle', c);
+		nodes.startTick.setAttrs({ kaCircle: c, kaSettings: settings });
+
+		nodes.maskInside.setAttrs({
+			x: x, y: y, radius: c.r * scale,
+			fill: mode === 'inside-white' ? 'white' : 'black',
+			visible: mode === 'inside-black' || mode === 'inside-white',
+			opacity: maskOpacity
+		});
+		nodes.maskOutside.setAttrs({
+			kaCircle: c,
+			visible: mode === 'outside-black', opacity: maskOpacity
+		});
+
+		nodes.mover.setAttrs({ x: x, y: y, radius: Math.max(10, c.r * scale) });
+		nodes.handle.setAttrs({
+			x: x + c.r * scale * Math.SQRT1_2 - 6,
+			y: y + c.r * scale * Math.SQRT1_2 - 6
+		});
+
+		nodes.layer.batchDraw();
+
+		$root.find('.keolapse-align-readout').text(
+			'centre ' + c.cx + ', ' + c.cy +
+			'  (offset ' + (c.cx - Math.floor(native.w / 2)) + ', ' + (c.cy - Math.floor(native.h / 2)) + ')' +
+			'  radius ' + c.r + ' px' +
+			'  (factor ' + (c.r / Math.min(native.w, native.h)).toFixed(4) + ')'
+		);
+	}
+
+	function nudge(dx, dy, dr) {
+		var c = circleFromSettings(readSettings());
+		c.cx += dx; c.cy += dy; c.r += dr;
+		c = clampCircle(c);
+		writeSettings(c.cx, c.cy, c.r);
+		redraw();
+	}
+
+	function bindControls() {
+		$root.find('[data-ka-mode]').on('click', function () {
+			$root.find('[data-ka-mode]').removeClass('active');
+			$(this).addClass('active');
+			mode = $(this).data('ka-mode');
+			redraw();
+		});
+
+		$root.find('.keolapse-align-opacity').on('input change', function () {
+			maskOpacity = this.value / 100;
+			redraw();
+		});
+
+		$root.find('.keolapse-align-reset').on('click', function () {
+			var c = circleFromSettings(readSettings());
+			writeSettings(Math.floor(native.w / 2), Math.floor(native.h / 2), c.r);
+			redraw();
+		});
+
+		// Nudge buttons: one step per press, Shift for 10 px, hold to repeat
+		var repeatDelay = null;
+		var repeatTimer = null;
+		function stopRepeat() {
+			clearTimeout(repeatDelay);
+			clearInterval(repeatTimer);
+			repeatDelay = repeatTimer = null;
+		}
+		$root.find('[data-ka-nudge]').on('mousedown touchstart', function (e) {
+			e.preventDefault();
+			stopRepeat();
+			var parts = String($(this).data('ka-nudge')).split(',').map(Number);
+			var step = e.shiftKey ? 10 : 1;
+			var fire = function () {
+				nudge(parts[0] * step, parts[1] * step, parts[2] * step);
+			};
+			fire();
+			repeatDelay = setTimeout(function () {
+				repeatTimer = setInterval(fire, 60);
+			}, 400);
+		});
+		$root.find('[data-ka-nudge]').on('mouseleave', stopRepeat);
+		$(document).on('mouseup.keolapsealign touchend.keolapsealign touchcancel.keolapsealign', stopRepeat);
+
+		container.addEventListener('wheel', function (e) {
+			e.preventDefault();
+			var step = e.shiftKey ? 10 : 2;
+			nudge(0, 0, e.deltaY < 0 ? step : -step);
+		}, { passive: false });
+
+		// Page-level keyboard handler: active whenever the alignment tool is
+		// on screen and the user is not typing in a form field, so no
+		// click-to-focus is needed first.
+		$(document).on('keydown.keolapsealign', function (e) {
+			if (!stage || !$(container).is(':visible')) {
+				return;
+			}
+			var tag = (e.target.tagName || '').toLowerCase();
+			if (tag === 'input' || tag === 'select' || tag === 'textarea' || e.target.isContentEditable) {
+				return;
+			}
+			// Arrows accelerate with Shift; the radius keys ignore Shift so
+			// they behave the same on every keyboard layout (on many layouts
+			// typing '+' or '=' already involves Shift). PageUp/PageDown are
+			// the layout-independent 10 px radius steps.
+			var step = e.shiftKey ? 10 : 1;
+			var handled = true;
+			switch (e.key) {
+				case 'ArrowLeft': nudge(-step, 0, 0); break;
+				case 'ArrowRight': nudge(step, 0, 0); break;
+				case 'ArrowUp': nudge(0, -step, 0); break;
+				case 'ArrowDown': nudge(0, step, 0); break;
+				case '+': case '=': nudge(0, 0, 1); break;
+				case '-': case '_': nudge(0, 0, -1); break;
+				case 'PageUp': nudge(0, 0, 10); break;
+				case 'PageDown': nudge(0, 0, -10); break;
+				default: handled = false;
+			}
+			if (handled) {
+				e.preventDefault();
+			}
+		});
+
+		// Keep the canvas in sync when the numeric fields are edited directly
+		var syncSel = ['circle_radius_factor', 'center_x_offset', 'center_y_offset',
+			'keogram_height', 'circle_padding', 'start_position']
+			.map(fieldSel).join(', ');
+		$(document).on('change.keolapsealign input.keolapsealign', syncSel, function () {
+			if (!writingFields) {
+				redraw();
+			}
+		});
+	}
+
+	function loadImage(url, done) {
+		var image = new Image();
+		image.onload = function () { done(image); };
+		image.onerror = function () { done(null); };
+		if (url.indexOf('data:') === 0 || url.indexOf('blob:') === 0) {
+			image.src = url;
+		} else {
+			image.src = url + (url.indexOf('?') === -1 ? '?' : '&') + '_ts=' + Date.now();
+		}
+	}
+
+	// Attach to the first VISIBLE copy of the fragment with a usable width.
+	// Returns true once the widget is up so callers can stop retrying.
+	function tryInit() {
+		if (initialised) {
+			return true;
+		}
+		if (loading) {
+			return false;
+		}
+
+		var candidates = $('.keolapse-align').filter(function () {
+			return $(this).is(':visible') && $(this).width() > 50;
+		});
+		if (!candidates.length) {
+			return false;
+		}
+		$root = candidates.first();
+		container = $root.find('.keolapse-align-stage')[0];
+		if (!container) {
+			return false;
+		}
+
+		loading = true;
+
+		var start = function (image) {
+			loading = false;
+			native.w = image ? image.naturalWidth : 1280;
+			native.h = image ? image.naturalHeight : 960;
+			if (buildStage(image)) {
+				initialised = true;
+				bindControls();
+				redraw();
+			}
+		};
+
+		if (window.KEOLAPSE_ALIGN_IMAGE) {	// test-harness override
+			loadImage(window.KEOLAPSE_ALIGN_IMAGE, start);
+			return false;
+		}
+
+		$.ajax({
+			url: 'includes/moduleutil.php?request=ModuleBaseData',
+			type: 'GET',
+			dataType: 'json',
+			cache: false
+		}).done(function (data) {
+			if (data && data.filename) {
+				loadImage(data.filename, start);
+			} else {
+				start(null);
+			}
+		}).fail(function () {
+			start(null);
+		});
+
+		return false;
+	}
+
+	// Initialisation triggers: whatever mechanism shows the dialog or the
+	// Image tab, one of these catches it. The poll is the belt-and-braces
+	// fallback (cheap: a no-op once initialised or when the fragment is
+	// removed from the DOM).
+	$(document).on('shown.bs.modal.keolapsealign shown.bs.tab.keolapsealign', tryInit);
+	$(document).on('click.keolapsealign', function () {
+		setTimeout(tryInit, 100);
+	});
+	pollTimer = setInterval(function () {
+		if (tryInit()) {
+			clearInterval(pollTimer);
+			pollTimer = null;
+		} else if (initialised === false && $('.keolapse-align').length === 0) {
+			destroy();	// dialog was removed before we ever initialised
+		}
+	}, 500);
+	tryInit();
+})();
+</script>
