@@ -81,9 +81,9 @@ The module uses color coding to indicate parameter status:
 ## Data Sources
 
 This module uses the following NOAA SWPC APIs:
-- Solar Wind: https://services.swpc.noaa.gov/products/solar-wind/plasma-6-hour.json
+- Solar Wind: https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json
 - Kp Index: https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json
-- Magnetic Field: https://services.swpc.noaa.gov/products/solar-wind/mag-6-hour.json
+- Magnetic Field: https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json
 
 ## Requirements
 
@@ -109,6 +109,11 @@ Feel free to submit issues, fork the repository, and create pull requests for an
 ## License
 
 [MIT License](LICENSE)
+
+## Contributing Notes
+
+AI assistance was used while preparing this contribution. The generated code and
+documentation were reviewed and tested before submission.
 
 ## Acknowledgments
 
