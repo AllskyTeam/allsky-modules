@@ -1,0 +1,485 @@
+name: Manage inactive issues and discussions
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run daily at 03:17 UTC
+    - cron: "17 3 * * *"
+
+permissions:
+  contents: read
+  issues: write
+  discussions: write
+
+jobs:
+  manage-inactive-items:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Warn and close inactive issues and discussions
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const LABEL_NAME = "pending-auto-close";
+            const LABEL_COLOR = "D4C5F9";
+
+            const WARNING_MARKER =
+              "<!-- automatic-inactivity-warning -->";
+
+            const WARNING_MESSAGE = [
+              WARNING_MARKER,
+              "### Is this still needed?",
+              "",
+              "This item has had no activity for over one year.",
+              "",
+              "To help us keep the project tidy, it will be automatically",
+              "closed in 30 days unless there is further activity.",
+              "",
+              "If this is still relevant, simply add a comment with an update",
+              "and the automatic closure will be cancelled.",
+              "",
+              "_Thank you for helping us keep the project organised._"
+            ].join("\n");
+
+            const CLOSING_MESSAGE = [
+              "<!-- automatic-inactivity-close -->",
+              "### Automatically closed due to inactivity",
+              "",
+              "This item was marked as inactive 30 days ago and there has",
+              "been no further activity, so it has now been automatically closed.",
+              "",
+              "If this is still relevant or assistance is still required,",
+              "please reopen it and add a comment explaining the current situation.",
+              "",
+              "_Thank you for your understanding._"
+            ].join("\n");
+
+            const now = new Date();
+
+            const inactiveCutoff = new Date(now);
+            inactiveCutoff.setUTCFullYear(
+              inactiveCutoff.getUTCFullYear() - 1
+            );
+
+            const closeCutoff = new Date(
+              now.getTime() - 30 * 24 * 60 * 60 * 1000
+            );
+
+            let warnedCount = 0;
+            let closedCount = 0;
+            let cancelledCount = 0;
+
+            console.log(
+              `Inactivity warning cutoff: ${inactiveCutoff.toISOString()}`
+            );
+            console.log(
+              `Warning closure cutoff: ${closeCutoff.toISOString()}`
+            );
+
+            /*
+             * Ensure that the shared warning label exists.
+             */
+            let label;
+
+            try {
+              const response = await github.rest.issues.getLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: LABEL_NAME
+              });
+
+              label = response.data;
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+
+              const response = await github.rest.issues.createLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: LABEL_NAME,
+                color: LABEL_COLOR,
+                description:
+                  "Scheduled for automatic closure due to inactivity"
+              });
+
+              label = response.data;
+
+              console.log(`Created label: ${LABEL_NAME}`);
+            }
+
+            /*
+             * Add the warning label to either an Issue or Discussion.
+             */
+            async function addWarningLabel(itemId) {
+              await github.graphql(`
+                mutation($itemId: ID!, $labelId: ID!) {
+                  addLabelsToLabelable(
+                    input: {
+                      labelableId: $itemId
+                      labelIds: [$labelId]
+                    }
+                  ) {
+                    clientMutationId
+                  }
+                }
+              `, {
+                itemId,
+                labelId: label.node_id
+              });
+            }
+
+            /*
+             * Remove the warning label when somebody responds.
+             */
+            async function removeWarningLabel(itemId) {
+              await github.graphql(`
+                mutation($itemId: ID!, $labelId: ID!) {
+                  removeLabelsFromLabelable(
+                    input: {
+                      labelableId: $itemId
+                      labelIds: [$labelId]
+                    }
+                  ) {
+                    clientMutationId
+                  }
+                }
+              `, {
+                itemId,
+                labelId: label.node_id
+              });
+            }
+
+            /*
+             * Determine whether the item currently has the warning label.
+             */
+            function hasWarningLabel(item) {
+              return item.labels.nodes.some(
+                itemLabel => itemLabel.name === LABEL_NAME
+              );
+            }
+
+            /*
+             * Determine whether the most recent comment is our warning.
+             *
+             * If somebody comments after the warning, their comment becomes
+             * the most recent comment and automatic closure is cancelled.
+             */
+            function getWarningComment(item) {
+              const lastComment = item.comments.nodes[0];
+
+              if (
+                !lastComment ||
+                !lastComment.body.includes(WARNING_MARKER)
+              ) {
+                return null;
+              }
+
+              return lastComment;
+            }
+
+            /*
+             * Process one Issue.
+             */
+            async function processIssue(issue) {
+              const warned = hasWarningLabel(issue);
+
+              if (warned) {
+                const warningComment = getWarningComment(issue);
+
+                if (!warningComment) {
+                  console.log(
+                    `Cancelling closure of Issue #${issue.number}: ` +
+                    `${issue.title} because it received a response`
+                  );
+
+                  await removeWarningLabel(issue.id);
+                  cancelledCount++;
+                  return;
+                }
+
+                if (new Date(warningComment.createdAt) > closeCutoff) {
+                  return;
+                }
+
+                console.log(
+                  `Closing Issue #${issue.number}: ${issue.title}`
+                );
+
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  body: CLOSING_MESSAGE
+                });
+
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  state: "closed",
+                  state_reason: "not_planned"
+                });
+
+                closedCount++;
+                return;
+              }
+
+              if (new Date(issue.updatedAt) >= inactiveCutoff) {
+                return;
+              }
+
+              console.log(
+                `Warning Issue #${issue.number}: ${issue.title}`
+              );
+
+              /*
+               * Apply the label before posting the warning so that the
+               * warning remains the most recent comment/activity.
+               */
+              await addWarningLabel(issue.id);
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: WARNING_MESSAGE
+              });
+
+              warnedCount++;
+            }
+
+            /*
+             * Process one Discussion.
+             */
+            async function processDiscussion(discussion) {
+              const warned = hasWarningLabel(discussion);
+
+              if (warned) {
+                const warningComment = getWarningComment(discussion);
+
+                if (!warningComment) {
+                  console.log(
+                    `Cancelling closure of Discussion ` +
+                    `#${discussion.number}: ${discussion.title} ` +
+                    `because it received a response`
+                  );
+
+                  await removeWarningLabel(discussion.id);
+                  cancelledCount++;
+                  return;
+                }
+
+                if (new Date(warningComment.createdAt) > closeCutoff) {
+                  return;
+                }
+
+                console.log(
+                  `Closing Discussion #${discussion.number}: ` +
+                  discussion.title
+                );
+
+                await github.graphql(`
+                  mutation($discussionId: ID!, $body: String!) {
+                    addDiscussionComment(
+                      input: {
+                        discussionId: $discussionId
+                        body: $body
+                      }
+                    ) {
+                      comment {
+                        id
+                      }
+                    }
+                  }
+                `, {
+                  discussionId: discussion.id,
+                  body: CLOSING_MESSAGE
+                });
+
+                await github.graphql(`
+                  mutation($discussionId: ID!) {
+                    closeDiscussion(
+                      input: {
+                        discussionId: $discussionId
+                        reason: OUTDATED
+                      }
+                    ) {
+                      discussion {
+                        number
+                      }
+                    }
+                  }
+                `, {
+                  discussionId: discussion.id
+                });
+
+                closedCount++;
+                return;
+              }
+
+              if (new Date(discussion.updatedAt) >= inactiveCutoff) {
+                return;
+              }
+
+              console.log(
+                `Warning Discussion #${discussion.number}: ` +
+                discussion.title
+              );
+
+              await addWarningLabel(discussion.id);
+
+              await github.graphql(`
+                mutation($discussionId: ID!, $body: String!) {
+                  addDiscussionComment(
+                    input: {
+                      discussionId: $discussionId
+                      body: $body
+                    }
+                  ) {
+                    comment {
+                      id
+                    }
+                  }
+                }
+              `, {
+                discussionId: discussion.id,
+                body: WARNING_MESSAGE
+              });
+
+              warnedCount++;
+            }
+
+            /*
+             * Fetch and process all open Issues.
+             */
+            let issueCursor = null;
+
+            do {
+              const result = await github.graphql(`
+                query(
+                  $owner: String!
+                  $repo: String!
+                  $cursor: String
+                ) {
+                  repository(owner: $owner, name: $repo) {
+                    issues(
+                      first: 100
+                      after: $cursor
+                      states: OPEN
+                      orderBy: {
+                        field: UPDATED_AT
+                        direction: ASC
+                      }
+                    ) {
+                      nodes {
+                        id
+                        number
+                        title
+                        url
+                        updatedAt
+                        labels(first: 100) {
+                          nodes {
+                            name
+                          }
+                        }
+                        comments(last: 1) {
+                          nodes {
+                            body
+                            createdAt
+                          }
+                        }
+                      }
+                      pageInfo {
+                        hasNextPage
+                        endCursor
+                      }
+                    }
+                  }
+                }
+              `, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                cursor: issueCursor
+              });
+
+              const issues = result.repository.issues;
+
+              for (const issue of issues.nodes) {
+                await processIssue(issue);
+              }
+
+              issueCursor = issues.pageInfo.hasNextPage
+                ? issues.pageInfo.endCursor
+                : null;
+            } while (issueCursor);
+
+            /*
+             * Fetch and process all open Discussions.
+             */
+            let discussionCursor = null;
+
+            do {
+              const result = await github.graphql(`
+                query(
+                  $owner: String!
+                  $repo: String!
+                  $cursor: String
+                ) {
+                  repository(owner: $owner, name: $repo) {
+                    discussions(
+                      first: 100
+                      after: $cursor
+                      states: OPEN
+                      orderBy: {
+                        field: UPDATED_AT
+                        direction: ASC
+                      }
+                    ) {
+                      nodes {
+                        id
+                        number
+                        title
+                        url
+                        updatedAt
+                        labels(first: 100) {
+                          nodes {
+                            name
+                          }
+                        }
+                        comments(last: 1) {
+                          nodes {
+                            body
+                            createdAt
+                          }
+                        }
+                      }
+                      pageInfo {
+                        hasNextPage
+                        endCursor
+                      }
+                    }
+                  }
+                }
+              `, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                cursor: discussionCursor
+              });
+
+              const discussions = result.repository.discussions;
+
+              for (const discussion of discussions.nodes) {
+                await processDiscussion(discussion);
+              }
+
+              discussionCursor =
+                discussions.pageInfo.hasNextPage
+                  ? discussions.pageInfo.endCursor
+                  : null;
+            } while (discussionCursor);
+
+            console.log("Inactivity processing complete.");
+            console.log(`Warnings added: ${warnedCount}`);
+            console.log(`Items closed: ${closedCount}`);
+            console.log(`Closures cancelled: ${cancelledCount}`);
