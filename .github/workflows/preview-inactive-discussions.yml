@@ -1,0 +1,79 @@
+name: Preview inactive discussions
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  discussions: read
+
+jobs:
+  preview-inactive:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Find discussions inactive for three years
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const cutoff = new Date();
+            cutoff.setUTCFullYear(cutoff.getUTCFullYear() - 3);
+
+            let cursor = null;
+            let found = 0;
+
+            console.log(`Cutoff date: ${cutoff.toISOString()}`);
+
+            do {
+              const result = await github.graphql(`
+                query($owner: String!, $repo: String!, $cursor: String) {
+                  repository(owner: $owner, name: $repo) {
+                    discussions(
+                      first: 100
+                      after: $cursor
+                      states: OPEN
+                      orderBy: {field: UPDATED_AT, direction: ASC}
+                    ) {
+                      nodes {
+                        number
+                        title
+                        url
+                        updatedAt
+                      }
+                      pageInfo {
+                        hasNextPage
+                        endCursor
+                      }
+                    }
+                  }
+                }
+              `, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                cursor
+              });
+
+              const discussions = result.repository.discussions;
+
+              for (const discussion of discussions.nodes) {
+                if (new Date(discussion.updatedAt) >= cutoff) {
+                  continue;
+                }
+
+                console.log(
+                  `Would close #${discussion.number}: ${discussion.title}\n` +
+                  `Last updated: ${discussion.updatedAt}\n` +
+                  `URL: ${discussion.url}`
+                );
+
+                found++;
+              }
+
+              cursor = discussions.pageInfo.hasNextPage
+                ? discussions.pageInfo.endCursor
+                : null;
+            } while (cursor);
+
+            console.log(
+              `Found ${found} open discussion(s) with no updates for three years.`
+            );
