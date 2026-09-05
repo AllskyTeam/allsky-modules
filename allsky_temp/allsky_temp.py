@@ -873,17 +873,17 @@ def temp(params, event):
 
                 try:
                     maxTemp = int(params["temp" + str(sensorNumber)])
-                except ValueError:
+                except (KeyError, ValueError, TypeError):
                     maxTemp = -1
 
                 try:
                     deadbandTemp = int(params["deadband" + str(sensorNumber)])
-                except ValueError:
+                except (KeyError, ValueError, TypeError):
                     deadbandTemp = 1
 
                 try:
                     gpioPin = int(params["gpio" + str(sensorNumber)])
-                except ValueError:
+                except (KeyError, ValueError, TypeError):
                     gpioPin = -1
         
                 temperature = 0
