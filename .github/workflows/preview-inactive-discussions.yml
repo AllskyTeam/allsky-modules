@@ -12,12 +12,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Find discussions inactive for three years
+      - name: Find discussions inactive for a year
         uses: actions/github-script@v8
         with:
           script: |
             const cutoff = new Date();
-            cutoff.setUTCFullYear(cutoff.getUTCFullYear() - 3);
+            cutoff.setUTCFullYear(cutoff.getUTCFullYear() - 1);
 
             let cursor = null;
             let found = 0;
@@ -75,5 +75,5 @@ jobs:
             } while (cursor);
 
             console.log(
-              `Found ${found} open discussion(s) with no updates for three years.`
+              `Found ${found} open discussion(s) with no updates for a year.`
             );
