@@ -1,1 +1,13 @@
-barbudor-circuitpython-ina3221
+# Requirements for allsky_ina3221 v2.0.0
+# Installed automatically by the AllSky module installer via:
+# pip3 install --no-warn-script-location -r requirements.txt
+
+# Adafruit CircuitPython driver for the INA3221 triple-channel power monitor
+adafruit-circuitpython-ina3221
+
+# Adafruit Blinka - provides CircuitPython compatibility layer for Raspberry Pi
+# (supplies the 'board' and 'busio' modules)
+adafruit-blinka
+
+# Adafruit CircuitPython BusDevice - required dependency for I2C communication
+adafruit-circuitpython-busdevice
