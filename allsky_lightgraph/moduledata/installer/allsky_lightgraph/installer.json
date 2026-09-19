@@ -1,0 +1,9 @@
+{
+    "requirements": [
+        "pyephem"
+    ],
+    "packages": [],
+    "post-install": {
+        "run": ""
+    }
+}

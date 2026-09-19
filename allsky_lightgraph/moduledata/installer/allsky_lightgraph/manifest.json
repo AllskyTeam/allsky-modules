@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "module": "allsky_lightgraph",
+  "generated_utc": "2026-08-31T20:49:28Z",
+  "hash_algorithm": "sha256",
+  "files": {
+    "README.md": {
+      "sha256": "cf1f34c86ad61d5ac3118ef1cf72b459d46cc86690c4c682f4bdacabed49901d",
+      "size": 2246,
+      "mode": "644"
+    },
+    "allsky_lightgraph.py": {
+      "sha256": "59dc5c62b7f695ade341f63567e4371614fd73f12683d44a4202489a231ee576",
+      "size": 32979,
+      "mode": "755"
+    },
+    "requirements.txt": {
+      "sha256": "339a23f5874d3db4e75fc030f9c07d7ad3aa5ecc1b034a8a0dbf429a21b88ce6",
+      "size": 28,
+      "mode": "644"
+    }
+  },
+  "file_count": 3
+}

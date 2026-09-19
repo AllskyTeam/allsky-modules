@@ -1,60 +1,57 @@
-# LightGraph 
-LightGraph AllSky module 
+# LightGraph
 
-LightGraph is a AllSky module that overlays on the image captured a graph displaying lightness and darkeness for the day (see below, for what a 'day' means).
+LightGraph is an AllSky module that overlays a light and darkness graph on captured images.
 
-![LighGraph sample](https://cgastrophoto.co.uk/lightgraph/lightgraph_sample.JPG)
+For installation instructions, see the [https://github.com//AllskyTeam/](https://github.com//AllskyTeam/).
 
-The display consists of a rectangle covering 24 hours filled with different colors corresponding to: daylight, night, civil dawn and dush, nautical dawn and dusk, and astronomical dawn and dusk.
+## Daily Light Graph
 
-For instructrions to install, check https://github.com/thomasjacquin/allsky wiki.
+The daily graph covers 24 hours and shows:
 
-# Features and Options
+- Daylight
+- Civil dawn and dusk
+- Nautical dawn and dusk
+- Astronomical dawn and dusk
+- Full darkness
 
-## Position and Size
-4 parameters allow to position the graph according to your needs. One extra paramenter allows to set horizontal position to center. If centered is activated, the the horizontal position is ignored.
+The colors for dawn and dusk are interpolated between the configured light and dark colors.
+The graph supports configurable size, position, transparency, colors, hour ticks, hour labels,
+and current-time alignment.
 
-If horizontal size is set too big the graph will be as wide as the picture.
-If the sum of hotizontal position and width (vertical position and heigh) is bigger than the image width (height) the graph will be aligned to the right (bottom) of the image.
+The current time can be aligned to the left edge or centered. When centered, the graph covers
+12 hours before and 12 hours after the current time.
+
+## Elevation Grid
+
+The optional elevation grid shows Sun and Moon elevation over the same 24-hour period.
+It includes configurable position, size, colors, and line thickness. The grid includes hourly
+vertical spacing and reference lines for the tropics and polar circles.
+
+## Annual Graph
+
+The optional annual graph displays a full-year calendar with one column for each day. Each day
+is filled with the same five color levels used by the daily graph: daylight, civil, nautical,
+astronomical, and full darkness.
+
+The annual graph supports:
+
+- Midnight-to-midnight (`0 to 24 hours`) or noon-to-noon (`Previous noon to next noon`) axes
+- A relative `-12` to `+12` hour axis in noon-to-noon mode, with midnight at `0`
+- Configurable transparency and position
+- Granularity from `1` to `10`
+- A current-date vertical marker and current-time horizontal marker
+- Configurable `Marker` color, red by default
+
+Granularity `10` uses 15-minute bands. Granularity `1` selects a time interval that produces
+bands approximately one pixel high. Intermediate values provide resolutions between those limits.
 
 ## Colors
 
-There are settings for frame color, lights time color and darkness time color. For each of the theree there are two options: daytime and night, so best contrasting colors can be selected for day and night. Format is 3 space separated decimal values (0 to 255) in BGR order.
+Colors use three space-separated decimal values in Blue/Green/Red (BGR) order, with each value
+between 0 and 255. The color picker format is also supported by the module.
 
-Color for dawn and dusk are a simple interpolation between lightness and darkness colors.
+## Additional Information
 
-Transparecy can also be selected.
-
-## Hour marks
-
-Hourly tickmarks can be displayed. Hour numbers as well. If hour tickmarcks are disabled, hour numbers setting will be ignored.
-
-Text scale can also be selected. If the text is so big as to overlap at a given graph width, only every other hour number will be deisplayed.
-
-Two thin lines mark sun transit (noon) and anti-transit (midnight).
-
-## Now Time
-
-A small cursor points to the current time. The user can select left or center alignment.
-
-If left is selected the the display covers 24 hours starting the current time.
-If center is selected then the display covers from 12 hours before current time util 12 hours after current time.
-
-# Elevation Grid
-
-An extra feature had been added: a chart showing Sun and Moon elevation.
-
-It shares the timebase with the light graph. But has an specific set of parameters for: enabling/didabling this feature, position, size and colors.
-Vertical grid spacing is every hour. Horizontal grid matches tropics and 
-por circles latitudes.
-
-# Additional feature
-
-At the moment, and for my convenience the script exports these variables:
-AS_SUN_ALT, AS_SUN_AZ
-AS_MOON_TRANSIT, AS_MOON_ANTITRANSIT, AS_MOONRISE, AS_MOONSET
-AS_SUN_NOON, AS_SUN_MIDNIGHT
-
-They will be removed when AllSky supplies this data.
+The module uses PyEphem for solar calculations, NumPy for image geometry, and OpenCV for drawing.
 
 Thanks and enjoy!

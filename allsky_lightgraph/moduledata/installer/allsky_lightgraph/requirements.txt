@@ -1,0 +1,3 @@
+pyephem
+numpy
+opencv-python
