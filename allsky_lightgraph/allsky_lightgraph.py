@@ -33,7 +33,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 		],
 		"experimental": "false",
 		"centersettings": "false",	
-		"version": "v0.7",
+		"version": "v0.8",
 		"module": "allsky_lightgraph",
 		"group": "Image Adjustments",
 		"changelog": {
@@ -57,6 +57,17 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 						"Removed code for publihing variables (no longer needed)",
 						"Added Thickness parameter for elevation graph lines",
 						"Added option to draw annual darkness graph"
+					]
+				}
+			],
+			"v0.8": [
+				{
+					"author": "Carlos Gil",
+					"authorurl": "https://github.com/ea1ii",
+					"changes": [
+						"Fixed annual map noon-to-noon alignment",
+						"Added local-time and daylight-saving support to annual solar calculations",
+						"Reversed the annual map time axis and added time labels"
 					]
 				}
 			]
@@ -793,9 +804,12 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			date = start + datetime.timedelta(days=day)
 			bands = []
 			sample_minutes = 1440.0 / self.annual_sample_count
+			axis_start_minutes = -720.0 if noon_to_noon else 0.0
 			for sample in range(self.annual_sample_count):
-				moment = date + datetime.timedelta(minutes=(sample + 0.5) * sample_minutes)
-				self.location.date = ephem.Date(moment)
+				moment = date + datetime.timedelta(minutes=axis_start_minutes +
+					(sample + 0.5) * sample_minutes)
+				moment_utc = moment.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+				self.location.date = ephem.Date(moment_utc)
 				sun.compute(self.location)
 				altitude = degrees(sun.alt)
 				if altitude < -18.0:
@@ -809,9 +823,6 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 				else:
 					band = 4
 				bands.append(band)
-			if noon_to_noon:
-				half_day = self.annual_sample_count // 2
-				bands = bands[half_day:] + bands[:half_day]
 			self.annual_bands.append(bands)
 
 	def _annualNoonToNoon(self, params):
@@ -978,7 +989,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 
 		if params["draw_annual"] is True:
 			annual_canvas = canvas.copy()
-			left = self.annual_X + 4
+			left = self.annual_X + 30
 			top = self.annual_Y + 4
 			right = self.annual_X + self.annual_width - 4
 			bottom = self.annual_Y + self.annual_height - 18
@@ -995,10 +1006,26 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 					x2 = max(x1 + 1, x2)
 					n_samples = len(bands)
 					for sample, band in enumerate(bands):
-						y1 = top + int(sample * plot_height / n_samples)
-						y2 = top + int((sample + 1) * plot_height / n_samples)
+						y1 = bottom - int((sample + 1) * plot_height / n_samples)
+						y2 = bottom - int(sample * plot_height / n_samples)
 						cv2.rectangle(annual_canvas, (x1, y1), (x2, y2),
 							band_colors[band], cv2.FILLED)
+
+				label_font = cv2.FONT_HERSHEY_SIMPLEX
+				label_x = self.annual_X + 5
+				label_step = 6
+				if self._annualNoonToNoon(params):
+					labels = range(-12, 13, label_step)
+				else:
+					labels = range(0, 25, label_step)
+				label_height = cv2.getTextSize("-12", label_font, annual_text_size, 1)[0][1]
+				for label in labels:
+					fraction = ((label + 12) / 24.0 if self._annualNoonToNoon(params)
+						else label / 24.0)
+					label_y = bottom - int(fraction * plot_height)
+					label_y = max(top + label_height, min(bottom, label_y))
+					cv2.putText(annual_canvas, str(label), (label_x, label_y),
+						label_font, annual_text_size, self.annual_color, 1, cv2.LINE_AA)
 
 				for month in range(12):
 					month_start = (datetime.datetime(self.nowTime.year, month + 1, 1) -
@@ -1019,7 +1046,9 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 					self.nowTime.minute * 60 +
 					self.nowTime.second
 				) / 86400.0
-				time_y = top + int(time_fraction * plot_height)
+				if self._annualNoonToNoon(params):
+					time_fraction = (time_fraction - 0.5) % 1.0
+				time_y = bottom - int(time_fraction * plot_height)
 				cv2.line(annual_canvas, (date_x, top), (date_x, bottom), self.annual_marker, 2)
 				cv2.line(annual_canvas, (left, time_y), (right, time_y), self.annual_marker, 2)
 			annual_alpha = float(params["annual_alpha"])

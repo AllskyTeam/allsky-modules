@@ -36,6 +36,8 @@ astronomical, and full darkness.
 The annual graph supports:
 
 - Midnight-to-midnight (`0 to 24 hours`) or noon-to-noon (`Previous noon to next noon`) axes
+- Time increases upward: midnight is at the bottom in midnight-to-midnight mode
+- Vertical labels are shown every six hours (`00` to `24`, or `-12` to `12`)
 - A relative `-12` to `+12` hour axis in noon-to-noon mode, with midnight at `0`
 - Configurable transparency and position
 - Granularity from `1` to `10`
