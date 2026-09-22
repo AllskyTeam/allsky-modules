@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "module": "allsky_skyquality",
+  "generated_utc": "2026-09-22T16:25:25Z",
+  "hash_algorithm": "sha256",
+  "files": {
+    "allsky_skyquality.py": {
+      "sha256": "8a4e2661cb96d507bf1fec7339cae818c4abe91a9fe01f3749a935ea14a3138e",
+      "size": 14654,
+      "mode": "644"
+    }
+  },
+  "file_count": 1
+}
