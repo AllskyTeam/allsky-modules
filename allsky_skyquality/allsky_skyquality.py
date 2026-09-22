@@ -3,14 +3,6 @@
 Sky Quality Meter (SQM) module for Allsky.
 https://github.com/AllskyTeam/allsky
 
-Author:      Benjamin Hartwich (https://astronomy.garden)
-Home / docs: https://github.com/benhartwich/allsky-skyquality
-             (ready-made charting dashboard and full README live there)
-
-Note: this is an advanced alternative to the bundled allsky_sqm module. Where
-allsky_sqm reports a raw ROI mean, this reports calibrated mag/arcsec2 with
-exposure/gain normalisation plus sensor-free star-count, cloud and aurora indices.
-
 Reports sky brightness in **mag/arcsec²**, following the approach used by
 indi-allsky:
 
@@ -41,11 +33,12 @@ import numpy as np
 metaData = {
     "name": "Sky Quality Meter",
     "description": "Measures sky brightness in mag/arcsec2 (exposure/gain normalised)",
-    "version": "v0.1.0",
+    "version": "v0.2.1",
     "events": [
         "night"
     ],
     "experimental": "false",
+    "group": "Data Capture",
     "module": "allsky_skyquality",
     "arguments": {
         "mask": "",
@@ -115,19 +108,48 @@ metaData = {
             "type": {"fieldtype": "checkbox"}
         }
     },
-    "enabled": "false",
     "changelog": {
         "v0.1.0": [
             {
                 "author": "Benjamin Hartwich",
-                "authorurl": "https://github.com/benhartwich",
-                "changes": "Initial exposure/gain-normalised SQM in mag/arcsec2 + rolling json for charts"
+                "authorurl": "https://astronomy.garden",
+                "changes": [
+                    "Initial exposure/gain-normalised SQM in mag/arcsec2 + rolling json for charts",
+                    "Star count (template matching), camera and CPU temperature",
+                    "Cloud/haze index (star-deficit grid) and aurora candidate index (green excess on the north horizon)"
+                ]
+            }
+        ],
+        "v0.2.0": [
+            {
+                "author": "Benjamin Hartwich",
+                "authorurl": "https://astronomy.garden",
+                "changes": [
+                    "Record naked-eye limiting magnitude (NELM) derived from SQM",
+                    "Record Moon altitude + illumination (ephem, falls back to Allsky overlay values) for moon-correlation charts"
+                ]
+            }
+        ],
+        "v0.2.1": [
+            {
+                "author": "Benjamin Hartwich",
+                "authorurl": "https://astronomy.garden",
+                "changes": [
+                    "Checkbox settings are parsed properly: they arrive as the string 'false', which Python treats as true, so debug and the other checkboxes were always on. Remote upload now reads useremotewebsite as the boolean it is",
+                    "Aurora index: green must exceed red as well as blue. Moonlit or light-polluted cloud is red-dominant and was counted as aurora by the green-over-blue test"
+                ]
             }
         ]
     }
 }
 
 _maskCache = {"name": None, "mask": None}
+
+
+def _truthy(v):
+    """Checkbox args arrive from the flow config as the STRING 'true'/'false';
+    'false' is truthy in Python, so parse booleans explicitly."""
+    return v is True or (not isinstance(v, bool) and str(v).strip().lower() in ("true", "1", "yes", "on"))
 
 
 def _bortle(mag):
@@ -192,7 +214,7 @@ def _websiteDataDir():
 def _uploadRemote(local, fname):
     """Upload skyquality.json to the remote website root. Never raises."""
     try:
-        if s.getSetting("useremotewebsite") != "true":
+        if str(s.getSetting("useremotewebsite")).lower() not in ("true", "1", "yes", "on"):
             return
         scripts = s.getEnvironmentVariable("ALLSKY_SCRIPTS") or \
             os.path.join(s.getEnvironmentVariable("ALLSKY_HOME") or os.path.expanduser("~/allsky"), "scripts")
@@ -279,7 +301,12 @@ def _cloudPct(mask, points, cell=48):
 
 def _auroraIndex(bgr, mask):
     """Green-excess glow low on the NORTH horizon (image is North-up). Aurora is green
-    (O I 557.7 nm); this is a candidate index, not a certainty."""
+    (O I 557.7 nm); this is a candidate index, not a certainty.
+
+    Green must be above BOTH red and blue (min of the two excesses): moonlit or
+    light-polluted cloud is RED-dominant (green far below red), so requiring green
+    over red as well rejects the warm cloud that a green-over-blue-only test flags
+    as false aurora. See the dedicated allsky_aurora module for detection."""
     ys, xs = np.where(mask > 0)
     if len(ys) == 0:
         return 0.0
@@ -289,8 +316,41 @@ def _auroraIndex(bgr, mask):
     if int((band > 0).sum()) < 50:
         return 0.0
     b, g, r = cv2.split(bgr.astype(np.int16))
-    green_excess = (g - b)[band > 0]
+    green_excess = np.minimum(g - r, g - b)[band > 0]   # green over red AND blue
     return round(max(0.0, float(green_excess.mean())), 1)
+
+
+def _limitingMag(sqm):
+    """Naked-eye limiting magnitude (NELM) from zenithal SQM, using the standard
+    Schaefer relation (as used by Unihedron):
+        NELM = 7.93 − 5·log10(10^(4.316 − SQM/5) + 1)
+    A pure function of SQM — no field-of-view calibration needed."""
+    try:
+        return round(7.93 - 5.0 * math.log10(10.0 ** (4.316 - sqm / 5.0) + 1.0), 2)
+    except Exception:
+        return None
+
+
+def _moon():
+    """(altitude_deg, illumination_pct) of the Moon. Prefers Allsky's overlay values
+    if present, otherwise computes them with ephem from the configured lat/lon.
+    Returns (None, None) if neither is available."""
+    alt_s = s.getEnvironmentVariable("AS_MOON_ELEVATION")
+    ill_s = s.getEnvironmentVariable("AS_MOON_ILLUMINATION")
+    if alt_s not in (None, "") and ill_s not in (None, ""):
+        try:
+            return round(float(alt_s), 1), round(float(ill_s), 0)
+        except (TypeError, ValueError):
+            pass
+    try:
+        import ephem
+        obs = ephem.Observer()
+        obs.lat = str(s.convertLatLon(s.getSetting("latitude")))
+        obs.lon = str(s.convertLatLon(s.getSetting("longitude")))
+        m = ephem.Moon(obs)
+        return round(math.degrees(float(m.alt)), 1), round(float(m.phase), 0)
+    except Exception:
+        return None, None
 
 
 def skyquality(params, event):
@@ -299,7 +359,7 @@ def skyquality(params, event):
 
     offset = s.asfloat(params.get("offset", 17.0))
     gain_scale = s.asfloat(params.get("gain_scale", 200.0))
-    debug = params.get("debug", False)
+    debug = _truthy(params.get("debug", False))
 
     gray = cv2.cvtColor(s.image, cv2.COLOR_BGR2GRAY) if len(s.image.shape) == 3 else s.image
     mask = _roiMask(params, gray.shape[:2])
@@ -332,16 +392,20 @@ def skyquality(params, event):
         except (TypeError, ValueError):
             return None
     stars = cloud = None
-    if params.get("count_stars", True):
+    if _truthy(params.get("count_stars", True)):
         stars = _countStars(_starPoints(gray, mask, 0.65))
         cloud = _cloudPct(mask, _starPoints(gray, mask, 0.55), cell=80)
     aurora = _auroraIndex(s.image, mask) if len(s.image.shape) == 3 else None
     temp = _flt(s.getEnvironmentVariable("AS_TEMPERATURE_C"))
     cpu = _flt(s.getEnvironmentVariable("AS_CPUTEMP_C"))
+    mlim = _limitingMag(sqm)                 # naked-eye limiting magnitude
+    moon_alt, moon_ill = _moon()             # moon altitude + illumination for correlation
 
     s.setEnvironmentVariable("AS_SQM", f"{sqm:.2f}")
     s.setEnvironmentVariable("AS_SQM_ADU", f"{mean_adu:.1f}")
     s.setEnvironmentVariable("AS_SQM_DESC", _bortle(sqm))
+    if mlim is not None:
+        s.setEnvironmentVariable("AS_SQM_NELM", f"{mlim:.2f}")
     if stars is not None:
         s.setEnvironmentVariable("AS_SQM_STARS", str(stars))
     if cloud is not None:
@@ -356,12 +420,13 @@ def skyquality(params, event):
         "exp": round(exposure_s, 3),
         "gain": round(gain, 1),
     }
-    for k, v in (("stars", stars), ("cloud", cloud), ("aurora", aurora),
+    for k, v in (("mlim", mlim), ("stars", stars), ("cloud", cloud), ("aurora", aurora),
+                 ("moon_alt", moon_alt), ("moon_ill", moon_ill),
                  ("temp", None if temp is None else round(temp, 1)),
                  ("cpu", None if cpu is None else round(cpu, 1))):
         if v is not None:
             rec[k] = v
-    _appendHistory(rec, s.int(params.get("history_hours", 48)), params.get("publish_web", True))
+    _appendHistory(rec, s.int(params.get("history_hours", 48)), _truthy(params.get("publish_web", True)))
 
     extra = (f", {stars} stars" if stars is not None else "") + \
             (f", {cloud}% cloud" if cloud is not None else "")
@@ -375,8 +440,8 @@ def skyquality_cleanup():
         "metaData": metaData,
         "cleanup": {
             "files": {os.path.join(s.ALLSKY_TMP, "skyquality.json")},
-            "env": {"AS_SQM", "AS_SQM_ADU", "AS_SQM_DESC", "AS_SQM_STARS",
-                    "AS_SQM_CLOUD", "AS_SQM_AURORA"}
+            "env": {"AS_SQM", "AS_SQM_ADU", "AS_SQM_DESC", "AS_SQM_NELM",
+                    "AS_SQM_STARS", "AS_SQM_CLOUD", "AS_SQM_AURORA"}
         }
     }
     s.cleanupModule(moduleData)

@@ -1,14 +1,19 @@
 {
   "schema_version": 1,
   "module": "allsky_skyquality",
-  "generated_utc": "2026-09-22T16:25:25Z",
+  "generated_utc": "2026-09-22T16:29:53Z",
   "hash_algorithm": "sha256",
   "files": {
+    "README.md": {
+      "sha256": "7a5e407db3631084ebc45834a02fafca3da33dc6808988698ee144d666b59ba4",
+      "size": 3563,
+      "mode": "644"
+    },
     "allsky_skyquality.py": {
-      "sha256": "8a4e2661cb96d507bf1fec7339cae818c4abe91a9fe01f3749a935ea14a3138e",
-      "size": 14654,
+      "sha256": "ce592fa2d6e48174b98c7830304ab3dd547dc9e4d4fecdee92eb9fe0ddeb9a38",
+      "size": 17880,
       "mode": "644"
     }
   },
-  "file_count": 1
+  "file_count": 2
 }
