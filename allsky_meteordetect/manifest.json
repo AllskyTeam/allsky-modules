@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "module": "allsky_meteordetect",
+  "generated_utc": "2026-09-22T16:21:34Z",
+  "hash_algorithm": "sha256",
+  "files": {
+    "README.md": {
+      "sha256": "72851343c9415174e09e4cdf1b6b3547bec5693137435f7c215edc41a88d0f9c",
+      "size": 24116,
+      "mode": "644"
+    },
+    "allsky_meteordetect.py": {
+      "sha256": "851415c9b7b3479e13cf103e11efdfb67b6021e2a9a60d090eac28a4c5845cb7",
+      "size": 76687,
+      "mode": "644"
+    },
+    "allsky_meteordetect/allsky_fisheye.py": {
+      "sha256": "e711d4ede04e92f8909cdf7bff07a11bfa69a558b2f29deb07dbe6a0bc4f6e63",
+      "size": 5049,
+      "mode": "644"
+    },
+    "allsky_meteordetect/stars.json": {
+      "sha256": "bb61b2af4439df599ba108796da5183d62062293b2b4f4248a91b16c22dba51a",
+      "size": 133695,
+      "mode": "644"
+    },
+    "allsky_meteordetect/tools/align_overlay.py": {
+      "sha256": "ca847bd71d9e825c4092ebc1ad614574e00c5e660159f648ccbb7a13f642f8ca",
+      "size": 11794,
+      "mode": "755"
+    },
+    "allsky_meteordetect/tools/build_mask.py": {
+      "sha256": "9d7bbee0ae71d699fe1938a22058d63bef4fa1043e04906f257d68687be563e7",
+      "size": 7044,
+      "mode": "755"
+    },
+    "allsky_meteordetect/tools/calibrate_fisheye.py": {
+      "sha256": "55f5ec522678ada3d45f85078504935724d8c7c5e65feec8b7996fba8e8d7e32",
+      "size": 22032,
+      "mode": "755"
+    },
+    "allsky_meteordetect/tools/replay_night.py": {
+      "sha256": "05f425cf3a051af9a9679e40fdda2482db1c401598d5fb18ed73b67788defe63",
+      "size": 16239,
+      "mode": "755"
+    }
+  },
+  "file_count": 8
+}
