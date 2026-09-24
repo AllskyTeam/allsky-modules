@@ -28,7 +28,7 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 		"description": "Retrieve space weather data from NOAA SWPC",
 		"docs": "docs/allsky_modules/extra/space_weather.html",    
 		"module": "allsky_spaceweather",
-		"version": "v1.0.4",
+		"version": "v1.0.5",
 		"centersettings": "false",
 		"testable": "true", 
 		"extradatafilename": "allsky_spaceweather.json",
@@ -39,6 +39,20 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 			"periodic"
 		],
 		"extradata": {
+			"database": {
+				"enabled": "True",
+				"table": "allsky_spaceweather",
+				"pk": "id",
+				"pk_type": "int",
+				"include_all": "false",
+				"time_of_day_save": {
+					"day": "always",
+					"night": "always",
+					"nightday": "never",
+					"daynight": "never",
+					"periodic": "always"
+				}
+			},
 			"values": {
 				"SWX_SWIND_SPEED": {
 					"name": "${SWIND_SPEED}",
@@ -46,7 +60,10 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Space",
 					"description": "Solar wind speed",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include": "true"
+					}
 				},
 				"SWX_SWIND_DENSITY": {
 					"name": "${SWIND_DENSITY}",
@@ -54,7 +71,10 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Space",
 					"description": "Solar wind density",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include": "true"
+					}
 				},
 				"SWX_SWIND_TEMP": {
 					"name": "${SWIND_TEMP}",
@@ -62,7 +82,10 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Space",
 					"description": "Solar wind temperature",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include": "true"
+					}
 				},
 				"SWX_KPDATA": {
 					"name": "${KPDATA}",
@@ -70,7 +93,10 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Space",
 					"description": "KP Data",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include": "true"
+					}
 				},
 				"SWX_BZDATA": {
 					"name": "${BZDATA}",
@@ -78,7 +104,10 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Space",
 					"description": "BZ Data",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include": "true"
+					}
 				},
 				"SWX_S_ANGLE": {
 					"name": "${S_ANGLE}",
@@ -106,6 +135,13 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"min": 300,
 					"max": 3000,
 					"step": 60
+				}
+			},
+			"graph": {
+				"required": "false",
+				"tab": "History",
+				"type": {
+					"fieldtype": "graph"
 				}
 			}
 		},
@@ -143,6 +179,13 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 				"author": "Adrian Wells (Agent assisted)",
 				"authorurl": "https://github.com/adrianwells/",
 				"changes": "Select the newest active record from the rtsw/ endpoints rather than indexing by position, and write the extra data file even when the Bz fetch fails"
+				}
+			],
+			"v1.0.5": [
+				{
+				"author": "Benjamin Hartwich (Agent assisted)",
+				"authorurl": "https://github.com/benhartwich/",
+				"changes": "Save the solar wind speed, density and temperature, Kp and Bz in the Allsky database, and add charts: Kp index, Bz, solar wind, and a Kp gauge"
 				}
 			]
 		}
@@ -314,6 +357,32 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 			}
 
 
+	def _save_to_database(self, space_weather_data):
+		"""
+		Save the numeric values in the Allsky database, for the charts.
+
+		Only values marked for the database in meta_data are saved, and only
+		when they are numbers; a failed conversion ('xxx') is left out. The
+		temperature is formatted with thousands separators for the overlay,
+		so the separators are removed first. Never raises.
+		"""
+		try:
+			structure = self.meta_data['extradata']
+			values = {}
+			for key, entry in space_weather_data.items():
+				meta = structure['values'].get(key, {})
+				if meta.get('database', {}).get('include') != 'true':
+					continue
+				try:
+					values[key] = float(str(entry['value']).replace(',', ''))
+				except (TypeError, ValueError, KeyError):
+					continue
+			if values:
+				formatted = allsky_shared.format_extra_data_json(values, structure, self.meta_data['module'])
+				allsky_shared.update_database(structure, json.dumps(formatted), self.event, self.meta_data['module'])
+		except Exception as e:
+			allsky_shared.log(0, f"ERROR: Unable to save space weather data to the database: {e}")
+
 	def run(self):
 		"""Main entry point for the module"""
 		result = ""
@@ -436,7 +505,11 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 				
 				# Save whatever was collected. One endpoint failing must not discard
 				# the fields that succeeded, or the whole file freezes.
-				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], space_weather_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
+				# The overlay file keeps the colours ("fill"), so each value is a dict,
+				# which the database can't store: the database row is saved separately.
+				overlay_structure = {k: v for k, v in self.meta_data['extradata'].items() if k != 'database'}
+				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], space_weather_data, self.meta_data['module'], overlay_structure, event=self.event)
+				self._save_to_database(space_weather_data)
 				result = f"Space weather data successfully written to {self.meta_data['extradatafilename']}"
 				self.log(1, f"INFO: {result}")
 				allsky_shared.setLastRun(module)

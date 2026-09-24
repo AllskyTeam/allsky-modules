@@ -1,0 +1,22 @@
+{
+    "icon": "fas fa-chart-line",
+    "group": "Space Weather",
+    "title": "Bz (Interplanetary Magnetic Field)",
+    "type": "line",
+    "main": true,
+    "table": "allsky_spaceweather",
+    "yAxis": [
+        {
+            "title": {
+                "text": "Bz (nT)"
+            }
+        }
+    ],
+    "series": [
+        {
+            "name": "Bz",
+            "yAxis": 0,
+            "variable": "SWX_BZDATA"
+        }
+    ]
+}
