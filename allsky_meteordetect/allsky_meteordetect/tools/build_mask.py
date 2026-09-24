@@ -21,6 +21,10 @@ Example:
 
 Then copy meteor_mask.png into your Allsky overlay images folder
 (config/overlay/images/) and select it as the module's "Detection Mask".
+
+Limitation: only obstructions that are darker than the sky by day are found.  A
+building or wall as bright as the sky isn't; paint it black in the mask, e.g. with
+the Mask Editor in Allsky's Overlay Editor (Expert mode).
 """
 import argparse
 import glob
@@ -32,9 +36,9 @@ import numpy as np
 
 
 def daytime(fn, lo, hi):
-    base = os.path.basename(fn)          # image-YYYYMMDDHHMMSS.jpg
+    base = os.path.basename(fn)          # image-YYYYMMDDHHMMSS.jpg: the hour is at 14-15
     try:
-        hh = int(base[15:17])
+        hh = int(base[14:16])
     except Exception:
         return False
     return lo <= hh <= hi
@@ -134,7 +138,7 @@ def build(args):
         prev = cv2.addWeighted(ov, 0.5, prev, 0.5, 0)
         cnts, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cv2.drawContours(prev, cnts, -1, (0, 255, 0), 5)
-        cv2.imwrite(args.preview, cv2.resize(prev, (1280, 720)))
+        cv2.imwrite(args.preview, cv2.resize(prev, (1280, int(round(1280 * H / W)))))
         print(f"Wrote preview {args.preview}")
 
 

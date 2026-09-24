@@ -91,6 +91,11 @@ $PY $T/build_mask.py \
 Copy `meteor_mask.png` into `~/allsky/config/overlay/images/` and select it as the
 module's **Detection Mask**.
 
+**A building as bright as the sky** isn't found: the tool only finds what is darker
+than the sky by day. Paint it black in the mask, for example with the **Mask
+Editor** in Allsky's Overlay Editor (Expert mode, draw the building in black), or in
+any image editor, and save it in `~/allsky/config/overlay/images/`.
+
 **Method.** Obstructions are *persistently dark silhouettes*. For every pixel the
 tool measures, across many daytime frames, how often it is markedly darker than the
 sky (referenced to the bright image centre). Sky is rarely dark, trees almost
