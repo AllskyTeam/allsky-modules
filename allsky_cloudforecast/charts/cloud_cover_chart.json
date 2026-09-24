@@ -1,0 +1,29 @@
+{
+    "icon": "fas fa-chart-line",
+    "group": "Cloud Forecast",
+    "title": "Cloud Cover",
+    "type": "line",
+    "main": true,
+    "table": "allsky_cloudforecast",
+    "yAxis": [
+        {
+            "title": {
+                "text": "Cloud cover (%)"
+            },
+            "min": 0,
+            "max": 100
+        }
+    ],
+    "series": [
+        {
+            "name": "Cloud cover",
+            "yAxis": 0,
+            "variable": "AS_CLOUDFORECAST_COVER|true"
+        },
+        {
+            "name": "Expected in 30 min",
+            "yAxis": 0,
+            "variable": "AS_CLOUDFORECAST_PRED30"
+        }
+    ]
+}
