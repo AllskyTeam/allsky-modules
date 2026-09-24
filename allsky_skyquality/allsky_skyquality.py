@@ -17,12 +17,19 @@ the result tracks the true sky brightness instead of the exposure control loop:
     signal = mean_ADU / exposure_s / gain_factor
     mag    = offset − 2.5 · log10(signal)
 
+The sky brightness is measured day and night, so its chart shows the whole
+24 hours including twilight.  At night the same value is the SQM reading, and
+the naked-eye limiting magnitude, star count, cloud cover and aurora index are
+added.  Everything is saved in the Allsky database for the charts the module
+brings along, and optionally in a rolling `skyquality.json` for a website.
+
 `offset` must be calibrated once against a real SQM device (or a known dark-sky
-reading). The measured values are written to a rolling `skyquality.json` so a
-time-series chart can be built later.
+reading).
 """
 import allsky_shared as s
+from allsky_base import ALLSKYMODULEBASE
 import os
+import sys
 import json
 import math
 import time
@@ -30,118 +37,309 @@ import subprocess
 import cv2
 import numpy as np
 
-metaData = {
-    "name": "Sky Quality Meter",
-    "description": "Measures sky brightness in mag/arcsec2 (exposure/gain normalised)",
-    "version": "v0.2.1",
-    "events": [
-        "night"
-    ],
-    "experimental": "false",
-    "group": "Data Capture",
-    "module": "allsky_skyquality",
-    "arguments": {
-        "mask": "",
-        "roi": "",
-        "fov_div": "4",
-        "offset": "17.0",
-        "gain_scale": "200.0",
-        "history_hours": "48",
-        "count_stars": "true",
-        "publish_web": "true",
-        "debug": "false"
-    },
-    "argumentdetails": {
-        "mask": {
-            "required": "false",
-            "description": "ROI Mask",
-            "help": "Optional mask image (overlay images folder). White = measure here. Overrides ROI/FOV. Use a zenith-only mask for best results.",
-            "type": {"fieldtype": "image"}
+
+class ALLSKYSKYQUALITY(ALLSKYMODULEBASE):
+
+    meta_data = {
+        "name": "Sky Quality Meter",
+        "description": "Sky brightness in mag/arcsec2 day and night, with SQM, limiting magnitude, stars and cloud cover at night, and charts",
+        "version": "v0.3.0",
+        "module": "allsky_skyquality",
+        "events": [
+            "day",
+            "night"
+        ],
+        "experimental": "false",
+        "centersettings": "false",
+        "testable": "false",
+        "group": "Data Capture",
+        "extradatafilename": "allsky_skyquality.json",
+        "extradata": {
+            "database": {
+                "enabled": "True",
+                "table": "allsky_skyquality",
+                "pk": "id",
+                "pk_type": "int",
+                "include_all": "false",
+                "time_of_day_save": {
+                    "day": "always",
+                    "night": "always",
+                    "nightday": "never",
+                    "daynight": "never",
+                    "periodic": "never"
+                }
+            },
+            "values": {
+                "AS_SKYQUALITY_BRIGHTNESS": {
+                    "name": "${SKYQUALITY_BRIGHTNESS}",
+                    "format": "",
+                    "sample": "",
+                    "group": "Sky Quality",
+                    "description": "Sky brightness, mag/arcsec2 (day and night)",
+                    "type": "number",
+                    "database": {
+                        "include": "true"
+                    }
+                },
+                "AS_SKYQUALITY_SQM": {
+                    "name": "${SKYQUALITY_SQM}",
+                    "format": "",
+                    "sample": "",
+                    "group": "Sky Quality",
+                    "description": "SQM, mag/arcsec2 (night)",
+                    "type": "number",
+                    "database": {
+                        "include": "true"
+                    }
+                },
+                "AS_SKYQUALITY_NELM": {
+                    "name": "${SKYQUALITY_NELM}",
+                    "format": "",
+                    "sample": "",
+                    "group": "Sky Quality",
+                    "description": "Naked-eye limiting magnitude (night)",
+                    "type": "number",
+                    "database": {
+                        "include": "true"
+                    }
+                },
+                "AS_SKYQUALITY_BORTLE": {
+                    "name": "${SKYQUALITY_BORTLE}",
+                    "format": "",
+                    "sample": "",
+                    "group": "Sky Quality",
+                    "description": "Bortle class (night)",
+                    "type": "string"
+                },
+                "AS_SKYQUALITY_STARS": {
+                    "name": "${SKYQUALITY_STARS}",
+                    "format": "",
+                    "sample": "",
+                    "group": "Sky Quality",
+                    "description": "Star count (night)",
+                    "type": "number",
+                    "database": {
+                        "include": "true"
+                    }
+                },
+                "AS_SKYQUALITY_CLOUD": {
+                    "name": "${SKYQUALITY_CLOUD}",
+                    "format": "",
+                    "sample": "",
+                    "group": "Sky Quality",
+                    "description": "Cloud cover, % (night)",
+                    "type": "number",
+                    "database": {
+                        "include": "true"
+                    }
+                },
+                "AS_SKYQUALITY_AURORA": {
+                    "name": "${SKYQUALITY_AURORA}",
+                    "format": "",
+                    "sample": "",
+                    "group": "Sky Quality",
+                    "description": "Aurora index (night)",
+                    "type": "number",
+                    "database": {
+                        "include": "true"
+                    }
+                },
+                "AS_SKYQUALITY_MOONALT": {
+                    "name": "${SKYQUALITY_MOONALT}",
+                    "format": "",
+                    "sample": "",
+                    "group": "Sky Quality",
+                    "description": "Moon altitude, degrees",
+                    "type": "number",
+                    "database": {
+                        "include": "true"
+                    }
+                },
+                "AS_SKYQUALITY_MOONILLUM": {
+                    "name": "${SKYQUALITY_MOONILLUM}",
+                    "format": "",
+                    "sample": "",
+                    "group": "Sky Quality",
+                    "description": "Moon illumination, %",
+                    "type": "number",
+                    "database": {
+                        "include": "true"
+                    }
+                },
+                "AS_SKYQUALITY_ADU": {
+                    "name": "${SKYQUALITY_ADU}",
+                    "format": "",
+                    "sample": "",
+                    "group": "Sky Quality",
+                    "description": "Mean ADU in the measured area",
+                    "type": "number"
+                }
+            }
         },
-        "roi": {
-            "required": "false",
-            "description": "ROI (x1,y1,x2,y2)",
-            "help": "Explicit rectangle to measure. Empty = central region from 'Central FOV'.",
-            "type": {"fieldtype": "text"}
+        "arguments": {
+            "mask": "",
+            "roi": "",
+            "fov_div": "4",
+            "offset": "17.0",
+            "gain_scale": "200.0",
+            "count_stars": "true",
+            "history_hours": "48",
+            "publish_web": "false",
+            "debug": "false"
         },
-        "fov_div": {
-            "required": "false",
-            "description": "Central FOV Divisor",
-            "help": "If no mask/ROI is set, measure a central box of this fraction (4 = central quarter, like indi-allsky)",
-            "type": {"fieldtype": "spinner", "min": 2, "max": 20, "step": 1}
+        "argumentdetails": {
+            "mask": {
+                "required": "false",
+                "description": "ROI Mask",
+                "help": "Optional mask image (overlay images folder). White = measure here. Overrides ROI/FOV. Use a zenith-only mask for best results.",
+                "type": {
+                    "fieldtype": "image"
+                }
+            },
+            "roi": {
+                "required": "false",
+                "description": "ROI (x1,y1,x2,y2)",
+                "help": "Explicit rectangle to measure. Empty = central region from 'Central FOV'.",
+                "type": {
+                    "fieldtype": "text"
+                }
+            },
+            "fov_div": {
+                "required": "false",
+                "description": "Central FOV Divisor",
+                "help": "If no mask/ROI is set, measure a central box of this fraction (4 = central quarter, like indi-allsky)",
+                "type": {
+                    "fieldtype": "spinner",
+                    "min": 2,
+                    "max": 20,
+                    "step": 1
+                }
+            },
+            "offset": {
+                "required": "true",
+                "description": "Magnitude Offset (calibrate!)",
+                "help": "Additive calibration constant. Adjust until the reading matches a known SQM value for your camera/exposure.",
+                "type": {
+                    "fieldtype": "spinner",
+                    "min": 0,
+                    "max": 30,
+                    "step": 0.1
+                }
+            },
+            "gain_scale": {
+                "required": "false",
+                "description": "Gain Scale",
+                "help": "Divisor exponent for gain normalisation: gain_factor = 10^(gain/scale). 200 suits ZWO 0.1dB gain units; gain 0 => factor 1.",
+                "type": {
+                    "fieldtype": "spinner",
+                    "min": 20,
+                    "max": 1000,
+                    "step": 10
+                }
+            },
+            "count_stars": {
+                "required": "false",
+                "description": "Count Stars",
+                "help": "At night, also count visible stars and estimate the cloud cover from where stars are missing (template matching, no sensor needed)",
+                "type": {
+                    "fieldtype": "checkbox"
+                }
+            },
+            "history_hours": {
+                "required": "false",
+                "description": "History (hours)",
+                "help": "How much history to keep in skyquality.json",
+                "tab": "Website",
+                "type": {
+                    "fieldtype": "spinner",
+                    "min": 1,
+                    "max": 240,
+                    "step": 1
+                }
+            },
+            "publish_web": {
+                "required": "false",
+                "description": "Publish to Website",
+                "help": "Also write a rolling skyquality.json into the website folder (and upload it to the remote website if enabled), for your own website pages. The WebUI charts don't need this.",
+                "tab": "Website",
+                "type": {
+                    "fieldtype": "checkbox"
+                }
+            },
+            "debug": {
+                "required": "false",
+                "description": "Enable debug images",
+                "help": "Write the ROI image to the allsky tmp debug folder",
+                "tab": "Debug",
+                "type": {
+                    "fieldtype": "checkbox"
+                }
+            },
+            "graph": {
+                "required": "false",
+                "tab": "History",
+                "type": {
+                    "fieldtype": "graph"
+                }
+            }
         },
-        "offset": {
-            "required": "true",
-            "description": "Magnitude Offset (calibrate!)",
-            "help": "Additive calibration constant. Adjust until the reading matches a known SQM value for your camera/exposure.",
-            "type": {"fieldtype": "spinner", "min": 0, "max": 30, "step": 0.1}
-        },
-        "gain_scale": {
-            "required": "false",
-            "description": "Gain Scale",
-            "help": "Divisor exponent for gain normalisation: gain_factor = 10^(gain/scale). 200 suits ZWO 0.1dB gain units; gain 0 => factor 1.",
-            "type": {"fieldtype": "spinner", "min": 20, "max": 1000, "step": 10}
-        },
-        "history_hours": {
-            "required": "false",
-            "description": "History (hours)",
-            "help": "How much history to keep in skyquality.json for charting",
-            "type": {"fieldtype": "spinner", "min": 1, "max": 240, "step": 1}
-        },
-        "count_stars": {
-            "required": "false",
-            "description": "Count Stars",
-            "help": "Also count visible stars (template matching) — a sensor-free clarity/cloud indicator recorded alongside the SQM value",
-            "type": {"fieldtype": "checkbox"}
-        },
-        "publish_web": {
-            "required": "false",
-            "description": "Publish to Website",
-            "help": "Copy skyquality.json into the website data/ folder (and upload to the remote website if enabled) so the dashboard can read it",
-            "type": {"fieldtype": "checkbox"}
-        },
-        "debug": {
-            "required": "false",
-            "description": "Enable debug images",
-            "help": "Write the ROI image to the allsky tmp debug folder",
-            "tab": "Debug",
-            "type": {"fieldtype": "checkbox"}
+        "changelog": {
+            "v0.1.0": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": [
+                        "Initial exposure/gain-normalised SQM in mag/arcsec2 + rolling json for charts",
+                        "Star count (template matching), camera and CPU temperature",
+                        "Cloud/haze index (star-deficit grid) and aurora candidate index (green excess on the north horizon)"
+                    ]
+                }
+            ],
+            "v0.2.0": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": [
+                        "Record naked-eye limiting magnitude (NELM) derived from SQM",
+                        "Record Moon altitude + illumination (ephem, falls back to Allsky overlay values) for moon-correlation charts"
+                    ]
+                }
+            ],
+            "v0.2.1": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": [
+                        "Checkbox settings are parsed properly: they arrive as the string 'false', which Python treats as true, so debug and the other checkboxes were always on. Remote upload now reads useremotewebsite as the boolean it is",
+                        "Aurora index: green must exceed red as well as blue. Moonlit or light-polluted cloud is red-dominant and was counted as aurora by the green-over-blue test"
+                    ]
+                }
+            ],
+            "v0.3.0": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": [
+                        "Runs day and night: the sky brightness is measured around the clock, SQM, limiting magnitude, stars, cloud cover and aurora index at night",
+                        "Values are saved in the Allsky database, and the module brings charts: sky brightness over 24 hours, SQM and limiting magnitude, stars and cloud cover, and an SQM gauge",
+                        "Values are available in the Overlay Editor",
+                        "Variables are now named AS_SKYQUALITY_*, so they don't clash with the allsky_sqm module's AS_SQM",
+                        "Publishing skyquality.json to the website is now off by default, since the WebUI charts don't need it"
+                    ]
+                }
+            ]
         }
-    },
-    "changelog": {
-        "v0.1.0": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": [
-                    "Initial exposure/gain-normalised SQM in mag/arcsec2 + rolling json for charts",
-                    "Star count (template matching), camera and CPU temperature",
-                    "Cloud/haze index (star-deficit grid) and aurora candidate index (green excess on the north horizon)"
-                ]
-            }
-        ],
-        "v0.2.0": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": [
-                    "Record naked-eye limiting magnitude (NELM) derived from SQM",
-                    "Record Moon altitude + illumination (ephem, falls back to Allsky overlay values) for moon-correlation charts"
-                ]
-            }
-        ],
-        "v0.2.1": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": [
-                    "Checkbox settings are parsed properly: they arrive as the string 'false', which Python treats as true, so debug and the other checkboxes were always on. Remote upload now reads useremotewebsite as the boolean it is",
-                    "Aurora index: green must exceed red as well as blue. Moonlit or light-polluted cloud is red-dominant and was counted as aurora by the green-over-blue test"
-                ]
-            }
-        ]
     }
-}
+
+    def run(self):
+        try:
+            return _measure(self)
+        except Exception as e:
+            _, _, tb = sys.exc_info()
+            result = f"Module Sky Quality Meter failed on line {tb.tb_lineno} - {e}"
+            self.log(0, f"ERROR: {result}")
+            return result
+
 
 _maskCache = {"name": None, "mask": None}
 
@@ -228,30 +426,33 @@ def _uploadRemote(local, fname):
         s.log(1, f"WARNING: skyquality remote upload failed: {ex}")
 
 
-def _appendHistory(record, hours, publish_web):
-    # keep the authoritative copy in tmp, publish a copy to the website data/ folder
+def _appendHistory(record, hours):
+    """Add the record to the rolling skyquality.json in tmp and publish a copy to
+    the website folder (and the remote website, if enabled)."""
     path = os.path.join(s.ALLSKY_TMP, "skyquality.json")
     try:
-        data = json.load(open(path)) if os.path.exists(path) else []
+        with open(path) as f:
+            data = json.load(f)
     except Exception:
         data = []
     data.append(record)
     cutoff = record["t"] - hours * 3600
     data = [d for d in data if d.get("t", 0) >= cutoff][-5000:]
     try:
-        json.dump(data, open(path, "w"))
+        with open(path, "w") as f:
+            json.dump(data, f)
     except Exception as ex:
         s.log(1, f"WARNING: skyquality could not write history: {ex}")
         return
-    if publish_web:
-        try:
-            ddir = _websiteDataDir()
-            os.makedirs(ddir, exist_ok=True)
-            webpath = os.path.join(ddir, "skyquality.json")
-            json.dump(data, open(webpath, "w"))
-            _uploadRemote(webpath, "skyquality.json")
-        except Exception as ex:
-            s.log(1, f"WARNING: skyquality could not publish to website: {ex}")
+    try:
+        ddir = _websiteDataDir()
+        os.makedirs(ddir, exist_ok=True)
+        webpath = os.path.join(ddir, "skyquality.json")
+        with open(webpath, "w") as f:
+            json.dump(data, f)
+        _uploadRemote(webpath, "skyquality.json")
+    except Exception as ex:
+        s.log(1, f"WARNING: skyquality could not publish to website: {ex}")
 
 
 _starTemplate = None
@@ -332,11 +533,12 @@ def _limitingMag(sqm):
 
 
 def _moon():
-    """(altitude_deg, illumination_pct) of the Moon. Prefers Allsky's overlay values
-    if present, otherwise computes them with ephem from the configured lat/lon.
-    Returns (None, None) if neither is available."""
-    alt_s = s.getEnvironmentVariable("AS_MOON_ELEVATION")
-    ill_s = s.getEnvironmentVariable("AS_MOON_ILLUMINATION")
+    """(altitude_deg, illumination_pct) of the Moon when the image was taken.
+    Prefers Allsky's overlay values if present, otherwise computes them with
+    ephem from the configured lat/lon.  Returns (None, None) if neither is
+    available."""
+    alt_s = s.get_environment_variable("AS_MOON_ELEVATION")
+    ill_s = s.get_environment_variable("AS_MOON_ILLUMINATION")
     if alt_s not in (None, "") and ill_s not in (None, ""):
         try:
             return round(float(alt_s), 1), round(float(ill_s), 0)
@@ -344,104 +546,128 @@ def _moon():
             pass
     try:
         import ephem
+        from datetime import datetime, timezone
         obs = ephem.Observer()
         obs.lat = str(s.convertLatLon(s.getSetting("latitude")))
         obs.lon = str(s.convertLatLon(s.getSetting("longitude")))
+        taken = s.get_environment_variable("AS_TIMESTAMP")
+        when = datetime.fromtimestamp(int(taken), timezone.utc) if taken else datetime.now(timezone.utc)
+        obs.date = ephem.Date(when.replace(tzinfo=None))
         m = ephem.Moon(obs)
         return round(math.degrees(float(m.alt)), 1), round(float(m.phase), 0)
     except Exception:
         return None, None
 
 
-def skyquality(params, event):
+def _measure(module):
     if s.image is None:
         return "No image available"
 
-    offset = s.asfloat(params.get("offset", 17.0))
-    gain_scale = s.asfloat(params.get("gain_scale", 200.0))
-    debug = _truthy(params.get("debug", False))
+    params = {k: str(module.get_param(k, v, str)) for k, v in module.meta_data["arguments"].items()}
+    # The flow runner passes the event "postcapture"; day or night is in DAY_OR_NIGHT.
+    night = str(s.get_environment_variable("DAY_OR_NIGHT") or "").upper() == "NIGHT"
+    offset = s.asfloat(params["offset"])
+    gain_scale = s.asfloat(params["gain_scale"])
+    debug = _truthy(params["debug"])
 
     gray = cv2.cvtColor(s.image, cv2.COLOR_BGR2GRAY) if len(s.image.shape) == 3 else s.image
     mask = _roiMask(params, gray.shape[:2])
     if debug:
-        s.startModuleDebug(metaData["module"])
-        s.writeDebugImage(metaData["module"], "sqm-roi.png",
+        s.startModuleDebug(module.meta_data["module"])
+        s.writeDebugImage(module.meta_data["module"], "sqm-roi.png",
                           cv2.bitwise_and(gray, gray, mask=mask))
 
     mean_adu = float(cv2.mean(gray, mask=mask)[0])
 
     # exposure (us -> s) and gain from the capture environment
-    exp_us = s.asfloat(s.getEnvironmentVariable("AS_EXPOSURE_US"))
+    exp_us = s.asfloat(s.get_environment_variable("AS_EXPOSURE_US"))
     exposure_s = (exp_us / 1e6) if exp_us and exp_us > 0 else 1.0
-    gain = s.asfloat(s.getEnvironmentVariable("AS_GAIN"))
-    if gain is None:
-        gain = 0.0
+    gain = s.asfloat(s.get_environment_variable("AS_GAIN")) or 0.0
     gain_factor = 10.0 ** (gain / gain_scale) if gain_scale > 0 else 1.0
 
     signal = mean_adu / exposure_s / gain_factor
     if signal <= 0:
-        s.setEnvironmentVariable("AS_SQM", "0")
-        return "Signal is zero, cannot compute SQM"
+        return "Signal is zero, cannot compute the sky brightness"
+    brightness = offset - 2.5 * math.log10(signal)
+    moon_alt, moon_ill = _moon()
 
-    sqm = offset - 2.5 * math.log10(signal)
-
-    # extra sensor-free metrics (like indi-allsky): stars, cloud cover, aurora, temps
-    def _flt(v):
-        try:
-            return float(v)
-        except (TypeError, ValueError):
-            return None
-    stars = cloud = None
-    if _truthy(params.get("count_stars", True)):
-        stars = _countStars(_starPoints(gray, mask, 0.65))
-        cloud = _cloudPct(mask, _starPoints(gray, mask, 0.55), cell=80)
-    aurora = _auroraIndex(s.image, mask) if len(s.image.shape) == 3 else None
-    temp = _flt(s.getEnvironmentVariable("AS_TEMPERATURE_C"))
-    cpu = _flt(s.getEnvironmentVariable("AS_CPUTEMP_C"))
-    mlim = _limitingMag(sqm)                 # naked-eye limiting magnitude
-    moon_alt, moon_ill = _moon()             # moon altitude + illumination for correlation
-
-    s.setEnvironmentVariable("AS_SQM", f"{sqm:.2f}")
-    s.setEnvironmentVariable("AS_SQM_ADU", f"{mean_adu:.1f}")
-    s.setEnvironmentVariable("AS_SQM_DESC", _bortle(sqm))
-    if mlim is not None:
-        s.setEnvironmentVariable("AS_SQM_NELM", f"{mlim:.2f}")
-    if stars is not None:
-        s.setEnvironmentVariable("AS_SQM_STARS", str(stars))
-    if cloud is not None:
-        s.setEnvironmentVariable("AS_SQM_CLOUD", str(cloud))
-    if aurora is not None:
-        s.setEnvironmentVariable("AS_SQM_AURORA", str(aurora))
-
-    rec = {
-        "t": int(time.time()),
-        "sqm": round(sqm, 2),
-        "adu": round(mean_adu, 1),
-        "exp": round(exposure_s, 3),
-        "gain": round(gain, 1),
+    values = {
+        "AS_SKYQUALITY_BRIGHTNESS": round(brightness, 2),
+        "AS_SKYQUALITY_ADU": round(mean_adu, 1),
     }
-    for k, v in (("mlim", mlim), ("stars", stars), ("cloud", cloud), ("aurora", aurora),
-                 ("moon_alt", moon_alt), ("moon_ill", moon_ill),
-                 ("temp", None if temp is None else round(temp, 1)),
-                 ("cpu", None if cpu is None else round(cpu, 1))):
-        if v is not None:
-            rec[k] = v
-    _appendHistory(rec, s.int(params.get("history_hours", 48)), _truthy(params.get("publish_web", True)))
+    if moon_alt is not None:
+        values["AS_SKYQUALITY_MOONALT"] = moon_alt
+        values["AS_SKYQUALITY_MOONILLUM"] = moon_ill
 
-    extra = (f", {stars} stars" if stars is not None else "") + \
-            (f", {cloud}% cloud" if cloud is not None else "")
-    result = f"SQM {sqm:.2f} mag/arcsec2 (ADU {mean_adu:.1f}, exp {exposure_s:.2f}s){extra} — Bortle {_bortle(sqm)}"
-    s.log(4, f"INFO: {result}")
+    # SQM and everything based on stars only make sense at night.
+    stars = cloud = aurora = nelm = None
+    if night:
+        nelm = _limitingMag(brightness)
+        values["AS_SKYQUALITY_SQM"] = round(brightness, 2)
+        values["AS_SKYQUALITY_BORTLE"] = _bortle(brightness)
+        if nelm is not None:
+            values["AS_SKYQUALITY_NELM"] = nelm
+        if _truthy(params["count_stars"]):
+            stars = _countStars(_starPoints(gray, mask, 0.65))
+            cloud = _cloudPct(mask, _starPoints(gray, mask, 0.55), cell=80)
+            values["AS_SKYQUALITY_STARS"] = stars
+            if cloud is not None:
+                values["AS_SKYQUALITY_CLOUD"] = cloud
+        if len(s.image.shape) == 3:
+            aurora = _auroraIndex(s.image, mask)
+            values["AS_SKYQUALITY_AURORA"] = aurora
+
+    s.saveExtraData(module.meta_data["extradatafilename"], values,
+                    module.meta_data["module"], module.meta_data["extradata"], event=module.event)
+
+    if _truthy(params["publish_web"]):
+        def _flt(v):
+            try:
+                return float(v)
+            except (TypeError, ValueError):
+                return None
+        temp = _flt(s.get_environment_variable("AS_TEMPERATURE_C"))
+        cpu = _flt(s.get_environment_variable("AS_CPUTEMP_C"))
+        rec = {
+            "t": int(time.time()),
+            "brightness": round(brightness, 2),
+            "adu": round(mean_adu, 1),
+            "exp": round(exposure_s, 3),
+            "gain": round(gain, 1),
+        }
+        if night:
+            rec["sqm"] = round(brightness, 2)
+        for k, v in (("mlim", nelm), ("stars", stars), ("cloud", cloud), ("aurora", aurora),
+                     ("moon_alt", moon_alt), ("moon_ill", moon_ill),
+                     ("temp", None if temp is None else round(temp, 1)),
+                     ("cpu", None if cpu is None else round(cpu, 1))):
+            if v is not None:
+                rec[k] = v
+        _appendHistory(rec, s.int(params["history_hours"]))
+
+    if night:
+        extra = (f", {stars} stars" if stars is not None else "") + \
+                (f", {cloud}% cloud" if cloud is not None else "")
+        result = f"SQM {brightness:.2f} mag/arcsec2 (ADU {mean_adu:.1f}, exp {exposure_s:.2f}s){extra} — Bortle {_bortle(brightness)}"
+    else:
+        result = f"Sky brightness {brightness:.2f} mag/arcsec2 (ADU {mean_adu:.1f}, exp {exposure_s:.4f}s)"
+    module.log(4, f"INFO: {result}")
     return result
+
+
+def skyquality(params, event):
+    return ALLSKYSKYQUALITY(params, event).run()
 
 
 def skyquality_cleanup():
     moduleData = {
-        "metaData": metaData,
+        "metaData": ALLSKYSKYQUALITY.meta_data,
         "cleanup": {
-            "files": {os.path.join(s.ALLSKY_TMP, "skyquality.json")},
-            "env": {"AS_SQM", "AS_SQM_ADU", "AS_SQM_DESC", "AS_SQM_NELM",
-                    "AS_SQM_STARS", "AS_SQM_CLOUD", "AS_SQM_AURORA"}
+            "files": {
+                ALLSKYSKYQUALITY.meta_data["extradatafilename"],
+                os.path.join(s.ALLSKY_TMP, "skyquality.json")
+            },
+            "env": {}
         }
     }
     s.cleanupModule(moduleData)

@@ -1,0 +1,35 @@
+{
+    "title": "SQM",
+    "icon": "fa-solid fa-gauge",
+    "type": "gauge",
+    "group": "Sky Quality",
+    "table": "allsky_skyquality",
+    "hc": {
+        "yAxis": [
+            {
+                "min": 16,
+                "max": 22,
+                "tickInterval": 1,
+                "tickPosition": "inside",
+                "lineWidth": 0,
+                "labels": {
+                    "distance": 20,
+                    "style": {
+                        "fontSize": "12px"
+                    }
+                },
+                "plotBands": [
+                    { "from": 16, "to": 18, "color": "#DF5353", "thickness": 30 },
+                    { "from": 18, "to": 20, "color": "#DDDF0D", "thickness": 30 },
+                    { "from": 20, "to": 22, "color": "#55BF3B", "thickness": 30 }
+                ]
+            }
+        ]
+    },
+    "series": [
+        {
+            "name": "SQM",
+            "variable": "AS_SKYQUALITY_SQM"
+        }
+    ]
+}
