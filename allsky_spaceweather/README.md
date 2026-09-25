@@ -56,6 +56,22 @@ The module uses color coding to indicate parameter status:
 - 🟡 Yellow (#ffec00): Elevated activity
 - 🔴 Red (#f56b6b): High activity/potential alert conditions
 
+## Charts and Database
+
+The solar wind speed, density and temperature, the Kp index and Bz are saved in
+the Allsky database (table `allsky_spaceweather`) every time new data is fetched,
+day and night, and also from the periodic flow. The module brings four charts for
+the WebUI's **Charts** page, in the group **Space Weather**:
+
+- **Kp Index** (0–9)
+- **Bz (Interplanetary Magnetic Field)**
+- **Solar Wind**: speed and density
+- a **Kp Index** gauge (green below 4, yellow 4–5, red above 5)
+
+To get charts without gaps, add the module to the periodic flow as well, so it
+keeps fetching when no images are taken. The module's **History** tab shows the
+same data.
+
 ## Parameter Thresholds
 
 ### Solar Wind Speed

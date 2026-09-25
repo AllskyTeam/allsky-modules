@@ -1,18 +1,38 @@
 {
   "schema_version": 1,
   "module": "allsky_spaceweather",
-  "generated_utc": "2026-09-04T11:45:52Z",
+  "generated_utc": "2026-09-24T21:18:17Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
-      "sha256": "bdd2310f1b2367f98d925786553f3a5ec9b3577a3c5478ce2c45ee32f9e952ee",
-      "size": 3267,
+      "sha256": "db7d01af2a904c2e24ed389de017a3fa32ab8c2abb8461147f6874cdd8548059",
+      "size": 3935,
       "mode": "644"
     },
     "allsky_spaceweather.py": {
-      "sha256": "883361f4d8722b5e2321f7007790f46015b5f076e7c88b7c92491d26fb2075ac",
-      "size": 15273,
+      "sha256": "cb4a62ead5fddf96bb77d38f56572378b2f112495c56f7181000d7e12b8b8247",
+      "size": 17618,
       "mode": "755"
+    },
+    "charts/bz_chart.json": {
+      "sha256": "0737a5e72d95c9057fb1f1840ec84cbae387c1594f459de5bb49a5f9659d734e",
+      "size": 434,
+      "mode": "644"
+    },
+    "charts/kp_chart.json": {
+      "sha256": "26e90f69a27c795e12c766f858aeb6def44d0d75caeb65888015a1e385cedfed",
+      "size": 447,
+      "mode": "644"
+    },
+    "charts/kp_gauge.json": {
+      "sha256": "04b2f8813b3f264b0c298a21fc5532a44499f3b86bafe23349a7406d389e17e8",
+      "size": 961,
+      "mode": "644"
+    },
+    "charts/solar_wind_chart.json": {
+      "sha256": "14d9d761a38ef7eda7491726a01ed2620b2dfbc72b150085011c76e6a1d5e676",
+      "size": 674,
+      "mode": "644"
     },
     "requirements.txt": {
       "sha256": "feb32c4f72fededcc826c3ccf7f2bf33282451d3ff55973afb3f6dfc943e907d",
@@ -20,5 +40,5 @@
       "mode": "644"
     }
   },
-  "file_count": 3
+  "file_count": 7
 }
