@@ -30,7 +30,7 @@ import numpy as np
 metaData = {
     "name": "Meteor Detection (temporal)",
     "description": "Detects meteors via frame differencing and separates them from satellites/aircraft",
-    "version": "v0.6.0",
+    "version": "v0.6.1",
     "events": [
         "night"
     ],
@@ -139,150 +139,175 @@ metaData = {
             "type": {"fieldtype": "spinner", "min": 0, "max": 151, "step": 2}
         },
         "dash_filter": {
+            "tab": "Trail Filters",
             "required": "false",
             "description": "Reject Dashed Trails",
             "help": "Reject a long streak that is broken into many bright/dark segments along its length. A meteor is one continuous streak; a tumbling satellite or a strobing aircraft leaves a dashed trail. Catches a single-frame satellite/aircraft that the cross-frame filter cannot see.",
             "type": {"fieldtype": "checkbox"}
         },
         "dash_runs": {
+            "tab": "Trail Filters",
             "required": "false",
             "description": "Dash Segments",
             "help": "How many separate bright segments along a streak's axis mark it as a dashed (satellite/aircraft) trail. A real meteor scores <=5 here; a dashed satellite scored 19. Keep at 10 for a wide safety margin.",
             "type": {"fieldtype": "spinner", "min": 4, "max": 40, "step": 1}
         },
         "dash_min_len": {
+            "tab": "Trail Filters",
             "required": "false",
             "description": "Dash Min Length (px)",
             "help": "Only test streaks at least this long for a dashed pattern. Short streaks are exempt so a genuine short meteor is never dash-vetoed (satellite/aircraft trails are long).",
             "type": {"fieldtype": "spinner", "min": 40, "max": 500, "step": 10}
         },
         "frag_filter": {
+            "tab": "Trail Filters",
             "required": "false",
             "description": "Reject Fragmented Trails (arm)",
             "help": "Reject a streak that is only the bright head of a longer DASHED trail whose faint segments were split into separate sub-threshold fragments (a satellite glint the dash veto misses because it measures only the continuous head). Counts diff components lying collinear beyond the streak's ends. OFF by default = shadow mode: the metric is measured and logged (frag-shadow in meteors_vetoed.json, frag_n on each saved meteor) but nothing is vetoed. Before turning it on, check what your real meteors score: here real meteors reached 4, so keep 'Fragment Segments' at 5 or more.",
             "type": {"fieldtype": "checkbox"}
         },
         "frag_min": {
+            "tab": "Trail Filters",
             "required": "false",
             "description": "Fragment Segments",
             "help": "How many collinear diff fragments beyond a streak's ends mark it as the head of a fragmented dashed trail. Real meteors are NOT always 0: over two months of saved detections here they scored up to 4 (stars and noise that happen to lie on the line), while satellite trails scored 3 to 11. At 5 the filter caught the two clearest satellite trails and no real meteor; at 3 it would also have rejected three real meteors.",
             "type": {"fieldtype": "spinner", "min": 2, "max": 20, "step": 1}
         },
         "frag_min_len": {
+            "tab": "Trail Filters",
             "required": "false",
             "description": "Fragment Min Length (px)",
             "help": "Only test streaks at least this long for a collinear fragmented tail. Short streaks are exempt.",
             "type": {"fieldtype": "spinner", "min": 40, "max": 500, "step": 10}
         },
         "edge_filter": {
+            "tab": "Trail Filters",
             "required": "false",
             "description": "Reject Edge Glow (arm)",
             "help": "Reject a long, fat streak whose BOTH ends sit on the border of the detection mask: horizon or lens-rim glow leaking through the feathered edge, which a changing sky turns into a frame difference. Real streaks that reach the border cross it - one end inside - and are thin. OFF by default = shadow mode: matches are logged as edge-shadow in meteors_vetoed.json and every saved meteor records edge_d (its farther end's distance to the border), but nothing is rejected. Here, over two months, it matched 9 detections, all edge glow, and no real streak.",
             "type": {"fieldtype": "checkbox"}
         },
         "edge_margin": {
+            "tab": "Trail Filters",
             "required": "false",
             "description": "Edge Margin (px)",
             "help": "Both ends of a streak closer than this to the mask border count as 'on the border'. Stable here between 50 and 60 px on a 3840 px wide image.",
             "type": {"fieldtype": "spinner", "min": 5, "max": 300, "step": 5}
         },
         "edge_max_elong": {
+            "tab": "Trail Filters",
             "required": "false",
             "description": "Edge Glow Max Elongation",
             "help": "Only streaks fatter than this (length/width below it) can be edge glow. Edge glow here measured 5 to 8; every real streak touching the border measured over 10.",
             "type": {"fieldtype": "spinner", "min": 3, "max": 30, "step": 0.5}
         },
         "edge_min_len": {
+            "tab": "Trail Filters",
             "required": "false",
             "description": "Edge Glow Min Length (px)",
             "help": "Only streaks at least this long can be edge glow. Keeps a short, bright meteor that vanishes behind a tree at the border from being rejected.",
             "type": {"fieldtype": "spinner", "min": 20, "max": 500, "step": 10}
         },
         "satellite_filter": {
+            "tab": "Sky Filters",
             "required": "false",
             "description": "Reject Satellites/Aircraft",
             "help": "Discard streaks that continue a moving track across consecutive frames",
             "type": {"fieldtype": "checkbox"}
         },
         "scint_guard": {
+            "tab": "Sky Filters",
             "required": "false",
             "description": "Scintillation Guard",
             "help": "On very clear nights star twinkling produces many tiny streaks. If a frame has more than 'Scintillation Max' streaks, keep only a clearly dominant one (a real bright meteor) and otherwise skip the frame.",
             "type": {"fieldtype": "checkbox"}
         },
         "scint_max": {
+            "tab": "Sky Filters",
             "required": "false",
             "description": "Scintillation Max",
             "help": "How many streaks in a single frame count as a scintillation-dominated (noisy) frame",
             "type": {"fieldtype": "spinner", "min": 3, "max": 50, "step": 1}
         },
         "repeat_filter": {
+            "tab": "Sky Filters",
             "required": "false",
             "description": "Reject Recurring Positions",
             "help": "Reject a streak whose position keeps producing detections across several frames (scintillation, bloom, a trailed star, a fixed reflection). A real meteor appears once, so it is never caught by this.",
             "type": {"fieldtype": "checkbox"}
         },
         "repeat_k": {
+            "tab": "Sky Filters",
             "required": "false",
             "description": "Recurrence Frames",
             "help": "How many earlier frames must show a detection at the same spot (within ~55 px, last ~25 min) for it to count as a recurring artifact. A meteor gives at most 2, so keep this at 3 or higher.",
             "type": {"fieldtype": "spinner", "min": 2, "max": 10, "step": 1}
         },
         "trail_filter": {
+            "tab": "Sky Filters",
             "required": "false",
             "description": "Reject Star-Trail Orientation",
             "help": "Reject a streak whose orientation matches the local diurnal star-trail direction (computed from the fisheye calibration). Long/bright fireballs are exempt. Needs allsky_fisheye.py + calibration.json; silently skipped otherwise.",
             "type": {"fieldtype": "checkbox"}
         },
         "trail_tol": {
+            "tab": "Sky Filters",
             "required": "false",
             "description": "Star-Trail Tolerance (deg)",
             "help": "How close a streak's angle must be to the local star-trail direction to be rejected. Larger = stricter (rejects more), but risks discarding a real meteor that happens to run parallel to the star trails.",
             "type": {"fieldtype": "spinner", "min": 4, "max": 30, "step": 1}
         },
         "star_filter": {
+            "tab": "Sky Filters",
             "required": "false",
             "description": "Reject Bright-Star Scintillation",
             "help": "Reject a short streak that sits on a catalogue bright star: on clear nights a star twinkles brighter between frames, so the frame difference shows a compact blob at the star's position that mimics a meteor. Long/bright fireballs are exempt. Needs allsky_fisheye.py + calibration.json + stars.json; silently skipped otherwise.",
             "type": {"fieldtype": "checkbox"}
         },
         "star_radius": {
+            "tab": "Sky Filters",
             "required": "false",
             "description": "Star-Match Radius (px)",
             "help": "How close a streak's centre must be to a projected catalogue star to count as that star scintillating. Size it to the calibration accuracy (RMS ~4-6 px) plus a few px of blob offset; too large risks vetoing a real meteor that happens to pass over a star.",
             "type": {"fieldtype": "spinner", "min": 6, "max": 40, "step": 1}
         },
         "star_maglim": {
+            "tab": "Sky Filters",
             "required": "false",
             "description": "Star Magnitude Limit",
             "help": "Only stars brighter than this visual magnitude are used for the veto. Fainter stars rarely brighten enough to trigger a detection, and including them raises the chance of vetoing a real meteor. 5.0 covers the naked-eye bright stars that actually scintillate.",
             "type": {"fieldtype": "spinner", "min": 2.0, "max": 6.0, "step": 0.5}
         },
         "upload_remote": {
+            "tab": "Saving",
             "required": "false",
             "description": "Upload to Remote Website",
             "help": "If the remote website is enabled, upload each meteor image + thumbnail to it (folder 'meteors')",
             "type": {"fieldtype": "checkbox"}
         },
         "outputdir": {
+            "tab": "Saving",
             "required": "false",
             "description": "Output Folder",
             "help": "Where meteor images are written (with a thumbnails/ subfolder). Empty = website meteors folder.",
             "type": {"fieldtype": "text"}
         },
         "save_webui": {
+            "tab": "Saving",
             "required": "false",
             "description": "Browse in the Allsky WebUI",
             "help": "Also file each meteor under images/<day>/meteors/ (image, marked copy and a per-meteor json sidecar, with the thumbnails in the sibling images/<day>/meteorsthumbnails/) so the Allsky WebUI 'Meteors' page can browse it day by day. The website folder above is still written either way — the remote upload and the per-night charts read that one.",
             "type": {"fieldtype": "checkbox"}
         },
         "save_marked": {
+            "tab": "Saving",
             "required": "false",
             "description": "Save Marked Copy",
             "help": "Save a second copy with brackets AROUND the streak (never over it), plus its thumbnail. The gallery image always stays untouched. Needed for the WebUI's 'Use Marked Meteors' option, which links the marked thumbnail without checking that it exists.",
             "type": {"fieldtype": "checkbox"}
         },
         "save_vetoed": {
+            "tab": "Saving",
             "required": "false",
             "description": "Save Rejected-Candidate Crops",
             "help": "Save a small crop around every REJECTED streak (into a 'vetoed/' subfolder) and record it in meteors_vetoed.json. These are the negative examples (aircraft / satellite / artifact) — labelling them on the website builds the training set for a future classifier. Uploaded to the remote 'meteors/vetoed' folder when remote upload is on.",
@@ -500,6 +525,13 @@ metaData = {
                     "Charts for the WebUI: Meteors (per image, with tonight's total), Meteor Brightness and Rejected Streaks; the module settings get a History tab",
                     "New variables AS_METEORNIGHT and AS_METEORPEAK"
                 ]
+            }
+        ],
+        "v0.6.1": [
+            {
+                "author": "Benjamin Hartwich",
+                "authorurl": "https://github.com/benhartwich",
+                "changes": "The settings are split into tabs: Settings (detection), Trail Filters (dashed, fragmented, edge glow), Sky Filters (satellites/aircraft, scintillation, recurring positions, star trails, bright stars), Saving, Debug and History"
             }
         ]
     }
