@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "module": "allsky_meteordetect",
+  "generated_utc": "2026-09-25T14:58:25Z",
+  "hash_algorithm": "sha256",
+  "files": {
+    "README.md": {
+      "sha256": "41a3f9d29318054ff7d8c8e628a96932d85f9e6f836d86126348acbf42e5a1fa",
+      "size": 24720,
+      "mode": "644"
+    },
+    "allsky_meteordetect.py": {
+      "sha256": "c9987f47fef1bc02ee4a4c734a9868a9e8af188d2ce40e8a3984c74a70ed1839",
+      "size": 79247,
+      "mode": "644"
+    },
+    "allsky_meteordetect/allsky_fisheye.py": {
+      "sha256": "e711d4ede04e92f8909cdf7bff07a11bfa69a558b2f29deb07dbe6a0bc4f6e63",
+      "size": 5049,
+      "mode": "644"
+    },
+    "allsky_meteordetect/stars.json": {
+      "sha256": "bb61b2af4439df599ba108796da5183d62062293b2b4f4248a91b16c22dba51a",
+      "size": 133695,
+      "mode": "644"
+    },
+    "allsky_meteordetect/tools/align_overlay.py": {
+      "sha256": "ca847bd71d9e825c4092ebc1ad614574e00c5e660159f648ccbb7a13f642f8ca",
+      "size": 11794,
+      "mode": "755"
+    },
+    "allsky_meteordetect/tools/build_mask.py": {
+      "sha256": "0fa7464b9cda24f8c97cff2d3db1a2b65de8477c94583fdf78e764e7e09c2a0c",
+      "size": 11761,
+      "mode": "755"
+    },
+    "allsky_meteordetect/tools/calibrate_fisheye.py": {
+      "sha256": "55f5ec522678ada3d45f85078504935724d8c7c5e65feec8b7996fba8e8d7e32",
+      "size": 22032,
+      "mode": "755"
+    },
+    "allsky_meteordetect/tools/replay_night.py": {
+      "sha256": "05f425cf3a051af9a9679e40fdda2482db1c401598d5fb18ed73b67788defe63",
+      "size": 16239,
+      "mode": "755"
+    },
+    "charts/meteor_brightness_chart.json": {
+      "sha256": "6ef9dbc5bbcc44efa230cb4b917d83d99ad6188e733565a5212abc179afcea59",
+      "size": 491,
+      "mode": "644"
+    },
+    "charts/meteors_chart.json": {
+      "sha256": "3553030c20ea843613c560bb2d6a5243238697650f96e0ea2d0d0a5fb45b1fff",
+      "size": 773,
+      "mode": "644"
+    },
+    "charts/rejected_chart.json": {
+      "sha256": "b4bbbf4e415592b6b69d9c02b21e26ef41fe5929d2d8ad26cf010e69ec03406d",
+      "size": 607,
+      "mode": "644"
+    },
+    "db/db_data.json": {
+      "sha256": "815572369a930a2232c31d2e1141323a33e22bc803fe4542a5faa8778d4e4a12",
+      "size": 65,
+      "mode": "644"
+    }
+  },
+  "file_count": 12
+}

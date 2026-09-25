@@ -1,0 +1,24 @@
+{
+    "icon": "fas fa-chart-bar",
+    "group": "Meteors",
+    "title": "Meteor Brightness",
+    "type": "column",
+    "main": true,
+    "table": "allsky_meteordetect",
+    "yAxis": [
+        {
+            "title": {
+                "text": "Brightness (0-255)"
+            },
+            "min": 0,
+            "max": 255
+        }
+    ],
+    "series": [
+        {
+            "name": "Brightest meteor",
+            "yAxis": 0,
+            "variable": "AS_METEORPEAK|true"
+        }
+    ]
+}

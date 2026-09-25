@@ -1,0 +1,28 @@
+{
+    "icon": "fas fa-chart-bar",
+    "group": "Meteors",
+    "title": "Rejected Streaks",
+    "type": "column",
+    "main": true,
+    "table": "allsky_meteordetect",
+    "yAxis": [
+        {
+            "title": {
+                "text": "Streaks per image"
+            },
+            "allowDecimals": false
+        }
+    ],
+    "series": [
+        {
+            "name": "Satellites / aircraft",
+            "yAxis": 0,
+            "variable": "AS_METEORMOVING"
+        },
+        {
+            "name": "Other artefacts",
+            "yAxis": 0,
+            "variable": "AS_METEORVETOED"
+        }
+    ]
+}
