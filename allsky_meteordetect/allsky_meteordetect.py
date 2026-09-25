@@ -30,7 +30,7 @@ import numpy as np
 metaData = {
     "name": "Meteor Detection (temporal)",
     "description": "Detects meteors via frame differencing and separates them from satellites/aircraft",
-    "version": "v0.5.9",
+    "version": "v0.6.0",
     "events": [
         "night"
     ],
@@ -40,13 +40,23 @@ metaData = {
     "module": "allsky_meteordetect",
     "extradatafilename": "allsky_meteordetect.json",
     "extradata": {
+        "database": {
+            "enabled": "True",
+            "table": "allsky_meteordetect",
+            "pk": "id",
+            "pk_type": "int",
+            "include_all": "false",
+            "time_of_day_save": {"day": "never", "night": "always", "nightday": "never", "daynight": "never", "periodic": "never"}
+        },
         "values": {
-            "AS_METEORCOUNT": {"name": "${METEORCOUNT}", "format": "", "sample": "", "group": "Meteors", "description": "Meteors confirmed on this frame", "type": "number"},
+            "AS_METEORCOUNT": {"name": "${METEORCOUNT}", "format": "", "sample": "", "group": "Meteors", "description": "Meteors confirmed on this frame", "type": "number", "database": {"include": "true"}},
+            "AS_METEORNIGHT": {"name": "${METEORNIGHT}", "format": "", "sample": "", "group": "Meteors", "description": "Meteors confirmed so far tonight", "type": "number", "database": {"include": "true"}},
+            "AS_METEORPEAK": {"name": "${METEORPEAK}", "format": "", "sample": "", "group": "Meteors", "description": "Brightness of the brightest meteor confirmed on this frame (0-255, 0 = none)", "type": "number", "database": {"include": "true"}},
             "AS_METEORIMAGE": {"name": "${METEORIMAGE}", "format": "", "sample": "", "group": "Meteors", "description": "File name of the meteor image saved on this frame", "type": "string"},
             "AS_METEORIMAGEPATH": {"name": "${METEORIMAGEPATH}", "format": "", "sample": "", "group": "Meteors", "description": "Full path of the meteor image saved on this frame", "type": "string"},
             "AS_METEORIMAGEURL": {"name": "${METEORIMAGEURL}", "format": "", "sample": "", "group": "Meteors", "description": "WebUI URL of that meteor's thumbnail", "type": "string"},
-            "AS_METEORMOVING": {"name": "${METEORMOVING}", "format": "", "sample": "", "group": "Meteors", "description": "Streaks rejected as satellites/aircraft on this frame", "type": "number"},
-            "AS_METEORVETOED": {"name": "${METEORVETOED}", "format": "", "sample": "", "group": "Meteors", "description": "Streaks rejected by the other filters on this frame", "type": "number"}
+            "AS_METEORMOVING": {"name": "${METEORMOVING}", "format": "", "sample": "", "group": "Meteors", "description": "Streaks rejected as satellites/aircraft on this frame", "type": "number", "database": {"include": "true"}},
+            "AS_METEORVETOED": {"name": "${METEORVETOED}", "format": "", "sample": "", "group": "Meteors", "description": "Streaks rejected by the other filters on this frame", "type": "number", "database": {"include": "true"}}
         }
     },
     "arguments": {
@@ -291,6 +301,11 @@ metaData = {
             "help": "Write intermediate images to the allsky tmp debug folder",
             "tab": "Debug",
             "type": {"fieldtype": "checkbox"}
+        },
+        "graph": {
+            "required": "false",
+            "tab": "History",
+            "type": {"fieldtype": "graph"}
         }
     },
     "changelog": {
@@ -473,6 +488,17 @@ metaData = {
                     "Your own calibration.json stays beside the module (config/myFiles/modules on Allsky 2025): the package manager replaces the data folder on every update.",
                     "tools/calibrate_fisheye.py: a star must now reach 12 times the image's own noise instead of a fixed brightness, and a fit is judged by its error in degrees, so it also works on smooth, moonlit images from other cameras. --list-stars lists the bright stars that were up, to choose the two for --star.",
                     "tools/align_overlay.py: never uses the repository's calibration.json (the author's camera), refuses a calibration made at another site, and runs without the Website configuration unless --apply is given."
+                ]
+            }
+        ],
+        "v0.6.0": [
+            {
+                "author": "Benjamin Hartwich",
+                "authorurl": "https://github.com/benhartwich",
+                "changes": [
+                    "Every night image's result is saved in the Allsky database (table allsky_meteordetect, kept for a year): meteors, meteors so far tonight, the brightest meteor's brightness, and the streaks rejected as satellites/aircraft or other artefacts",
+                    "Charts for the WebUI: Meteors (per image, with tonight's total), Meteor Brightness and Rejected Streaks; the module settings get a History tab",
+                    "New variables AS_METEORNIGHT and AS_METEORPEAK"
                 ]
             }
         ]
@@ -1017,8 +1043,23 @@ def _copyToWebUI(day, stamp, fname, outdir, thumbdir, entries, save_marked):
         s.log(1, f"WARNING: meteordetect could not populate the WebUI folder for {day}: {ex}")
 
 
+def _countTonight(count):
+    """Meteors confirmed so far tonight, including these.  Kept in the state file
+    and started again when Allsky's day folder (DATE_NAME) changes.  Never raises."""
+    try:
+        st = _readState()
+        night = st.get("night") or {}
+        day = _currentDay()
+        total = (night.get("count", 0) if night.get("day") == day else 0) + int(count)
+        st["night"] = {"day": day, "count": total}
+        _writeState(st)
+        return total
+    except Exception:
+        return int(count)
+
+
 def _publishVariables(count, moving=0, vetoed=0, saved_stamp=None, saved_day=None,
-                      save_webui=True, outdir=None):
+                      save_webui=True, outdir=None, peak=0):
     """Publish this frame's result as Allsky variables, under the same names Allsky's
     built-in meteor module uses (AS_METEORCOUNT, AS_METEORIMAGE, AS_METEORIMAGEPATH,
     AS_METEORIMAGEURL), so an overlay, MQTT feed or anything else built on those keeps
@@ -1038,10 +1079,11 @@ def _publishVariables(count, moving=0, vetoed=0, saved_stamp=None, saved_day=Non
             url = f"/images/{saved_day}/{WEBUI_THUMB_DIR}/{image}"
         elif outdir:
             path = os.path.join(outdir, image)
-    values = {"AS_METEORCOUNT": int(count), "AS_METEORIMAGE": image,
+    values = {"AS_METEORCOUNT": int(count), "AS_METEORNIGHT": _countTonight(count),
+              "AS_METEORPEAK": int(peak or 0), "AS_METEORIMAGE": image,
               "AS_METEORIMAGEPATH": path, "AS_METEORIMAGEURL": url,
               "AS_METEORMOVING": int(moving), "AS_METEORVETOED": int(vetoed)}
-    for key in ("AS_METEORCOUNT", "AS_METEORMOVING", "AS_METEORVETOED"):
+    for key in ("AS_METEORCOUNT", "AS_METEORNIGHT", "AS_METEORMOVING", "AS_METEORVETOED"):
         s.setEnvironmentVariable(key, str(values[key]))
     try:
         try:
@@ -1289,6 +1331,7 @@ def meteordetect(params, event):
 
     saved, moving, vetoed = 0, 0, 0
     last_saved = (None, None)       # (stamp, day) of the last meteor saved on this frame
+    peak_max = 0                    # brightness of the brightest meteor saved on this frame
 
     # --- 1) resolve last frame's pending candidates ---
     # A real meteor is present in exactly one frame, so it shows up in TWO consecutive
@@ -1362,6 +1405,7 @@ def meteordetect(params, event):
             saved += n
             if n:
                 last_saved = (entry["stamp"], entry.get("day") or _currentDay())
+                peak_max = max([peak_max] + [k.get("peak") or 0 for k in keep])
             if n and upload_remote:
                 _uploadRemote(outdir, thumbdir, f"meteors-{entry['stamp']}.jpg")
         _safeRemove(entry["img_path"])
@@ -1395,7 +1439,7 @@ def meteordetect(params, event):
     state["pending"] = new_pending
     _writeState(state)
 
-    _publishVariables(saved, moving, vetoed, last_saved[0], last_saved[1], save_webui, outdir)
+    _publishVariables(saved, moving, vetoed, last_saved[0], last_saved[1], save_webui, outdir, peak_max)
     result = (f"{saved} meteor(s) confirmed, {moving} moving rejected, "
               f"{vetoed} artifact(s) vetoed, {len(new_cands)} new candidate(s) pending, "
               f"{len(streaks)} streak(s) total")

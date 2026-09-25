@@ -1,0 +1,5 @@
+{
+    "allsky_meteordetect": {
+        "purge_days": 365
+    }
+}

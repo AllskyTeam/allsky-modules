@@ -1,0 +1,36 @@
+{
+    "icon": "fas fa-chart-bar",
+    "group": "Meteors",
+    "title": "Meteors",
+    "type": "column",
+    "main": true,
+    "table": "allsky_meteordetect",
+    "yAxis": [
+        {
+            "title": {
+                "text": "Meteors per image"
+            },
+            "allowDecimals": false
+        },
+        {
+            "title": {
+                "text": "Meteors tonight"
+            },
+            "allowDecimals": false,
+            "opposite": true
+        }
+    ],
+    "series": [
+        {
+            "name": "Meteors",
+            "yAxis": 0,
+            "variable": "AS_METEORCOUNT|true"
+        },
+        {
+            "name": "Tonight",
+            "yAxis": 1,
+            "type": "line",
+            "variable": "AS_METEORNIGHT"
+        }
+    ]
+}
