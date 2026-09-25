@@ -1,0 +1,24 @@
+{
+    "icon": "fas fa-lightbulb",
+    "group": "Aurora",
+    "title": "Possible Aurora",
+    "type": "yesno",
+    "main": true,
+    "table": "allsky_aurora",
+    "hc": {
+        "yesNo": {
+            "trueText": "Possible aurora",
+            "falseText": "No aurora",
+            "trueColor": "#2ecc71",
+            "falseColor": "#7f8c8d",
+            "fontSize": "48px"
+        }
+    },
+    "series": [
+        {
+            "name": "Aurora",
+            "yAxis": 0,
+            "variable": "AS_AURORA"
+        }
+    ]
+}

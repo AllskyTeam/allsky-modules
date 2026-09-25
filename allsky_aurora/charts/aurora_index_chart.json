@@ -1,0 +1,34 @@
+{
+    "icon": "fas fa-chart-line",
+    "group": "Aurora",
+    "title": "Aurora Index",
+    "type": "line",
+    "main": true,
+    "table": "allsky_aurora",
+    "yAxis": [
+        {
+            "title": {
+                "text": "Aurora index (% of the band)"
+            },
+            "min": 0
+        },
+        {
+            "title": {
+                "text": "Green over red"
+            },
+            "opposite": true
+        }
+    ],
+    "series": [
+        {
+            "name": "Aurora index",
+            "yAxis": 0,
+            "variable": "AS_AURORA_INDEX|true"
+        },
+        {
+            "name": "Green over red",
+            "yAxis": 1,
+            "variable": "AS_AURORA_GREEN"
+        }
+    ]
+}
