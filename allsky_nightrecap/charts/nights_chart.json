@@ -1,0 +1,43 @@
+{
+    "icon": "fas fa-chart-bar",
+    "group": "Night Recap",
+    "title": "Nights",
+    "type": "column",
+    "main": true,
+    "table": "allsky_nightrecap",
+    "yAxis": [
+        {
+            "title": {
+                "text": "Clear hours"
+            },
+            "min": 0
+        },
+        {
+            "title": {
+                "text": "Meteors / satellite trails"
+            },
+            "min": 0,
+            "allowDecimals": false,
+            "opposite": true
+        }
+    ],
+    "series": [
+        {
+            "name": "Clear hours",
+            "yAxis": 0,
+            "variable": "AS_NIGHTRECAP_CLEAR_HOURS"
+        },
+        {
+            "name": "Meteors",
+            "yAxis": 1,
+            "type": "line",
+            "variable": "AS_NIGHTRECAP_METEORS"
+        },
+        {
+            "name": "Satellite trails",
+            "yAxis": 1,
+            "type": "line",
+            "variable": "AS_NIGHTRECAP_SATELLITES"
+        }
+    ]
+}
