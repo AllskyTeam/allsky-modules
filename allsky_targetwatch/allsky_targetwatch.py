@@ -196,6 +196,7 @@ class ALLSKYTARGETWATCH(ALLSKYMODULEBASE):
             "calibration": "calibration.json",
             "forecast": "true",
             "notify_url": "",
+            "publish_web": "false",
             "debug": "false",
             "graph": ""
         },
@@ -282,6 +283,15 @@ class ALLSKYTARGETWATCH(ALLSKYMODULEBASE):
                 "tab": "Forecast",
                 "type": {
                     "fieldtype": "text"
+                }
+            },
+            "publish_web": {
+                "required": "false",
+                "description": "Publish to the website",
+                "help": "Write the state of every target (targetwatch.json) into the Website's targetwatch folder on every image, and upload it to a remote website. The remote 'targetwatch' folder must exist: the upload does not create folders.",
+                "tab": "Forecast",
+                "type": {
+                    "fieldtype": "checkbox"
                 }
             },
             "debug": {
@@ -648,6 +658,28 @@ def _moonSeen(gray, calib, t_alt, t_az):
     return patch.size > 0 and int(patch.max()) >= 200 and int(patch.max()) > float(np.median(gray)) + 60
 
 
+def _publish(data, module):
+    """targetwatch.json into the Website's targetwatch folder, and to a remote website."""
+    import subprocess
+    home = s.get_environment_variable("ALLSKY_HOME") or os.path.expanduser("~/allsky")
+    website = s.get_environment_variable("ALLSKY_WEBSITE") or os.path.join(home, "html", "allsky")
+    try:
+        folder = os.path.join(website, "targetwatch")
+        os.makedirs(folder, exist_ok=True)
+        path = os.path.join(folder, "targetwatch.json")
+        with open(path + ".tmp", "w") as fh:
+            json.dump(data, fh)
+        os.replace(path + ".tmp", path)
+        if str(s.getSetting("useremotewebsite")).lower() in ("true", "1", "yes", "on"):
+            uploader = os.path.join(s.get_environment_variable("ALLSKY_SCRIPTS") or os.path.join(home, "scripts"), "upload.sh")
+            rdir = ((s.getSetting("remotewebsiteimagedir") or "").rstrip("/") + "/targetwatch").lstrip("/")
+            if os.path.isfile(uploader):
+                subprocess.Popen([uploader, "--silent", "--wait", "--remote-web", path, rdir, "targetwatch.json",
+                                  "TargetWatch"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception as ex:
+        module.log(1, f"WARNING: Target Watch could not publish to the website: {ex}")
+
+
 def _notify(url, text, module):
     import requests
     try:
@@ -709,7 +741,7 @@ def _run(module):
     flow = _flow(gray, st, t0) if _truthy(params["forecast"]) else None
     targets, unknown = _targets(params["targets"])
     values = {"AS_TARGETWATCH_SKY": round(sky, 1)}
-    parts, circles = [], []
+    parts, circles, published = [], [], []
     prev_states = st.get("states", {})
     states = {}
     for i, target in enumerate(targets, start=1):
@@ -745,6 +777,8 @@ def _run(module):
             cx, cy = _project(calib, np.array([t_alt]), np.array([t_az]))
             circles.append((cx[0], cy[0], radius * calib["a1"] / 90.0, label))
         values[f"AS_TARGETWATCH_T{i}"] = text
+        published.append({"name": label, "text": text, "altitude": round(t_alt, 1),
+                          "clear": round(clear, 1) if clear is not None else None})
         values[f"AS_TARGETWATCH_T{i}_CLEAR"] = round(clear, 1) if clear is not None else None
         parts.append(text)
     st["states"] = {k: (prev_states.get(k, []) + [v])[-4:] for k, v in states.items()}
@@ -755,6 +789,9 @@ def _run(module):
                     module.meta_data["module"], module.meta_data["extradata"], event=module.event)
     if _truthy(params["debug"]):
         _debugImage(module, s.image, x, y, seen, circles)
+    if _truthy(params["publish_web"]):
+        _publish({"time": t0, "sky": round(sky, 1), "summary": values["AS_TARGETWATCH_SUMMARY"],
+                  "targets": published}, module)
 
     result = f"Target Watch: sky {sky:.0f}% clear ({int(seen.sum())}/{len(seen)} stars); " + "; ".join(parts)
     if unknown:

@@ -82,6 +82,13 @@ sky, 74° high)` with an HTTP POST. It sends at most one per target per hour.
 This works with [ntfy](https://ntfy.sh) (`https://ntfy.sh/your-topic`) and
 anything else that takes a plain-text POST.
 
+## On the website
+
+**Publish to the website** writes `targetwatch.json` (the state of every
+target and of the whole sky) into the Website's `targetwatch` folder on every
+image, and uploads it to a remote website. The remote folder must exist
+because the upload does not create folders.
+
 ## Values and charts
 
 For the overlay:
