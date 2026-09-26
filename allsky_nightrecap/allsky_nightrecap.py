@@ -448,7 +448,16 @@ def _crop(ev, day, aspect):
     bw, bh = min(bw, w), min(bh, h)
     x0 = int(min(max(0, cx - bw / 2), w - bw))
     y0 = int(min(max(0, cy - bh / 2), h - bh))
-    return img[y0:y0 + int(bh), x0:x0 + int(bw)]
+    out = img[y0:y0 + int(bh), x0:x0 + int(bw)].copy()
+    if ev["kind"] == "satellite":
+        # a faint satellite trail is hard to find: a thin line beside it shows where
+        dx, dy = x2 - x1, y2 - y1
+        n = math.hypot(dx, dy) or 1.0
+        ox, oy = -dy / n * 14, dx / n * 14
+        th = max(1, out.shape[1] // 400)
+        cv2.line(out, (int(x1 - x0 + ox), int(y1 - y0 + oy)), (int(x2 - x0 + ox), int(y2 - y0 + oy)),
+                 (255, 200, 120), th, cv2.LINE_AA)
+    return out
 
 
 def _distinct(events):
