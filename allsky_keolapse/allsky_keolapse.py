@@ -281,7 +281,7 @@ class ALLSKYKEOLAPSE(ALLSKYMODULEBASE):
 		"name": "Keolapse Generator",
 		"description": "Creates a timelapse video with the keogram wrapped as a ring around the sky image",
 		"module": "allsky_keolapse",
-		"version": "v0.9.2",
+		"version": "v0.9.3",
 		"pythonversion": "3.10.0",
 		"centersettings": "false",
 		"testable": "true",
@@ -450,16 +450,30 @@ class ALLSKYKEOLAPSE(ALLSKYMODULEBASE):
 					"step": 10
 				}
 			},
+			"alignment_ui": {
+				"tab": "Image",
+				"source": "file",
+				"file": "alignment.html",
+				"type": {
+					"fieldtype": "html"
+				}
+			},
 			"circle_radius_factor": {
 				"required": "true",
 				"description": "Circle Radius Factor",
-				"help": "Factor to determine circle radius relative to image width (0.1 to 1.0).",
+				"help": "Factor to determine circle radius relative to the smaller image dimension (0.1 to 1.0). Usually set with the alignment tool above.",
 				"tab": "Image",
+				"layout": {
+					"row": "keo_circle",
+					"title": "Circle",
+					"label": "Radius factor",
+					"width": 4
+				},
 				"type": {
 					"fieldtype": "spinner",
 					"min": 0.1,
 					"max": 1.0,
-					"step": 0.01
+					"step": 0.0001
 				}
 			},
 			"center_x_offset": {
@@ -467,6 +481,11 @@ class ALLSKYKEOLAPSE(ALLSKYMODULEBASE):
 				"description": "Center X Offset",
 				"help": "Offset from image center for circle center X coordinate (in pixels, right/left).",
 				"tab": "Image",
+				"layout": {
+					"row": "keo_circle",
+					"label": "X offset",
+					"width": 4
+				},
 				"type": {
 					"fieldtype": "spinner",
 					"min": -500,
@@ -479,6 +498,11 @@ class ALLSKYKEOLAPSE(ALLSKYMODULEBASE):
 				"description": "Center Y Offset",
 				"help": "Offset from image center for circle center Y coordinate (in pixels, up/down).",
 				"tab": "Image",
+				"layout": {
+					"row": "keo_circle",
+					"label": "Y offset",
+					"width": 4
+				},
 				"type": {
 					"fieldtype": "spinner",
 					"min": -500,
@@ -491,6 +515,12 @@ class ALLSKYKEOLAPSE(ALLSKYMODULEBASE):
 				"description": "Keogram Ring Height",
 				"help": "Height of keogram ring in pixels.",
 				"tab": "Image",
+				"layout": {
+					"row": "keo_ring",
+					"title": "Keogram Ring",
+					"label": "Height",
+					"width": 3
+				},
 				"type": {
 					"fieldtype": "spinner",
 					"min": 50,
@@ -498,59 +528,16 @@ class ALLSKYKEOLAPSE(ALLSKYMODULEBASE):
 					"step": 25
 				}
 			},
-			"top_padding": {
-				"required": "true",
-				"description": "Top Padding",
-				"help": "Additional pixels above the sky image. Adjust for balanced appearance.",
-				"tab": "Image",
-				"type": {
-					"fieldtype": "spinner",
-					"min": 0,
-					"max": 500,
-					"step": 50
-				}
-			},
-			"bottom_padding": {
-				"required": "true",
-				"description": "Bottom Padding",
-				"help": "Additional pixels below the sky image. Adjust for balanced appearance.",
-				"tab": "Image",
-				"type": {
-					"fieldtype": "spinner",
-					"min": 0,
-					"max": 500,
-					"step": 50
-				}
-			},
-			"left_padding": {
-				"required": "true",
-				"description": "Left Padding",
-				"help": "Additional pixels to the left of the sky image. Usually 0.",
-				"tab": "Image",
-				"type": {
-					"fieldtype": "spinner",
-					"min": 0,
-					"max": 500,
-					"step": 50
-				}
-			},
-			"right_padding": {
-				"required": "true",
-				"description": "Right Padding",
-				"help": "Additional pixels to the right of the sky image. Usually 0.",
-				"tab": "Image",
-				"type": {
-					"fieldtype": "spinner",
-					"min": 0,
-					"max": 500,
-					"step": 50
-				}
-			},
 			"circle_padding": {
 				"required": "true",
 				"description": "Circle Padding",
 				"help": "Spacing between inside sky image and keogram ring, in pixels.",
 				"tab": "Image",
+				"layout": {
+					"row": "keo_ring",
+					"label": "Circle padding",
+					"width": 3
+				},
 				"type": {
 					"fieldtype": "spinner",
 					"min": 0,
@@ -563,6 +550,11 @@ class ALLSKYKEOLAPSE(ALLSKYMODULEBASE):
 				"description": "Edge Padding",
 				"help": "Spacing from image edges in pixels.",
 				"tab": "Image",
+				"layout": {
+					"row": "keo_ring",
+					"label": "Edge padding",
+					"width": 3
+				},
 				"type": {
 					"fieldtype": "spinner",
 					"min": 0,
@@ -575,9 +567,83 @@ class ALLSKYKEOLAPSE(ALLSKYMODULEBASE):
 				"description": "Keogram Start Position",
 				"help": "Clock hour position to start keogram (12: top, 3: right, 6: bottom, 9: left).",
 				"tab": "Image",
+				"layout": {
+					"row": "keo_ring",
+					"label": "Start position",
+					"width": 3
+				},
 				"type": {
 					"fieldtype": "select",
 					"values": "12,3,6,9"
+				}
+			},
+			"top_padding": {
+				"required": "true",
+				"description": "Top Padding",
+				"help": "Additional pixels above the sky image. Adjust for balanced appearance.",
+				"tab": "Image",
+				"layout": {
+					"row": "keo_pad",
+					"title": "Extra Padding",
+					"label": "Top",
+					"width": 3
+				},
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 500,
+					"step": 50
+				}
+			},
+			"bottom_padding": {
+				"required": "true",
+				"description": "Bottom Padding",
+				"help": "Additional pixels below the sky image. Adjust for balanced appearance.",
+				"tab": "Image",
+				"layout": {
+					"row": "keo_pad",
+					"label": "Bottom",
+					"width": 3
+				},
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 500,
+					"step": 50
+				}
+			},
+			"left_padding": {
+				"required": "true",
+				"description": "Left Padding",
+				"help": "Additional pixels to the left of the sky image. Usually 0.",
+				"tab": "Image",
+				"layout": {
+					"row": "keo_pad",
+					"label": "Left",
+					"width": 3
+				},
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 500,
+					"step": 50
+				}
+			},
+			"right_padding": {
+				"required": "true",
+				"description": "Right Padding",
+				"help": "Additional pixels to the right of the sky image. Usually 0.",
+				"tab": "Image",
+				"layout": {
+					"row": "keo_pad",
+					"label": "Right",
+					"width": 3
+				},
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 500,
+					"step": 50
 				}
 			},
 			"enable_testing": {
@@ -661,6 +727,21 @@ class ALLSKYKEOLAPSE(ALLSKYMODULEBASE):
 		},
 		"businfo": [],
 		"changelog": {
+			"v0.9.3": [
+				{
+					"author": "Andy Felong",
+					"authorurl": "https://github.com/AndyOfLinux",
+					"changes": [
+						"Added interactive circle alignment tool to the Image tab: the current capture image is shown with the keogram ring circles overlaid; drag or use arrow keys to move the centre, drag the handle / mouse wheel / +- keys to resize",
+						"Alignment tool includes black mask display modes (disc or surround) with adjustable opacity for fine alignment against the sky image",
+						"On-screen nudge buttons (centre arrows, radius +/-) with Shift-click for 10 px steps and hold-to-repeat, for mouse and touch use",
+						"Keyboard shortcuts work on any keyboard layout: +/- and = change the radius 1 px regardless of Shift, PageUp/PageDown change it 10 px; improved toolbar and control row spacing",
+						"Added White disc display mode; bold save reminder that escalates to a NOT SAVED YET warning once the circle has unsaved changes",
+						"Alignment canvas height capped (centred below 420 px) and Image tab settings grouped into multi-column rows (Circle / Keogram Ring / Extra Padding) so everything fits on screen",
+						"Circle Radius Factor spinner step reduced from 0.01 to 0.0001 for pixel-level radius control"
+					]
+				}
+			],
 			"v0.9.2": [
 				{
 					"author": "Andy Felong",

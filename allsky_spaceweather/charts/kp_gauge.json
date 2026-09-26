@@ -1,0 +1,35 @@
+{
+    "title": "Kp Index",
+    "icon": "fa-solid fa-gauge",
+    "type": "gauge",
+    "group": "Space Weather",
+    "table": "allsky_spaceweather",
+    "hc": {
+        "yAxis": [
+            {
+                "min": 0,
+                "max": 9,
+                "tickInterval": 1,
+                "tickPosition": "inside",
+                "lineWidth": 0,
+                "labels": {
+                    "distance": 20,
+                    "style": {
+                        "fontSize": "12px"
+                    }
+                },
+                "plotBands": [
+                    { "from": 0, "to": 4, "color": "#55BF3B", "thickness": 30 },
+                    { "from": 4, "to": 5, "color": "#DDDF0D", "thickness": 30 },
+                    { "from": 5, "to": 9, "color": "#DF5353", "thickness": 30 }
+                ]
+            }
+        ]
+    },
+    "series": [
+        {
+            "name": "Kp",
+            "variable": "SWX_KPDATA"
+        }
+    ]
+}

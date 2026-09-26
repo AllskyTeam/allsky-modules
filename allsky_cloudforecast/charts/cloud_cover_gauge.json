@@ -1,0 +1,35 @@
+{
+    "title": "Cloud Cover",
+    "icon": "fa-solid fa-gauge",
+    "type": "gauge",
+    "group": "Cloud Forecast",
+    "table": "allsky_cloudforecast",
+    "hc": {
+        "yAxis": [
+            {
+                "min": 0,
+                "max": 100,
+                "tickInterval": 10,
+                "tickPosition": "inside",
+                "lineWidth": 0,
+                "labels": {
+                    "distance": 20,
+                    "style": {
+                        "fontSize": "12px"
+                    }
+                },
+                "plotBands": [
+                    { "from": 0, "to": 20, "color": "#55BF3B", "thickness": 30 },
+                    { "from": 20, "to": 65, "color": "#DDDF0D", "thickness": 30 },
+                    { "from": 65, "to": 100, "color": "#DF5353", "thickness": 30 }
+                ]
+            }
+        ]
+    },
+    "series": [
+        {
+            "name": "Cloud cover",
+            "variable": "AS_CLOUDFORECAST_COVER"
+        }
+    ]
+}

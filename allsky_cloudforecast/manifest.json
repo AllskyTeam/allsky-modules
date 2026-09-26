@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "module": "allsky_cloudforecast",
+  "generated_utc": "2026-09-24T21:13:48Z",
+  "hash_algorithm": "sha256",
+  "files": {
+    "README.md": {
+      "sha256": "41049555f68b4e60f5c26aa14681444658d02460024bfd67ebade8ae2b84e922",
+      "size": 4263,
+      "mode": "644"
+    },
+    "allsky_cloudforecast.py": {
+      "sha256": "35609eed10d1f02c8a6df258f9170ee684d277e573f740bdb878c0e645b8bce0",
+      "size": 28650,
+      "mode": "644"
+    },
+    "charts/clear_sky_indicator.json": {
+      "sha256": "689baf8c85becab62d2f079d5263fff5bfaa194a46da4f324171a07465f71865",
+      "size": 540,
+      "mode": "644"
+    },
+    "charts/cloud_cover_chart.json": {
+      "sha256": "fe6b0e11b715970354e17786c306b74722e9ed0cb0b9316b31c6ab1fa83d36fa",
+      "size": 630,
+      "mode": "644"
+    },
+    "charts/cloud_cover_gauge.json": {
+      "sha256": "8fc69c4f207b09bfce4badcd84de07804ad10ea15183a6fcb012f2c6759075bc",
+      "size": 996,
+      "mode": "644"
+    }
+  },
+  "file_count": 5
+}

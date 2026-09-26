@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "module": "allsky_skyquality",
+  "generated_utc": "2026-09-25T20:27:01Z",
+  "hash_algorithm": "sha256",
+  "files": {
+    "README.md": {
+      "sha256": "c038170c013593be807a57a166a2ac05481bf0170756b68a95de340a7cc379f8",
+      "size": 4869,
+      "mode": "644"
+    },
+    "allsky_skyquality.py": {
+      "sha256": "a2da15b1b2998d44a5718191d65b938dc30e2b9f6e67599fb82fc9f00ecb12e5",
+      "size": 27538,
+      "mode": "644"
+    },
+    "charts/sky_brightness_chart.json": {
+      "sha256": "9cb7c107c4a8fb31e612049c41282446d5730b3d03b97728a48a4c44857f4f78",
+      "size": 718,
+      "mode": "644"
+    },
+    "charts/sqm_chart.json": {
+      "sha256": "90b7e379279e586cfca9f07612daf9f9a1aec9038d364af4fa843f163e39d20c",
+      "size": 711,
+      "mode": "644"
+    },
+    "charts/sqm_gauge.json": {
+      "sha256": "810b4d7321a74b6901ece64f3f00b2ec121399e08a367cc6249812cbc4452e6c",
+      "size": 968,
+      "mode": "644"
+    },
+    "charts/stars_clouds_chart.json": {
+      "sha256": "e35aeabbd86fb6dd48bf1304a5475b27e0adc3c6b08b02b719d849daf437814d",
+      "size": 688,
+      "mode": "644"
+    }
+  },
+  "file_count": 6
+}

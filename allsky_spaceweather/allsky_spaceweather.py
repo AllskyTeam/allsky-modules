@@ -16,6 +16,11 @@ import ephem
 import pytz
 import datetime
 
+# A selected rtsw/ record older than this means the feed has stalled, or that the
+# file ordering has changed again. Either way the values are not current and the
+# module says so rather than rendering them silently.
+RTSW_MAX_AGE_SECONDS = 1800
+
 class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 
 	meta_data = {
@@ -23,7 +28,7 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 		"description": "Retrieve space weather data from NOAA SWPC",
 		"docs": "docs/allsky_modules/extra/space_weather.html",    
 		"module": "allsky_spaceweather",
-		"version": "v1.0.2",
+		"version": "v1.0.5",
 		"centersettings": "false",
 		"testable": "true", 
 		"extradatafilename": "allsky_spaceweather.json",
@@ -34,6 +39,20 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 			"periodic"
 		],
 		"extradata": {
+			"database": {
+				"enabled": "True",
+				"table": "allsky_spaceweather",
+				"pk": "id",
+				"pk_type": "int",
+				"include_all": "false",
+				"time_of_day_save": {
+					"day": "always",
+					"night": "always",
+					"nightday": "never",
+					"daynight": "never",
+					"periodic": "always"
+				}
+			},
 			"values": {
 				"SWX_SWIND_SPEED": {
 					"name": "${SWIND_SPEED}",
@@ -41,7 +60,10 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Space",
 					"description": "Solar wind speed",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include": "true"
+					}
 				},
 				"SWX_SWIND_DENSITY": {
 					"name": "${SWIND_DENSITY}",
@@ -49,7 +71,10 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Space",
 					"description": "Solar wind density",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include": "true"
+					}
 				},
 				"SWX_SWIND_TEMP": {
 					"name": "${SWIND_TEMP}",
@@ -57,7 +82,10 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Space",
 					"description": "Solar wind temperature",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include": "true"
+					}
 				},
 				"SWX_KPDATA": {
 					"name": "${KPDATA}",
@@ -65,7 +93,10 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Space",
 					"description": "KP Data",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include": "true"
+					}
 				},
 				"SWX_BZDATA": {
 					"name": "${BZDATA}",
@@ -73,7 +104,10 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"sample": "",
 					"group": "Space",
 					"description": "BZ Data",
-					"type": "number"
+					"type": "number",
+					"database": {
+						"include": "true"
+					}
 				},
 				"SWX_S_ANGLE": {
 					"name": "${S_ANGLE}",
@@ -102,6 +136,13 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"max": 3000,
 					"step": 60
 				}
+			},
+			"graph": {
+				"required": "false",
+				"tab": "History",
+				"type": {
+					"fieldtype": "graph"
+				}
 			}
 		},
 		"changelog": {
@@ -119,13 +160,34 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					"changes": "Updates for new module system"
 				}
 			],
-      "v1.0.2": [
-      	{
-          "author": "Jim Cauthen",
-          "authorurl": "https://github.com/jcauthen78/",
-          "changes": "Fixed NOAA API format handling (list-of-lists vs list-of-dicts), added per-endpoint error handling and HTTP status checks"
-        }
-			]     
+			"v1.0.2": [
+				{
+				"author": "Jim Cauthen",
+				"authorurl": "https://github.com/jcauthen78/",
+				"changes": "Fixed NOAA API format handling (list-of-lists vs list-of-dicts), added per-endpoint error handling and HTTP status checks"
+				}
+			],
+			"v1.0.3": [
+				{
+				"author": "Kentner Cottingham (Agent assisted)",
+				"authorurl": "https://github.com/NightRide/",
+				"changes": "Updated to call new NOAA API endpoints published in 2026."
+				}
+			],
+			"v1.0.4": [
+				{
+				"author": "Adrian Wells (Agent assisted)",
+				"authorurl": "https://github.com/adrianwells/",
+				"changes": "Select the newest active record from the rtsw/ endpoints rather than indexing by position, and write the extra data file even when the Bz fetch fails"
+				}
+			],
+			"v1.0.5": [
+				{
+				"author": "Benjamin Hartwich (Agent assisted)",
+				"authorurl": "https://github.com/benhartwich/",
+				"changes": "Save the solar wind speed, density and temperature, Kp and Bz in the Allsky database, and add charts: Kp index, Bz, solar wind, and a Kp gauge"
+				}
+			]
 		}
 	}
     
@@ -190,13 +252,69 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 					return None
 			return data
 
-	def _process_solar_wind_data(self, data):
-			"""Process solar wind data and return formatted values with colors"""
-			# --- Get the last record, handling both list and dict formats ---
-			last = data[-1]
-			density = self._safe_float_conversion(data[-1][1])
-			speed = self._safe_float_conversion(data[-1][2])
-			temp = self._safe_float_conversion(data[-1][3])
+	def _record_age_seconds(self, record):
+			"""
+			Age of a record's time_tag in seconds, or None if it cannot be parsed.
+
+			The rtsw/ time_tag is naive UTC and sometimes carries fractional
+			seconds ("2026-08-31T11:08:06" or "...:06.123"), so only the first
+			19 characters are parsed.
+			"""
+			try:
+					tag = datetime.datetime.strptime(record["time_tag"][:19], "%Y-%m-%dT%H:%M:%S")
+			except (KeyError, TypeError, ValueError):
+					return None
+			now = datetime.datetime.now(tz=pytz.UTC).replace(tzinfo=None)
+			return (now - tag).total_seconds()
+
+	def _select_rtsw_record(self, data, label=""):
+			"""
+			Select the newest operational record from a NOAA RTSW product.
+
+			The json/rtsw/ files that replaced the retired products/solar-wind/
+			feeds differ from them in two ways that positional indexing cannot
+			survive:
+
+			  * they are ordered NEWEST FIRST over a rolling 24 hour window, so
+				data[-1] is the OLDEST record in the file, about 24 hours stale,
+				and
+			  * records from three spacecraft (SOLAR1, IMAP and ACE) interleave
+				in one file, each carrying a boolean "active", so no fixed
+				position identifies the operational one. data[0] is frequently
+				an inactive IMAP or ACE record.
+
+			So select explicitly: filter on active, then take the highest
+			time_tag.
+
+			Args:
+					data:  Parsed rtsw/ payload, or None if the fetch failed.
+					label: Human-readable label for log messages.
+			Returns:
+					The newest active record (dict), or None if there is none.
+			"""
+			if data is None:
+					return None
+
+			active = [record for record in data
+					if isinstance(record, dict) and record.get("active") and record.get("time_tag")]
+			if not active:
+					allsky_shared.log(0, f"ERROR: {label} API returned no active spacecraft records")
+					return None
+
+			newest = max(active, key=lambda record: record["time_tag"])
+			age = self._record_age_seconds(newest)
+			if age is None or age > RTSW_MAX_AGE_SECONDS:
+					allsky_shared.log(1, f"WARNING: {label} newest active record is not current "
+							f"({newest.get('time_tag')} from {newest.get('source')})")
+			return newest
+
+	def _process_solar_wind_data(self, record):
+			"""Process one solar wind record and return formatted values with colors"""
+			# --- The record is already selected; _get_record_value reads its fields ---
+			last = record
+			density = self._safe_float_conversion(self._get_record_value(last, 1, "proton_density"))
+			speed = self._safe_float_conversion(self._get_record_value(last, 2, "proton_speed"))
+			temp = self._safe_float_conversion(self._get_record_value(last, 3, "proton_temperature"))
 			temp_fmt = format(temp, ',').rstrip('0').rstrip('.') if temp != 'xxx' else temp
 
 
@@ -239,15 +357,41 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 			}
 
 
+	def _save_to_database(self, space_weather_data):
+		"""
+		Save the numeric values in the Allsky database, for the charts.
+
+		Only values marked for the database in meta_data are saved, and only
+		when they are numbers; a failed conversion ('xxx') is left out. The
+		temperature is formatted with thousands separators for the overlay,
+		so the separators are removed first. Never raises.
+		"""
+		try:
+			structure = self.meta_data['extradata']
+			values = {}
+			for key, entry in space_weather_data.items():
+				meta = structure['values'].get(key, {})
+				if meta.get('database', {}).get('include') != 'true':
+					continue
+				try:
+					values[key] = float(str(entry['value']).replace(',', ''))
+				except (TypeError, ValueError, KeyError):
+					continue
+			if values:
+				formatted = allsky_shared.format_extra_data_json(values, structure, self.meta_data['module'])
+				allsky_shared.update_database(structure, json.dumps(formatted), self.event, self.meta_data['module'])
+		except Exception as e:
+			allsky_shared.log(0, f"ERROR: Unable to save space weather data to the database: {e}")
+
 	def run(self):
 		"""Main entry point for the module"""
 		result = ""
 		
 		# API endpoints
 		urls = {
-				"wind": "https://services.swpc.noaa.gov/products/solar-wind/plasma-6-hour.json",
+				"wind": "https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json",
 				"kp": "https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json",
-				"bz": "https://services.swpc.noaa.gov/products/solar-wind/mag-6-hour.json"
+				"bz": "https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json"
 		}
 
 		try:
@@ -288,9 +432,10 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 				# Fetch and process solar wind data
 				# ---------------------------------------------------------------
 				wind_data = self._fetch_json(urls["wind"], "Solar Wind")
-				if wind_data is not None:
+				wind_record = self._select_rtsw_record(wind_data, "Solar Wind")
+				if wind_record is not None:
 						try:
-								solar_wind = self._process_solar_wind_data(wind_data)
+								solar_wind = self._process_solar_wind_data(wind_record)
 								space_weather_data.update({
 										"SWX_SWIND_SPEED": {
 												"value": solar_wind["speed"]["value"],
@@ -338,9 +483,10 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 				# Fetch and process Bz data
 				# ---------------------------------------------------------------
 				bz_data = self._fetch_json(urls["bz"], "Bz")
-				if bz_data is not None:
+				bz_record = self._select_rtsw_record(bz_data, "Bz")
+				if bz_record is not None:
 						try:
-								last_bz = bz_data[-1]
+								last_bz = bz_record
 								# Handle both list and dict formats for Bz value
 								bz_value = float(self._get_record_value(last_bz, 3, "bz_gsm"))
 								bz_color = "#10e310"  # default green
@@ -357,11 +503,16 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 						except Exception as e:
 								allsky_shared.log(0, f"ERROR: Failed to process Bz data: {e}")
 				
-						# Save data to file
-						allsky_shared.saveExtraData(self.meta_data['extradatafilename'], space_weather_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
-						result = f"Space weather data successfully written to {self.meta_data['extradatafilename']}"
-						self.log(1, f"INFO: {result}")
-						allsky_shared.setLastRun(module)
+				# Save whatever was collected. One endpoint failing must not discard
+				# the fields that succeeded, or the whole file freezes.
+				# The overlay file keeps the colours ("fill"), so each value is a dict,
+				# which the database can't store: the database row is saved separately.
+				overlay_structure = {k: v for k, v in self.meta_data['extradata'].items() if k != 'database'}
+				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], space_weather_data, self.meta_data['module'], overlay_structure, event=self.event)
+				self._save_to_database(space_weather_data)
+				result = f"Space weather data successfully written to {self.meta_data['extradatafilename']}"
+				self.log(1, f"INFO: {result}")
+				allsky_shared.setLastRun(module)
 
 			else:
 					result = f"Last run {diff} seconds ago. Running every {period} seconds"

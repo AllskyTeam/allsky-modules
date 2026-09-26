@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "module": "allsky_solarsystem",
-  "generated_utc": "2026-06-02T20:38:05Z",
+  "generated_utc": "2026-08-31T20:49:29Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
@@ -10,14 +10,9 @@
       "mode": "644"
     },
     "allsky_solarsystem.py": {
-      "sha256": "b45554a7b597fc4ec0b88453e61ab7de7199905af273cd65e529601d2dc81d89",
-      "size": 48144,
+      "sha256": "59ed13361e49aa4e701c2aa2a01d46eebf4e71e6224532ab0f39e5d348624e84",
+      "size": 48786,
       "mode": "755"
-    },
-    "allsky_spaceweather.py": {
-      "sha256": "72cd0ce60589f4a75ac1953549c1199e24a280eedaa9bc19792d75013c5f3681",
-      "size": 12041,
-      "mode": "644"
     },
     "blocks/iss.json": {
       "sha256": "7883ca97a53c97ab5e161ddb10023367328f69dab0d852eef75f89b193cf78f2",
@@ -65,5 +60,5 @@
       "mode": "644"
     }
   },
-  "file_count": 12
+  "file_count": 11
 }

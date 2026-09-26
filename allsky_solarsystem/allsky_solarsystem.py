@@ -4,23 +4,23 @@ from allsky_base import ALLSKYMODULEBASE
 import os
 import time
 import sys
-import csv
 import ephem
 import requests
 import math
 import datetime as dt
+import re
 
 from math import radians
 from math import degrees
 from datetime import datetime, timedelta, date, timezone as dt_timezone
 from pathlib import Path
-from typing import Any, Dict, List, Sequence, Tuple
+from typing import Any, Dict, List
 from dataclasses import dataclass
+from urllib.parse import quote
 
 from skyfield.api import EarthSatellite, load, wgs84, Loader, Topos
 from skyfield.api import N, S, E, W
 from skyfield import almanac
-from sgp4.exporter import export_tle
 from pytz import timezone
 
 from astral.sun import sun, azimuth, elevation, night
@@ -39,7 +39,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		"description": "Obtain data for Solar System objects",
 		"docs": "docs/allsky_modules/extra/solar_system.html",  
 		"module": "allsky_solarsystem",
-			"version": "v1.1.2",
+		"version": "v1.1.3",
 		"testable": "true",
 		"centersettings": "false",
 		"group": "Data Capture",   
@@ -335,8 +335,8 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				"planetNeptuneEnabled": "false",
 				"planetPlutoEnabled": "false",
 				"planetElevation": "10",
-				"issCelestrakLegacyFormat": "false",
-				"satCelestrakLegacyFormat": "false",
+				"issTleSource": "retlector",
+				"satTleSource": "retlector",
 				"tles": "",
 				"sat_min_elevation": "10",
 				"issEnabled": "false",
@@ -481,13 +481,15 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 						"fieldtype": "checkbox"
 					}
 				},
-				"issCelestrakLegacyFormat": {
+				"issTleSource": {
 					"required": "false",
-					"description": "Legacy TLE Format",
-					"help": "Off uses the new CelesTrak CSV GP data format. On uses the legacy three-line TLE format. DO NOT CHANGE Unless you are aware of the consequences",
+					"description": "TLE Source",
+					"help": "Selected source is tried first. The other source is tried if the selected source fails.",
 					"tab": "ISS",
 					"type": {
-						"fieldtype": "checkbox"
+						"fieldtype": "select",
+						"values": "retlector|Retlector,celestrak|CelesTrak",
+						"default": "retlector"
 					},
 					"filters": {
 						"filter": "issEnabled",
@@ -623,13 +625,15 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 					]
 				}               
 				},     
-				"satCelestrakLegacyFormat": {
+				"satTleSource": {
 					"required": "false",
-					"description": "Legacy TLE Format",
-					"help": "Off uses the new CelesTrak CSV GP data format. On appends FORMAT=TLE and uses the legacy three-line TLE format.",
+					"description": "TLE Source",
+					"help": "Selected source is tried first. The other source is tried if the selected source fails.",
 					"tab": "Satellites",
 					"type": {
-						"fieldtype": "checkbox"
+						"fieldtype": "select",
+						"values": "retlector|Retlector,celestrak|CelesTrak",
+						"default": "retlector"
 					}
 				},
 				"tles": {
@@ -711,6 +715,17 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 						"author": "Alex Greenland",
 						"authorurl": "https://github.com/allskyteam",
 						"changes": "Switch Moon to use Astral"
+					}
+				],
+				"v1.1.3" : [
+					{
+						"author": "Alex Greenland",
+						"authorurl": "https://github.com/allskyteam",
+						"changes": [
+							"Added Retlector as the default TLE source",
+							"Added CelesTrak TLE fallback",
+							"Removed legacy TLE format settings"
+						]
 					}
 				]          
 			}
@@ -1028,45 +1043,46 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			eType, eObject, eTraceback = sys.exc_info()
 			self.log(0, f"ERROR in {__file__}: _calculate_planets failed on line {eTraceback.tb_lineno} - {e}")
    
-	def _param_is_true(self, param, default=False):
-		try:
-			value = self.params[param]
-		except (ValueError, KeyError):
-			value = default
+	def _get_tle_source(self, data_key):
+		data_key = str(data_key).strip()
+		param = 'issTleSource' if data_key == '25544' else 'satTleSource'
+		source = self.get_param(param, 'retlector', str, True).strip().lower()
 
-		if isinstance(value, bool):
-			return value
+		if source in ['retlector', 'celestrak']:
+			return source
 
-		if isinstance(value, str):
-			return value.strip().lower() in ['true', '1', 'yes', 'checked', 'on']
+		self.log(0, f"WARNING: Unknown TLE source '{source}' for {data_key}; using Retlector")
+		return 'retlector'
 
-		return bool(value)
+	def _get_tle_source_order(self, source):
+		if source == 'celestrak':
+			return ['celestrak', 'retlector']
 
-	def _get_celestrak_data_format(self, data_key):
-		if data_key == '25544' and 'issCelestrakLegacyFormat' in self.params:
-			return 'old' if self._param_is_true('issCelestrakLegacyFormat') else 'new'
+		return ['retlector', 'celestrak']
 
-		if data_key != '25544' and 'satCelestrakLegacyFormat' in self.params:
-			return 'old' if self._param_is_true('satCelestrakLegacyFormat') else 'new'
+	def _is_tle_catalog_id(self, data_key):
+		return data_key.isdigit() or re.match(r'^[A-Za-z]\d+$', data_key) is not None
 
-		# Backwards compatibility with the previous select-based setting.
-		celestrak_format = self.get_param('celestrakDataFormat', 'new', str, True).strip().lower()
-		if celestrak_format in ['old', 'tle', 'legacy']:
-			return 'old'
+	def _get_tle_request(self, source, data_key):
+		data_key = str(data_key).strip()
+		if not data_key:
+			raise ValueError('TLE data key cannot be blank')
 
-		return 'new'
+		if source == 'retlector':
+			return f'https://retlector.eu/{quote(data_key, safe="")}/tle', {}
 
-	def _get_celestrak_request(self, data_key, data_format):
-		params = {}
-		if data_key[0].isdigit():
-			params['CATNR'] = data_key
-		else:
-			params['GROUP'] = data_key
+		if source == 'celestrak':
+			params = {}
+			if self._is_tle_catalog_id(data_key):
+				params['CATNR'] = data_key
+			else:
+				params['GROUP'] = data_key
 
-		if data_format == 'old':
 			params['FORMAT'] = 'TLE'
 
-		return 'https://celestrak.org/NORAD/elements/gp.php', params
+			return 'https://celestrak.org/NORAD/elements/gp.php', params
+
+		raise ValueError(f'Unknown TLE source: {source}')
 
 	def _format_file_age(self, file_age):
 		total_minutes = max(0, int(file_age * 24 * 60))
@@ -1094,7 +1110,15 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 
 		return 'less than 1 minute'
 
-	def _write_celestrak_cache(self, data_filename, response_text):
+	def _get_tle_cache_filename(self, source, data_key):
+		data_key = str(data_key).strip()
+		if not data_key:
+			raise ValueError('TLE data key cannot be blank')
+
+		safe_data_key = ''.join(char if char.isalnum() or char in ['-', '_'] else '_' for char in data_key)
+		return os.path.join(self._overlay_tle_folder, f'{source}_{safe_data_key}.tle')
+
+	def _write_tle_cache(self, data_filename, response_text):
 		umask = os.umask(0)
 		try:
 			with open(os.open(data_filename, os.O_CREAT | os.O_WRONLY | os.O_TRUNC, 0o777), 'w', encoding='utf-8') as outfile:
@@ -1104,99 +1128,95 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		finally:
 			os.umask(umask)
 
-	def _read_tle_file(self, data_filename):
+	def _parse_tle_lines(self, lines, source_name):
 		tle_data = {}
+		clean_lines = [line.rstrip('\r\n') for line in lines if line.strip()]
+
+		if not clean_lines:
+			raise ValueError(f'No TLE data found in {source_name}')
+
+		if len(clean_lines) % 3 != 0:
+			raise ValueError(f'Incomplete TLE data in {source_name}')
+
 		counter = 0
+		for index in range(0, len(clean_lines), 3):
+			line1 = clean_lines[index].strip()
+			line2 = clean_lines[index + 1].strip()
+			line3 = clean_lines[index + 2].strip()
+
+			if not line2.startswith('1 ') or not line3.startswith('2 '):
+				raise ValueError(f'Invalid TLE data in {source_name}')
+
+			tle_data[counter] = {
+				'line1': line1,
+				'line2': line2,
+				'line3': line3
+			}
+			counter = counter + 1
+
+		return tle_data
+
+	def _read_tle_file(self, data_filename):
 		with open(data_filename, encoding="utf-8") as file:
-			while True:
-				lines = [next(file, None) for _ in range(3)]
-				if not any(lines):
-					break
+			return self._parse_tle_lines(file, data_filename)
 
-				if lines[0] is None or lines[1] is None or lines[2] is None:
-					raise ValueError(f'Incomplete TLE data in {data_filename}')
+	def _load_tle_from_source(self, source, data_key):
+		data_filename = self._get_tle_cache_filename(source, data_key)
 
-				if lines[0].strip():
-					tle_data[counter] = {
-						'line1': lines[0].rstrip('\r\n'),
-						'line2': lines[1].rstrip('\r\n'),
-						'line3': lines[2].rstrip('\r\n')
-					}
-					counter = counter + 1
+		if os.path.exists(data_filename):
+			file_modified_time = int(os.path.getmtime(data_filename))
+			file_age = int(time.time()) - file_modified_time
+			file_age = file_age / 60 / 60 / 24
+		else:
+			file_age = 9999
 
-		return tle_data
+		if file_age > 2:
+			url, params = self._get_tle_request(source, data_key)
+			timeout = 5 if self._is_tle_catalog_id(data_key) else 10
+			response = requests.get(url, params=params, timeout=timeout)
+			response.raise_for_status()
 
-	def _normalise_omm_row(self, row):
-		normalised_row = {}
-		for key, value in row.items():
-			if key is not None:
-				normalised_row[key.strip()] = value.strip() if value is not None else ''
+			if response.text.strip() == 'No GP data found':
+				raise LookupError(f'No TLE data found for {data_key} from {source}')
 
-		epoch = normalised_row.get('EPOCH', '')
-		if epoch.endswith('Z'):
-			epoch = epoch[:-1]
-		if epoch and '.' not in epoch:
-			epoch = epoch + '.000000'
-		normalised_row['EPOCH'] = epoch
+			tle_data = self._parse_tle_lines(response.text.splitlines(), f'{source} response for {data_key}')
+			self._write_tle_cache(data_filename, response.text)
+			self.log(4, f'INFO: {data_key} downloaded from {source}')
+			return tle_data
 
-		return normalised_row
+		self.log(4, f'INFO: {data_key} loaded from {source} cache, elements are {self._format_file_age(file_age)} old')
+		return self._read_tle_file(data_filename)
 
-	def _read_omm_csv_file_as_tle(self, data_filename):
+	def _fetch_tle_data(self, data_key):
 		tle_data = {}
-		with open(data_filename, newline='', encoding="utf-8") as file:
-			for counter, row in enumerate(csv.DictReader(file)):
-				normalised_row = self._normalise_omm_row(row)
-				sat = EarthSatellite.from_omm(self._ts, normalised_row)
-				line2, line3 = export_tle(sat.model)
-				tle_data[counter] = {
-					'line1': sat.name if sat.name else normalised_row.get('OBJECT_NAME', ''),
-					'line2': line2,
-					'line3': line3
-				}
+		last_error = None
 
-		return tle_data
-
-	def _fetch_tle_from_celestrak(self, data_key, verify=True):
-		tle_data = {}
 		try:
-		
-			self.log(4, f'INFO: Loading Satellite {data_key}', True)
+			data_key = str(data_key).strip()
+			if not data_key:
+				raise ValueError('TLE data key cannot be blank')
 
-			data_format = self._get_celestrak_data_format(data_key)
-			data_extension = 'tle' if data_format == 'old' else 'csv'
-			data_filename = os.path.join(self._overlay_tle_folder , f'{data_key}.{data_extension}')
+			self.log(4, f'INFO: Loading Satellite {data_key}', True)
 			allsky_shared.createTempDir(self._overlay_tle_folder)
 
-			if os.path.exists(data_filename):
-				file_modified_time = int(os.path.getmtime(data_filename))
-				file_age = int(time.time()) - file_modified_time
-				file_age = file_age / 60 / 60 / 24
-			else:
-				file_age = 9999
-
-			if file_age > 2:
-				url, params = self._get_celestrak_request(data_key, data_format)
-				timeout = 5 if data_key[0].isdigit() else 10
-				response = requests.get(url, params=params, timeout=timeout)
-				response.raise_for_status()
-
-				if response.text.strip() == 'No GP data found':
-					raise LookupError(f'No CelesTrak GP data found for {data_key}')
-
-				self._write_celestrak_cache(data_filename, response.text)
-				self.log(4, f'INFO: {data_key} file over 2 days old so downloaded')
-
-			if data_format == 'old':
-				tle_data = self._read_tle_file(data_filename)
-			else:
-				tle_data = self._read_omm_csv_file_as_tle(data_filename)
-
-				if file_age <= 2:
-					self.log(4, f'INFO: {data_key} loaded from cache, elements are {self._format_file_age(file_age)} old')
+			sources = self._get_tle_source_order(self._get_tle_source(data_key))
+			for index, source in enumerate(sources):
+				try:
+					tle_data = self._load_tle_from_source(source, data_key)
+					if tle_data:
+						return tle_data
+				except Exception as e:
+					last_error = e
+					if index < len(sources) - 1:
+						self.log(0, f'WARNING: Unable to load TLE data for {data_key} from {source}; trying {sources[index + 1]} - {e}')
+					else:
+						self.log(0, f'ERROR: Unable to load TLE data for {data_key} from {source} - {e}')
 		except Exception as e:
-			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f"ERROR in {__file__}: _fetch_tle_from_celestrak failed on line {eTraceback.tb_lineno} - {e}")
-   
+			last_error = e
+
+		if last_error is not None:
+			self.log(0, f"ERROR in {__file__}: _fetch_tle_data failed for {data_key} - {last_error}")
+
 		return tle_data
 
 	def _tz_dt(self, d: dt.datetime, tzname: str) -> dt.datetime:
@@ -1231,7 +1251,11 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 				norad_ids.append('25544')
 			
 			for norad_id in norad_ids:
-				tle_data = self._fetch_tle_from_celestrak(norad_id.strip())
+				tle_data = self._fetch_tle_data(norad_id.strip())
+				if not tle_data:
+					self.log(0, f'ERROR: No TLE data available for {norad_id}')
+					continue
+
 				sat = EarthSatellite(
 					tle_data[0]['line2'],
 					tle_data[0]['line3'],
