@@ -1,0 +1,43 @@
+{
+    "icon": "fas fa-chart-line",
+    "group": "Lens Check",
+    "title": "Star Width",
+    "type": "line",
+    "main": true,
+    "table": "allsky_lenscheck",
+    "yAxis": [
+        {
+            "title": {
+                "text": "Star width (px)"
+            },
+            "min": 0
+        },
+        {
+            "title": {
+                "text": "Against normal"
+            },
+            "min": 0,
+            "opposite": true,
+            "plotLines": [
+                {
+                    "value": 1.6,
+                    "color": "#DF5353",
+                    "width": 1,
+                    "dashStyle": "Dash"
+                }
+            ]
+        }
+    ],
+    "series": [
+        {
+            "name": "Star width",
+            "yAxis": 0,
+            "variable": "AS_LENSCHECK_FWHM|true"
+        },
+        {
+            "name": "Against normal",
+            "yAxis": 1,
+            "variable": "AS_LENSCHECK_RATIO"
+        }
+    ]
+}
