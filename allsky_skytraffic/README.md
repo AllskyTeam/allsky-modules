@@ -104,8 +104,8 @@ On the author's camera, one night (299 images, 42-90 s exposures):
   COSMOS 2151 and FENGYUN 3C, all within 5 px of the predicted track. The same
   night with the time shifted by 10 minutes found none.
 - **Moving streaks:** none of the 12 streaks the Meteor Detection module
-  rejected as moving matched a satellite. They are most likely aircraft: the
-  camera is 20 km from an airport.
+  rejected as moving matched a satellite. The one checked by eye was an
+  aircraft; there were no aircraft positions for that night.
 - **Aircraft**, one evening (85 images, 19:46–22:05), with adsb.fi positions logged every 15 s:
   - 9 aircraft trails in the images lay within 15 px of their predicted tracks. With the aircraft data shifted by 2 minutes, none did.
   - The Meteor Detection module had saved a "meteor" at 20:03. Sky Traffic flagged it as lying on the track of the aircraft NSZ3748, 12 px away, which checked by eye was right. With the shifted data it wasn't flagged.
