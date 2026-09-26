@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "module": "allsky_lenscheck",
+  "generated_utc": "2026-09-26T11:30:21Z",
+  "hash_algorithm": "sha256",
+  "files": {
+    "README.md": {
+      "sha256": "1eaf41896c17f5269ec1e5a8d1228c007403f682f657ab261975feffb9fb1612",
+      "size": 3380,
+      "mode": "644"
+    },
+    "allsky_lenscheck.py": {
+      "sha256": "5bbbfcc2bb15f8a0ffa24c1b322be31db2121cf5c708698fb0f6666d3433a5e7",
+      "size": 16780,
+      "mode": "644"
+    },
+    "allsky_lenscheck/stars.json": {
+      "sha256": "bb61b2af4439df599ba108796da5183d62062293b2b4f4248a91b16c22dba51a",
+      "size": 133695,
+      "mode": "644"
+    },
+    "charts/star_width_chart.json": {
+      "sha256": "3d9b8febb1f9720f33c950d0dba901b47fd52f6baa30f5aa6e9e4dbc60a256cf",
+      "size": 957,
+      "mode": "644"
+    }
+  },
+  "file_count": 4
+}
