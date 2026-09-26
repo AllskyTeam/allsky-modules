@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "module": "allsky_targetwatch",
+  "generated_utc": "2026-09-26T10:43:00Z",
+  "hash_algorithm": "sha256",
+  "files": {
+    "README.md": {
+      "sha256": "a1a6a65a3a9ac10631ff12c328179dc9d84a446f0956cd323e07237afe2483c4",
+      "size": 4153,
+      "mode": "644"
+    },
+    "allsky_targetwatch.py": {
+      "sha256": "0929cee68f2fba1a517964562cf0eb58477ddbf26879d6f3da515e6bfd8d0bd1",
+      "size": 32562,
+      "mode": "644"
+    },
+    "allsky_targetwatch/messier.json": {
+      "sha256": "f6e220ed5b93de4952607dbb352a0582bd4dc631a864a1485378a412ce6c7b29",
+      "size": 3769,
+      "mode": "644"
+    },
+    "allsky_targetwatch/stars.json": {
+      "sha256": "bb61b2af4439df599ba108796da5183d62062293b2b4f4248a91b16c22dba51a",
+      "size": 133695,
+      "mode": "644"
+    },
+    "charts/sky_clear_gauge.json": {
+      "sha256": "c252270dd3bde0f2a32924ecc5b8d99f49823bb8baf6acda290a455e9d1036bf",
+      "size": 992,
+      "mode": "644"
+    },
+    "charts/target_clear_chart.json": {
+      "sha256": "e5d290610c73a7eb45d5363c24f56c14359571f2a5d27223b71501798b7fe890",
+      "size": 1129,
+      "mode": "644"
+    }
+  },
+  "file_count": 6
+}
