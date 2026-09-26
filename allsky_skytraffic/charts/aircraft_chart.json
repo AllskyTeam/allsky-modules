@@ -1,0 +1,24 @@
+{
+    "icon": "fas fa-plane",
+    "group": "Sky Traffic",
+    "title": "Aircraft",
+    "type": "column",
+    "main": true,
+    "table": "allsky_skytraffic",
+    "yAxis": [
+        {
+            "title": {
+                "text": "Aircraft in the image"
+            },
+            "min": 0,
+            "allowDecimals": false
+        }
+    ],
+    "series": [
+        {
+            "name": "Aircraft",
+            "yAxis": 0,
+            "variable": "AS_SKYTRAFFIC_AIRCRAFT|true"
+        }
+    ]
+}
