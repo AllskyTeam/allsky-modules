@@ -1,0 +1,46 @@
+{
+    "icon": "fas fa-chart-bar",
+    "group": "Sky Traffic",
+    "title": "Named Streaks",
+    "type": "column",
+    "main": true,
+    "table": "allsky_skytraffic",
+    "yAxis": [
+        {
+            "title": {
+                "text": "Rejected streaks per image"
+            },
+            "min": 0,
+            "allowDecimals": false
+        }
+    ],
+    "hc": {
+        "plotOptions": {
+            "column": {
+                "stacking": "normal"
+            }
+        }
+    },
+    "series": [
+        {
+            "name": "Satellites",
+            "yAxis": 0,
+            "variable": "AS_SKYTRAFFIC_NAMED_SATS|true"
+        },
+        {
+            "name": "Aircraft",
+            "yAxis": 0,
+            "variable": "AS_SKYTRAFFIC_NAMED_AIRCRAFT|true"
+        },
+        {
+            "name": "Unknown",
+            "yAxis": 0,
+            "variable": "AS_SKYTRAFFIC_UNNAMED|true"
+        },
+        {
+            "name": "Meteors on a known track",
+            "yAxis": 0,
+            "variable": "AS_SKYTRAFFIC_METEOR_SUSPECT|true"
+        }
+    ]
+}
