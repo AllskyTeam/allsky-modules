@@ -3,10 +3,11 @@ allsky_lightgraph.py
 Part of allsky prostprocess.py modules.
 https://github.com/AllskyTeam/allsky
 
-This modules draw a 24-hour long graph showing:
+This module draws a 24-hour long graph showing:
 	sunrise and sunset
 	dawn and dusk  (civil, nautical and astronomical)
 	sun transit (noon) and anti-transit (midnight)
+and optionally an annual graph of astronomical darkness.
 Expected parameters:
 	Size and positioning
 	Coloring and transparency
@@ -32,9 +33,45 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 		],
 		"experimental": "false",
 		"centersettings": "false",	
-		"version": "v0.6",
+		"version": "v0.8",
 		"module": "allsky_lightgraph",
 		"group": "Image Adjustments",
+		"changelog": {
+			"v0.6": [
+				{
+					"author": "Carlos Gil",
+					"authorurl": "https://github.com/ea1ii",
+					"changes": "Previous release"
+				},
+				{
+					"author": "AllskyTeam",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Partially migrated to new module format"
+				}
+			],
+			"v0.7": [
+				{
+					"author": "Carlos Gil",
+					"authorurl": "https://github.com/ea1ii",
+					"changes": [
+						"Removed code for publihing variables (no longer needed)",
+						"Added Thickness parameter for elevation graph lines",
+						"Added option to draw annual darkness graph"
+					]
+				}
+			],
+			"v0.8": [
+				{
+					"author": "Carlos Gil",
+					"authorurl": "https://github.com/ea1ii",
+					"changes": [
+						"Fixed annual map noon-to-noon alignment",
+						"Added local-time and daylight-saving support to annual solar calculations",
+						"Reversed the annual map time axis and added time labels"
+					]
+				}
+			]
+		},
 		"arguments": {
 			"border_color": "30 190 40",
 			"light_color": "240 240 240",
@@ -58,6 +95,17 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			"elev_vert_pos": 10,
 			"elev_width": 300,
 			"elev_height": 100,
+			"elev_thickness": 2,
+			"draw_annual": "false",
+			"annual_color": "30 190 40",
+			"Marker": "0 0 255",
+			"annual_alpha": 0.75,
+			"annual_axis": "Previous noon to next noon",
+			"annual_granularity": 10,
+			"annual_width": 500,
+			"annual_height": 150,
+			"annual_horiz_pos": 260,
+			"annual_vert_pos": 100,
 			"debug": "False"
 		},
 		"argumentdetails": {
@@ -281,7 +329,129 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 					"step": 1
 				}
 			},
-		"debug": {
+			"elev_thickness": {
+				"required": "true",
+				"description": "Thickness",
+				"help": "Thickness for the elevation graph.",
+				"default": 2,
+				"tab": "Elevation",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 1,
+					"max": 5,
+					"step": 1
+				}
+			},			
+			"draw_annual": {
+				"required": "false",
+				"description": "Draw annual darkness graph",
+				"help": "Shows astronomical-dark hours for each day of the year.",
+				"tab": "Annual",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"annual_color": {
+				"required": "true",
+				"description": "Annual graph border color",
+				"help": "BGR format. The graph uses the main graph colors for its bands.",
+				"tab": "Annual",
+				"type": {
+					"fieldtype": "colour"
+				}
+			},
+			"Marker": {
+				"required": "true",
+				"description": "Current date and time marker color",
+				"help": "BGR format. Draws a vertical date line and horizontal time line.",
+				"tab": "Annual",
+				"type": {
+					"fieldtype": "colour"
+				}
+			},
+			"annual_alpha": {
+				"required": "true",
+				"description": "Annual graph transparency",
+				"help": "From 0 (invisible) to 1 (opaque).",
+				"tab": "Annual",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0.10,
+					"max": 1.00,
+					"step": 0.05
+				}
+			},
+			"annual_axis": {
+				"required": "true",
+				"description": "Annual graph time axis",
+				"help": "Choose a midnight-to-midnight or previous-noon-to-next-noon day.",
+				"tab": "Annual",
+				"type": {
+					"fieldtype": "select",
+					"values": "0 to 24 hours, Previous noon to next noon"
+				}
+			},
+			"annual_granularity": {
+				"required": "true",
+				"description": "Annual graph granularity",
+				"help": "10 uses 15-minute bands. 1 makes bands approximately one pixel high.",
+				"tab": "Annual",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 1,
+					"max": 10,
+					"step": 1
+				}
+			},
+			"annual_width": {
+				"required": "true",
+				"description": "Width",
+				"help": "Total width for the annual graph.",
+				"tab": "Annual",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 200,
+					"max": 2000,
+					"step": 1
+				}
+			},
+			"annual_height": {
+				"required": "true",
+				"description": "Height",
+				"help": "Total height for the annual graph.",
+				"tab": "Annual",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 80,
+					"max": 1000,
+					"step": 1
+				}
+			},
+			"annual_horiz_pos": {
+				"required": "true",
+				"description": "Left border position in px",
+				"help": "",
+				"tab": "Annual",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 2000,
+					"step": 1
+				}
+			},
+			"annual_vert_pos": {
+				"required": "true",
+				"description": "Top border position in px",
+				"help": "",
+				"tab": "Annual",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 0,
+					"max": 2000,
+					"step": 1
+				}
+			},
+			"debug": {
 				"required": "false",
 				"description": "Enable debug mode",
 				"help": "If selected image will not be updated but stored in allsky tmp debug folder.",
@@ -290,16 +460,18 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 					"fieldtype": "checkbox"
 				}
 			}
-
 		}
 	}
 
 	border_color = light_color = dark_color = text_color =None
 	day2civil_color = civil2nauti_color = nauti2astro_color = None
 	elev_color = sun_solor = moon_color = None
+	elev_thickness = 2
 	latitude = longitude = 0
 	graph_X = graph_Y = graph_width = graph_height = 0
-	elev_X = elev_Y = elev_width = elev_height = 0
+	elev_X = elev_Y =                   elev_width = elev_height = 0
+	annual_X = annual_Y = annual_width = annual_height = 0
+	annual_sample_count = 96
 	npoints = res = 0
 	startTime = finishTime = nowTime = datetime.datetime.now()
 	startTimeUTC = finishTimeUTC = nowTimeUTC = datetime.datetime.utcnow()
@@ -307,6 +479,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 	location = None
 	timeArray = []
 	sunPath = moonPath = []
+	annual_bands = []
 
 	def __init__(self, debug, params, event):
 		super().__init__(params, event)
@@ -315,7 +488,10 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 		self.set_time(debug, params)
 		self.calculations(debug, params)
 		if params["draw_elev"] == True:
+			self.elev_thickness = int(params["elev_thickness"])
 			self.calSunMoon(params)
+		if params["draw_annual"] == True:
+			self.calAnnualDarkness(params)
 
 	def _readColor(self, input):
 		if input.count(' ') >= 2:
@@ -345,6 +521,11 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			self.elev_color = self._readColor(params["elev_color"])
 			self.sun_color = self._readColor(params["sun_color"])
 			self.moon_color = self._readColor(params["moon_color"])
+			# self.elev_thickness = int(params["elev_thickness"])
+
+		if params["draw_annual"] == True:
+			self.annual_color = self._readColor(params["annual_color"])
+			self.annual_marker = self._readColor(params["Marker"])
 				
 	def set_size(self, debug, params):
 		self.image_width = allsky_shared.image.shape[1]
@@ -391,7 +572,19 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			if (self.elev_X + self.elev_width) > self.image_width:
 				self.elev_X = self.image_width - self.elev_width
 			if (self.elev_Y + self.elev_height) > self.image_height:
-				self.elev_Y = self.image_height - self.elev_height            
+				self.elev_Y = self.image_height - self.elev_height           	 
+
+		if params["draw_annual"] == True:
+			self.annual_width = min(int(params["annual_width"]), self.image_width)
+			self.annual_height = min(int(params["annual_height"]), self.image_height)
+			self.annual_X = int(params["annual_horiz_pos"])
+			self.annual_Y = int(params["annual_vert_pos"])
+			if self.annual_X + self.annual_width > self.image_width:
+				self.annual_X = self.image_width - self.annual_width
+			if self.annual_Y + self.annual_height > self.image_height:
+				self.annual_Y = self.image_height - self.annual_height
+			self.annual_X = max(0, self.annual_X)
+			self.annual_Y = max(0, self.annual_Y)
 
 	def set_time(self, debug, params):
 
@@ -593,6 +786,49 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			moon.compute(self.location)
 			self.moonPath = self.moonPath + [(x * self.res, int(degrees(moon.alt) / 90.0 * self.elev_height / 2.0))]
 
+	def calAnnualDarkness(self, params):
+		self.annual_bands = []
+		granularity = max(1, min(10, int(params.get("annual_granularity", 10))))
+		pixel_samples = max(2, self.annual_height - 22)
+		self.annual_sample_count = int(round(pixel_samples +
+			(granularity - 1) * (96 - pixel_samples) / 9.0))
+		self.annual_sample_count = max(2, self.annual_sample_count)
+		if self.annual_sample_count % 2:
+			self.annual_sample_count += 1
+		start = datetime.datetime(self.nowTime.year, 1, 1)
+		noon_to_noon = self._annualNoonToNoon(params)
+		end = datetime.datetime(self.nowTime.year + 1, 1, 1)
+		days = (end - start).days
+		sun = ephem.Sun()
+		for day in range(days):
+			date = start + datetime.timedelta(days=day)
+			bands = []
+			sample_minutes = 1440.0 / self.annual_sample_count
+			axis_start_minutes = -720.0 if noon_to_noon else 0.0
+			for sample in range(self.annual_sample_count):
+				moment = date + datetime.timedelta(minutes=axis_start_minutes +
+					(sample + 0.5) * sample_minutes)
+				moment_utc = moment.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+				self.location.date = ephem.Date(moment_utc)
+				sun.compute(self.location)
+				altitude = degrees(sun.alt)
+				if altitude < -18.0:
+					band = 0
+				elif altitude < -12.0:
+					band = 1
+				elif altitude < -6.0:
+					band = 2
+				elif altitude < 0.0:
+					band = 3
+				else:
+					band = 4
+				bands.append(band)
+			self.annual_bands.append(bands)
+
+	def _annualNoonToNoon(self, params):
+		axis = str(params.get("annual_axis", "0 to 24 hours")).strip().lower()
+		return "noon" in axis
+
 	def _azMidDarkness(self, dt1, dt2):
 		tdelta = (dt2 - dt1).total_seconds()
 		tmid = dt1 + datetime.timedelta(seconds=tdelta/2)
@@ -719,7 +955,7 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 			# hours
 			startingX = (firstIntHourTime - self.startTime).total_seconds() / 3600.0 / 24.0 * self.elev_width + self.elev_X
 			hourdeltaPx = self.elev_width / 24.0
-			yy = self.elev_Y
+			
 			onlyHour = firstIntHourTime.hour               
 			for i in range(25):
 				xPos = int(startingX + i * hourdeltaPx)
@@ -743,13 +979,80 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 						self.elev_Y + int(self.elev_height / 2.0) - self.sunPath[i][1]), \
 					pt2=(self.elev_X + int((i + 1) * self.res), \
 						self.elev_Y + int(self.elev_height / 2.0) - self.sunPath[i + 1][1]), \
-					thickness=1, color=self.sun_color)
+					thickness=self.elev_thickness, color=self.sun_color)
 				cv2.line(img=canvas, \
 					pt1=(self.elev_X + int(i * self.res), \
 						self.elev_Y + int(self.elev_height / 2.0) - self.moonPath[i][1]), \
 					pt2=(self.elev_X + int((i + 1) * self.res), \
 						self.elev_Y + int(self.elev_height / 2.0) - self.moonPath[i + 1][1]), \
-					thickness=1, color=self.moon_color)
+					thickness=self.elev_thickness, color=self.moon_color)
+
+		if params["draw_annual"] is True:
+			annual_canvas = canvas.copy()
+			left = self.annual_X + 30
+			top = self.annual_Y + 4
+			right = self.annual_X + self.annual_width - 4
+			bottom = self.annual_Y + self.annual_height - 18
+			band_colors = (self.dark_color, self.nauti2astro_color,
+				self.civil2nauti_color, self.day2civil_color, self.light_color)
+			if right > left and bottom > top and self.annual_bands:
+				plot_width = right - left
+				plot_height = bottom - top
+				annual_text_size = 0.25 * self.annual_height / 150.0
+				n_days = len(self.annual_bands)
+				for day, bands in enumerate(self.annual_bands):
+					x1 = left + int(day * plot_width / n_days)
+					x2 = left + int((day + 1) * plot_width / n_days)
+					x2 = max(x1 + 1, x2)
+					n_samples = len(bands)
+					for sample, band in enumerate(bands):
+						y1 = bottom - int((sample + 1) * plot_height / n_samples)
+						y2 = bottom - int(sample * plot_height / n_samples)
+						cv2.rectangle(annual_canvas, (x1, y1), (x2, y2),
+							band_colors[band], cv2.FILLED)
+
+				label_font = cv2.FONT_HERSHEY_SIMPLEX
+				label_x = self.annual_X + 5
+				label_step = 6
+				if self._annualNoonToNoon(params):
+					labels = range(-12, 13, label_step)
+				else:
+					labels = range(0, 25, label_step)
+				label_height = cv2.getTextSize("-12", label_font, annual_text_size, 1)[0][1]
+				for label in labels:
+					fraction = ((label + 12) / 24.0 if self._annualNoonToNoon(params)
+						else label / 24.0)
+					label_y = bottom - int(fraction * plot_height)
+					label_y = max(top + label_height, min(bottom, label_y))
+					cv2.putText(annual_canvas, str(label), (label_x, label_y),
+						label_font, annual_text_size, self.annual_color, 1, cv2.LINE_AA)
+
+				for month in range(12):
+					month_start = (datetime.datetime(self.nowTime.year, month + 1, 1) -
+						datetime.datetime(self.nowTime.year, 1, 1)).days
+					x = left + int(month_start * plot_width / n_days)
+					cv2.putText(annual_canvas, datetime.date(2000, month + 1, 1).strftime("%b")[0].upper(),
+						(x, self.annual_Y + self.annual_height - 4), cv2.FONT_HERSHEY_SIMPLEX,
+						annual_text_size, self.annual_color, 1, cv2.LINE_AA)
+
+				cv2.rectangle(annual_canvas, (self.annual_X, self.annual_Y),
+					(self.annual_X + self.annual_width, self.annual_Y + self.annual_height),
+					self.annual_color, 1)
+
+				day_of_year = self.nowTime.timetuple().tm_yday - 1
+				date_x = left + int((day_of_year + 0.5) * plot_width / n_days)
+				time_fraction = (
+					self.nowTime.hour * 3600 +
+					self.nowTime.minute * 60 +
+					self.nowTime.second
+				) / 86400.0
+				if self._annualNoonToNoon(params):
+					time_fraction = (time_fraction - 0.5) % 1.0
+				time_y = bottom - int(time_fraction * plot_height)
+				cv2.line(annual_canvas, (date_x, top), (date_x, bottom), self.annual_marker, 2)
+				cv2.line(annual_canvas, (left, time_y), (right, time_y), self.annual_marker, 2)
+			annual_alpha = float(params["annual_alpha"])
+			canvas = cv2.addWeighted(annual_canvas, annual_alpha, canvas, 1 - annual_alpha, 0)
 
 		if alpha < 1.0:
 			tmpcanv = cv2.addWeighted(canvas, alpha, allsky_shared.image, 1 - alpha, 0)
@@ -757,34 +1060,12 @@ class ALLSKYLIGHTGRAPH(ALLSKYMODULEBASE):
 		else:
 			allsky_shared.image = canvas
 
-	def exportData(self):
-		# this is temporary until allsky exports all relevant datetimes
-		sun = ephem.Sun()
-
-		t = datetime.datetime.utcnow()
-		self.location.horizon = 0
-
-		self.location.date = ephem.Date(t)
-
-		sun.compute(self.location)
-		sun_alt = "{:.3f}".format(degrees(sun.alt))
-		sun_az = "{:.3f}".format(degrees(sun.az))
-
-		self.location.date = ephem.Date(self.startTime)
-
-		moon = ephem.Moon()
-		moon.compute(self.location)
-		moon_trans = ephem.localtime(self.location.next_transit(ephem.Moon())).time().strftime("%H:%M")
-		moon_atran = ephem.localtime(self.location.next_antitransit(ephem.Moon())).time().strftime("%H:%M")
-		moon_rise = ephem.localtime(self.location.next_rising(ephem.Moon())).time().strftime("%H:%M")
-		moon_set = ephem.localtime(self.location.next_setting(ephem.Moon())).time().strftime("%H:%M")
-
 def lightgraph(params, event):
 	allsky_shared.startModuleDebug("allsky_lightgraph")
 
 	debug = params["debug"]
 	drawer = ALLSKYLIGHTGRAPH(debug, params, event)
-	drawer.exportData()
+
 	drawer.draw(params)
 	result ="Light Graph Complete"
 
