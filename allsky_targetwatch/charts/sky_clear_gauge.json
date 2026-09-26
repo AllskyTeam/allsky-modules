@@ -1,0 +1,35 @@
+{
+    "title": "Clear Sky (Stars)",
+    "icon": "fa-solid fa-gauge",
+    "type": "gauge",
+    "group": "Target Watch",
+    "table": "allsky_targetwatch",
+    "hc": {
+        "yAxis": [
+            {
+                "min": 0,
+                "max": 100,
+                "tickInterval": 10,
+                "tickPosition": "inside",
+                "lineWidth": 0,
+                "labels": {
+                    "distance": 20,
+                    "style": {
+                        "fontSize": "12px"
+                    }
+                },
+                "plotBands": [
+                    { "from": 0, "to": 30, "color": "#DF5353", "thickness": 30 },
+                    { "from": 30, "to": 70, "color": "#DDDF0D", "thickness": 30 },
+                    { "from": 70, "to": 100, "color": "#55BF3B", "thickness": 30 }
+                ]
+            }
+        ]
+    },
+    "series": [
+        {
+            "name": "Clear sky",
+            "variable": "AS_TARGETWATCH_SKY"
+        }
+    ]
+}
