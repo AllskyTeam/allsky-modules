@@ -1,0 +1,39 @@
+{
+    "icon": "fas fa-chart-line",
+    "group": "Sky Map",
+    "title": "Limiting Magnitude",
+    "type": "line",
+    "main": true,
+    "table": "allsky_skymap",
+    "yAxis": [
+        {
+            "title": {
+                "text": "Limiting magnitude"
+            }
+        },
+        {
+            "title": {
+                "text": "Sky background (0-255)"
+            },
+            "min": 0,
+            "opposite": true
+        }
+    ],
+    "series": [
+        {
+            "name": "Zenith",
+            "yAxis": 0,
+            "variable": "AS_SKYMAP_LM_ZENITH|true"
+        },
+        {
+            "name": "Mean of the directions",
+            "yAxis": 0,
+            "variable": "AS_SKYMAP_LM_MEAN"
+        },
+        {
+            "name": "Background at the zenith",
+            "yAxis": 1,
+            "variable": "AS_SKYMAP_BG_ZENITH"
+        }
+    ]
+}
