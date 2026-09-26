@@ -490,6 +490,7 @@ _MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATE_FILE = os.path.join(s.ALLSKY_TMP, "allsky_skytraffic_state.json")
 PREV_FRAME = os.path.join(s.ALLSKY_TMP, "allsky_skytraffic_prev.png")
 CELESTRAK = "https://celestrak.org/NORAD/elements/gp.php?GROUP={}&FORMAT=tle"
+HEADERS = {"User-Agent": "Allsky-SkyTraffic/0.1 (+https://github.com/AllskyTeam/allsky-modules)"}
 BRIGHT_GROUPS = ("stations", "visual")     # the pass list is made from these
 STATIONS = ("ISS (ZARYA)", "CSS (TIANHE)")
 UNIX_EPOCH = 25567.5                       # ephem.Date('1970/1/1')
@@ -584,7 +585,7 @@ def _download(groups, refresh_h, st, module):
             continue
         tried[g] = time.time()
         try:
-            r = requests.get(CELESTRAK.format(g), timeout=30)
+            r = requests.get(CELESTRAK.format(g), timeout=30, headers=HEADERS)
             lines = [ln.rstrip() for ln in r.text.splitlines() if ln.strip()]
             if r.status_code != 200 or len(lines) < 3 or not lines[1].startswith("1 "):
                 raise ValueError(f"HTTP {r.status_code}: {r.text[:80]!r}")
@@ -729,7 +730,7 @@ def _fetchAircraft(params, lat, lon):
         url = f"https://api.adsb.lol/v2/point/{lat:.4f}/{lon:.4f}/{nm}"
     else:
         return [], time.time()
-    r = requests.get(url, timeout=8)
+    r = requests.get(url, timeout=8, headers=HEADERS)
     r.raise_for_status()
     d = r.json()
     return d.get("aircraft") or d.get("ac") or [], float(d.get("now") or time.time())

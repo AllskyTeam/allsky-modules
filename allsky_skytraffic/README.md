@@ -106,9 +106,11 @@ On the author's camera, one night (299 images, 42-90 s exposures):
 - **Moving streaks:** none of the 12 streaks the Meteor Detection module
   rejected as moving matched a satellite. They are most likely aircraft: the
   camera is 20 km from an airport.
-- **Aircraft:** positions from adsb.fi agree with adsb.fi's own direction and
-  distance to 0.3°. Naming aircraft streaks has not yet been checked against
-  real trails.
+- **Aircraft**, one evening (85 images, 19:46–22:05), with adsb.fi positions logged every 15 s:
+  - 9 aircraft trails in the images lay within 15 px of their predicted tracks. With the aircraft data shifted by 2 minutes, none did.
+  - The Meteor Detection module had saved a "meteor" at 20:03. Sky Traffic flagged it as lying on the track of the aircraft NSZ3748, 12 px away, which checked by eye was right. With the shifted data it wasn't flagged.
+  - The 6 streaks rejected as moving that evening were drifting cloud and contrail structures. None of them was named, with or without the shift.
+  - Positions from adsb.fi agree with adsb.fi's own direction and distance to 0.3°.
 
 ## Limits
 
