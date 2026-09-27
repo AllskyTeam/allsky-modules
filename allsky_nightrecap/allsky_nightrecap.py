@@ -37,7 +37,7 @@ class ALLSKYNIGHTRECAP(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Night Recap",
         "description": "Every morning one picture and one short video of the night: clear hours, meteors, satellites, aurora",
-        "version": "v0.1.0",
+        "version": "v0.1.1",
         "module": "allsky_nightrecap",
         "events": [
             "nightday"
@@ -173,10 +173,7 @@ class ALLSKYNIGHTRECAP(ALLSKYMODULEBASE):
                 "required": "false",
                 "description": "Meteor Detection folder",
                 "help": "Where the Meteor Detection module writes meteors.json. Empty = its default, the Website's meteors folder.",
-                "tab": "Sources",
-                "type": {
-                    "fieldtype": "text"
-                }
+                "tab": "Sources"
             },
             "publish_web": {
                 "required": "false",
@@ -191,13 +188,17 @@ class ALLSKYNIGHTRECAP(ALLSKYMODULEBASE):
                 "required": "false",
                 "description": "Notify URL",
                 "help": "Optional. The one-line recap is sent to this URL with an HTTP POST, e.g. https://ntfy.sh/your-topic.",
-                "tab": "Sources",
-                "type": {
-                    "fieldtype": "text"
-                }
+                "tab": "Sources"
             }
         },
         "changelog": {
+            "v0.1.1": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": "Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\")"
+                }
+            ],
             "v0.1.0": [
                 {
                     "author": "Benjamin Hartwich",

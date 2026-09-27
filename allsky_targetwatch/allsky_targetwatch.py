@@ -45,7 +45,7 @@ class ALLSKYTARGETWATCH(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Target Watch",
         "description": "Tells whether the sky around your targets (planets, Messier objects, your own) is clear, and whether clouds or a gap are coming",
-        "version": "v0.1.0",
+        "version": "v0.1.1",
         "module": "allsky_targetwatch",
         "events": [
             "night"
@@ -205,10 +205,7 @@ class ALLSKYTARGETWATCH(ALLSKYMODULEBASE):
                 "required": "false",
                 "description": "Targets",
                 "help": "Up to 5, separated by commas: the Moon and planets (Moon, Venus, Mars, Jupiter, Saturn, ...), Messier objects (M31, M 42) or their names (Andromeda Galaxy, Pleiades), or your own as Name=RA,Dec with RA in hours or h:m:s and Dec in degrees or d:m:s, e.g. NAN=20:59:17,+44:31:44.",
-                "tab": "Targets",
-                "type": {
-                    "fieldtype": "text"
-                }
+                "tab": "Targets"
             },
             "radius": {
                 "required": "false",
@@ -262,10 +259,7 @@ class ALLSKYTARGETWATCH(ALLSKYMODULEBASE):
                 "required": "true",
                 "description": "Fisheye calibration file",
                 "help": "calibration.json in the modules folder, made with the Meteor Detection module's tools/calibrate_fisheye.py. Needed: a star must be found within a few pixels of where it should be.",
-                "tab": "Targets",
-                "type": {
-                    "fieldtype": "text"
-                }
+                "tab": "Targets"
             },
             "forecast": {
                 "required": "false",
@@ -280,10 +274,7 @@ class ALLSKYTARGETWATCH(ALLSKYMODULEBASE):
                 "required": "false",
                 "description": "Notify URL",
                 "help": "Optional. When a target becomes clear (and stays clear on the next image), a short text is sent to this URL with an HTTP POST, at most once an hour per target. Works with ntfy (https://ntfy.sh/your-topic) and anything else that takes a plain text POST.",
-                "tab": "Forecast",
-                "type": {
-                    "fieldtype": "text"
-                }
+                "tab": "Forecast"
             },
             "publish_web": {
                 "required": "false",
@@ -312,6 +303,13 @@ class ALLSKYTARGETWATCH(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
+            "v0.1.1": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": "Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\")"
+                }
+            ],
             "v0.1.0": [
                 {
                     "author": "Benjamin Hartwich",

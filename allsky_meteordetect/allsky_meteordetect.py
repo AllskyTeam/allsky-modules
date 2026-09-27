@@ -30,7 +30,7 @@ import numpy as np
 metaData = {
     "name": "Meteor Detection (temporal)",
     "description": "Detects meteors via frame differencing and separates them from satellites/aircraft",
-    "version": "v0.6.1",
+    "version": "v0.6.2",
     "events": [
         "night"
     ],
@@ -289,8 +289,7 @@ metaData = {
             "tab": "Saving",
             "required": "false",
             "description": "Output Folder",
-            "help": "Where meteor images are written (with a thumbnails/ subfolder). Empty = website meteors folder.",
-            "type": {"fieldtype": "text"}
+            "help": "Where meteor images are written (with a thumbnails/ subfolder). Empty = website meteors folder."
         },
         "save_webui": {
             "tab": "Saving",
@@ -334,6 +333,13 @@ metaData = {
         }
     },
     "changelog": {
+        "v0.6.2": [
+            {
+                "author": "Benjamin Hartwich",
+                "authorurl": "https://astronomy.garden",
+                "changes": "Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\")"
+            }
+        ],
         "v0.1.0": [
             {
                 "author": "Benjamin Hartwich",
