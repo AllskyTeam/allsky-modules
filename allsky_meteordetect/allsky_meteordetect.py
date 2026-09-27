@@ -337,7 +337,7 @@ metaData = {
             {
                 "author": "Benjamin Hartwich",
                 "authorurl": "https://astronomy.garden",
-                "changes": "Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\")"
+                "changes": "Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\"). Column charts use a time axis, so the History tab and the Charts page show times instead of raw timestamps"
             }
         ],
         "v0.1.0": [

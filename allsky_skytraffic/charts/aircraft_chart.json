@@ -20,5 +20,10 @@
             "yAxis": 0,
             "variable": "AS_SKYTRAFFIC_AIRCRAFT|true"
         }
-    ]
+    ],
+    "hc": {
+        "xAxis": {
+            "type": "datetime"
+        }
+    }
 }
