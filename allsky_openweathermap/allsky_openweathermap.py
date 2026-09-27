@@ -9,10 +9,16 @@ This module will retrieve data from the Open Weather Map API
 '''
 import allsky_shared as allsky_shared
 from allsky_base import ALLSKYMODULEBASE
+import os
 import sys
+import json
 import requests
 from meteocalc import heat_index
 from meteocalc import dew_point, Temp
+
+REQUEST_TIMEOUT = 15      # seconds; without it a dead connection hangs the flow
+REPORT_AFTER = 3          # failed downloads in a row before it becomes a WebUI message
+FAILURE_FILE = os.path.join(allsky_shared.ALLSKY_TMP, "allsky_openweathermap_failures.json")
 
 class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 
@@ -21,7 +27,7 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 		"description": "Obtain weather data from the Open Weather Map service",
 		"docs": "docs/allsky_modules/extra/owm.html",  
 		"module": "allsky_openweathermap",
-		"version": "v1.0.2",
+		"version": "v1.0.3",
 		"centersettings": "false",
 		"testable": "true",
 		"extradatafilename": "allsky_openweathermap.json",
@@ -257,7 +263,18 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 					"authorurl": "https://github.com/allskyteam",
 					"changes": "Updated for new module system"
 				}
-			]                                               
+			],
+			"v1.0.3" : [
+				{
+					"author": "Benjamin Hartwich",
+					"authorurl": "https://astronomy.garden",
+					"changes": [
+						"The download times out after 15 seconds instead of waiting forever",
+						"A failed download because of the network (no connection, DNS, timeout) is logged as a warning; only 3 failures in a row become a WebUI error message, once until the next successful download",
+						"The API key is hidden in error messages; the network errors contained the full URL with the key"
+					]
+				}
+			]
 		}            
 	}
 
@@ -333,6 +350,46 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 				'expires': expires
 			}
 
+	def _hide_key(self, text, api_key):
+		"""Error texts from requests contain the full URL, including the API key.
+		They end up in the log and the WebUI's messages, so hide the key."""
+		if api_key:
+			text = text.replace(api_key, allsky_shared.obfuscate_secret(api_key))
+		return text
+
+	def _read_failures(self):
+		try:
+			with open(FAILURE_FILE) as fh:
+				return json.load(fh)
+		except Exception:
+			return {"count": 0, "reported": False}
+
+	def _network_ok(self):
+		if os.path.exists(FAILURE_FILE):
+			try:
+				os.remove(FAILURE_FILE)
+			except OSError:
+				pass
+
+	def _network_error(self, message):
+		"""Count failed downloads in a row. The first few are logged as warnings only;
+		from REPORT_AFTER in a row it is reported once as an error (WebUI message),
+		and again only after a successful download."""
+		failures = self._read_failures()
+		failures["count"] = failures.get("count", 0) + 1
+		result = f'Could not reach Open Weather Map ({failures["count"]} in a row): {message}'
+		if failures["count"] >= REPORT_AFTER and not failures.get("reported"):
+			failures["reported"] = True
+			self.log(0, f'ERROR in {__file__}: {result}')
+		else:
+			self.log(1, f'WARNING in {__file__}: {result}')
+		try:
+			with open(FAILURE_FILE, "w") as fh:
+				json.dump(failures, fh)
+		except OSError:
+			pass
+		return result
+
 	def _get_value(self, path, data):
 		result = None
 		keys = path.split(".")
@@ -367,19 +424,24 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 							api_url = f'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units={requested_units}&appid={api_key}'
 							log_api_url = f'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units={requested_units}&appid={allsky_shared.obfuscate_secret(api_key)}'
 							self.log(4, f'INFO: URL - {log_api_url}')
-							response = requests.get(api_url)
+							response = requests.get(api_url, timeout=REQUEST_TIMEOUT)
 							if response.status_code == 200:
 								raw_data = response.json()
 								self._process_result(raw_data, expire, requested_units)
 								allsky_shared.saveExtraData(self.meta_data['extradatafilename'], self._extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 								result = f"Data acquired and written to extra data file {self.meta_data['extradatafilename']}"
 								self.log(4, f'INFO: {result}')
+								self._network_ok()
 							else:
 								result = f'Got error from Open Weather Map API. Response code {response.status_code}'
 								self.log(0, f'ERROR in {__file__}: {result}')
+						except requests.exceptions.RequestException as e:
+							# no network, DNS failure, timeout: usually a short outage of the Pi's
+							# connection, so only report it in the WebUI when it keeps happening
+							result = self._network_error(self._hide_key(str(e), api_key))
 						except Exception as e:
 							eType, eObject, eTraceback = sys.exc_info()
-							result = f'ERROR: Failed to download Open Weather Map data {eTraceback.tb_lineno} - {e}'
+							result = f'ERROR: Failed to download Open Weather Map data {eTraceback.tb_lineno} - {self._hide_key(str(e), api_key)}'
 							self.log(0, f'ERROR in {__file__}: {result}')
 					else:
 						result = 'Invalid Latitude/Longitude. Check the Allsky configuration'
