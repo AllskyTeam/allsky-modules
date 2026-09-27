@@ -138,6 +138,10 @@ fail because tree interiors are smooth and averaging washes out their texture.
 | Reject Bright-Star Scintillation | on | Reject a short streak sitting on a catalogue bright star — a star twinkling brighter between frames makes a compact diff blob at its position that mimics a meteor. Needs the fisheye calibration + `stars.json`; fireballs >130 px exempt |
 | Star-Match Radius | `16` px | How close a streak's centre must be to a projected catalogue star to count as that star. Size it to the calibration RMS (~4–6 px) plus a few px of blob offset |
 | Star Magnitude Limit | `5.0` | Only stars brighter than this are used; fainter stars rarely brighten enough to trigger, and including them risks vetoing a real meteor |
+| Glare Spike Filter | on | Reject a streak that points straight away from a bright, saturated light (the Moon, a street light): its lens and dome spikes turn as it moves and show up in the frame difference |
+| Glare Reach | `5` radii | How far from the light, in radii of its saturated disc, a streak can be a spike |
+| Glare Angle Tolerance | `6`° | How close to the direction away from the light a streak must point |
+| Traffic Filter (arm) | off | Reject a streak that lies along the track a known satellite or aircraft took during that exposure. Needs the **Sky Traffic** module in the same flow. **Off = shadow mode**: logged as `traffic-shadow` with the name, and the saved meteor records `traffic`. See below |
 | Upload to Remote Website | on | Upload each hit via Allsky's `upload.sh` |
 | Save Rejected-Candidate Crops | on | Save a labelling crop of every *rejected* streak (into `vetoed/`) as the negative examples for a future classifier |
 | Browse in the Allsky WebUI | on | Also file each meteor under `images/<day>/meteors/` so the WebUI's **Meteors** page can browse it day by day — see [Output](#output) |
@@ -355,6 +359,39 @@ border, which may well be a meteor and is left alone.
 It ships in shadow mode, like the fragmented-trail veto. Every saved meteor records
 `edge_d`, the distance of its farther end from the border, so you can see what it would
 catch on your sky first — or replay a night with `--set edge_filter=true`.
+
+### Arming the traffic filter
+
+The moving-track filter only catches a satellite or aircraft that leaves a streak in two
+frames in a row. A short glint of a satellite, a trail that ends in the Earth's shadow,
+or an aircraft whose lights don't blink appears in one frame only, like a meteor.
+
+The **Sky Traffic** module knows where every catalogued satellite, and with an ADS-B
+source every aircraft, was during each exposure. Put it in the same night flow. It
+writes the tracks of the last images to `allsky_skytraffic_tracks.json` in Allsky's tmp
+folder, and this filter checks every candidate against the tracks of the image it
+appeared in. A candidate is on a track when its centre lies within Sky Traffic's
+**Match tolerance** (0.6°) of the part the object covered while sunlit, it runs along
+it within 8°, and it is no longer than that part. Without Sky Traffic, or without a
+lens calibration, nothing happens.
+
+Tested on the author's camera, 25 meteors saved from 15 to 27 September and 216 rejected
+streaks:
+
+* One "meteor", 61 px long at 05:37 on 27 September, lies 4.7 px from the track of the
+  weather satellite FENGYUN 3D and runs along it. The satellite's track in that exposure
+  was 257 px long, so the streak was a short glint.
+* To see how often a streak lies on a track by chance, the same check ran with the
+  times shifted by ±5 to ±30 minutes (9 shifts). About 400 satellite tracks cross the
+  image in each exposure, and 3 of the 225 shifted meteor checks matched, each 1–9 px
+  from a Starlink or Qianfan track. One of them was a 214 px streak on a 150 px track,
+  which the length rule rejects; that leaves 2 of 225, **about 1 in 110 meteors**.
+* A replay of that morning with Sky Traffic running rejects the glint as `satellite`,
+  `FENGYUN 3D`, and in shadow mode saves it with `"traffic": "FENGYUN 3D"`.
+
+So on this sky about 1 in 110 real meteors would also be rejected. That is why it ships
+in shadow mode: look at the `traffic` entries of your saved meteors, and at the crops in
+`vetoed/`, before you arm it.
 
 ## Testing without waiting for a clear night
 

@@ -48,7 +48,7 @@ class ALLSKYSKYTRAFFIC(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Sky Traffic",
         "description": "Names the satellites and aircraft crossing the image and lists the next bright passes",
-        "version": "v0.1.1",
+        "version": "v0.1.2",
         "module": "allsky_skytraffic",
         "events": [
             "night",
@@ -447,6 +447,13 @@ class ALLSKYSKYTRAFFIC(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
+            "v0.1.2": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": "Writes the satellite and aircraft tracks of the last night images to allsky_skytraffic_tracks.json in Allsky's tmp folder, so the Meteor Detection module's traffic filter can reject a streak that lies on a known track"
+                }
+            ],
             "v0.1.1": [
                 {
                     "author": "Benjamin Hartwich",
@@ -484,6 +491,7 @@ class ALLSKYSKYTRAFFIC(ALLSKYMODULEBASE):
 _MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATE_FILE = os.path.join(s.ALLSKY_TMP, "allsky_skytraffic_state.json")
 PREV_FRAME = os.path.join(s.ALLSKY_TMP, "allsky_skytraffic_prev.png")
+TRACKS_FILE = os.path.join(s.ALLSKY_TMP, "allsky_skytraffic_tracks.json")   # read by Meteor Detection
 CELESTRAK = "https://celestrak.org/NORAD/elements/gp.php?GROUP={}&FORMAT=tle"
 HEADERS = {"User-Agent": "Allsky-SkyTraffic/0.1 (+https://github.com/AllskyTeam/allsky-modules)"}
 BRIGHT_GROUPS = ("stations", "visual")     # the pass list is made from these
@@ -551,6 +559,18 @@ def _readState():
             return json.load(fh)
     except Exception:
         return {}
+
+
+def _writeTracks(frames, tol_px):
+    """The tracks of the last night images for other modules: the Meteor Detection
+    module rejects a streak that lies on one of them. Each frame is keyed by its
+    exposure start (AS_TIMESTAMP), which both modules see for the same image."""
+    data = {"tol_px": round(tol_px, 1), "angle_tol": ANGLE_TOL,
+            "frames": [{"t0": f["t0"], "exp": f["exp"], "tracks": f["tracks"]} for f in frames]}
+    tmp = TRACKS_FILE + ".tmp"
+    with open(tmp, "w") as fh:
+        json.dump(data, fh)
+    os.replace(tmp, TRACKS_FILE)
 
 
 def _writeState(st):
@@ -1275,6 +1295,7 @@ def _run(module):
     frames = [f for f in st.get("frames", []) if now - f["run"] < 3 * 3600][-(KEEP_FRAMES - 1):]
     frames.append({"run": now, "t0": t0, "exp": exp, "tracks": tracks})
     st["frames"] = frames
+    _writeTracks(frames, tol_px)
     named, suspects = _nameStreaks(params, st, frames, tol_px, module)
 
     seen = []
@@ -1337,7 +1358,8 @@ def skytraffic_cleanup():
             "files": {
                 ALLSKYSKYTRAFFIC.meta_data["extradatafilename"],
                 STATE_FILE,
-                PREV_FRAME
+                PREV_FRAME,
+                TRACKS_FILE
             },
             "env": {}
         }

@@ -31,7 +31,7 @@ import numpy as np
 metaData = {
     "name": "Meteor Detection (temporal)",
     "description": "Detects meteors via frame differencing and separates them from satellites/aircraft",
-    "version": "v0.6.2",
+    "version": "v0.6.3",
     "events": [
         "night"
     ],
@@ -91,6 +91,7 @@ metaData = {
         "glare_filter": "true",
         "glare_radii": "5",
         "glare_tol": "6",
+        "traffic_filter": "false",
         "upload_remote": "true",
         "outputdir": "",
         "save_webui": "true",
@@ -303,6 +304,13 @@ metaData = {
             "help": "How close to the direction away from the light a streak must point. Moon spikes measured 0.7 to 2.8 degrees.",
             "type": {"fieldtype": "spinner", "min": 1, "max": 20, "step": 1}
         },
+        "traffic_filter": {
+            "tab": "Sky Filters",
+            "required": "false",
+            "description": "Traffic Filter",
+            "help": "Reject a streak that lies along the track a known satellite or aircraft took during that exposure, such as the ISS, a Starlink entering the Earth's shadow, or an aircraft whose lights don't blink. Needs the Sky Traffic module in the same flow, which computes the tracks; its lens settings and Match tolerance are used. OFF by default = shadow mode: a match is logged as traffic-shadow in meteors_vetoed.json and recorded as traffic on the saved meteor, but nothing is rejected. Without Sky Traffic nothing happens.",
+            "type": {"fieldtype": "checkbox"}
+        },
         "upload_remote": {
             "tab": "Saving",
             "required": "false",
@@ -358,6 +366,13 @@ metaData = {
         }
     },
     "changelog": {
+        "v0.6.3": [
+            {
+                "author": "Benjamin Hartwich",
+                "authorurl": "https://astronomy.garden",
+                "changes": "Traffic filter (Sky Filters, needs the Sky Traffic module in the same flow): rejects a streak that lies along the track a known satellite or aircraft took during that exposure, as reason satellite or aircraft, with its name. Off by default = shadow mode: the match is logged as traffic-shadow in meteors_vetoed.json and recorded as traffic on the saved meteor, but nothing is rejected"
+            }
+        ],
         "v0.6.2": [
             {
                 "author": "Benjamin Hartwich",
@@ -782,9 +797,10 @@ def _saveVetoThumb(vetoeddir, img_path, stamp, cand):
         return None
 
 
-def _logVetoed(outdir, stamp, cand, reason, detail, thumb=None):
+def _logVetoed(outdir, stamp, cand, reason, detail, thumb=None, name=None):
     """Append a rejected streak to a rolling meteors_vetoed.json for tuning/validation.
-    `thumb` (if given) is the crop filename so the website can show it for labelling."""
+    `thumb` (if given) is the crop filename so the website can show it for labelling;
+    `name` is the satellite or aircraft the streak was matched to."""
     try:
         path = os.path.join(outdir, "meteors_vetoed.json")
         try:
@@ -797,6 +813,8 @@ def _logVetoed(outdir, stamp, cand, reason, detail, thumb=None):
                "ang": round(cand["ang"], 1), "peak": cand.get("peak")}
         if thumb:
             rec["thumb"] = thumb
+        if name:
+            rec["name"] = name
         log.append(rec)
         json.dump(log[-500:], open(path, "w"), default=float)
     except Exception:
@@ -1038,6 +1056,66 @@ def _glareSpike(cand, sources, radii, tol):
     return None
 
 
+TRAFFIC_FILE = os.path.join(s.ALLSKY_TMP, "allsky_skytraffic_tracks.json")   # written by Sky Traffic
+
+
+def _imageTime():
+    """The exposure start of the current image (AS_TIMESTAMP), or None."""
+    try:
+        return int(s.getEnvironmentVariable("AS_TIMESTAMP"))
+    except (TypeError, ValueError):
+        return None
+
+
+def _trafficFor(t0):
+    """The Sky Traffic module's tracks for the image that started at t0, as
+    (tracks, tol_px, angle_tol), or None if it hasn't computed that image."""
+    if t0 is None:
+        return None
+    try:
+        with open(TRAFFIC_FILE) as fh:
+            data = json.load(fh)
+    except Exception:
+        return None
+    for f in data.get("frames", []):
+        if abs(f.get("t0", -1e9) - t0) <= 1:
+            return f.get("tracks", []), float(data.get("tol_px", 20.0)), float(data.get("angle_tol", 8.0))
+    return None
+
+
+def _onTrack(cand, traffic):
+    """(name, kind, distance in px) of the satellite or aircraft whose track during
+    the exposure the streak lies along, or None. The streak's centre must lie within
+    the tolerance of the sunlit part of the track, which is lengthened a little at
+    both ends (a satellite's times are exact, an aircraft's position is extrapolated),
+    and the streak must run along it. It can't be longer than the way the object
+    covered during the exposure: a streak that is, is something else crossing by chance."""
+    tracks, tol, ang_tol = traffic
+    best = None
+    for tr in tracks:
+        pts = [p for p, v in zip(tr.get("pts", []), tr.get("lit", [])) if v] or tr.get("pts", [])
+        slack = 0.1 if tr.get("kind") == "satellite" else 0.5
+        way = sum(math.hypot(b[0] - a[0], b[1] - a[1]) for a, b in zip(pts, pts[1:]))
+        if cand.get("len", 0.0) > way * (1.0 + 2.0 * slack) + 2.0 * tol:
+            continue
+        for i in range(len(pts) - 1):
+            (x1, y1), (x2, y2) = pts[i], pts[i + 1]
+            dx, dy = x2 - x1, y2 - y1
+            L2 = dx * dx + dy * dy
+            if L2 < 1e-6:
+                continue
+            u = ((cand["cx"] - x1) * dx + (cand["cy"] - y1) * dy) / L2
+            lo = -slack * (len(pts) - 1) if i == 0 else 0.0
+            hi = 1.0 + slack * (len(pts) - 1) if i == len(pts) - 2 else 1.0
+            if not lo <= u <= hi:
+                continue
+            d = math.hypot(x1 + u * dx - cand["cx"], y1 + u * dy - cand["cy"])
+            if d <= tol and _angDiff(math.degrees(math.atan2(dy, dx)) % 180.0, cand["ang"]) <= ang_tol \
+                    and (best is None or d < best[2]):
+                best = (tr.get("name", "?"), tr.get("kind", "satellite"), d)
+    return best
+
+
 def _angDiff(a, b):
     return min(abs(a - b), 180 - abs(a - b))
 
@@ -1241,6 +1319,8 @@ def _saveMeteor(img_path, stamp, streaks, outdir, thumbdir, save_marked,
                         "frag_n": m.get("frag_n", 0), "frag_ext": round(m.get("frag_ext", 0.0), 1),
                         "edge_d": m.get("edge_d"),
                         "showers": showers, "radiant": radiant})
+        if m.get("traffic"):
+            entries[-1]["traffic"] = m["traffic"]
 
     # per-image sidecar: just this image's streaks, which is what the WebUI browser reads
     _writeJson(os.path.join(outdir, f"meteors-{stamp}.json"), entries)
@@ -1333,6 +1413,7 @@ def meteordetect(params, event):
     glare_filter = _truthy(params.get("glare_filter", True))
     glare_radii = s.asfloat(params.get("glare_radii", 10.0))
     glare_tol = s.asfloat(params.get("glare_tol", 6.0))
+    traffic_filter = _truthy(params.get("traffic_filter", False))   # off = shadow (log, no veto)
     star_maglim = s.asfloat(params.get("star_maglim", 5.0))
     upload_remote = _truthy(params.get("upload_remote", True))
     save_vetoed = _truthy(params.get("save_vetoed", True))
@@ -1450,11 +1531,13 @@ def meteordetect(params, event):
     for entry in pending:
         # veto helper: save a labelling crop of the rejected streak (negative example)
         # and log it. Bound the img_path/stamp per iteration so the closure is safe.
-        def _veto(cand, reason, detail, _ip=entry.get("img_path"), _stamp=entry["stamp"]):
+        def _veto(cand, reason, detail, name=None, _ip=entry.get("img_path"), _stamp=entry["stamp"]):
             t = _saveVetoThumb(vetoeddir, _ip, _stamp, cand) if (save_vetoed and _ip) else None
             if t:
                 veto_thumbs.append(t)
-            _logVetoed(outdir, _stamp, cand, reason, detail, t)
+            _logVetoed(outdir, _stamp, cand, reason, detail, t, name)
+        # the satellites and aircraft Sky Traffic found in the image the streaks appeared in
+        traffic = _trafficFor(entry.get("t0"))
         keep = []
         for cand in entry["streaks"]:
             if sat_filter and any(_progressing(cur, cand) for cur in streaks):
@@ -1463,6 +1546,14 @@ def meteordetect(params, event):
                 continue
             if not any(_similar(cur, cand) for cur in streaks):
                 continue  # no same-location disappearance -> flicker -> discard
+            hit = _onTrack(cand, traffic) if traffic else None
+            if hit:
+                if traffic_filter:
+                    vetoed += 1
+                    _veto(cand, hit[1], hit[2], hit[0])
+                    continue
+                _veto(cand, "traffic-shadow", hit[2], hit[0])
+                cand["traffic"] = hit[0]
             rec = _recurrence(cand) if repeat_filter else 0
             if repeat_filter and rec >= repeat_k:
                 vetoed += 1
@@ -1543,7 +1634,7 @@ def meteordetect(params, event):
         cv2.imwrite(stash, s.image)          # stash TRUE-COLOUR frame for later save
         # pin the day folder now: the candidate is only confirmed on a later frame, which
         # may already be in the next DATE_NAME period
-        new_pending.append({"img_path": stash, "stamp": stamp,
+        new_pending.append({"img_path": stash, "stamp": stamp, "t0": _imageTime(),
                             "day": _currentDay(), "streaks": new_cands})
 
     # remember this frame's streak positions for the recurrence veto (rolling, pruned)

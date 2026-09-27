@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
   "module": "allsky_meteordetect",
-  "generated_utc": "2026-09-27T12:30:20Z",
+  "generated_utc": "2026-09-27T20:32:10Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
-      "sha256": "0a8a02de884392806a914831e3b98ae41a3a9c23380452014412c24ad4ae649e",
-      "size": 25948,
+      "sha256": "cb5945d1c0d313faea5d73d6690c7c1142a675013191ff2e45000d183ad72b40",
+      "size": 28713,
       "mode": "644"
     },
     "allsky_meteordetect.py": {
-      "sha256": "b5079e16f7495c9f407bfd2e7457aeb2ab71e462104f57498a32b76bbffba5ba",
-      "size": 85077,
+      "sha256": "bc9f7ea710c306f095b5d66cc5c2074bda704465199480de7c54d6945d96d37e",
+      "size": 89879,
       "mode": "644"
     },
     "allsky_meteordetect/allsky_fisheye.py": {
