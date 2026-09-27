@@ -32,5 +32,10 @@
             "type": "line",
             "variable": "AS_METEORNIGHT"
         }
-    ]
+    ],
+    "hc": {
+        "xAxis": {
+            "type": "datetime"
+        }
+    }
 }

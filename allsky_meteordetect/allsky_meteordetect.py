@@ -21,6 +21,7 @@ import os
 import sys
 import re
 import json
+import math
 import time
 import shutil
 import subprocess
@@ -30,7 +31,7 @@ import numpy as np
 metaData = {
     "name": "Meteor Detection (temporal)",
     "description": "Detects meteors via frame differencing and separates them from satellites/aircraft",
-    "version": "v0.6.1",
+    "version": "v0.6.2",
     "events": [
         "night"
     ],
@@ -87,6 +88,9 @@ metaData = {
         "star_filter": "true",
         "star_radius": "16",
         "star_maglim": "5.0",
+        "glare_filter": "true",
+        "glare_radii": "5",
+        "glare_tol": "6",
         "upload_remote": "true",
         "outputdir": "",
         "save_webui": "true",
@@ -278,6 +282,27 @@ metaData = {
             "help": "Only stars brighter than this visual magnitude are used for the veto. Fainter stars rarely brighten enough to trigger a detection, and including them raises the chance of vetoing a real meteor. 5.0 covers the naked-eye bright stars that actually scintillate.",
             "type": {"fieldtype": "spinner", "min": 2.0, "max": 6.0, "step": 0.5}
         },
+        "glare_filter": {
+            "tab": "Sky Filters",
+            "required": "false",
+            "description": "Glare Spike Filter",
+            "help": "Reject a streak that points straight away from a bright, saturated light (the Moon, a street light): the lens and the dome turn such a light into a star of spikes, and as the Moon moves the spikes turn, so the frame difference shows a new line next to it. A real meteor that happens to lie close to the Moon AND point exactly away from it is very rare.",
+            "type": {"fieldtype": "checkbox"}
+        },
+        "glare_radii": {
+            "tab": "Sky Filters",
+            "required": "false",
+            "description": "Glare Reach (light radii)",
+            "help": "How far from the bright light, in radii of its saturated disc, a streak can be a spike. The spikes of a full Moon seen by a user's camera lay at about 3 radii.",
+            "type": {"fieldtype": "spinner", "min": 2, "max": 40, "step": 1}
+        },
+        "glare_tol": {
+            "tab": "Sky Filters",
+            "required": "false",
+            "description": "Glare Angle Tolerance (deg)",
+            "help": "How close to the direction away from the light a streak must point. Moon spikes measured 0.7 to 2.8 degrees.",
+            "type": {"fieldtype": "spinner", "min": 1, "max": 20, "step": 1}
+        },
         "upload_remote": {
             "tab": "Saving",
             "required": "false",
@@ -289,8 +314,7 @@ metaData = {
             "tab": "Saving",
             "required": "false",
             "description": "Output Folder",
-            "help": "Where meteor images are written (with a thumbnails/ subfolder). Empty = website meteors folder.",
-            "type": {"fieldtype": "text"}
+            "help": "Where meteor images are written (with a thumbnails/ subfolder). Empty = website meteors folder."
         },
         "save_webui": {
             "tab": "Saving",
@@ -334,6 +358,13 @@ metaData = {
         }
     },
     "changelog": {
+        "v0.6.2": [
+            {
+                "author": "Benjamin Hartwich",
+                "authorurl": "https://astronomy.garden",
+                "changes": "Glare spike filter (Sky Filters, on by default): rejects a streak that points straight away from a bright saturated light such as the Moon, whose lens/dome spikes turn as it moves and show up as new lines in the frame difference; logged as reason glare. Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\"). Column charts use a time axis, so the History tab and the Charts page show times instead of raw timestamps. tools/calibrate_fisheye.py identifies the stars itself (pair matching against the catalogue, accepted only as a clear winner); two stars given by hand are needed only when it finds none"
+            }
+        ],
         "v0.1.0": [
             {
                 "author": "Benjamin Hartwich",
@@ -966,6 +997,47 @@ def _collinearFragments(diff, cx, cy, ang, length, diff_thr,
     return cnt, float(ext)
 
 
+GLARE_LEVEL = 250          # a pixel this bright is saturated
+GLARE_MIN_AREA_12MP = 2000 # smallest saturated disc that counts (px on a 12 MP image)
+GLARE_MAX_R_12MP = 300     # larger saturated areas are bright sky or cloud, not a point light
+
+
+def _glareSources(gray):
+    """Bright, saturated lights in the frame (the Moon, street lights): list of
+    (x, y, radius) of saturated blobs large enough to throw lens/dome spikes."""
+    try:
+        h, w = gray.shape
+        scale = (w * h) / 12.3e6
+        min_area = GLARE_MIN_AREA_12MP * scale
+        max_r = GLARE_MAX_R_12MP * math.sqrt(scale)
+        sat = (gray >= GLARE_LEVEL).astype(np.uint8)
+        n, _lab, stats, cent = cv2.connectedComponentsWithStats(sat)
+        out = []
+        for i in range(1, n):
+            r = math.sqrt(stats[i, 4] / math.pi)
+            if stats[i, 4] >= min_area and r <= max_r:
+                out.append((float(cent[i][0]), float(cent[i][1]), r))
+        return out
+    except Exception:
+        return []
+
+
+def _glareSpike(cand, sources, radii, tol):
+    """If the streak lies within `radii` disc radii of a bright light and points
+    straight away from it (within `tol` degrees), it is one of the light's spikes:
+    return the angle off radial, else None. On a user's full-Moon frames the
+    spikes lay 2.8-3.1 radii out and 0.7-2.8 degrees off radial."""
+    for x, y, r in sources:
+        d = math.hypot(cand["cx"] - x, cand["cy"] - y)
+        if d <= r or d > radii * r:
+            continue
+        radial = math.degrees(math.atan2(cand["cy"] - y, cand["cx"] - x)) % 180.0
+        off = _angDiff(cand["ang"], radial)
+        if off <= tol:
+            return round(off, 1)
+    return None
+
+
 def _angDiff(a, b):
     return min(abs(a - b), 180 - abs(a - b))
 
@@ -1258,6 +1330,9 @@ def meteordetect(params, event):
     trail_tol = s.asfloat(params.get("trail_tol", 12.0))
     star_filter = _truthy(params.get("star_filter", True))
     star_radius = s.asfloat(params.get("star_radius", 16.0))
+    glare_filter = _truthy(params.get("glare_filter", True))
+    glare_radii = s.asfloat(params.get("glare_radii", 10.0))
+    glare_tol = s.asfloat(params.get("glare_tol", 6.0))
     star_maglim = s.asfloat(params.get("star_maglim", 5.0))
     upload_remote = _truthy(params.get("upload_remote", True))
     save_vetoed = _truthy(params.get("save_vetoed", True))
@@ -1282,6 +1357,7 @@ def meteordetect(params, event):
 
     gray = cv2.cvtColor(s.image, cv2.COLOR_BGR2GRAY).astype(np.float32)
     soft, hard = _loadMask(params["mask"], feather, gray.shape)
+    glare = _glareSources(gray) if glare_filter else []
 
     # previous frame (persisted to disk so it survives restarts)
     prev = cv2.imread(PREV_FRAME, cv2.IMREAD_GRAYSCALE)
@@ -1403,6 +1479,12 @@ def meteordetect(params, event):
                 if sd is not None:                             # blob sits on a bright star
                     vetoed += 1
                     _veto(cand, "star", sd)
+                    continue
+            if glare_filter and glare:
+                gd = _glareSpike(cand, glare, glare_radii, glare_tol)
+                if gd is not None:                             # a spike of the Moon / a lamp
+                    vetoed += 1
+                    _veto(cand, "glare", gd)
                     continue
             if dash_filter and cand["len"] >= dash_min_len and cand.get("dash_runs", 0) >= dash_runs:
                 vetoed += 1

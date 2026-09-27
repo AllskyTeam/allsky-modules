@@ -20,5 +20,10 @@
             "yAxis": 0,
             "variable": "AS_METEORPEAK|true"
         }
-    ]
+    ],
+    "hc": {
+        "xAxis": {
+            "type": "datetime"
+        }
+    }
 }

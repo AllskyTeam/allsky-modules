@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
   "module": "allsky_meteordetect",
-  "generated_utc": "2026-09-25T20:26:34Z",
+  "generated_utc": "2026-09-27T12:30:20Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
-      "sha256": "41a3f9d29318054ff7d8c8e628a96932d85f9e6f836d86126348acbf42e5a1fa",
-      "size": 24720,
+      "sha256": "0a8a02de884392806a914831e3b98ae41a3a9c23380452014412c24ad4ae649e",
+      "size": 25948,
       "mode": "644"
     },
     "allsky_meteordetect.py": {
-      "sha256": "a5ca26795f3892c623554a5c7a8114fdd94cac331a583892452f66371cf3606e",
-      "size": 80517,
+      "sha256": "b5079e16f7495c9f407bfd2e7457aeb2ab71e462104f57498a32b76bbffba5ba",
+      "size": 85077,
       "mode": "644"
     },
     "allsky_meteordetect/allsky_fisheye.py": {
@@ -35,8 +35,8 @@
       "mode": "755"
     },
     "allsky_meteordetect/tools/calibrate_fisheye.py": {
-      "sha256": "55f5ec522678ada3d45f85078504935724d8c7c5e65feec8b7996fba8e8d7e32",
-      "size": 22032,
+      "sha256": "b628f9af9d2e0dd273771316ae9e6c2325fe95fdba110e8cf08f030fa255d885",
+      "size": 25002,
       "mode": "755"
     },
     "allsky_meteordetect/tools/replay_night.py": {
@@ -45,18 +45,18 @@
       "mode": "755"
     },
     "charts/meteor_brightness_chart.json": {
-      "sha256": "6ef9dbc5bbcc44efa230cb4b917d83d99ad6188e733565a5212abc179afcea59",
-      "size": 491,
+      "sha256": "80da8b298f232c7cd3630d4eeafafcadb78c540f508b2d31efc9ca74a34d664c",
+      "size": 570,
       "mode": "644"
     },
     "charts/meteors_chart.json": {
-      "sha256": "3553030c20ea843613c560bb2d6a5243238697650f96e0ea2d0d0a5fb45b1fff",
-      "size": 773,
+      "sha256": "a29d83e2ce73a4b90502ea285497f3b729b9112f0777a51850dbfa374cb17c1d",
+      "size": 852,
       "mode": "644"
     },
     "charts/rejected_chart.json": {
-      "sha256": "b4bbbf4e415592b6b69d9c02b21e26ef41fe5929d2d8ad26cf010e69ec03406d",
-      "size": 607,
+      "sha256": "2685564d84c5b17e1e62c902247e52cd84f33bf1aa48bf532a9f98cc53467d0c",
+      "size": 686,
       "mode": "644"
     },
     "db/db_data.json": {

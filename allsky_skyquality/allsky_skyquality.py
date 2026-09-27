@@ -43,7 +43,7 @@ class ALLSKYSKYQUALITY(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Sky Quality Meter",
         "description": "Sky brightness in mag/arcsec2 day and night, with SQM, limiting magnitude, stars and cloud cover at night, and charts",
-        "version": "v0.3.1",
+        "version": "v0.3.2",
         "module": "allsky_skyquality",
         "events": [
             "day",
@@ -199,10 +199,7 @@ class ALLSKYSKYQUALITY(ALLSKYMODULEBASE):
             "roi": {
                 "required": "false",
                 "description": "ROI (x1,y1,x2,y2)",
-                "help": "Explicit rectangle to measure. Empty = central region from 'Central FOV'.",
-                "type": {
-                    "fieldtype": "text"
-                }
+                "help": "Explicit rectangle to measure. Empty = central region from 'Central FOV'."
             },
             "fov_div": {
                 "required": "false",
@@ -284,6 +281,13 @@ class ALLSKYSKYQUALITY(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
+            "v0.3.2": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": "Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\")"
+                }
+            ],
             "v0.1.0": [
                 {
                     "author": "Benjamin Hartwich",

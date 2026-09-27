@@ -39,5 +39,10 @@
             "type": "line",
             "variable": "AS_NIGHTRECAP_SATELLITES"
         }
-    ]
+    ],
+    "hc": {
+        "xAxis": {
+            "type": "datetime"
+        }
+    }
 }

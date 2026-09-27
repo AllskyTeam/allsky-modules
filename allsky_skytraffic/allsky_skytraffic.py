@@ -48,7 +48,7 @@ class ALLSKYSKYTRAFFIC(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Sky Traffic",
         "description": "Names the satellites and aircraft crossing the image and lists the next bright passes",
-        "version": "v0.1.0",
+        "version": "v0.1.1",
         "module": "allsky_skytraffic",
         "events": [
             "night",
@@ -233,10 +233,7 @@ class ALLSKYSKYTRAFFIC(ALLSKYMODULEBASE):
                 "required": "false",
                 "description": "Satellite groups",
                 "help": "CelesTrak groups to load, separated by commas. 'active' is every working satellite (about 16,000, including Starlink), 'visual' adds the brightest satellites and rocket bodies. Smaller: 'stations,visual,starlink'.",
-                "tab": "Sources",
-                "type": {
-                    "fieldtype": "text"
-                }
+                "tab": "Sources"
             },
             "tle_refresh_hours": {
                 "required": "false",
@@ -265,10 +262,7 @@ class ALLSKYSKYTRAFFIC(ALLSKYMODULEBASE):
                 "required": "false",
                 "description": "Local ADS-B URL",
                 "help": "Only for 'Local': the aircraft.json of your receiver, e.g. http://192.168.1.20/tar1090/data/aircraft.json",
-                "tab": "Sources",
-                "type": {
-                    "fieldtype": "text"
-                }
+                "tab": "Sources"
             },
             "aircraft_radius": {
                 "required": "false",
@@ -310,10 +304,7 @@ class ALLSKYSKYTRAFFIC(ALLSKYMODULEBASE):
                 "required": "false",
                 "description": "Fisheye calibration file",
                 "help": "calibration.json in the modules folder, made with the Meteor Detection module's tools (tools/calibrate_fisheye.py). With it the positions are accurate to a fraction of a degree. Without it an equidistant fisheye is assumed from the three settings below.",
-                "tab": "Lens",
-                "type": {
-                    "fieldtype": "text"
-                }
+                "tab": "Lens"
             },
             "north_angle": {
                 "required": "false",
@@ -352,10 +343,7 @@ class ALLSKYSKYTRAFFIC(ALLSKYMODULEBASE):
                 "required": "false",
                 "description": "Meteor Detection folder",
                 "help": "Where the Meteor Detection module writes meteors.json and meteors_vetoed.json. Empty = its default, the Website's meteors folder.",
-                "tab": "Matching",
-                "type": {
-                    "fieldtype": "text"
-                }
+                "tab": "Matching"
             },
             "match_tolerance": {
                 "required": "false",
@@ -459,6 +447,13 @@ class ALLSKYSKYTRAFFIC(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
+            "v0.1.1": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": "Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\"). Column charts use a time axis, so the History tab and the Charts page show times instead of raw timestamps"
+                }
+            ],
             "v0.1.0": [
                 {
                     "author": "Benjamin Hartwich",

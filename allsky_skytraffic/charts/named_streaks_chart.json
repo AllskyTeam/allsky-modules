@@ -19,6 +19,9 @@
             "column": {
                 "stacking": "normal"
             }
+        },
+        "xAxis": {
+            "type": "datetime"
         }
     },
     "series": [

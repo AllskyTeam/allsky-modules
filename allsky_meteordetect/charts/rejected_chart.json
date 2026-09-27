@@ -24,5 +24,10 @@
             "yAxis": 0,
             "variable": "AS_METEORVETOED"
         }
-    ]
+    ],
+    "hc": {
+        "xAxis": {
+            "type": "datetime"
+        }
+    }
 }

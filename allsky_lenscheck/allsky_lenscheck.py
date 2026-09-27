@@ -40,7 +40,7 @@ class ALLSKYLENSCHECK(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Lens Check",
         "description": "Measures how sharp the stars are and warns of dew, frost or a lens out of focus",
-        "version": "v0.1.0",
+        "version": "v0.1.1",
         "module": "allsky_lenscheck",
         "events": [
             "night"
@@ -122,10 +122,7 @@ class ALLSKYLENSCHECK(ALLSKYMODULEBASE):
                 "required": "true",
                 "description": "Fisheye calibration file",
                 "help": "calibration.json in the modules folder, made with the Meteor Detection module's tools/calibrate_fisheye.py.",
-                "tab": "Settings",
-                "type": {
-                    "fieldtype": "text"
-                }
+                "tab": "Settings"
             },
             "soft_ratio": {
                 "required": "false",
@@ -167,10 +164,7 @@ class ALLSKYLENSCHECK(ALLSKYMODULEBASE):
                 "required": "false",
                 "description": "Notify URL",
                 "help": "Optional. When the image becomes blurred, a short text is sent to this URL with an HTTP POST (e.g. https://ntfy.sh/your-topic), at most once a night.",
-                "tab": "Settings",
-                "type": {
-                    "fieldtype": "text"
-                }
+                "tab": "Settings"
             },
             "graph": {
                 "required": "false",
@@ -181,6 +175,13 @@ class ALLSKYLENSCHECK(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
+            "v0.1.1": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": "Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\")"
+                }
+            ],
             "v0.1.0": [
                 {
                     "author": "Benjamin Hartwich",

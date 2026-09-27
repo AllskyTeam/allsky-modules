@@ -42,7 +42,7 @@ class ALLSKYSKYMAP(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Sky Map",
         "description": "Limiting magnitude and sky brightness direction by direction: light domes, dark directions and transparency",
-        "version": "v0.1.0",
+        "version": "v0.1.1",
         "module": "allsky_skymap",
         "events": [
             "night"
@@ -142,10 +142,7 @@ class ALLSKYSKYMAP(ALLSKYMODULEBASE):
                 "required": "true",
                 "description": "Fisheye calibration file",
                 "help": "calibration.json in the modules folder, made with the Meteor Detection module's tools/calibrate_fisheye.py.",
-                "tab": "Settings",
-                "type": {
-                    "fieldtype": "text"
-                }
+                "tab": "Settings"
             },
             "sun_max": {
                 "required": "false",
@@ -225,6 +222,13 @@ class ALLSKYSKYMAP(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
+            "v0.1.1": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": "Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\")"
+                }
+            ],
             "v0.1.0": [
                 {
                     "author": "Benjamin Hartwich",

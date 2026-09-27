@@ -49,7 +49,7 @@ class ALLSKYAURORA(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Aurora Detector",
         "description": "Flags a possible aurora: a green (over red and blue), structured glow low on the polar horizon, only when it is dark",
-        "version": "v0.2.0",
+        "version": "v0.2.1",
         "module": "allsky_aurora",
         "events": [
             "night"
@@ -306,10 +306,7 @@ class ALLSKYAURORA(ALLSKYMODULEBASE):
             "calibration": {
                 "required": "false",
                 "description": "Fisheye calibration file",
-                "help": "Optional fisheye calibration (calibration.json, as made by the Meteor Detection module's tools) in the modules folder. With it, the band uses the true optical centre and North; without it, the image centre and 'North in the image'.",
-                "type": {
-                    "fieldtype": "text"
-                }
+                "help": "Optional fisheye calibration (calibration.json, as made by the Meteor Detection module's tools) in the modules folder. With it, the band uses the true optical centre and North; without it, the image centre and 'North in the image'."
             },
             "pole_angle": {
                 "required": "false",
@@ -369,6 +366,13 @@ class ALLSKYAURORA(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
+            "v0.2.1": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": "Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\")"
+                }
+            ],
             "v0.1.0": [
                 {
                     "author": "Benjamin Hartwich",
