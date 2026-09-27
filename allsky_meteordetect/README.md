@@ -161,8 +161,16 @@ With a calibrated fisheye projection the module can attribute each meteor to the
 just "which showers are active tonight".
 
 `tools/calibrate_fisheye.py` fits the camera model (optical centre, radial
-distortion, rotation, handedness) from clear night frames. Identify **two bright stars**
-in the first frame and give their pixel positions; everything else is automatic:
+distortion, rotation, handedness) from clear night frames. It identifies the stars
+itself; give it two frames a few hours apart:
+
+```bash
+$PY $T/calibrate_fisheye.py image-A.jpg image-B.jpg --out ~/allsky/config/myFiles/modules/calibration.json --preview check.jpg
+```
+
+If it can't find a clear match (clouds, a short exposure, or two solutions that fit
+about equally well) it says so, writes nothing, and lists the bright stars that were
+up. Then identify **two bright stars** in the first frame and give their pixel positions:
 
 ```bash
 $PY $T/calibrate_fisheye.py image-A.jpg --list-stars      # which bright stars were up, and where
@@ -176,14 +184,27 @@ writes nothing but `--out` and `--preview`, and `align_overlay.py` changes nothi
 without `--apply`. `align_overlay.py` uses an installed calibration or the one given
 with `--calibration`, and refuses a calibration made at another site.
 
-Two stars fix centre, scale and rotation. From there the tool computes where every
-bright catalogue star (Vmag ≤ 3) stood at each frame's time and place, looks for it in a
-window around that prediction, and fits the lens by least squares — shrinking the
-window from 100 to 20 px as the model improves. A star is used only when the brightest
-point in its window clearly outshines everything else there, so it cannot be confused
-with a neighbour. Clicks 10 px off, or any of three different star pairs, all converge
-to the same solution. `--seed calibration.json` starts from an earlier calibration
-instead; with neither, a blind search is tried (experimental).
+Two stars fix centre, scale and rotation. To find them without help the tool does what
+astrometry does: every pair of bright points in the frame against every pair of bright
+catalogue stars gives a guess, scored by how many other bright stars then land on a
+point. It refines the best guesses and accepts the winner only if it fits at least 12
+stars to better than 0.6° and no different solution comes within 70 % of its star
+count. It tries the frames in turn and starts from the first clear winner.
+
+From there the tool computes where every bright catalogue star (Vmag ≤ 3) stood at each
+frame's time and place, looks for it in a window around that prediction, and fits the
+lens by least squares — shrinking the window from 100 to 20 px as the model improves. A
+star is used only when the brightest point in its window clearly outshines everything
+else there, so it cannot be confused with a neighbour. Clicks 10 px off, or any of three
+different star pairs, all converge to the same solution. `--seed calibration.json`
+starts from an earlier calibration instead.
+
+On the author's camera, 21 night frames from 8 nights and one day frame: 10 night
+frames were identified automatically, some with the full Moon up or thin cirrus. From
+each single frame the lens came out within 0.3° of the calibration below over most of
+the sky. The other 11, overcast or only 2 s exposures, and the day frame were refused.
+None was identified wrongly. Run automatically on the two frames below, the tool gives
+the same calibration to 0.5 px.
 
 Here, from two frames four hours apart: **77 bright stars, 0.28° RMS (5 px)** from the
 zenith down to 15° altitude. Check `--preview`: every green circle should sit on a star.

@@ -362,7 +362,7 @@ metaData = {
             {
                 "author": "Benjamin Hartwich",
                 "authorurl": "https://astronomy.garden",
-                "changes": "Glare spike filter (Sky Filters, on by default): rejects a streak that points straight away from a bright saturated light such as the Moon, whose lens/dome spikes turn as it moves and show up as new lines in the frame difference; logged as reason glare. Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\"). Column charts use a time axis, so the History tab and the Charts page show times instead of raw timestamps"
+                "changes": "Glare spike filter (Sky Filters, on by default): rejects a streak that points straight away from a bright saturated light such as the Moon, whose lens/dome spikes turn as it moves and show up as new lines in the frame difference; logged as reason glare. Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\"). Column charts use a time axis, so the History tab and the Charts page show times instead of raw timestamps. tools/calibrate_fisheye.py identifies the stars itself (pair matching against the catalogue, accepted only as a clear winner); two stars given by hand are needed only when it finds none"
             }
         ],
         "v0.1.0": [

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Plate-solve an all-sky camera's lens from clear night frames -> calibration.json.
 
-Start from two bright stars you identified in the first frame (--star, twice) - the
-reliable way - or from an earlier calibration (--seed), or let it search blind
-(experimental). It computes where the catalogue's bright stars stood at each frame's time
+By default it identifies the stars itself: it matches every pair of bright points in
+the frame against every pair of bright catalogue stars, and accepts only a clear
+winner. If there is none, name two bright stars and their pixel positions in the first
+frame (--star, twice), or start from an earlier calibration (--seed). It computes where the catalogue's bright stars stood at each frame's time
 and place, and fits a radial lens model by least squares against the stars it can
 identify beyond doubt: the brightest point in a shrinking window around each prediction,
 taken only when it clearly outshines everything else in that window:
@@ -19,10 +20,10 @@ stars.json from this repository. Location comes from Allsky's settings, the time
 the frame's file name (Allsky names frames in the Pi's local time).
 
 Usage:
+    tools/calibrate_fisheye.py FRAME1 FRAME2 --out calibration.json --preview check.jpg   # automatic
     tools/calibrate_fisheye.py FRAME --list-stars              # which bright stars are up
     tools/calibrate_fisheye.py FRAME --star vega 2828 1213 --star altair 2527 1976
-    tools/calibrate_fisheye.py FRAME1 FRAME2 --seed calibration.json --out calibration.json --preview check.jpg
-    tools/calibrate_fisheye.py FRAME                      # blind, experimental
+    tools/calibrate_fisheye.py FRAME1 FRAME2 --seed calibration.json --out calibration.json
 """
 
 import argparse
@@ -112,43 +113,54 @@ def _detect(gray, max_n, static=None):
 
     Local maxima rather than thresholded areas: in a star-rich Milky Way frame any
     threshold low enough for faint stars merges the field into large irregular patches.
-    Brightness is the peak above the LOCAL background, which saturated bright stars
-    still win. And a star always sits on glowing sky - overlay text sits on the black
-    frame corners, a gap between branches is ringed by dark tree - so a maximum only
-    counts where the smoothed background is at least half the typical sky level."""
+    A star always sits on glowing sky - overlay text sits on the black frame corners, a
+    gap between branches is ringed by dark tree - so a maximum only counts where the
+    smoothed background is at least half the typical sky level. Maxima at the same pixel
+    in `static` (a frame half an hour away) are overlay text or hot pixels, not stars."""
     h, w = gray.shape
     g = gray.astype(np.float32)
-    local = cv2.GaussianBlur(g, (0, 0), max(3.0, w / 700))
-    diff = cv2.GaussianBlur(g, (0, 0), 1.2) - local                   # star contrast
+    diff = cv2.GaussianBlur(g, (0, 0), 1.2) - cv2.GaussianBlur(g, (0, 0), max(3.0, w / 700))
     wide = cv2.GaussianBlur(g, (0, 0), max(10.0, w / 150))           # sky background
     sky = _skyRegion(gray)
     sky_level = float(np.median(wide[sky])) if sky.any() else float(np.median(wide))
+    v = diff[sky][::7]
+    noise = 1.4826 * float(np.median(np.abs(v - np.median(v)))) if len(v) else 2.0
     k = max(5, int(w / 550) | 1)
-    peaks = (diff == cv2.dilate(diff, np.ones((k, k), np.uint8))) & (diff > 12.0) \
+    peaks = (diff == cv2.dilate(diff, np.ones((k, k), np.uint8))) & (diff > max(4.0, min(12.0, 6 * noise))) \
         & sky & (wide > 0.5 * sky_level)
+    m = max(1, int(0.012 * w))                   # the frame's edge: cut-off stars and frame lines
+    peaks[:m, :] = peaks[-m:, :] = False
+    peaks[:, :m] = peaks[:, -m:] = False
     ys, xs = np.nonzero(peaks)
     pts = np.column_stack([xs, ys]).astype(float)
     # Rank by contrast through a wider aperture: a long exposure clips every star's peak
     # at the same value, but a bright star keeps a wider halo than a faint one.
-    halo = cv2.GaussianBlur(g, (0, 0), max(2.0, w / 960)) - cv2.GaussianBlur(g, (0, 0), max(8.0, w / 240))
-    strength = halo[ys, xs]
+    strength = _haloMap(gray)[ys, xs]
+    # A star is an isolated point; the letters of the overlay text have several similar
+    # maxima close together. Drop points with 2 or more rivals nearby.
+    if len(pts):
+        tree = cKDTree(pts)
+        c = diff[ys, xs]
+        crowded = np.zeros(len(pts), bool)
+        for i, near in enumerate(tree.query_ball_point(pts, r=max(12.0, w / 80))):
+            crowded[i] = sum(1 for j in near if j != i and c[j] >= 0.4 * c[i]) >= 2
+        pts, strength = pts[~crowded], strength[~crowded]
     if static is not None and len(static) and len(pts):
         # Anything at the same pixel in a frame taken half an hour apart is not a star:
         # the sky has turned by ~7 degrees in between, overlay text and hot pixels have not.
         d, _ = cKDTree(static).query(pts)
         keep = d > max(2.0, w / 1300)
         pts, strength = pts[keep], strength[keep]
-    order = np.argsort(-strength)[:max_n]
-    return pts[order]
+    return pts[np.argsort(-strength)[:max_n]]
 
 
-def _companion(path, minutes=30, window=15):
+def _companion(path, minutes=30, window=20):
     """Another frame of the same night, about `minutes` away, from the same folder."""
     m = re.search(r"(\d{14})", os.path.basename(path))
     t0 = time.mktime(time.strptime(m.group(1), "%Y%m%d%H%M%S"))
     best = None
     for name in os.listdir(os.path.dirname(os.path.abspath(path))):
-        mm = re.fullmatch(r"image-(\d{14})\.(jpg|jpeg|png)", name, re.I)
+        mm = re.fullmatch(r"[A-Za-z_-]*(\d{14})\.(jpg|jpeg|png)", name, re.I)
         if not mm:
             continue
         dt = abs(time.mktime(time.strptime(mm.group(1), "%Y%m%d%H%M%S")) - t0) / 60.0
@@ -167,20 +179,27 @@ def _project(alt, az, p, flip):
     return cx + r * np.sin(ang), cy - r * np.cos(ang)
 
 
-def _hypotheses(cat, dets, W, H, n_blobs=24, n_stars=24, keep=40):
-    """Blind search the way astrometry does it: two star <-> blob correspondences fix
-    centre, scale and rotation exactly. In complex numbers the equidistant model is a
-    similarity,  P = C + A*S,  with S = t*exp(i*flip*az), t = zenith_angle/90deg,
-    A = -i*R*exp(i*rot). So every pair of bright blobs against every pair of bright
-    catalogue stars gives one (C, A); each is scored by how many other bright stars
-    then land on a blob. Returns the best distinct hypotheses (score, cx, cy, R, rot, flip)."""
+def _hypotheses(cat, dets, W, H, n_blobs=22, n_stars=22, keep=12):
+    """The search astrometry uses: two star <-> point correspondences fix centre, scale
+    and rotation exactly. In complex numbers the equidistant model is a similarity,
+    P = C + A*S,  with S = t*exp(i*flip*az), t = zenith_angle/90deg, A = -i*R*exp(i*rot).
+    So every pair of bright points against every pair of bright catalogue stars gives
+    one (C, A); each is scored by how many other bright stars then land on a point.
+    Returns the best distinct guesses (score, cx, cy, R, rot, flip)."""
     score_cat = cat[(cat[:, 2] <= 3.0) & (cat[:, 0] >= 12)]
-    pick = cat[(cat[:, 2] <= 3.5) & (cat[:, 0] >= 15)]
+    pick = cat[(cat[:, 2] <= 3.0) & (cat[:, 0] >= 15)]
     pick = pick[np.argsort(pick[:, 2])][:n_stars]
     blobs = dets[:n_blobs]
-    tree = cKDTree(dets[:150])
     thr = 0.008 * W
+    # Where a point counts as "on a detection": a mask with a disc around each of the
+    # 150 brightest points. Looking a position up in it is far faster than a search.
+    hitmap = np.zeros((H, W), np.uint8)
+    for x, y in dets[:150]:
+        cv2.circle(hitmap, (int(round(x)), int(round(y))), int(thr), 1, -1)
+    hitmap = hitmap.astype(bool)
     P = blobs[:, 0] + 1j * blobs[:, 1]
+    ii, jj = np.nonzero(~np.eye(len(P), dtype=bool))
+    dP = P[ii] - P[jj]
     found = []
     for flip in (1.0, -1.0):
         S = (90.0 - pick[:, 0]) / 90.0 * np.exp(1j * np.radians(flip * pick[:, 1]))
@@ -190,26 +209,23 @@ def _hypotheses(cat, dets, W, H, n_blobs=24, n_stars=24, keep=40):
                 dS = S[a] - S[b]
                 if abs(dS) < 0.05:
                     continue
-                for i in range(len(P)):
-                    for j in range(len(P)):
-                        if i == j:
-                            continue
-                        A = (P[i] - P[j]) / dS
-                        R = abs(A)
-                        if not (0.15 * min(W, H) < R < 4.0 * max(W, H)):
-                            continue
-                        C = P[i] - A * S[a]
-                        if not (-0.2 * W < C.real < 1.2 * W and -0.2 * H < C.imag < 1.2 * H):
-                            continue
-                        Q = C + A * Sall
-                        inside = (Q.real >= 0) & (Q.real < W) & (Q.imag >= 0) & (Q.imag < H)
-                        if inside.sum() < 6:
-                            continue
-                        d, _ = tree.query(np.column_stack([Q.real[inside], Q.imag[inside]]))
-                        sc = int((d < thr).sum())
-                        if sc >= 6:
-                            rot = (math.degrees(np.angle(A)) + 90.0) % 360.0
-                            found.append((sc, C.real, C.imag, R, rot, flip))
+                A = dP / dS
+                R = np.abs(A)
+                C = P[ii] - A * S[a]
+                ok = (R > 0.15 * min(W, H)) & (R < 4.0 * max(W, H)) \
+                    & (C.real > -0.2 * W) & (C.real < 1.2 * W) & (C.imag > -0.2 * H) & (C.imag < 1.2 * H)
+                idx = np.nonzero(ok)[0]
+                if len(idx) == 0:
+                    continue
+                Q = C[idx, None] + A[idx, None] * Sall[None, :]          # every guess, every star
+                inside = (Q.real >= 0) & (Q.real < W - 0.5) & (Q.imag >= 0) & (Q.imag < H - 0.5)
+                hits = np.zeros(Q.shape, bool)
+                hits[inside] = hitmap[np.rint(Q.imag[inside]).astype(int), np.rint(Q.real[inside]).astype(int)]
+                score = hits.sum(axis=1)
+                for m in np.nonzero((score >= 6) & (inside.sum(axis=1) >= 6))[0]:
+                    n = idx[m]
+                    found.append((int(score[m]), C[n].real, C[n].imag, R[n],
+                                  (math.degrees(np.angle(A[n])) + 90.0) % 360.0, flip))
     found.sort(reverse=True)
     distinct = []
     for h in found:
@@ -219,6 +235,34 @@ def _hypotheses(cat, dets, W, H, n_blobs=24, n_stars=24, keep=40):
         if len(distinct) >= keep:
             break
     return distinct
+
+
+def _identify(frame, cat4, dets, W, H, verbose=False):
+    """Find the stars in one frame without help. Accepts only a clear winner: many
+    stars, a small error, and no other solution that comes close. Returns
+    (params, flip) or None."""
+    if len(dets) < 12:
+        return None
+    results = []
+    for _, cx, cy, R, rot, flip in _hypotheses(cat4, dets, W, H):
+        p, pairs = _refine([frame], [cx, cy, R, 0.0, rot], flip, W)
+        if p is None:
+            continue
+        rms_deg = _stats(pairs, p, flip)[1]
+        if rms_deg < 0.75:
+            results.append((len(pairs), p, flip, rms_deg))
+    if not results:
+        return None
+    results.sort(key=lambda r: -r[0])
+    n, p, flip, rms_deg = results[0]
+    rivals = [r for r in results[1:] if math.hypot(r[1][0] - p[0], r[1][1] - p[1]) > 0.02 * W
+              or abs((r[1][4] - p[4] + 180) % 360 - 180) > 3 or r[2] != flip]
+    if verbose:
+        print(f"  {len(results)} consistent candidates; best {n} stars, {rms_deg:.2f} deg"
+              + (f"; next different one {rivals[0][0]} stars" if rivals else ""))
+    if n < 12 or rms_deg > 0.6 or (rivals and rivals[0][0] >= 0.7 * n):
+        return None
+    return p, flip
 
 
 def _haloMap(gray):
@@ -335,6 +379,23 @@ def _seedFromStars(stars, utc, lat, lon, flip):
     return [C.real, C.imag, abs(A), 0.0, (math.degrees(np.angle(A)) + 90.0) % 360.0]
 
 
+def _listStars(path, lat, lon):
+    """The named bright stars above 20 degrees at the frame's time, to choose two for --star."""
+    lst = F.local_sidereal_deg(_frameUtc(path), lon)
+    compass = ("N", "NE", "E", "SE", "S", "SW", "W", "NW")
+    rows = []
+    for name, (ra, dec) in NAMED.items():
+        alt, az = F.radec_to_altaz(ra, dec, lst, lat)
+        if alt >= 20:
+            rows.append((alt, az, name))
+    print(f"Bright stars at least 20 deg up at {os.path.basename(path)} "
+          f"({lat:.2f}, {lon:.2f}). Pick two far apart, not too low:")
+    for alt, az, name in sorted(rows, reverse=True):
+        print(f"  {name:11} altitude {alt:4.0f} deg   azimuth {az:4.0f} deg ({compass[int((az + 22.5) % 360 // 45)]})")
+    print("Then read each one's pixel position in an image viewer and run with "
+          "--star NAME X Y --star NAME X Y.")
+
+
 # --- main ------------------------------------------------------------------------------
 
 def main():
@@ -355,24 +416,11 @@ def main():
     args = ap.parse_args()
     lat, lon = _location(args)
     if args.list_stars:
-        utc = _frameUtc(args.frames[0])
-        lst = F.local_sidereal_deg(utc, lon)
-        compass = ("N", "NE", "E", "SE", "S", "SW", "W", "NW")
-        rows = []
-        for name, (ra, dec) in NAMED.items():
-            alt, az = F.radec_to_altaz(ra, dec, lst, lat)
-            if alt >= 20:
-                rows.append((alt, az, name))
-        print(f"Bright stars at least 20 deg up at {os.path.basename(args.frames[0])} "
-              f"({lat:.2f}, {lon:.2f}). Pick two far apart, not too low:")
-        for alt, az, name in sorted(rows, reverse=True):
-            print(f"  {name:11} altitude {alt:4.0f} deg   azimuth {az:4.0f} deg ({compass[int((az + 22.5) % 360 // 45)]})")
-        print("Then read each one's pixel position in an image viewer and run with "
-              "--star NAME X Y --star NAME X Y.")
+        _listStars(args.frames[0], lat, lon)
         return
     started = time.time()
 
-    frames, utcs, size, blind = [], [], None, None
+    frames, utcs, size = [], [], None
     for path in args.frames:
         img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
         if img is None:
@@ -385,13 +433,6 @@ def main():
         frames.append((cat, _haloMap(img), _skyRegion(img)))
         utcs.append(utc)
         print(f"{os.path.basename(path)}: {len(cat)} bright catalogue stars above 15 deg")
-        if blind is None and not args.star and not args.seed:
-            comp, static = _companion(path), None
-            if comp is not None:
-                cimg = cv2.imread(comp, cv2.IMREAD_GRAYSCALE)
-                if cimg is not None and cimg.shape == size:
-                    static = _detect(cimg, 3000)
-            blind = (_catalogue(utc, lat, lon, maglim=4.0), _detect(img, 550, static=static))
     H, W = size
 
     # A starting point: two identified stars, an earlier calibration, or a blind search.
@@ -409,10 +450,27 @@ def main():
         starts = [([c["cx"], c["cy"], c["a1"], c.get("a3", 0.0), c["rot_deg"]], float(c["flip"]))]
         print(f"start: {args.seed}")
     else:
-        hyps = _hypotheses(blind[0], blind[1], W, H)
-        starts = [([cx, cy, R, 0.0, rot], flip) for _, cx, cy, R, rot, flip in hyps]
-        print(f"start: blind search, {len(starts)} candidates "
-              "(experimental - two identified stars are far more reliable)")
+        # Identify the stars frame by frame; the first clear winner starts the joint fit.
+        starts = []
+        for path, frame in zip(args.frames, frames):
+            img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+            comp, static = _companion(path), None
+            if comp is not None:
+                cimg = cv2.imread(comp, cv2.IMREAD_GRAYSCALE)
+                if cimg is not None and cimg.shape == size:
+                    static = _detect(cimg, 3000)
+            print(f"identifying the stars in {os.path.basename(path)}"
+                  + ("" if static is not None else " (no frame half an hour away to tell stars from hot pixels)"))
+            found = _identify(frame, frame[0], _detect(img, 400, static), W, H, verbose=args.verbose)
+            if found is not None:
+                starts = [found]
+                print(f"start: stars identified automatically in {os.path.basename(path)}")
+                break
+        if not starts:
+            print("\nThe stars couldn't be identified automatically (clouds, moonlight, or two solutions that "
+                  "fit about equally well). Name two of them instead:\n")
+            _listStars(args.frames[0], lat, lon)
+            sys.exit(1)
 
     best = None
     for seed, flip in starts:
