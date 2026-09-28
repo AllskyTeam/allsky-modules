@@ -307,25 +307,12 @@ class ALLSKYTARGETWATCH(ALLSKYMODULEBASE):
                 {
                     "author": "Benjamin Hartwich",
                     "authorurl": "https://astronomy.garden",
-                    "changes": "Version 1.0.0: the module is tested and in use, not a beta. No functional change"
-                }
-            ],
-            "v0.1.1": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://astronomy.garden",
-                    "changes": "Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\")"
-                }
-            ],
-            "v0.1.0": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://astronomy.garden",
                     "changes": [
+                        "Initial release",
                         "Clear sky around up to 5 targets (Moon, planets, Messier objects, own coordinates) from the catalogue stars seen there",
                         "Cloud forecast per target from the cloud motion between images",
                         "Optional notification when a target becomes clear",
-                        "Values are saved in the Allsky database; the module brings charts"
+                        "Values in the Allsky database with charts"
                     ]
                 }
             ]

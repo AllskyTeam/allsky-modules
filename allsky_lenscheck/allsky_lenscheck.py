@@ -179,24 +179,11 @@ class ALLSKYLENSCHECK(ALLSKYMODULEBASE):
                 {
                     "author": "Benjamin Hartwich",
                     "authorurl": "https://astronomy.garden",
-                    "changes": "Version 1.0.0: the module is tested and in use, not a beta. No functional change"
-                }
-            ],
-            "v0.1.1": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://astronomy.garden",
-                    "changes": "Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\")"
-                }
-            ],
-            "v0.1.0": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://astronomy.garden",
                     "changes": [
+                        "Initial release",
                         "Star width (FWHM) of the bright catalogue stars on every clear night image, compared with the normal width learnt per exposure time",
                         "Soft / blurred / dew state, a dew flag other modules can use, optional notification",
-                        "Values are saved in the Allsky database; the module brings a chart"
+                        "Values in the Allsky database with a chart"
                     ]
                 }
             ]

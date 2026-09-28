@@ -285,66 +285,12 @@ class ALLSKYSKYQUALITY(ALLSKYMODULEBASE):
                 {
                     "author": "Benjamin Hartwich",
                     "authorurl": "https://astronomy.garden",
-                    "changes": "Version 1.0.0: the module is tested and in use, not a beta. No functional change"
-                }
-            ],
-            "v0.3.2": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://astronomy.garden",
-                    "changes": "Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\")"
-                }
-            ],
-            "v0.1.0": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://astronomy.garden",
                     "changes": [
-                        "Initial exposure/gain-normalised SQM in mag/arcsec2 + rolling json for charts",
-                        "Star count (template matching), camera and CPU temperature",
-                        "Cloud/haze index (star-deficit grid) and aurora candidate index (green excess on the north horizon)"
-                    ]
-                }
-            ],
-            "v0.2.0": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://astronomy.garden",
-                    "changes": [
-                        "Record naked-eye limiting magnitude (NELM) derived from SQM",
-                        "Record Moon altitude + illumination (ephem, falls back to Allsky overlay values) for moon-correlation charts"
-                    ]
-                }
-            ],
-            "v0.2.1": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://astronomy.garden",
-                    "changes": [
-                        "Checkbox settings are parsed properly: they arrive as the string 'false', which Python treats as true, so debug and the other checkboxes were always on. Remote upload now reads useremotewebsite as the boolean it is",
-                        "Aurora index: green must exceed red as well as blue. Moonlit or light-polluted cloud is red-dominant and was counted as aurora by the green-over-blue test"
-                    ]
-                }
-            ],
-            "v0.3.0": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://astronomy.garden",
-                    "changes": [
-                        "Runs day and night: the sky brightness is measured around the clock, SQM, limiting magnitude, stars, cloud cover and aurora index at night",
-                        "Values are saved in the Allsky database, and the module brings charts: sky brightness over 24 hours, SQM and limiting magnitude, stars and cloud cover, and an SQM gauge",
-                        "Values are available in the Overlay Editor",
-                        "Variables are now named AS_SKYQUALITY_*, so they don't clash with the allsky_sqm module's AS_SQM",
-                        "Publishing skyquality.json to the website is now off by default, since the WebUI charts don't need it"
-                    ]
-                }
-            ],
-            "v0.3.1": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://astronomy.garden",
-                    "changes": [
-                        "Stars are matched once for both the star count and the cloud cover, and counted without Python loops: about half the time (1.9 s -> 1.0 s on a 4K image), same results"
+                        "Initial release",
+                        "Sky brightness in mag/arcsec2 around the clock, normalised for exposure and gain",
+                        "At night: SQM, naked-eye limiting magnitude, star count, cloud cover and an aurora index",
+                        "Moon altitude and illumination for comparison",
+                        "Values in the Allsky database with charts (sky brightness over 24 hours, SQM and limiting magnitude, stars and cloud cover, SQM gauge), and in the Overlay Editor (AS_SKYQUALITY_*)"
                     ]
                 }
             ]

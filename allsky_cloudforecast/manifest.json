@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "module": "allsky_cloudforecast",
-  "generated_utc": "2026-09-28T13:54:27Z",
+  "generated_utc": "2026-09-28T14:09:46Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
@@ -10,8 +10,8 @@
       "mode": "644"
     },
     "allsky_cloudforecast.py": {
-      "sha256": "15bc0aacd29d0ef3890e45446694061b536b3de0a39d78798e904f006fb993d3",
-      "size": 28951,
+      "sha256": "b5c880f8baee9550176bb2ca58e4d370cff671368b250b36e30dc01fe7e9e4f6",
+      "size": 27398,
       "mode": "644"
     },
     "charts/clear_sky_indicator.json": {

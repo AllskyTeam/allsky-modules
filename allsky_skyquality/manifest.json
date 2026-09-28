@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "module": "allsky_skyquality",
-  "generated_utc": "2026-09-28T13:54:27Z",
+  "generated_utc": "2026-09-28T14:09:46Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
@@ -10,8 +10,8 @@
       "mode": "644"
     },
     "allsky_skyquality.py": {
-      "sha256": "fad431959ff22dada36356d95c26bc476410675dd80376453949d09ebb2a31c3",
-      "size": 28137,
+      "sha256": "176c3a7d43a17fd0b145731469a9223ede05bfe36e4513347df5e9d9010069a6",
+      "size": 25192,
       "mode": "644"
     },
     "charts/sky_brightness_chart.json": {

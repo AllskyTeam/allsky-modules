@@ -267,42 +267,11 @@ class ALLSKYCLOUDFORECAST(ALLSKYMODULEBASE):
                 {
                     "author": "Benjamin Hartwich",
                     "authorurl": "https://astronomy.garden",
-                    "changes": "Version 1.0.0: the module is tested and in use, not a beta. No functional change"
-                }
-            ],
-            "v0.1.0": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://github.com/benhartwich",
-                    "changes": "Initial day (RBR) + night (star deficit) cloud cover with a trend-based clear-sky nowcast and dashboard json"
-                }
-            ],
-            "v0.2.0": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://github.com/benhartwich",
                     "changes": [
-                        "Cloud-motion nowcast: dense optical flow between frames estimates cloud drift; the cloud field is advected over the zenith (upwind sampling) to predict clouding-over / clearing with a time estimate",
-                        "Motion direction is reported as a compass bearing via the fisheye calibration when available"
-                    ]
-                }
-            ],
-            "v0.2.1": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://github.com/benhartwich",
-                    "changes": "Use s.TOD (not the postprocess event, which is 'postcapture') to pick the day/night method — fixes the RBR/star-deficit choice"
-                }
-            ],
-            "v0.3.0": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://github.com/benhartwich",
-                    "changes": [
-                        "Class-based module for Allsky v2025",
-                        "Values are saved in the Allsky database, day and night, and the module brings charts: cloud cover with the 30-minute forecast, a clear/not clear indicator and a cloud cover gauge",
-                        "Values are available in the Overlay Editor, named AS_CLOUDFORECAST_*",
-                        "No mask by default; publishing cloud.json to the website is off by default, since the WebUI charts don't need it"
+                        "Initial release",
+                        "Cloud cover from the image, day (red/blue ratio) and night (missing stars)",
+                        "Short-term nowcast: cloud motion from optical flow between images predicts clouding over or clearing, with a time estimate and a compass direction when a fisheye calibration is present",
+                        "Values in the Allsky database, day and night, with charts (cloud cover and forecast, clear indicator, gauge), and in the Overlay Editor (AS_CLOUDFORECAST_*)"
                     ]
                 }
             ]
