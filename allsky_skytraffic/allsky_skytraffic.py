@@ -451,27 +451,14 @@ class ALLSKYSKYTRAFFIC(ALLSKYMODULEBASE):
                 {
                     "author": "Benjamin Hartwich",
                     "authorurl": "https://astronomy.garden",
-                    "changes": "Version 1.0.0: tested and in use, not a beta. Writes the satellite and aircraft tracks of the last night images to allsky_skytraffic_tracks.json in Allsky's tmp folder, so the Meteor Detection module's traffic filter can reject a streak that lies on a known track"
-                }
-            ],
-            "v0.1.1": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://astronomy.garden",
-                    "changes": "Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\"). Column charts use a time axis, so the History tab and the Charts page show times instead of raw timestamps"
-                }
-            ],
-            "v0.1.0": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://astronomy.garden",
                     "changes": [
+                        "Initial release",
                         "Satellite positions for every night image from CelesTrak orbital elements (downloaded once a day), projected into the image with the fisheye calibration or an equidistant lens",
                         "Aircraft from a local ADS-B receiver, adsb.fi or adsb.lol, moved back to the exposure",
-                        "Names the streaks the Meteor Detection module rejected as moving, and warns when a saved meteor lies on the track of a known satellite or aircraft",
+                        "Names the streaks the Meteor Detection module rejected as moving, warns when a saved meteor lies on a known track, and provides the tracks for its traffic filter",
                         "Looks for the trail along every predicted satellite track and counts the satellites the camera records",
                         "Next bright passes and ISS / Tiangong transits of the Moon and Sun for the overlay",
-                        "Values are saved in the Allsky database; the module brings charts"
+                        "Values in the Allsky database with charts"
                     ]
                 }
             ]
