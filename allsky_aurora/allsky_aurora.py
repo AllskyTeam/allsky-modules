@@ -49,7 +49,7 @@ class ALLSKYAURORA(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Aurora Detector",
         "description": "Flags a possible aurora: a green (over red and blue), structured glow low on the polar horizon, only when it is dark",
-        "version": "v0.2.1",
+        "version": "v1.0.0",
         "module": "allsky_aurora",
         "events": [
             "night"
@@ -366,6 +366,13 @@ class ALLSKYAURORA(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
+            "v1.0.0": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": "Version 1.0.0: the module is tested and in use, not a beta. No functional change"
+                }
+            ],
             "v0.2.1": [
                 {
                     "author": "Benjamin Hartwich",

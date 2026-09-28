@@ -37,7 +37,7 @@ class ALLSKYNIGHTRECAP(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Night Recap",
         "description": "Every morning one picture and one short video of the night: clear hours, meteors, satellites, aurora",
-        "version": "v0.1.1",
+        "version": "v1.0.0",
         "module": "allsky_nightrecap",
         "events": [
             "nightday"
@@ -192,6 +192,13 @@ class ALLSKYNIGHTRECAP(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
+            "v1.0.0": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": "Version 1.0.0: the module is tested and in use, not a beta. No functional change"
+                }
+            ],
             "v0.1.1": [
                 {
                     "author": "Benjamin Hartwich",

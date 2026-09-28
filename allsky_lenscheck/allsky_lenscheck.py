@@ -40,7 +40,7 @@ class ALLSKYLENSCHECK(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Lens Check",
         "description": "Measures how sharp the stars are and warns of dew, frost or a lens out of focus",
-        "version": "v0.1.1",
+        "version": "v1.0.0",
         "module": "allsky_lenscheck",
         "events": [
             "night"
@@ -175,6 +175,13 @@ class ALLSKYLENSCHECK(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
+            "v1.0.0": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": "Version 1.0.0: the module is tested and in use, not a beta. No functional change"
+                }
+            ],
             "v0.1.1": [
                 {
                     "author": "Benjamin Hartwich",

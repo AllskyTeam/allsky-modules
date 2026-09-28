@@ -42,7 +42,7 @@ class ALLSKYSKYMAP(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Sky Map",
         "description": "Limiting magnitude and sky brightness direction by direction: light domes, dark directions and transparency",
-        "version": "v0.1.1",
+        "version": "v1.0.0",
         "module": "allsky_skymap",
         "events": [
             "night"
@@ -222,6 +222,13 @@ class ALLSKYSKYMAP(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
+            "v1.0.0": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": "Version 1.0.0: the module is tested and in use, not a beta. No functional change"
+                }
+            ],
             "v0.1.1": [
                 {
                     "author": "Benjamin Hartwich",

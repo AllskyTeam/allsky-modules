@@ -43,7 +43,7 @@ class ALLSKYSKYQUALITY(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Sky Quality Meter",
         "description": "Sky brightness in mag/arcsec2 day and night, with SQM, limiting magnitude, stars and cloud cover at night, and charts",
-        "version": "v0.3.2",
+        "version": "v1.0.0",
         "module": "allsky_skyquality",
         "events": [
             "day",
@@ -281,6 +281,13 @@ class ALLSKYSKYQUALITY(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
+            "v1.0.0": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": "Version 1.0.0: the module is tested and in use, not a beta. No functional change"
+                }
+            ],
             "v0.3.2": [
                 {
                     "author": "Benjamin Hartwich",

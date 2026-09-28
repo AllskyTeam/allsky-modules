@@ -45,7 +45,7 @@ class ALLSKYTARGETWATCH(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Target Watch",
         "description": "Tells whether the sky around your targets (planets, Messier objects, your own) is clear, and whether clouds or a gap are coming",
-        "version": "v0.1.1",
+        "version": "v1.0.0",
         "module": "allsky_targetwatch",
         "events": [
             "night"
@@ -303,6 +303,13 @@ class ALLSKYTARGETWATCH(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
+            "v1.0.0": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": "Version 1.0.0: the module is tested and in use, not a beta. No functional change"
+                }
+            ],
             "v0.1.1": [
                 {
                     "author": "Benjamin Hartwich",

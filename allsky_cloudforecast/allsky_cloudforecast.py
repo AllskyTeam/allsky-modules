@@ -40,7 +40,7 @@ class ALLSKYCLOUDFORECAST(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Cloud Forecast",
         "description": "Cloud cover from the image day and night (red/blue ratio by day, missing stars at night), with a short-term nowcast and charts",
-        "version": "v0.3.0",
+        "version": "v1.0.0",
         "module": "allsky_cloudforecast",
         "events": [
             "day",
@@ -263,6 +263,13 @@ class ALLSKYCLOUDFORECAST(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
+            "v1.0.0": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": "Version 1.0.0: the module is tested and in use, not a beta. No functional change"
+                }
+            ],
             "v0.1.0": [
                 {
                     "author": "Benjamin Hartwich",

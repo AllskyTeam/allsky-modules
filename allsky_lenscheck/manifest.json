@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "module": "allsky_lenscheck",
-  "generated_utc": "2026-09-27T05:06:58Z",
+  "generated_utc": "2026-09-28T13:54:27Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
@@ -10,8 +10,8 @@
       "mode": "644"
     },
     "allsky_lenscheck.py": {
-      "sha256": "13a1e7da271e5abdcf6c39c63395642b56abefcb5e14ecfde052afb501082f4f",
-      "size": 16993,
+      "sha256": "a8dcb3bfb0431e4070b8cc5739928ea292101284cbdcc2f80f5a70e6af71ec53",
+      "size": 17294,
       "mode": "644"
     },
     "allsky_lenscheck/stars.json": {
