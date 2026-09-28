@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "module": "allsky_skymap",
-  "generated_utc": "2026-09-28T14:09:46Z",
+  "generated_utc": "2026-09-28T14:41:39Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
@@ -10,8 +10,8 @@
       "mode": "644"
     },
     "allsky_skymap.py": {
-      "sha256": "d46a76a52d5d4d04025ecf50ee14c1590bf41d56d94128aa82be9298023055b7",
-      "size": 26225,
+      "sha256": "6ac83bb2e3bdf1f7dbd29ac493fea2bcba3d68f609f5a5a95d7db29d77d94772",
+      "size": 26226,
       "mode": "644"
     },
     "allsky_skymap/stars.json": {

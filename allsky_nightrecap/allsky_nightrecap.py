@@ -42,7 +42,7 @@ class ALLSKYNIGHTRECAP(ALLSKYMODULEBASE):
         "events": [
             "nightday"
         ],
-        "experimental": "true",
+        "experimental": "false",
         "centersettings": "false",
         "testable": "true",
         "group": "Image Analysis",

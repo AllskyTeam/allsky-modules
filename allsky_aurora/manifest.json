@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "module": "allsky_aurora",
-  "generated_utc": "2026-09-28T14:09:46Z",
+  "generated_utc": "2026-09-28T14:41:39Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
@@ -10,8 +10,8 @@
       "mode": "644"
     },
     "allsky_aurora.py": {
-      "sha256": "2f87ba7374f16122d65af255e0f29d200eee16c3691d5f87c564af68db591c92",
-      "size": 33787,
+      "sha256": "abfaf18be34a42e93673e4840ed3d7d299c8b7df7db30272804f08a3ad55ae94",
+      "size": 33788,
       "mode": "644"
     },
     "charts/aurora_index_chart.json": {

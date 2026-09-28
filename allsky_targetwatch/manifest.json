@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "module": "allsky_targetwatch",
-  "generated_utc": "2026-09-28T14:09:46Z",
+  "generated_utc": "2026-09-28T14:41:39Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
@@ -10,8 +10,8 @@
       "mode": "644"
     },
     "allsky_targetwatch.py": {
-      "sha256": "b894530fafcb0fa6c519f9595e6f539ca1305468b8b84519b44475d481dd58e4",
-      "size": 34544,
+      "sha256": "5a7c95d83b052fa0d69177b0c3a047131bf2b7bd5983402fc0557a5db46127a6",
+      "size": 34545,
       "mode": "644"
     },
     "allsky_targetwatch/messier.json": {

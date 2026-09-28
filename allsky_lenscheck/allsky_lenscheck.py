@@ -45,7 +45,7 @@ class ALLSKYLENSCHECK(ALLSKYMODULEBASE):
         "events": [
             "night"
         ],
-        "experimental": "true",
+        "experimental": "false",
         "centersettings": "false",
         "testable": "false",
         "group": "Image Analysis",
