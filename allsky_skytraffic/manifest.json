@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "module": "allsky_skytraffic",
-  "generated_utc": "2026-09-27T20:32:11Z",
+  "generated_utc": "2026-09-28T13:54:42Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
@@ -10,8 +10,8 @@
       "mode": "644"
     },
     "allsky_skytraffic.py": {
-      "sha256": "bc26eaa429ee021babc157140b097f70a8b2526b3c8d7d31aa44dd9cf0ce0bb5",
-      "size": 58758,
+      "sha256": "77bd1d8ee826849dbf3ebdc671192f7dbf526ef786603f376def0a48fa421b4d",
+      "size": 58804,
       "mode": "644"
     },
     "charts/aircraft_chart.json": {

@@ -48,7 +48,7 @@ class ALLSKYSKYTRAFFIC(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Sky Traffic",
         "description": "Names the satellites and aircraft crossing the image and lists the next bright passes",
-        "version": "v0.1.2",
+        "version": "v1.0.0",
         "module": "allsky_skytraffic",
         "events": [
             "night",
@@ -447,11 +447,11 @@ class ALLSKYSKYTRAFFIC(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
-            "v0.1.2": [
+            "v1.0.0": [
                 {
                     "author": "Benjamin Hartwich",
                     "authorurl": "https://astronomy.garden",
-                    "changes": "Writes the satellite and aircraft tracks of the last night images to allsky_skytraffic_tracks.json in Allsky's tmp folder, so the Meteor Detection module's traffic filter can reject a streak that lies on a known track"
+                    "changes": "Version 1.0.0: tested and in use, not a beta. Writes the satellite and aircraft tracks of the last night images to allsky_skytraffic_tracks.json in Allsky's tmp folder, so the Meteor Detection module's traffic filter can reject a streak that lies on a known track"
                 }
             ],
             "v0.1.1": [

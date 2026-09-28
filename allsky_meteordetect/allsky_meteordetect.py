@@ -31,7 +31,7 @@ import numpy as np
 metaData = {
     "name": "Meteor Detection (temporal)",
     "description": "Detects meteors via frame differencing and separates them from satellites/aircraft",
-    "version": "v0.6.3",
+    "version": "v1.0.0",
     "events": [
         "night"
     ],
@@ -366,11 +366,11 @@ metaData = {
         }
     },
     "changelog": {
-        "v0.6.3": [
+        "v1.0.0": [
             {
                 "author": "Benjamin Hartwich",
                 "authorurl": "https://astronomy.garden",
-                "changes": "Traffic filter (Sky Filters, needs the Sky Traffic module in the same flow): rejects a streak that lies along the track a known satellite or aircraft took during that exposure, as reason satellite or aircraft, with its name. Off by default = shadow mode: the match is logged as traffic-shadow in meteors_vetoed.json and recorded as traffic on the saved meteor, but nothing is rejected"
+                "changes": "Version 1.0.0: tested and in use, not a beta. Traffic filter (Sky Filters, needs the Sky Traffic module in the same flow): rejects a streak that lies along the track a known satellite or aircraft took during that exposure, as reason satellite or aircraft, with its name. Off by default = shadow mode: the match is logged as traffic-shadow in meteors_vetoed.json and recorded as traffic on the saved meteor, but nothing is rejected"
             }
         ],
         "v0.6.2": [
