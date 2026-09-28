@@ -54,7 +54,7 @@ class ALLSKYSKYTRAFFIC(ALLSKYMODULEBASE):
             "night",
             "day"
         ],
-        "experimental": "true",
+        "experimental": "false",
         "centersettings": "false",
         "testable": "false",
         "group": "Image Analysis",
