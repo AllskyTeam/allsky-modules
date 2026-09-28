@@ -142,6 +142,7 @@ fail because tree interiors are smooth and averaging washes out their texture.
 | Glare Reach | `5` radii | How far from the light, in radii of its saturated disc, a streak can be a spike |
 | Glare Angle Tolerance | `6`° | How close to the direction away from the light a streak must point |
 | Traffic Filter (arm) | off | Reject a streak that lies along the track a known satellite or aircraft took during that exposure. Needs the **Sky Traffic** module in the same flow. **Off = shadow mode**: logged as `traffic-shadow` with the name, and the saved meteor records `traffic`. See below |
+| Great-Circle Filter (arm) | off | Reject a streak that lies on one great circle with a streak in the image before or after, however far apart: a satellite or aircraft that crossed the highest part of its path between two exposures. Needs the fisheye calibration. **Off = shadow mode**: logged as `circle-shadow`, and the saved meteor records `circle`. See below |
 | Upload to Remote Website | on | Upload each hit via Allsky's `upload.sh` |
 | Save Rejected-Candidate Crops | on | Save a labelling crop of every *rejected* streak (into `vetoed/`) as the negative examples for a future classifier |
 | Browse in the Allsky WebUI | on | Also file each meteor under `images/<day>/meteors/` so the WebUI's **Meteors** page can browse it day by day — see [Output](#output) |
@@ -359,6 +360,32 @@ border, which may well be a meteor and is left alone.
 It ships in shadow mode, like the fragmented-trail veto. Every saved meteor records
 `edge_d`, the distance of its farther end from the border, so you can see what it would
 catch on your sky first — or replay a night with `--set edge_filter=true`.
+
+### Arming the great-circle filter
+
+The moving-track filter connects a streak with one in the next or previous image only if
+the two are at most 400 px apart. A satellite or aircraft that passes high overhead can
+cross the highest part of its path in the pause between two exposures. It then leaves
+two streaks far apart, in different parts of the sky, and each looks like a meteor. A
+user's camera saved one this way: 26° in the north-west in one image, 24° in the east in
+the next, 66° apart.
+
+Seen from the camera, anything that moves in a straight line through space moves along a
+great circle. With a fisheye calibration the filter fits one great circle through both
+streaks together, through their ends and centres. It rejects the candidate when every
+point lies within 1.2° of that circle and the other streak lies further along it, at
+most 120° away. Both streaks must be at least 6° long. Two short streaks almost always
+fit some common circle: without that limit, 4 of 10 real meteors on one night matched a
+short streak in the next image.
+
+Replayed over 7 nights on the author's camera (14 to 27 September), the filter matched 8
+of the 26 streaks the module would have saved as meteors. All 8 were long, evenly bright
+satellite trails, including two pairs where the same object is in two images in a row.
+None of the other 18 was touched. On the user's two streaks it matches; with the second
+streak shifted sideways by 100 px (about 3°) it no longer does.
+
+It ships in shadow mode like the others: check the `circle` entries of your saved
+meteors before you arm it.
 
 ### Arming the traffic filter
 
