@@ -316,7 +316,7 @@ metaData = {
             "tab": "Sky Filters",
             "required": "false",
             "description": "Great-Circle Filter",
-            "help": "Reject a streak that continues on the same great circle as a streak in the image before or after, however far apart the two are: a satellite or aircraft that crossed the highest part of its path between two exposures. The moving-track filter only connects streaks up to 400 px apart. Needs the fisheye calibration. OFF by default = shadow mode: a match is logged as circle-shadow in meteors_vetoed.json and recorded as circle on the saved meteor, but nothing is rejected.",
+            "help": "Reject a streak that continues on the same great circle as a streak in the image before or after, however far apart the two are: a satellite or aircraft that crossed the highest part of its path between two exposures, or an aircraft that a short exposure every minute leaves as short pieces far apart. Pieces of 6 degrees or more count on their path alone, shorter ones (from 2 degrees) only when the gap between them also matches the object's speed. The moving-track filter only connects streaks up to 400 px apart. Needs the fisheye calibration. OFF by default = shadow mode: a match is logged as circle-shadow in meteors_vetoed.json and recorded as circle on the saved meteor, but nothing is rejected.",
             "type": {"fieldtype": "checkbox"}
         },
         "upload_remote": {
@@ -868,6 +868,14 @@ def _glareSpike(cand, sources, radii, tol):
 TRAFFIC_FILE = os.path.join(s.ALLSKY_TMP, "allsky_skytraffic_tracks.json")   # written by Sky Traffic
 
 
+def _exposure():
+    """The exposure of the current image in seconds (AS_EXPOSURE_US), or None."""
+    try:
+        return int(s.getEnvironmentVariable("AS_EXPOSURE_US")) / 1e6
+    except (TypeError, ValueError):
+        return None
+
+
 def _imageTime():
     """The exposure start of the current image (AS_TIMESTAMP), or None."""
     try:
@@ -936,6 +944,8 @@ def _similar(a, b):
 CIRCLE_TOL_DEG = 1.2      # every end and centre of both streaks within this of one great circle
 CIRCLE_MAX_GAP_DEG = 120  # the other streak at most this far along it
 CIRCLE_MIN_LEN_DEG = 6.0  # both streaks at least this long: shorter ones fit almost any circle
+CIRCLE_SHORT_MIN_DEG = 2.0   # shorter pieces down to this, when the gap matches the object's speed
+CIRCLE_SPEED_RANGE = (0.5, 2.0)  # gap / (speed * time between the pieces)
 
 
 def _skyVector(x, y, fe, calib):
@@ -943,7 +953,7 @@ def _skyVector(x, y, fe, calib):
     return fe._unit(alt, az)
 
 
-def _sameCircle(a, b):
+def _sameCircle(a, b, ta=None, ea=None, tb=None, eb=None):
     """True when streaks a and b lie on one great circle, one beyond the other. A
     satellite or aircraft moves along a great circle (any straight path through space
     does, seen from the camera); a meteor is in one image only. The circle is fitted
@@ -953,7 +963,15 @@ def _sameCircle(a, b):
     away. Both streaks must be at least CIRCLE_MIN_LEN_DEG long: two short streaks lie
     on some common circle almost always (on one night 4 of 10 real meteors matched a
     short streak in the next image), a satellite or aircraft crossing during a long
-    exposure leaves 10 to 50 degrees. Needs the fisheye calibration."""
+    exposure leaves 10 to 50 degrees.
+
+    Shorter pieces, down to CIRCLE_SHORT_MIN_DEG, also count when the gap between them
+    matches the object's speed: a camera that exposes 10 s every minute leaves an
+    aircraft as short pieces far apart. ta/tb are the exposure starts, ea/eb the
+    exposures (s). The speed is the faster piece's length over its exposure (a piece
+    that fades or leaves the sky covers only part of it); the gap between the centres
+    must be CIRCLE_SPEED_RANGE times that speed over the time between them. A meteor
+    next to an unrelated piece practically never fits both. Needs the fisheye calibration."""
     fe, calib = _loadCalib()
     if fe is None or calib is None:
         return False
@@ -969,9 +987,19 @@ def _sameCircle(a, b):
     def angle(u, v):
         return math.degrees(math.acos(max(-1.0, min(1.0, float(u @ v) / (np.linalg.norm(u) * np.linalg.norm(v))))))
     la, lb = angle(M[0], M[1]), angle(M[3], M[4])
-    if min(la, lb) < CIRCLE_MIN_LEN_DEG:
+    gap = angle(M[2], M[5])
+    if not (la + lb) / 2.0 < gap <= CIRCLE_MAX_GAP_DEG:
         return False
-    return (la + lb) / 2.0 < angle(M[2], M[5]) <= CIRCLE_MAX_GAP_DEG
+    if min(la, lb) >= CIRCLE_MIN_LEN_DEG:
+        return True
+    if min(la, lb) < CIRCLE_SHORT_MIN_DEG or None in (ta, ea, tb, eb) or min(ea, eb) <= 0:
+        return False
+    dt = abs((tb + eb / 2.0) - (ta + ea / 2.0))
+    speed = max(la / ea, lb / eb)
+    if dt <= 0 or speed <= 0:
+        return False
+    lo, hi = CIRCLE_SPEED_RANGE
+    return lo <= gap / (speed * dt) <= hi
 
 
 def _progressing(a, b):
@@ -1273,6 +1301,7 @@ def meteordetect(params, event):
     glare_tol = s.asfloat(params.get("glare_tol", 6.0))
     traffic_filter = _truthy(params.get("traffic_filter", False))   # off = shadow (log, no veto)
     circle_filter = _truthy(params.get("circle_filter", False))     # off = shadow (log, no veto)
+    cur_t0, cur_exp = _imageTime(), _exposure()
     star_maglim = s.asfloat(params.get("star_maglim", 5.0))
     upload_remote = _truthy(params.get("upload_remote", True))
     save_vetoed = _truthy(params.get("save_vetoed", True))
@@ -1397,6 +1426,16 @@ def meteordetect(params, event):
             _logVetoed(outdir, _stamp, cand, reason, detail, t, name)
         # the satellites and aircraft Sky Traffic found in the image the streaks appeared in
         traffic = _trafficFor(entry.get("t0"))
+        # Streaks in the neighbouring images, with that image's exposure start and length.
+        # A difference image holds the pieces of both its images: a piece in both the
+        # entry's difference ("same") and this one is in the entry's own image.
+        same = entry.get("same", [])
+        others = [(o, cur_t0, cur_exp) for o in streaks if not any(_similar(o, x) for x in same)]
+        others += [(o, entry.get("prev_t0"), entry.get("prev_exp")) for o in same
+                   if not any(_similar(o, y) for y in streaks)]
+        others += [(o, None, None) for o in streaks if any(_similar(o, x) for x in same)]
+        # and, without times, the difference before that (long streaks only)
+        others += [(o, None, None) for o in entry.get("before", [])]
         keep = []
         for cand in entry["streaks"]:
             if sat_filter and any(_progressing(cur, cand) for cur in streaks):
@@ -1407,8 +1446,8 @@ def meteordetect(params, event):
                 continue  # no same-location disappearance -> flicker -> discard
             # the same great circle as a streak in the image before or after it: a
             # satellite or aircraft whose parts are too far apart for the moving check
-            circle = next((o for o in streaks + entry.get("before", [])
-                           if not _similar(o, cand) and _sameCircle(cand, o)), None)
+            circle = next((o for o, t_o, e_o in others
+                           if not _similar(o, cand) and _sameCircle(cand, o, entry.get("t0"), entry.get("exp"), t_o, e_o)), None)
             if circle is not None:
                 if circle_filter:
                     moving += 1
@@ -1504,9 +1543,12 @@ def meteordetect(params, event):
         cv2.imwrite(stash, s.image)          # stash TRUE-COLOUR frame for later save
         # pin the day folder now: the candidate is only confirmed on a later frame, which
         # may already be in the next DATE_NAME period
-        # the image before's streaks go along for the great-circle check
-        new_pending.append({"img_path": stash, "stamp": stamp, "t0": _imageTime(),
+        # for the great-circle check: this difference's other streaks (in this image or
+        # the one before) and the times of both images
+        new_pending.append({"img_path": stash, "stamp": stamp, "t0": cur_t0, "exp": cur_exp,
+                            "prev_t0": state.get("last_t0"), "prev_exp": state.get("last_exp"),
                             "day": _currentDay(), "streaks": new_cands,
+                            "same": [p for p in streaks if not any(_similar(p, c) for c in new_cands)],
                             "before": [p for p in prev_streaks if not any(_similar(p, c) for c in new_cands)]})
 
     # remember this frame's streak positions for the recurrence veto (rolling, pruned)
@@ -1514,6 +1556,7 @@ def meteordetect(params, event):
     state["hotspots"] = hotspots[-400:]
     state["prev_streaks"] = streaks
     state["pending"] = new_pending
+    state["last_t0"], state["last_exp"] = cur_t0, cur_exp
     _writeState(state)
 
     _publishVariables(saved, moving, vetoed, last_saved[0], last_saved[1], save_webui, outdir, peak_max)

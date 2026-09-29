@@ -389,6 +389,22 @@ satellite trails, including two pairs where the same object is in two images in 
 None of the other 18 was touched. On the user's two streaks it matches; with the second
 streak shifted sideways by 100 px (about 3°) it no longer does.
 
+**Short pieces.** A camera that takes a 10 s exposure about once a minute sees an
+aircraft as short pieces of 3–5°, far apart. Those are too short for the circle alone.
+They still count when the gap between the two pieces matches the object's speed: the
+faster piece's length over its exposure, times the time between the two exposures,
+must give 0.5 to 2 times the gap. (The faster piece gives the speed, because a piece
+that fades or leaves the sky covers only part of its exposure.) The filter works out
+which image each piece is in from the two differences, and it takes the exposure
+start and length from Allsky (`AS_TIMESTAMP`, `AS_EXPOSURE_US`).
+
+Tested on a user's camera (6–15 s exposures every 66 s, frames before and after each
+saved meteor), it linked a short "meteor" to the bright dashed aircraft trail in the
+image before it (gap 0.9 times the expected distance), and a later piece of another
+aircraft. The two real meteors in those sequences were not linked; one sat on a common
+circle with an unrelated piece, but its gap was 3.5 times too large. On the author's 7
+nights it marked no additional streak and no real meteor.
+
 It ships in shadow mode like the others: check the `circle` entries of your saved
 meteors before you arm it.
 
