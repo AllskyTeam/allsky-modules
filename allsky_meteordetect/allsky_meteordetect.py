@@ -383,7 +383,7 @@ metaData = {
                     "Temporal meteor detection: the difference between consecutive images removes stars and static clouds; streaks are found and classified across neighbouring images, so satellites and aircraft that continue are rejected",
                     "Filters against false detections: dashed trails, recurring spots, trailed stars, twinkling bright stars, Moon glare spikes, clouds and scintillation; fragmented trails, edge glow, the traffic filter (satellites and aircraft known to Sky Traffic) and the great-circle filter (a satellite or aircraft continuing far away in the image before or after) in shadow mode until armed",
                     "Shower attribution by the radiant the streak points back to, with a fisheye calibration",
-                    "Meteors saved in true colour with marked copies and thumbnails, browsable on the WebUI's Meteors page, optional upload to the remote website; rejected streaks saved as crops for review",
+                    "Meteors saved in true colour with thumbnails, browsable on the WebUI's Meteors page and the Website, optional upload to the remote website; marked copies kept in a subfolder so the Website shows each meteor once; rejected streaks saved as crops for review",
                     "Tools: detection mask builder, fisheye calibration that identifies the stars itself, overlay alignment, and a night replay to test settings",
                     "Values in the Allsky database with charts, and in the Overlay Editor (AS_METEOR*)"
                 ]
@@ -1040,6 +1040,7 @@ def _currentDay():
 # plural like the day's own thumbnails/ (not the singular keogramthumbnail/ pattern) -
 # settled on AllskyTeam/allsky#5227 and matched by meteors.php and functions.php there.
 WEBUI_THUMB_DIR = "meteorsthumbnails"
+MARKED_DIR = "marked"      # marked copies in the website folder, kept apart from the gallery images
 
 
 def _webUIDayDir(day):
@@ -1062,12 +1063,13 @@ def _copyToWebUI(day, stamp, fname, outdir, thumbdir, entries, save_marked):
         os.makedirs(daydir, exist_ok=True)
         daythumbs = os.path.join(os.path.dirname(daydir), WEBUI_THUMB_DIR)
         os.makedirs(daythumbs, exist_ok=True)
-        names = [fname]
+        sources = [(fname, outdir, thumbdir)]
         if save_marked:
-            names.append(f"meteors-{stamp}-marked.jpg")
-        for name in names:
-            for src, dst in ((os.path.join(outdir, name), os.path.join(daydir, name)),
-                             (os.path.join(thumbdir, name), os.path.join(daythumbs, name))):
+            markeddir = os.path.join(outdir, MARKED_DIR)
+            sources.append((f"meteors-{stamp}-marked.jpg", markeddir, os.path.join(markeddir, "thumbnails")))
+        for name, imgdir, thdir in sources:
+            for src, dst in ((os.path.join(imgdir, name), os.path.join(daydir, name)),
+                             (os.path.join(thdir, name), os.path.join(daythumbs, name))):
                 if os.path.isfile(src):
                     shutil.copy2(src, dst)
         _writeJson(os.path.join(daydir, f"meteors-{stamp}.json"), entries)
@@ -1151,9 +1153,13 @@ def _saveMeteor(img_path, stamp, streaks, outdir, thumbdir, save_marked,
         for m in streaks:
             _drawBrackets(marked, m)                                    # brackets AROUND, never over
         marked_name = f"meteors-{stamp}-marked.jpg"
-        cv2.imwrite(os.path.join(outdir, marked_name), marked)
+        # In a subfolder: the Website's Meteors page lists every image in the folder,
+        # so beside the gallery image each meteor showed up twice.
+        markeddir = os.path.join(outdir, MARKED_DIR)
+        os.makedirs(os.path.join(markeddir, "thumbnails"), exist_ok=True)
+        cv2.imwrite(os.path.join(markeddir, marked_name), marked)
         # the WebUI links the marked THUMBNAIL without checking it exists, so write it too
-        cv2.imwrite(os.path.join(thumbdir, marked_name),
+        cv2.imwrite(os.path.join(markeddir, "thumbnails", marked_name),
                     cv2.resize(marked, (0, 0), fx=0.25, fy=0.25))
 
     showers = _activeShowers(stamp)

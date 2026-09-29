@@ -250,8 +250,13 @@ charts):
 - **`meteors-<timestamp>.jpg`**, plus a thumbnail in `meteors/thumbnails/` —
   picked up automatically by Allsky's meteor gallery page. **The gallery image keeps
   the meteor's true colours, untouched.**
-- **`meteors-<timestamp>-marked.jpg`** and its thumbnail, when *Save Marked Copy*
-  is on.
+- **`marked/meteors-<timestamp>-marked.jpg`** and its thumbnail in
+  `marked/thumbnails/`, when *Save Marked Copy* is on. They are in a subfolder
+  so the Website's Meteors page, which lists every image in the folder, doesn't
+  show each meteor twice. Marked copies saved by earlier versions next to the
+  gallery images can be deleted:
+  `rm ~/allsky/html/allsky/meteors/*-marked.jpg ~/allsky/html/allsky/meteors/thumbnails/*-marked.jpg`
+  (the WebUI's copies under `images/<day>/` are separate and stay).
 - **`meteors.json`** — a rolling log of
   `{time, file, length, angle, elong, peak, frag_n, frag_ext, showers, radiant}`
   for later statistics (`showers` = active by date, `radiant` = geometric
