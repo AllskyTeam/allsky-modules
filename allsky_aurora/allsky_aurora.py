@@ -49,12 +49,12 @@ class ALLSKYAURORA(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Aurora Detector",
         "description": "Flags a possible aurora: a green (over red and blue), structured glow low on the polar horizon, only when it is dark",
-        "version": "v0.2.1",
+        "version": "v1.0.0",
         "module": "allsky_aurora",
         "events": [
             "night"
         ],
-        "experimental": "true",
+        "experimental": "false",
         "centersettings": "false",
         "testable": "false",
         "group": "Image Analysis",
@@ -366,33 +366,17 @@ class ALLSKYAURORA(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
-            "v0.2.1": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://astronomy.garden",
-                    "changes": "Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\")"
-                }
-            ],
-            "v0.1.0": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://astronomy.garden",
-                    "changes": "Initial darkness-gated northern-band aurora candidate detector: green-over-red AND green-over-blue, structured above background, coherent blobs; rolling json + thumbnail for confirmation. The green-over-red test rejects the moonlit/light-polluted red cloud that fools a green-over-blue-only index."
-                }
-            ],
-            "v0.2.0": [
+            "v1.0.0": [
                 {
                     "author": "Benjamin Hartwich",
                     "authorurl": "https://astronomy.garden",
                     "changes": [
-                        "Class-based module for Allsky v2025",
-                        "Works in both hemispheres: in the southern hemisphere the band looks South",
-                        "Without a calibration, 'North in the image' sets the direction; a calibration.json made by the Meteor Detection module's tools is used when present",
-                        "Values are saved in the Allsky database and the module brings charts: aurora index and a 'possible aurora' indicator",
-                        "Values are available in the Overlay Editor (AS_AURORA, AS_AURORA_INDEX, AS_AURORA_GREEN, AS_AURORA_STRUCTURE)",
-                        "The cloud gate reads the Cloud Forecast or Sky Quality Meter module's cloud cover",
-                        "The darkness gate uses the time the image was taken",
-                        "Candidate thumbnails go into the day's images folder (aurora/) instead of tmp; publishing to the website is off by default"
+                        "Initial release",
+                        "Flags a possible aurora: a green glow that outshines both red and blue, structured and above the background, low on the polar horizon, and only when it is dark",
+                        "Works in both hemispheres; uses a calibration.json from the Meteor Detection module's tools when present, else 'North in the image'",
+                        "Skips cloudy images using the Cloud Forecast or Sky Quality module's cloud cover",
+                        "Candidate thumbnails in the day's images folder (aurora/)",
+                        "Values in the Allsky database with charts, and in the Overlay Editor (AS_AURORA_*)"
                     ]
                 }
             ]

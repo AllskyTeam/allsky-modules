@@ -40,12 +40,12 @@ class ALLSKYLENSCHECK(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Lens Check",
         "description": "Measures how sharp the stars are and warns of dew, frost or a lens out of focus",
-        "version": "v0.1.1",
+        "version": "v1.0.0",
         "module": "allsky_lenscheck",
         "events": [
             "night"
         ],
-        "experimental": "true",
+        "experimental": "false",
         "centersettings": "false",
         "testable": "false",
         "group": "Image Analysis",
@@ -175,21 +175,15 @@ class ALLSKYLENSCHECK(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
-            "v0.1.1": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://astronomy.garden",
-                    "changes": "Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\")"
-                }
-            ],
-            "v0.1.0": [
+            "v1.0.0": [
                 {
                     "author": "Benjamin Hartwich",
                     "authorurl": "https://astronomy.garden",
                     "changes": [
+                        "Initial release",
                         "Star width (FWHM) of the bright catalogue stars on every clear night image, compared with the normal width learnt per exposure time",
                         "Soft / blurred / dew state, a dew flag other modules can use, optional notification",
-                        "Values are saved in the Allsky database; the module brings a chart"
+                        "Values in the Allsky database with a chart"
                     ]
                 }
             ]

@@ -37,12 +37,12 @@ class ALLSKYNIGHTRECAP(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Night Recap",
         "description": "Every morning one picture and one short video of the night: clear hours, meteors, satellites, aurora",
-        "version": "v0.1.1",
+        "version": "v1.0.0",
         "module": "allsky_nightrecap",
         "events": [
             "nightday"
         ],
-        "experimental": "true",
+        "experimental": "false",
         "centersettings": "false",
         "testable": "true",
         "group": "Image Analysis",
@@ -192,20 +192,15 @@ class ALLSKYNIGHTRECAP(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
-            "v0.1.1": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://astronomy.garden",
-                    "changes": "Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\"). Column charts use a time axis, so the History tab and the Charts page show times instead of raw timestamps"
-                }
-            ],
-            "v0.1.0": [
+            "v1.0.0": [
                 {
                     "author": "Benjamin Hartwich",
                     "authorurl": "https://astronomy.garden",
                     "changes": [
-                        "Recap image and video of the night from the other modules' results: clear hours, meteors, satellite trails, aurora, darkest sky, Kp",
-                        "One line for the overlay, the website or a notification"
+                        "Initial release",
+                        "Every morning one recap image and one short video of the night from the other modules' results: clear hours, meteors, satellite trails, aurora, darkest sky, Kp",
+                        "One line for the overlay, the website or a notification",
+                        "Values in the Allsky database with a chart"
                     ]
                 }
             ]

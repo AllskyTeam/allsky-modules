@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "module": "allsky_nightrecap",
-  "generated_utc": "2026-09-27T05:08:41Z",
+  "generated_utc": "2026-09-28T14:41:39Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
@@ -10,8 +10,8 @@
       "mode": "644"
     },
     "allsky_nightrecap.py": {
-      "sha256": "fba5a8748c4ccd4c564fd50e726a315bffb8d8d4a6e8eeb92c9e53bef0084bd9",
-      "size": 26446,
+      "sha256": "189302c92594403d59305ff61a7bc18406beaa32f4f12e58f8d0cf453211be1f",
+      "size": 26097,
       "mode": "644"
     },
     "charts/nights_chart.json": {

@@ -42,12 +42,12 @@ class ALLSKYSKYMAP(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Sky Map",
         "description": "Limiting magnitude and sky brightness direction by direction: light domes, dark directions and transparency",
-        "version": "v0.1.1",
+        "version": "v1.0.0",
         "module": "allsky_skymap",
         "events": [
             "night"
         ],
-        "experimental": "true",
+        "experimental": "false",
         "centersettings": "false",
         "testable": "false",
         "group": "Image Analysis",
@@ -222,22 +222,16 @@ class ALLSKYSKYMAP(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
-            "v0.1.1": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://astronomy.garden",
-                    "changes": "Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\")"
-                }
-            ],
-            "v0.1.0": [
+            "v1.0.0": [
                 {
                     "author": "Benjamin Hartwich",
                     "authorurl": "https://astronomy.garden",
                     "changes": [
+                        "Initial release",
                         "Limiting magnitude and sky background for the zenith and eight directions on clear, moonless images",
                         "Blocked parts of the sky (trees, roofs) learnt from the stars",
                         "Nightly averages kept for a year and drawn as a map; light domes and the darkest direction for the overlay",
-                        "Values are saved in the Allsky database; the module brings charts"
+                        "Values in the Allsky database with charts"
                     ]
                 }
             ]
