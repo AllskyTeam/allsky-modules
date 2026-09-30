@@ -260,7 +260,9 @@ def _identify(frame, cat4, dets, W, H, verbose=False):
     if verbose:
         print(f"  {len(results)} consistent candidates; best {n} stars, {rms_deg:.2f} deg"
               + (f"; next different one {rivals[0][0]} stars" if rivals else ""))
-    if n < 12 or rms_deg > 0.6 or (rivals and rivals[0][0] >= 0.7 * n):
+    # A noisy, soft image (a user's RPi HQ at gain 16) gave its one solution 0.61-0.68 deg
+    # on 21-28 stars; a wrong solution never gets 20 bright stars that close.
+    if n < 12 or rms_deg > (0.75 if n >= 20 else 0.6) or (rivals and rivals[0][0] >= 0.7 * n):
         return None
     return p, flip
 

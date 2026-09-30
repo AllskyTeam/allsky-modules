@@ -380,7 +380,7 @@ metaData = {
                 "authorurl": "https://astronomy.garden",
                 "changes": [
                     "Initial release",
-                    "Temporal meteor detection: the difference between consecutive images removes stars and static clouds; streaks are found and classified across neighbouring images, so satellites and aircraft that continue are rejected",
+                    "Temporal meteor detection: the difference between consecutive images removes stars and static clouds; streaks are found and classified across neighbouring images, so satellites and aircraft that continue are rejected. Works with noisy sensors (single-pixel noise is removed before the cloud gate) and follows streaks the fisheye bends",
                     "Filters against false detections: dashed trails, recurring spots, trailed stars, twinkling bright stars, Moon glare spikes, clouds and scintillation; fragmented trails, edge glow, the traffic filter (satellites and aircraft known to Sky Traffic) and the great-circle filter (a satellite or aircraft continuing far away in the image before or after) in shadow mode until armed",
                     "Shower attribution by the radiant the streak points back to, with a fisheye calibration",
                     "Meteors saved in true colour with thumbnails, browsable on the WebUI's Meteors page and the Website, optional upload to the remote website; marked copies kept in a subfolder so the Website shows each meteor once; rejected streaks saved as crops for review",
@@ -740,17 +740,23 @@ def _findStreaks(diff, min_len, min_elong, max_area, diff_thr):
         dx, dy = float(evec[0][0]), float(evec[0][1])
         ang = float(np.degrees(np.arctan2(dy, dx)) % 180)
         peak = int(diff[ys, xs].max())        # brightness = peak new-light intensity
+        # How the streak bends away from its straight axis: the fisheye curves a long
+        # streak near the edge by 10 px and more. Offset across the axis as a quadratic
+        # in the distance along it, for the dash count to follow the streak.
+        u = (xs - cx) * dx + (ys - cy) * dy
+        v = (xs - cx) * -dy + (ys - cy) * dx
+        bend = [float(c) for c in np.polyfit(u, v, 2)] if len(pts) >= 20 else [0.0, 0.0, 0.0]
         # cast everything to native python floats so the state stays JSON-serialisable
         out.append({
             "cx": cx, "cy": cy, "len": float(l_major), "elong": float(elong), "ang": ang,
             "p1": [cx - dx * l_major / 2, cy - dy * l_major / 2],
             "p2": [cx + dx * l_major / 2, cy + dy * l_major / 2],
-            "area": int(area), "peak": peak
+            "area": int(area), "peak": peak, "bend": bend
         })
     return out
 
 
-def _dashRuns(gray, p1, p2):
+def _dashRuns(gray, p1, p2, bend=None):
     """Count how many separate bright segments lie along a streak's axis.
 
     A meteor is a single continuous streak (1 run, sometimes 2 if it tapers);
@@ -759,7 +765,10 @@ def _dashRuns(gray, p1, p2):
     small perpendicular max so a slight axis mis-fit still lands on the streak),
     then counting rising edges above a level set relative to the streak's own
     peak, gives a clean separator: on this camera a real meteor scores <=5 and
-    a dashed satellite scored 19. Validated on the 2026-07-13 detections."""
+    a dashed satellite scored 19. Validated on the 2026-07-13 detections.
+    `bend` (from _findStreaks) makes the samples follow a curved streak: along the
+    straight axis a long fireball near a user's lens edge lay up to 12 px off it in
+    the middle, the dip looked like a gap and noise at its edges made 18 "dashes"."""
     p1 = np.asarray(p1, float); p2 = np.asarray(p2, float)
     L = float(np.hypot(*(p2 - p1)))
     if L < 1.0:
@@ -771,6 +780,8 @@ def _dashRuns(gray, p1, p2):
     vals = np.zeros(n + 1, np.float32)
     for i in range(n + 1):
         pt = p1 + d * (L * i / n)
+        if bend is not None:
+            pt = pt + perp * float(np.polyval(bend, L * i / n - L / 2.0))
         m = 0.0
         for o in (-3, -2, -1, 0, 1, 2, 3):     # perpendicular window, robust to mis-fit
             q = pt + perp * o
@@ -1342,6 +1353,20 @@ def meteordetect(params, event):
     if debug:
         s.writeDebugImage(metaData["module"], "diff.png", diff_m)
 
+    # A noisy sensor (a user's RPi HQ at gain 16) puts 5-6 % of SINGLE pixels over the
+    # threshold in every frame: the cloud gate skipped it all night, and the noise merged
+    # with a real streak into a shapeless blob. A 3x3 median removes single pixels but
+    # keeps clouds, streaks and twinkling stars (a few pixels each). So when it removes
+    # most of what is over the threshold, the frame is noisy, and it is analysed after
+    # the median: there 5.7 % became 0.8 % and the 563 px fireball was found. Otherwise
+    # nothing changes; a median on every frame would also thin out a 1 px meteor, and
+    # smoothing every frame let twinkle-heavy frames through that are skipped now.
+    raw_share = float((diff_m > diff_thr).mean())
+    if raw_share > 0.02:
+        med = cv2.medianBlur(diff_m, 3)
+        if float((med > diff_thr).mean()) < raw_share / 3.0:
+            diff_m = med
+
     # cloud gate
     coverage = float((diff_m > diff_thr).mean() / max(1e-6, (hard > 0).mean()))
     if coverage > cloud_frac:
@@ -1356,7 +1381,7 @@ def meteordetect(params, event):
     # the candidate is confirmed one frame later. Cheap; only long streaks matter.
     if dash_filter:
         for st_ in streaks:
-            st_["dash_runs"] = (_dashRuns(gray, st_["p1"], st_["p2"])
+            st_["dash_runs"] = (_dashRuns(gray, st_["p1"], st_["p2"], st_.get("bend"))
                                 if st_["len"] >= dash_min_len else 0)
 
     # tag each long streak with its collinear-fragment count on the DIFFERENCE

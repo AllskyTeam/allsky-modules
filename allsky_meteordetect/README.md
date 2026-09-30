@@ -441,6 +441,28 @@ So on this sky about 1 in 110 real meteors would also be rejected. That is why i
 in shadow mode: look at the `traffic` entries of your saved meteors, and at the crops in
 `vetoed/`, before you arm it.
 
+### Noisy cameras and curved streaks
+
+Two fixes came from a user's RPi HQ camera in Australia (30 s at gain 16, a long
+fireball near the edge of a 1.56 mm lens):
+
+- **Sensor noise.** About 5.7 % of single pixels changed by more than the Difference
+  Threshold between any two frames. The cloud gate took that for cloud and skipped every
+  frame, and the noise merged with the fireball into a shapeless blob. When a 3×3 median
+  removes most of what is over the threshold (single pixels do, clouds, streaks and
+  twinkling stars don't), the frame is treated as noisy and analysed after the median:
+  5.7 % became 0.8 %, and the 563 px fireball was found with no noise streaks around it.
+  Other frames are analysed as before, so a 1 px meteor on a normal camera isn't thinned
+  out.
+- **Curved streaks.** The dash count sampled along the straight line between a streak's
+  ends. The fisheye bent the fireball up to 12 px away from that line in the middle, the
+  dip looked like a gap, and noise at its edges made 18 "dashes". The streak's bend is
+  now fitted from its pixels and followed.
+
+Replaying 7 of the author's nights gives exactly the same meteors and rejections as
+before. On the user's sequences, the fireball and a meteor from a second camera are
+saved; an aircraft, insects and moonlit cloud are not.
+
 ## Testing without waiting for a clear night
 
 Meteors are rare and clear nights rarer, so "is it working, are my settings right" can
