@@ -48,13 +48,13 @@ class ALLSKYSKYTRAFFIC(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Sky Traffic",
         "description": "Names the satellites and aircraft crossing the image and lists the next bright passes",
-        "version": "v0.1.1",
+        "version": "v1.0.0",
         "module": "allsky_skytraffic",
         "events": [
             "night",
             "day"
         ],
-        "experimental": "true",
+        "experimental": "false",
         "centersettings": "false",
         "testable": "false",
         "group": "Image Analysis",
@@ -447,24 +447,18 @@ class ALLSKYSKYTRAFFIC(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
-            "v0.1.1": [
-                {
-                    "author": "Benjamin Hartwich",
-                    "authorurl": "https://astronomy.garden",
-                    "changes": "Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\"). Column charts use a time axis, so the History tab and the Charts page show times instead of raw timestamps"
-                }
-            ],
-            "v0.1.0": [
+            "v1.0.0": [
                 {
                     "author": "Benjamin Hartwich",
                     "authorurl": "https://astronomy.garden",
                     "changes": [
+                        "Initial release",
                         "Satellite positions for every night image from CelesTrak orbital elements (downloaded once a day), projected into the image with the fisheye calibration or an equidistant lens",
                         "Aircraft from a local ADS-B receiver, adsb.fi or adsb.lol, moved back to the exposure",
-                        "Names the streaks the Meteor Detection module rejected as moving, and warns when a saved meteor lies on the track of a known satellite or aircraft",
+                        "Names the streaks the Meteor Detection module rejected as moving, warns when a saved meteor lies on a known track, and provides the tracks for its traffic filter",
                         "Looks for the trail along every predicted satellite track and counts the satellites the camera records",
                         "Next bright passes and ISS / Tiangong transits of the Moon and Sun for the overlay",
-                        "Values are saved in the Allsky database; the module brings charts"
+                        "Values in the Allsky database with charts"
                     ]
                 }
             ]
@@ -484,6 +478,7 @@ class ALLSKYSKYTRAFFIC(ALLSKYMODULEBASE):
 _MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATE_FILE = os.path.join(s.ALLSKY_TMP, "allsky_skytraffic_state.json")
 PREV_FRAME = os.path.join(s.ALLSKY_TMP, "allsky_skytraffic_prev.png")
+TRACKS_FILE = os.path.join(s.ALLSKY_TMP, "allsky_skytraffic_tracks.json")   # read by Meteor Detection
 CELESTRAK = "https://celestrak.org/NORAD/elements/gp.php?GROUP={}&FORMAT=tle"
 HEADERS = {"User-Agent": "Allsky-SkyTraffic/0.1 (+https://github.com/AllskyTeam/allsky-modules)"}
 BRIGHT_GROUPS = ("stations", "visual")     # the pass list is made from these
@@ -551,6 +546,18 @@ def _readState():
             return json.load(fh)
     except Exception:
         return {}
+
+
+def _writeTracks(frames, tol_px):
+    """The tracks of the last night images for other modules: the Meteor Detection
+    module rejects a streak that lies on one of them. Each frame is keyed by its
+    exposure start (AS_TIMESTAMP), which both modules see for the same image."""
+    data = {"tol_px": round(tol_px, 1), "angle_tol": ANGLE_TOL,
+            "frames": [{"t0": f["t0"], "exp": f["exp"], "tracks": f["tracks"]} for f in frames]}
+    tmp = TRACKS_FILE + ".tmp"
+    with open(tmp, "w") as fh:
+        json.dump(data, fh)
+    os.replace(tmp, TRACKS_FILE)
 
 
 def _writeState(st):
@@ -837,12 +844,16 @@ def _stampTime(stamp):
 
 
 def _frameFor(frames, stamp):
-    """The stored frame the Meteor Detection module processed at `stamp` (it stamps
-    a streak with the time it ran on that frame; both modules run in the same flow)."""
+    """The stored frame a Meteor Detection `stamp` belongs to. From v1.0.0 it names a
+    streak like its image, by the exposure start; earlier versions used the time the
+    module ran on that frame (a few seconds later, both modules run in the same flow)."""
     try:
         t = _stampTime(stamp)
     except ValueError:
         return None
+    exact = min(frames, key=lambda f: abs(f["t0"] - t), default=None)
+    if exact is not None and abs(exact["t0"] - t) <= 1:
+        return exact
     best = min(frames, key=lambda f: abs(f["run"] - t), default=None)
     return best if best is not None and abs(best["run"] - t) <= 60 else None
 
@@ -1275,6 +1286,7 @@ def _run(module):
     frames = [f for f in st.get("frames", []) if now - f["run"] < 3 * 3600][-(KEEP_FRAMES - 1):]
     frames.append({"run": now, "t0": t0, "exp": exp, "tracks": tracks})
     st["frames"] = frames
+    _writeTracks(frames, tol_px)
     named, suspects = _nameStreaks(params, st, frames, tol_px, module)
 
     seen = []
@@ -1337,7 +1349,8 @@ def skytraffic_cleanup():
             "files": {
                 ALLSKYSKYTRAFFIC.meta_data["extradatafilename"],
                 STATE_FILE,
-                PREV_FRAME
+                PREV_FRAME,
+                TRACKS_FILE
             },
             "env": {}
         }

@@ -89,6 +89,12 @@ Files in `config/myFiles/skytraffic/`:
 - `skytraffic_seen.json`: every satellite trail found in an image, with time,
   name and the ends of the trail in the image.
 
+In Allsky's tmp folder, `allsky_skytraffic_tracks.json` holds the satellite and
+aircraft tracks of the last 8 night images, keyed by exposure start. The Meteor
+Detection module's **Traffic Filter** uses it to reject a streak that lies on a
+track: a satellite glint or an aircraft that is only in one image, and would otherwise
+be saved as a meteor.
+
 ## On the website
 
 **Publish to the website** copies `skytraffic_passes.json`,

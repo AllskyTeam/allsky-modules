@@ -31,7 +31,7 @@ import numpy as np
 metaData = {
     "name": "Meteor Detection (temporal)",
     "description": "Detects meteors via frame differencing and separates them from satellites/aircraft",
-    "version": "v0.6.2",
+    "version": "v1.0.0",
     "events": [
         "night"
     ],
@@ -91,6 +91,8 @@ metaData = {
         "glare_filter": "true",
         "glare_radii": "5",
         "glare_tol": "6",
+        "traffic_filter": "false",
+        "circle_filter": "false",
         "upload_remote": "true",
         "outputdir": "",
         "save_webui": "true",
@@ -303,6 +305,20 @@ metaData = {
             "help": "How close to the direction away from the light a streak must point. Moon spikes measured 0.7 to 2.8 degrees.",
             "type": {"fieldtype": "spinner", "min": 1, "max": 20, "step": 1}
         },
+        "traffic_filter": {
+            "tab": "Sky Filters",
+            "required": "false",
+            "description": "Traffic Filter",
+            "help": "Reject a streak that lies along the track a known satellite or aircraft took during that exposure, such as the ISS, a Starlink entering the Earth's shadow, or an aircraft whose lights don't blink. Needs the Sky Traffic module in the same flow, which computes the tracks; its lens settings and Match tolerance are used. OFF by default = shadow mode: a match is logged as traffic-shadow in meteors_vetoed.json and recorded as traffic on the saved meteor, but nothing is rejected. Without Sky Traffic nothing happens.",
+            "type": {"fieldtype": "checkbox"}
+        },
+        "circle_filter": {
+            "tab": "Sky Filters",
+            "required": "false",
+            "description": "Great-Circle Filter",
+            "help": "Reject a streak that continues on the same great circle as a streak in the image before or after, however far apart the two are: a satellite or aircraft that crossed the highest part of its path between two exposures, or an aircraft that a short exposure every minute leaves as short pieces far apart. Pieces of 6 degrees or more count on their path alone, shorter ones (from 2 degrees) only when the gap between them also matches the object's speed. The moving-track filter only connects streaks up to 400 px apart. Needs the fisheye calibration. OFF by default = shadow mode: a match is logged as circle-shadow in meteors_vetoed.json and recorded as circle on the saved meteor, but nothing is rejected.",
+            "type": {"fieldtype": "checkbox"}
+        },
         "upload_remote": {
             "tab": "Saving",
             "required": "false",
@@ -358,211 +374,19 @@ metaData = {
         }
     },
     "changelog": {
-        "v0.6.2": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": "Glare spike filter (Sky Filters, on by default): rejects a streak that points straight away from a bright saturated light such as the Moon, whose lens/dome spikes turn as it moves and show up as new lines in the frame difference; logged as reason glare. Text settings (folders, files, URLs, targets) are input fields again: they were declared as fieldtype text, which the WebUI shows as a static note (\"undefined\"). Column charts use a time axis, so the History tab and the Charts page show times instead of raw timestamps. tools/calibrate_fisheye.py identifies the stars itself (pair matching against the catalogue, accepted only as a clear winner); two stars given by hand are needed only when it finds none"
-            }
-        ],
-        "v0.1.0": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": "Initial temporal detector (frame diff + PCA streaks + neighbour-frame classification)"
-            }
-        ],
-        "v0.2.0": [
+        "v1.0.0": [
             {
                 "author": "Benjamin Hartwich",
                 "authorurl": "https://astronomy.garden",
                 "changes": [
-                    "Record meteor peak brightness + date-based active-shower context",
-                    "Optional geometric radiant matching via a plate-solved fisheye calibration (allsky_fisheye.py + calibration.json) — attributes each meteor to the shower whose radiant lies on its great circle"
+                    "Initial release",
+                    "Temporal meteor detection: the difference between consecutive images removes stars and static clouds; streaks are found and classified across neighbouring images, so satellites and aircraft that continue are rejected. Works with noisy sensors (single-pixel noise is removed before the cloud gate) and follows streaks the fisheye bends",
+                    "Filters against false detections: dashed trails, recurring spots, trailed stars, twinkling bright stars, Moon glare spikes, clouds and scintillation; fragmented trails, edge glow, the traffic filter (satellites and aircraft known to Sky Traffic) and the great-circle filter (a satellite or aircraft continuing far away in the image before or after) in shadow mode until armed",
+                    "Shower attribution by the radiant the streak points back to, with a fisheye calibration",
+                    "Meteors saved in true colour with thumbnails, browsable on the WebUI's Meteors page and the Website, optional upload to the remote website; marked copies kept in a subfolder so the Website shows each meteor once; rejected streaks saved as crops for review",
+                    "Tools: detection mask builder, fisheye calibration that identifies the stars itself, overlay alignment, and a night replay to test settings",
+                    "Values in the Allsky database with charts, and in the Overlay Editor (AS_METEOR*)"
                 ]
-            }
-        ],
-        "v0.3.0": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": [
-                    "Recurrence veto: reject a streak whose position keeps firing across several frames (scintillation / bloom / trailed star / fixed reflection). A real meteor appears once, so it is never affected.",
-                    "Star-trail veto: reject a streak whose orientation matches the local diurnal star-trail tangent (from the fisheye calibration); long/bright fireballs are exempt.",
-                    "Log streak geometry (centroid + endpoints) with each confirmed meteor, and write a rolling meteors_vetoed.json of rejected streaks + reason for tuning/validation."
-                ]
-            }
-        ],
-        "v0.4.0": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": [
-                    "Dashed-trail veto: reject a long streak broken into many bright/dark segments along its axis (a tumbling satellite / strobing aircraft). Catches a single-frame satellite pass the cross-frame filter cannot see. Tuned on real data — a dashed satellite scored 19 segments, real meteors <=5.",
-                    "Raise default min elongation 4.0 -> 5.0 and min length 40 -> 50: barely-elongated short blobs near the fisheye edge are defocused stars, not meteors. Validated against a clear night where the two real meteors measured elongation 7-8 while the false positives sat right on the old 4.0/40 floors."
-                ]
-            }
-        ],
-        "v0.4.1": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": [
-                    "Fragmented-trail metric (frag_filter, SHADOW by default): the v0.4.0 dash veto measures only a streak's continuous head, so a satellite glint whose dashed tail is split into separate sub-threshold fragments slips through as a lone bright head. This counts difference components lying collinear (small perpendicular residual) beyond the streak's endpoints — a real meteor has none, the validated 2026-07-13 glint scored 3. Measured on the DIFFERENCE image so static stars cancel and cannot be miscounted as fragments.",
-                    "Ships in shadow mode: frag_filter off = the metric is logged (frag-shadow entries in meteors_vetoed.json, frag_n/frag_ext on every saved meteor) but nothing is vetoed. Arm only after real meteors confirm they score 0."
-                ]
-            }
-        ],
-        "v0.4.2": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": [
-                    "Fix remote upload of meteors.json: the per-hit upload loop reused the image's filename as the remote destination name for all three files, so the log was uploaded UNDER the image name and the remote meteors.json was never refreshed — the remote gallery and per-night chart stayed frozen on the first night ever detected. Each file now keeps its own remote name (image, thumbnail, meteors.json)."
-                ]
-            }
-        ],
-        "v0.4.3": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": [
-                    "Save rejected-candidate crops (save_vetoed, default on): every vetoed streak — including satellites/aircraft caught by the moving-track filter — is now saved as a small labelling crop in a 'vetoed/' subfolder and recorded (thumb field) in meteors_vetoed.json, then uploaded to the remote 'meteors/vetoed' folder. These are the NEGATIVE examples; labelling them on the website (aircraft / satellite / artifact) builds the training set for a future classifier. The remote 'meteors/vetoed' folder must exist (upload.sh does not create directories)."
-                ]
-            }
-        ],
-        "v0.4.4": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": [
-                    "Bright-star scintillation veto (star_filter, default on): reject a short streak whose centre sits within star_radius px (default 16) of a projected catalogue star brighter than star_maglim (default 5.0). On clear nights a bright star twinkles brighter between frames, producing a compact frame-difference blob at the star's position that mimics a meteor's appear/vanish signature. The star positions come from a bundled Hipparcos subset (stars.json, Vmag<6) projected with the fisheye calibration for the frame's time; long/bright fireballs (>130 px) are exempt. Silently skipped if allsky_fisheye.py / calibration.json / stars.json are absent. Logged as reason 'star' in meteors_vetoed.json.",
-                    "Refined the fisheye calibration against a deep Hipparcos catalogue seeded from the previous fit (RMS ~4 px over 317 stars across 3 clear-night frames); tightened a1, which had pushed mid/edge stars ~15 px outward and would have blunted the star veto."
-                ]
-            }
-        ],
-        "v0.5.0": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": [
-                    "Allsky WebUI meteor browsing (save_webui, default on): every saved meteor is additionally filed under images/<day>/meteors/ with its thumbnail, marked copy and a per-image json sidecar, which is the layout the WebUI's 'Meteors' page (AllskyTeam/allsky#5227) browses. The website folder is still written unchanged — the remote upload and the per-night charts keep reading the rolling meteors.json there.",
-                    "Per-image json sidecar meteors-<stamp>.json next to each image, holding just that image's streaks. Same fields as the rolling log (length, angle, elong, peak, p1, p2, frag_n, frag_ext, showers, radiant), because the WebUI reads them one file at a time rather than scanning a rolling log.",
-                    "Marked copy promoted out of Debug (save_marked, default on) and its thumbnail is now written too: the WebUI's 'Use Marked Meteors' option links thumbnails/<name>-marked.jpg without checking that it exists, so a missing one renders as a broken image. save_debug is kept as a legacy alias that still forces the marked copy on.",
-                    "The day folder is pinned when a candidate is stashed, not when it is confirmed a frame later, so a meteor caught either side of the DATE_NAME rollover cannot land in the wrong night's folder."
-                ]
-            },
-            {
-                "author": "Carlos Gil",
-                "authorurl": "https://github.com/ea1ii",
-                "changes": [
-                    "Original idea and first implementation of saving into images/<day>/meteors/ with a per-image json, in PR #1. This release keeps that layout; it derives the day folder from DATE_NAME rather than from the file name, so a meteor after midnight stays with the night it belongs to."
-                ]
-            }
-        ],
-        "v0.5.1": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": [
-                    "WebUI thumbnails move from images/<day>/meteors/thumbnails/ to the sibling images/<day>/meteorsthumbnail/, matching how Allsky 2025 stores keogram and startrails thumbnails (keogramthumbnail/, startrailsthumbnail/) and where the WebUI's Meteors page looks for them. Requested on AllskyTeam/allsky#5227. The website meteors/thumbnails/ folder is unchanged: the website gallery and the remote upload read that one.",
-                    "tools/backfill_webui.py files thumbnails into the new folder too, and moves any left in the old one."
-                ]
-            }
-        ],
-        "v0.5.2": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": [
-                    "WebUI thumbnail folder renamed to images/<day>/meteorsthumbnails/ (plural, like the day's own thumbnails/), as settled on AllskyTeam/allsky#5227; the WebUI's meteors.php and functions.php read that name. v0.5.1's meteorsthumbnail/ was a guess at the naming.",
-                    "tools/backfill_webui.py moves thumbnails from both earlier locations - meteors/thumbnails/ (v0.5.0) and meteorsthumbnail/ (v0.5.1)."
-                ]
-            }
-        ],
-        "v0.5.3": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": [
-                    "Display name is now 'Meteor Detection (temporal)'. Allsky's built-in allsky_meteor.py is also called 'Meteor Detection', so the Module Manager listed two identical entries and users could not tell which one they had added."
-                ]
-            }
-        ],
-        "v0.5.4": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": [
-                    "Publish results as real Allsky variables: AS_METEORCOUNT, AS_METEORIMAGE, AS_METEORIMAGEPATH, AS_METEORIMAGEURL, AS_METEORMOVING, AS_METEORVETOED, declared in metaData['extradata'] and written with saveExtraData. Until now they were only environment variables, which reach the overlay of the same frame but not the variable list or MQTT on Allsky 2025. The first four match the built-in meteor module's names, so an overlay or Home Assistant feed built on those keeps working after switching modules. The image values point at the meteor saved on the frame. Works with both saveExtraData signatures (2024 and 2025)."
-                ]
-            }
-        ],
-        "v0.5.5": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": [
-                    "Performance: streak finding searched the whole 8-megapixel label image once per connected component. A noisy or twinkling sky yields ~1400 components, which cost ~60-70 s per frame on a Pi 4 - delaying every module after this one. It now searches only each component's bounding box: the same pixels in the same order, so results are identical (verified on four real frame pairs), about 240x faster (~0.3 s). Found with the new replay test tool."
-                ]
-            }
-        ],
-        "v0.5.6": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": [
-                    "Fragment Segments (frag_min) default 3 -> 5. The fragmented-trail veto has run in shadow mode here for two months, recording frag_n on every saved detection. Of 107 saved detections, 11 reached the old threshold of 3; inspected by eye, 7 were satellite trails or artefacts and 3 were real meteors (scores 3, 4, 3). At 5 only the two clearest satellite trails (6 and 11) are caught and no real meteor. The filter stays off by default; this makes turning it on safe."
-                ]
-            }
-        ],
-        "v0.5.7": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": [
-                    "Edge-glow veto (edge_filter, shadow mode by default): rejects a long (>= 80 px), fat (elongation < 10) streak with BOTH ends within 50 px of the mask border - horizon or lens-rim glow leaking through the feathered edge. About a quarter of the saved detections here touched the border; the real streaks among them cross it with one end inside and are thin (elongation 10 to 47), while the glow bands hug it (elongation 5 to 8). Over two months it matched 9 detections, all inspected and all edge glow, and no real streak; the result is stable between 50 and 60 px and 70 and 80 px minimum length. Every saved meteor now records edge_d, so a user can check their own record before arming it."
-                ]
-            }
-        ],
-        "v0.5.8": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": [
-                    "Fisheye calibration fixed: the old fit matched stars to their nearest detection in a deep catalogue, which in a dense Milky Way field lets a wrong model look good. It was right only near the zenith (stars at 30 deg altitude 470 px off), so the star-trail veto, bright-star veto and radiant matching were off below about 60 deg. tools/calibrate_fisheye.py now fits only bright stars it can identify beyond doubt, starting from two stars you identify (--star) or an earlier calibration (--seed): 77 stars, 0.28 deg RMS. Re-checked on the saved record: of 30 star-trail vetoes, 2 were real meteors the old calibration threw away (2 more were satellites, caught by luck). If you made a calibration.json with an earlier version, make it again.",
-                    "tools/align_overlay.py: computes the Website's constellation overlay settings from the calibration. Here Allsky's default fisheye projection fits the lens to 0.30 deg."
-                ]
-            }
-        ],
-        "v0.5.9": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://astronomy.garden",
-                "changes": [
-                    "Packaged for the allsky-modules repository, so Allsky 2025's Module Package Manager can install it. The bundled files (allsky_fisheye.py, stars.json, tools/) are read from the module's data folder (moduledata/data/allsky_meteordetect) and, as before, from beside the module.",
-                    "Your own calibration.json stays beside the module (config/myFiles/modules on Allsky 2025): the package manager replaces the data folder on every update.",
-                    "tools/calibrate_fisheye.py: a star must now reach 12 times the image's own noise instead of a fixed brightness, and a fit is judged by its error in degrees, so it also works on smooth, moonlit images from other cameras. --list-stars lists the bright stars that were up, to choose the two for --star.",
-                    "tools/align_overlay.py: never uses the repository's calibration.json (the author's camera), refuses a calibration made at another site, and runs without the Website configuration unless --apply is given."
-                ]
-            }
-        ],
-        "v0.6.0": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://github.com/benhartwich",
-                "changes": [
-                    "Every night image's result is saved in the Allsky database (table allsky_meteordetect, kept for a year): meteors, meteors so far tonight, the brightest meteor's brightness, and the streaks rejected as satellites/aircraft or other artefacts",
-                    "Charts for the WebUI: Meteors (per image, with tonight's total), Meteor Brightness and Rejected Streaks; the module settings get a History tab",
-                    "New variables AS_METEORNIGHT and AS_METEORPEAK"
-                ]
-            }
-        ],
-        "v0.6.1": [
-            {
-                "author": "Benjamin Hartwich",
-                "authorurl": "https://github.com/benhartwich",
-                "changes": "The settings are split into tabs: Settings (detection), Trail Filters (dashed, fragmented, edge glow), Sky Filters (satellites/aircraft, scintillation, recurring positions, star trails, bright stars), Saving, Debug and History"
             }
         ]
     }
@@ -782,9 +606,10 @@ def _saveVetoThumb(vetoeddir, img_path, stamp, cand):
         return None
 
 
-def _logVetoed(outdir, stamp, cand, reason, detail, thumb=None):
+def _logVetoed(outdir, stamp, cand, reason, detail, thumb=None, name=None):
     """Append a rejected streak to a rolling meteors_vetoed.json for tuning/validation.
-    `thumb` (if given) is the crop filename so the website can show it for labelling."""
+    `thumb` (if given) is the crop filename so the website can show it for labelling;
+    `name` is the satellite or aircraft the streak was matched to."""
     try:
         path = os.path.join(outdir, "meteors_vetoed.json")
         try:
@@ -797,6 +622,8 @@ def _logVetoed(outdir, stamp, cand, reason, detail, thumb=None):
                "ang": round(cand["ang"], 1), "peak": cand.get("peak")}
         if thumb:
             rec["thumb"] = thumb
+        if name:
+            rec["name"] = name
         log.append(rec)
         json.dump(log[-500:], open(path, "w"), default=float)
     except Exception:
@@ -913,17 +740,23 @@ def _findStreaks(diff, min_len, min_elong, max_area, diff_thr):
         dx, dy = float(evec[0][0]), float(evec[0][1])
         ang = float(np.degrees(np.arctan2(dy, dx)) % 180)
         peak = int(diff[ys, xs].max())        # brightness = peak new-light intensity
+        # How the streak bends away from its straight axis: the fisheye curves a long
+        # streak near the edge by 10 px and more. Offset across the axis as a quadratic
+        # in the distance along it, for the dash count to follow the streak.
+        u = (xs - cx) * dx + (ys - cy) * dy
+        v = (xs - cx) * -dy + (ys - cy) * dx
+        bend = [float(c) for c in np.polyfit(u, v, 2)] if len(pts) >= 20 else [0.0, 0.0, 0.0]
         # cast everything to native python floats so the state stays JSON-serialisable
         out.append({
             "cx": cx, "cy": cy, "len": float(l_major), "elong": float(elong), "ang": ang,
             "p1": [cx - dx * l_major / 2, cy - dy * l_major / 2],
             "p2": [cx + dx * l_major / 2, cy + dy * l_major / 2],
-            "area": int(area), "peak": peak
+            "area": int(area), "peak": peak, "bend": bend
         })
     return out
 
 
-def _dashRuns(gray, p1, p2):
+def _dashRuns(gray, p1, p2, bend=None):
     """Count how many separate bright segments lie along a streak's axis.
 
     A meteor is a single continuous streak (1 run, sometimes 2 if it tapers);
@@ -932,7 +765,10 @@ def _dashRuns(gray, p1, p2):
     small perpendicular max so a slight axis mis-fit still lands on the streak),
     then counting rising edges above a level set relative to the streak's own
     peak, gives a clean separator: on this camera a real meteor scores <=5 and
-    a dashed satellite scored 19. Validated on the 2026-07-13 detections."""
+    a dashed satellite scored 19. Validated on the 2026-07-13 detections.
+    `bend` (from _findStreaks) makes the samples follow a curved streak: along the
+    straight axis a long fireball near a user's lens edge lay up to 12 px off it in
+    the middle, the dip looked like a gap and noise at its edges made 18 "dashes"."""
     p1 = np.asarray(p1, float); p2 = np.asarray(p2, float)
     L = float(np.hypot(*(p2 - p1)))
     if L < 1.0:
@@ -944,6 +780,8 @@ def _dashRuns(gray, p1, p2):
     vals = np.zeros(n + 1, np.float32)
     for i in range(n + 1):
         pt = p1 + d * (L * i / n)
+        if bend is not None:
+            pt = pt + perp * float(np.polyval(bend, L * i / n - L / 2.0))
         m = 0.0
         for o in (-3, -2, -1, 0, 1, 2, 3):     # perpendicular window, robust to mis-fit
             q = pt + perp * o
@@ -1038,12 +876,141 @@ def _glareSpike(cand, sources, radii, tol):
     return None
 
 
+TRAFFIC_FILE = os.path.join(s.ALLSKY_TMP, "allsky_skytraffic_tracks.json")   # written by Sky Traffic
+
+
+def _exposure():
+    """The exposure of the current image in seconds (AS_EXPOSURE_US), or None."""
+    try:
+        return int(s.getEnvironmentVariable("AS_EXPOSURE_US")) / 1e6
+    except (TypeError, ValueError):
+        return None
+
+
+def _imageTime():
+    """The exposure start of the current image (AS_TIMESTAMP), or None."""
+    try:
+        return int(s.getEnvironmentVariable("AS_TIMESTAMP"))
+    except (TypeError, ValueError):
+        return None
+
+
+def _trafficFor(t0):
+    """The Sky Traffic module's tracks for the image that started at t0, as
+    (tracks, tol_px, angle_tol), or None if it hasn't computed that image."""
+    if t0 is None:
+        return None
+    try:
+        with open(TRAFFIC_FILE) as fh:
+            data = json.load(fh)
+    except Exception:
+        return None
+    for f in data.get("frames", []):
+        if abs(f.get("t0", -1e9) - t0) <= 1:
+            return f.get("tracks", []), float(data.get("tol_px", 20.0)), float(data.get("angle_tol", 8.0))
+    return None
+
+
+def _onTrack(cand, traffic):
+    """(name, kind, distance in px) of the satellite or aircraft whose track during
+    the exposure the streak lies along, or None. The streak's centre must lie within
+    the tolerance of the sunlit part of the track, which is lengthened a little at
+    both ends (a satellite's times are exact, an aircraft's position is extrapolated),
+    and the streak must run along it. It can't be longer than the way the object
+    covered during the exposure: a streak that is, is something else crossing by chance."""
+    tracks, tol, ang_tol = traffic
+    best = None
+    for tr in tracks:
+        pts = [p for p, v in zip(tr.get("pts", []), tr.get("lit", [])) if v] or tr.get("pts", [])
+        slack = 0.1 if tr.get("kind") == "satellite" else 0.5
+        way = sum(math.hypot(b[0] - a[0], b[1] - a[1]) for a, b in zip(pts, pts[1:]))
+        if cand.get("len", 0.0) > way * (1.0 + 2.0 * slack) + 2.0 * tol:
+            continue
+        for i in range(len(pts) - 1):
+            (x1, y1), (x2, y2) = pts[i], pts[i + 1]
+            dx, dy = x2 - x1, y2 - y1
+            L2 = dx * dx + dy * dy
+            if L2 < 1e-6:
+                continue
+            u = ((cand["cx"] - x1) * dx + (cand["cy"] - y1) * dy) / L2
+            lo = -slack * (len(pts) - 1) if i == 0 else 0.0
+            hi = 1.0 + slack * (len(pts) - 1) if i == len(pts) - 2 else 1.0
+            if not lo <= u <= hi:
+                continue
+            d = math.hypot(x1 + u * dx - cand["cx"], y1 + u * dy - cand["cy"])
+            if d <= tol and _angDiff(math.degrees(math.atan2(dy, dx)) % 180.0, cand["ang"]) <= ang_tol \
+                    and (best is None or d < best[2]):
+                best = (tr.get("name", "?"), tr.get("kind", "satellite"), d)
+    return best
+
+
 def _angDiff(a, b):
     return min(abs(a - b), 180 - abs(a - b))
 
 
 def _similar(a, b):
     return np.hypot(a["cx"] - b["cx"], a["cy"] - b["cy"]) < 60 and _angDiff(a["ang"], b["ang"]) < 20
+
+
+CIRCLE_TOL_DEG = 1.2      # every end and centre of both streaks within this of one great circle
+CIRCLE_MAX_GAP_DEG = 120  # the other streak at most this far along it
+CIRCLE_MIN_LEN_DEG = 6.0  # both streaks at least this long: shorter ones fit almost any circle
+CIRCLE_SHORT_MIN_DEG = 2.0   # shorter pieces down to this, when the gap matches the object's speed
+CIRCLE_SPEED_RANGE = (0.5, 2.0)  # gap / (speed * time between the pieces)
+
+
+def _skyVector(x, y, fe, calib):
+    alt, az = fe.pixel_to_altaz(x, y, calib)
+    return fe._unit(alt, az)
+
+
+def _sameCircle(a, b, ta=None, ea=None, tb=None, eb=None):
+    """True when streaks a and b lie on one great circle, one beyond the other. A
+    satellite or aircraft moves along a great circle (any straight path through space
+    does, seen from the camera); a meteor is in one image only. The circle is fitted
+    through both streaks together (ends and centres): extending it from one short
+    streak alone magnifies its measuring error many times over the gap. b's centre
+    must lie further along than the two half-lengths and at most CIRCLE_MAX_GAP_DEG
+    away. Both streaks must be at least CIRCLE_MIN_LEN_DEG long: two short streaks lie
+    on some common circle almost always (on one night 4 of 10 real meteors matched a
+    short streak in the next image), a satellite or aircraft crossing during a long
+    exposure leaves 10 to 50 degrees.
+
+    Shorter pieces, down to CIRCLE_SHORT_MIN_DEG, also count when the gap between them
+    matches the object's speed: a camera that exposes 10 s every minute leaves an
+    aircraft as short pieces far apart. ta/tb are the exposure starts, ea/eb the
+    exposures (s). The speed is the faster piece's length over its exposure (a piece
+    that fades or leaves the sky covers only part of it); the gap between the centres
+    must be CIRCLE_SPEED_RANGE times that speed over the time between them. A meteor
+    next to an unrelated piece practically never fits both. Needs the fisheye calibration."""
+    fe, calib = _loadCalib()
+    if fe is None or calib is None:
+        return False
+    try:
+        pts = [_skyVector(*p, fe, calib) for st in (a, b) for p in (st["p1"], st["p2"], (st["cx"], st["cy"]))]
+    except Exception:
+        return False
+    M = np.array(pts)
+    n = np.linalg.svd(M)[2][-1]                           # normal of the best-fitting plane through the camera
+    if np.max(np.abs(M @ n)) > math.sin(math.radians(CIRCLE_TOL_DEG)):
+        return False
+
+    def angle(u, v):
+        return math.degrees(math.acos(max(-1.0, min(1.0, float(u @ v) / (np.linalg.norm(u) * np.linalg.norm(v))))))
+    la, lb = angle(M[0], M[1]), angle(M[3], M[4])
+    gap = angle(M[2], M[5])
+    if not (la + lb) / 2.0 < gap <= CIRCLE_MAX_GAP_DEG:
+        return False
+    if min(la, lb) >= CIRCLE_MIN_LEN_DEG:
+        return True
+    if min(la, lb) < CIRCLE_SHORT_MIN_DEG or None in (ta, ea, tb, eb) or min(ea, eb) <= 0:
+        return False
+    dt = abs((tb + eb / 2.0) - (ta + ea / 2.0))
+    speed = max(la / ea, lb / eb)
+    if dt <= 0 or speed <= 0:
+        return False
+    lo, hi = CIRCLE_SPEED_RANGE
+    return lo <= gap / (speed * dt) <= hi
 
 
 def _progressing(a, b):
@@ -1112,6 +1079,7 @@ def _currentDay():
 # plural like the day's own thumbnails/ (not the singular keogramthumbnail/ pattern) -
 # settled on AllskyTeam/allsky#5227 and matched by meteors.php and functions.php there.
 WEBUI_THUMB_DIR = "meteorsthumbnails"
+MARKED_DIR = "marked"      # marked copies in the website folder, kept apart from the gallery images
 
 
 def _webUIDayDir(day):
@@ -1134,12 +1102,13 @@ def _copyToWebUI(day, stamp, fname, outdir, thumbdir, entries, save_marked):
         os.makedirs(daydir, exist_ok=True)
         daythumbs = os.path.join(os.path.dirname(daydir), WEBUI_THUMB_DIR)
         os.makedirs(daythumbs, exist_ok=True)
-        names = [fname]
+        sources = [(fname, outdir, thumbdir)]
         if save_marked:
-            names.append(f"meteors-{stamp}-marked.jpg")
-        for name in names:
-            for src, dst in ((os.path.join(outdir, name), os.path.join(daydir, name)),
-                             (os.path.join(thumbdir, name), os.path.join(daythumbs, name))):
+            markeddir = os.path.join(outdir, MARKED_DIR)
+            sources.append((f"meteors-{stamp}-marked.jpg", markeddir, os.path.join(markeddir, "thumbnails")))
+        for name, imgdir, thdir in sources:
+            for src, dst in ((os.path.join(imgdir, name), os.path.join(daydir, name)),
+                             (os.path.join(thdir, name), os.path.join(daythumbs, name))):
                 if os.path.isfile(src):
                     shutil.copy2(src, dst)
         _writeJson(os.path.join(daydir, f"meteors-{stamp}.json"), entries)
@@ -1223,9 +1192,13 @@ def _saveMeteor(img_path, stamp, streaks, outdir, thumbdir, save_marked,
         for m in streaks:
             _drawBrackets(marked, m)                                    # brackets AROUND, never over
         marked_name = f"meteors-{stamp}-marked.jpg"
-        cv2.imwrite(os.path.join(outdir, marked_name), marked)
+        # In a subfolder: the Website's Meteors page lists every image in the folder,
+        # so beside the gallery image each meteor showed up twice.
+        markeddir = os.path.join(outdir, MARKED_DIR)
+        os.makedirs(os.path.join(markeddir, "thumbnails"), exist_ok=True)
+        cv2.imwrite(os.path.join(markeddir, marked_name), marked)
         # the WebUI links the marked THUMBNAIL without checking it exists, so write it too
-        cv2.imwrite(os.path.join(thumbdir, marked_name),
+        cv2.imwrite(os.path.join(markeddir, "thumbnails", marked_name),
                     cv2.resize(marked, (0, 0), fx=0.25, fy=0.25))
 
     showers = _activeShowers(stamp)
@@ -1241,6 +1214,10 @@ def _saveMeteor(img_path, stamp, streaks, outdir, thumbdir, save_marked,
                         "frag_n": m.get("frag_n", 0), "frag_ext": round(m.get("frag_ext", 0.0), 1),
                         "edge_d": m.get("edge_d"),
                         "showers": showers, "radiant": radiant})
+        if m.get("traffic"):
+            entries[-1]["traffic"] = m["traffic"]
+        if m.get("circle"):
+            entries[-1]["circle"] = True
 
     # per-image sidecar: just this image's streaks, which is what the WebUI browser reads
     _writeJson(os.path.join(outdir, f"meteors-{stamp}.json"), entries)
@@ -1333,6 +1310,9 @@ def meteordetect(params, event):
     glare_filter = _truthy(params.get("glare_filter", True))
     glare_radii = s.asfloat(params.get("glare_radii", 10.0))
     glare_tol = s.asfloat(params.get("glare_tol", 6.0))
+    traffic_filter = _truthy(params.get("traffic_filter", False))   # off = shadow (log, no veto)
+    circle_filter = _truthy(params.get("circle_filter", False))     # off = shadow (log, no veto)
+    cur_t0, cur_exp = _imageTime(), _exposure()
     star_maglim = s.asfloat(params.get("star_maglim", 5.0))
     upload_remote = _truthy(params.get("upload_remote", True))
     save_vetoed = _truthy(params.get("save_vetoed", True))
@@ -1373,6 +1353,20 @@ def meteordetect(params, event):
     if debug:
         s.writeDebugImage(metaData["module"], "diff.png", diff_m)
 
+    # A noisy sensor (a user's RPi HQ at gain 16) puts 5-6 % of SINGLE pixels over the
+    # threshold in every frame: the cloud gate skipped it all night, and the noise merged
+    # with a real streak into a shapeless blob. A 3x3 median removes single pixels but
+    # keeps clouds, streaks and twinkling stars (a few pixels each). So when it removes
+    # most of what is over the threshold, the frame is noisy, and it is analysed after
+    # the median: there 5.7 % became 0.8 % and the 563 px fireball was found. Otherwise
+    # nothing changes; a median on every frame would also thin out a 1 px meteor, and
+    # smoothing every frame let twinkle-heavy frames through that are skipped now.
+    raw_share = float((diff_m > diff_thr).mean())
+    if raw_share > 0.02:
+        med = cv2.medianBlur(diff_m, 3)
+        if float((med > diff_thr).mean()) < raw_share / 3.0:
+            diff_m = med
+
     # cloud gate
     coverage = float((diff_m > diff_thr).mean() / max(1e-6, (hard > 0).mean()))
     if coverage > cloud_frac:
@@ -1387,7 +1381,7 @@ def meteordetect(params, event):
     # the candidate is confirmed one frame later. Cheap; only long streaks matter.
     if dash_filter:
         for st_ in streaks:
-            st_["dash_runs"] = (_dashRuns(gray, st_["p1"], st_["p2"])
+            st_["dash_runs"] = (_dashRuns(gray, st_["p1"], st_["p2"], st_.get("bend"))
                                 if st_["len"] >= dash_min_len else 0)
 
     # tag each long streak with its collinear-fragment count on the DIFFERENCE
@@ -1450,11 +1444,23 @@ def meteordetect(params, event):
     for entry in pending:
         # veto helper: save a labelling crop of the rejected streak (negative example)
         # and log it. Bound the img_path/stamp per iteration so the closure is safe.
-        def _veto(cand, reason, detail, _ip=entry.get("img_path"), _stamp=entry["stamp"]):
+        def _veto(cand, reason, detail, name=None, _ip=entry.get("img_path"), _stamp=entry["stamp"]):
             t = _saveVetoThumb(vetoeddir, _ip, _stamp, cand) if (save_vetoed and _ip) else None
             if t:
                 veto_thumbs.append(t)
-            _logVetoed(outdir, _stamp, cand, reason, detail, t)
+            _logVetoed(outdir, _stamp, cand, reason, detail, t, name)
+        # the satellites and aircraft Sky Traffic found in the image the streaks appeared in
+        traffic = _trafficFor(entry.get("t0"))
+        # Streaks in the neighbouring images, with that image's exposure start and length.
+        # A difference image holds the pieces of both its images: a piece in both the
+        # entry's difference ("same") and this one is in the entry's own image.
+        same = entry.get("same", [])
+        others = [(o, cur_t0, cur_exp) for o in streaks if not any(_similar(o, x) for x in same)]
+        others += [(o, entry.get("prev_t0"), entry.get("prev_exp")) for o in same
+                   if not any(_similar(o, y) for y in streaks)]
+        others += [(o, None, None) for o in streaks if any(_similar(o, x) for x in same)]
+        # and, without times, the difference before that (long streaks only)
+        others += [(o, None, None) for o in entry.get("before", [])]
         keep = []
         for cand in entry["streaks"]:
             if sat_filter and any(_progressing(cur, cand) for cur in streaks):
@@ -1463,6 +1469,25 @@ def meteordetect(params, event):
                 continue
             if not any(_similar(cur, cand) for cur in streaks):
                 continue  # no same-location disappearance -> flicker -> discard
+            # the same great circle as a streak in the image before or after it: a
+            # satellite or aircraft whose parts are too far apart for the moving check
+            circle = next((o for o, t_o, e_o in others
+                           if not _similar(o, cand) and _sameCircle(cand, o, entry.get("t0"), entry.get("exp"), t_o, e_o)), None)
+            if circle is not None:
+                if circle_filter:
+                    moving += 1
+                    _veto(cand, "circle", circle["len"])
+                    continue
+                _veto(cand, "circle-shadow", circle["len"])
+                cand["circle"] = True
+            hit = _onTrack(cand, traffic) if traffic else None
+            if hit:
+                if traffic_filter:
+                    vetoed += 1
+                    _veto(cand, hit[1], hit[2], hit[0])
+                    continue
+                _veto(cand, "traffic-shadow", hit[2], hit[0])
+                cand["traffic"] = hit[0]
             rec = _recurrence(cand) if repeat_filter else 0
             if repeat_filter and rec >= repeat_k:
                 vetoed += 1
@@ -1538,19 +1563,28 @@ def meteordetect(params, event):
 
     new_pending = []
     if new_cands:
-        stamp = time.strftime("%Y%m%d%H%M%S")
+        # Named like the image it is in: Allsky names an image by the start of its
+        # exposure (AS_TIMESTAMP). The time this module ran was a few seconds later,
+        # so meteors-<time>.jpg had no image-<time>.jpg to go with it.
+        stamp = time.strftime("%Y%m%d%H%M%S", time.localtime(cur_t0)) if cur_t0 else time.strftime("%Y%m%d%H%M%S")
         stash = os.path.join(s.ALLSKY_TMP, f"allsky_meteordetect_pending_{stamp}.jpg")
         cv2.imwrite(stash, s.image)          # stash TRUE-COLOUR frame for later save
         # pin the day folder now: the candidate is only confirmed on a later frame, which
         # may already be in the next DATE_NAME period
-        new_pending.append({"img_path": stash, "stamp": stamp,
-                            "day": _currentDay(), "streaks": new_cands})
+        # for the great-circle check: this difference's other streaks (in this image or
+        # the one before) and the times of both images
+        new_pending.append({"img_path": stash, "stamp": stamp, "t0": cur_t0, "exp": cur_exp,
+                            "prev_t0": state.get("last_t0"), "prev_exp": state.get("last_exp"),
+                            "day": _currentDay(), "streaks": new_cands,
+                            "same": [p for p in streaks if not any(_similar(p, c) for c in new_cands)],
+                            "before": [p for p in prev_streaks if not any(_similar(p, c) for c in new_cands)]})
 
     # remember this frame's streak positions for the recurrence veto (rolling, pruned)
     hotspots.extend([round(st_["cx"], 1), round(st_["cy"], 1), now_t] for st_ in streaks)
     state["hotspots"] = hotspots[-400:]
     state["prev_streaks"] = streaks
     state["pending"] = new_pending
+    state["last_t0"], state["last_exp"] = cur_t0, cur_exp
     _writeState(state)
 
     _publishVariables(saved, moving, vetoed, last_saved[0], last_saved[1], save_webui, outdir, peak_max)

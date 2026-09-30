@@ -138,6 +138,11 @@ fail because tree interiors are smooth and averaging washes out their texture.
 | Reject Bright-Star Scintillation | on | Reject a short streak sitting on a catalogue bright star — a star twinkling brighter between frames makes a compact diff blob at its position that mimics a meteor. Needs the fisheye calibration + `stars.json`; fireballs >130 px exempt |
 | Star-Match Radius | `16` px | How close a streak's centre must be to a projected catalogue star to count as that star. Size it to the calibration RMS (~4–6 px) plus a few px of blob offset |
 | Star Magnitude Limit | `5.0` | Only stars brighter than this are used; fainter stars rarely brighten enough to trigger, and including them risks vetoing a real meteor |
+| Glare Spike Filter | on | Reject a streak that points straight away from a bright, saturated light (the Moon, a street light): its lens and dome spikes turn as it moves and show up in the frame difference |
+| Glare Reach | `5` radii | How far from the light, in radii of its saturated disc, a streak can be a spike |
+| Glare Angle Tolerance | `6`° | How close to the direction away from the light a streak must point |
+| Traffic Filter (arm) | off | Reject a streak that lies along the track a known satellite or aircraft took during that exposure. Needs the **Sky Traffic** module in the same flow. **Off = shadow mode**: logged as `traffic-shadow` with the name, and the saved meteor records `traffic`. See below |
+| Great-Circle Filter (arm) | off | Reject a streak that lies on one great circle with a streak in the image before or after, however far apart: a satellite or aircraft that crossed the highest part of its path between two exposures. Needs the fisheye calibration. **Off = shadow mode**: logged as `circle-shadow`, and the saved meteor records `circle`. See below |
 | Upload to Remote Website | on | Upload each hit via Allsky's `upload.sh` |
 | Save Rejected-Candidate Crops | on | Save a labelling crop of every *rejected* streak (into `vetoed/`) as the negative examples for a future classifier |
 | Browse in the Allsky WebUI | on | Also file each meteor under `images/<day>/meteors/` so the WebUI's **Meteors** page can browse it day by day — see [Output](#output) |
@@ -242,11 +247,16 @@ different layouts.
 **Website folder** (`meteors/`, the source for the remote upload and the per-night
 charts):
 
-- **`meteors-<timestamp>.jpg`**, plus a thumbnail in `meteors/thumbnails/` —
+- **`meteors-<timestamp>.jpg`**, named like the image it is in (`image-<timestamp>.jpg`, the start of the exposure), plus a thumbnail in `meteors/thumbnails/` —
   picked up automatically by Allsky's meteor gallery page. **The gallery image keeps
   the meteor's true colours, untouched.**
-- **`meteors-<timestamp>-marked.jpg`** and its thumbnail, when *Save Marked Copy*
-  is on.
+- **`marked/meteors-<timestamp>-marked.jpg`** and its thumbnail in
+  `marked/thumbnails/`, when *Save Marked Copy* is on. They are in a subfolder
+  so the Website's Meteors page, which lists every image in the folder, doesn't
+  show each meteor twice. Marked copies saved by earlier versions next to the
+  gallery images can be deleted:
+  `rm ~/allsky/html/allsky/meteors/*-marked.jpg ~/allsky/html/allsky/meteors/thumbnails/*-marked.jpg`
+  (the WebUI's copies under `images/<day>/` are separate and stay).
 - **`meteors.json`** — a rolling log of
   `{time, file, length, angle, elong, peak, frag_n, frag_ext, showers, radiant}`
   for later statistics (`showers` = active by date, `radiant` = geometric
@@ -355,6 +365,103 @@ border, which may well be a meteor and is left alone.
 It ships in shadow mode, like the fragmented-trail veto. Every saved meteor records
 `edge_d`, the distance of its farther end from the border, so you can see what it would
 catch on your sky first — or replay a night with `--set edge_filter=true`.
+
+### Arming the great-circle filter
+
+The moving-track filter connects a streak with one in the next or previous image only if
+the two are at most 400 px apart. A satellite or aircraft that passes high overhead can
+cross the highest part of its path in the pause between two exposures. It then leaves
+two streaks far apart, in different parts of the sky, and each looks like a meteor. A
+user's camera saved one this way: 26° in the north-west in one image, 24° in the east in
+the next, 66° apart.
+
+Seen from the camera, anything that moves in a straight line through space moves along a
+great circle. With a fisheye calibration the filter fits one great circle through both
+streaks together, through their ends and centres. It rejects the candidate when every
+point lies within 1.2° of that circle and the other streak lies further along it, at
+most 120° away. Both streaks must be at least 6° long. Two short streaks almost always
+fit some common circle: without that limit, 4 of 10 real meteors on one night matched a
+short streak in the next image.
+
+Replayed over 7 nights on the author's camera (14 to 27 September), the filter matched 8
+of the 26 streaks the module would have saved as meteors. All 8 were long, evenly bright
+satellite trails, including two pairs where the same object is in two images in a row.
+None of the other 18 was touched. On the user's two streaks it matches; with the second
+streak shifted sideways by 100 px (about 3°) it no longer does.
+
+**Short pieces.** A camera that takes a 10 s exposure about once a minute sees an
+aircraft as short pieces of 3–5°, far apart. Those are too short for the circle alone.
+They still count when the gap between the two pieces matches the object's speed: the
+faster piece's length over its exposure, times the time between the two exposures,
+must give 0.5 to 2 times the gap. (The faster piece gives the speed, because a piece
+that fades or leaves the sky covers only part of its exposure.) The filter works out
+which image each piece is in from the two differences, and it takes the exposure
+start and length from Allsky (`AS_TIMESTAMP`, `AS_EXPOSURE_US`).
+
+Tested on a user's camera (6–15 s exposures every 66 s, frames before and after each
+saved meteor), it linked a short "meteor" to the bright dashed aircraft trail in the
+image before it (gap 0.9 times the expected distance), and a later piece of another
+aircraft. The two real meteors in those sequences were not linked; one sat on a common
+circle with an unrelated piece, but its gap was 3.5 times too large. On the author's 7
+nights it marked no additional streak and no real meteor.
+
+It ships in shadow mode like the others: check the `circle` entries of your saved
+meteors before you arm it.
+
+### Arming the traffic filter
+
+The moving-track filter only catches a satellite or aircraft that leaves a streak in two
+frames in a row. A short glint of a satellite, a trail that ends in the Earth's shadow,
+or an aircraft whose lights don't blink appears in one frame only, like a meteor.
+
+The **Sky Traffic** module knows where every catalogued satellite, and with an ADS-B
+source every aircraft, was during each exposure. Put it in the same night flow. It
+writes the tracks of the last images to `allsky_skytraffic_tracks.json` in Allsky's tmp
+folder, and this filter checks every candidate against the tracks of the image it
+appeared in. A candidate is on a track when its centre lies within Sky Traffic's
+**Match tolerance** (0.6°) of the part the object covered while sunlit, it runs along
+it within 8°, and it is no longer than that part. Without Sky Traffic, or without a
+lens calibration, nothing happens.
+
+Tested on the author's camera, 25 meteors saved from 15 to 27 September and 216 rejected
+streaks:
+
+* One "meteor", 61 px long at 05:37 on 27 September, lies 4.7 px from the track of the
+  weather satellite FENGYUN 3D and runs along it. The satellite's track in that exposure
+  was 257 px long, so the streak was a short glint.
+* To see how often a streak lies on a track by chance, the same check ran with the
+  times shifted by ±5 to ±30 minutes (9 shifts). About 400 satellite tracks cross the
+  image in each exposure, and 3 of the 225 shifted meteor checks matched, each 1–9 px
+  from a Starlink or Qianfan track. One of them was a 214 px streak on a 150 px track,
+  which the length rule rejects; that leaves 2 of 225, **about 1 in 110 meteors**.
+* A replay of that morning with Sky Traffic running rejects the glint as `satellite`,
+  `FENGYUN 3D`, and in shadow mode saves it with `"traffic": "FENGYUN 3D"`.
+
+So on this sky about 1 in 110 real meteors would also be rejected. That is why it ships
+in shadow mode: look at the `traffic` entries of your saved meteors, and at the crops in
+`vetoed/`, before you arm it.
+
+### Noisy cameras and curved streaks
+
+Two fixes came from a user's RPi HQ camera in Australia (30 s at gain 16, a long
+fireball near the edge of a 1.56 mm lens):
+
+- **Sensor noise.** About 5.7 % of single pixels changed by more than the Difference
+  Threshold between any two frames. The cloud gate took that for cloud and skipped every
+  frame, and the noise merged with the fireball into a shapeless blob. When a 3×3 median
+  removes most of what is over the threshold (single pixels do, clouds, streaks and
+  twinkling stars don't), the frame is treated as noisy and analysed after the median:
+  5.7 % became 0.8 %, and the 563 px fireball was found with no noise streaks around it.
+  Other frames are analysed as before, so a 1 px meteor on a normal camera isn't thinned
+  out.
+- **Curved streaks.** The dash count sampled along the straight line between a streak's
+  ends. The fisheye bent the fireball up to 12 px away from that line in the middle, the
+  dip looked like a gap, and noise at its edges made 18 "dashes". The streak's bend is
+  now fitted from its pixels and followed.
+
+Replaying 7 of the author's nights gives exactly the same meteors and rejections as
+before. On the user's sequences, the fireball and a meteor from a second camera are
+saved; an aircraft, insects and moonlit cloud are not.
 
 ## Testing without waiting for a clear night
 
