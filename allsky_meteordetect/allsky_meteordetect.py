@@ -1563,7 +1563,10 @@ def meteordetect(params, event):
 
     new_pending = []
     if new_cands:
-        stamp = time.strftime("%Y%m%d%H%M%S")
+        # Named like the image it is in: Allsky names an image by the start of its
+        # exposure (AS_TIMESTAMP). The time this module ran was a few seconds later,
+        # so meteors-<time>.jpg had no image-<time>.jpg to go with it.
+        stamp = time.strftime("%Y%m%d%H%M%S", time.localtime(cur_t0)) if cur_t0 else time.strftime("%Y%m%d%H%M%S")
         stash = os.path.join(s.ALLSKY_TMP, f"allsky_meteordetect_pending_{stamp}.jpg")
         cv2.imwrite(stash, s.image)          # stash TRUE-COLOUR frame for later save
         # pin the day folder now: the candidate is only confirmed on a later frame, which

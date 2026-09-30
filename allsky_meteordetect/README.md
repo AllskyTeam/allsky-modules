@@ -247,7 +247,7 @@ different layouts.
 **Website folder** (`meteors/`, the source for the remote upload and the per-night
 charts):
 
-- **`meteors-<timestamp>.jpg`**, plus a thumbnail in `meteors/thumbnails/` —
+- **`meteors-<timestamp>.jpg`**, named like the image it is in (`image-<timestamp>.jpg`, the start of the exposure), plus a thumbnail in `meteors/thumbnails/` —
   picked up automatically by Allsky's meteor gallery page. **The gallery image keeps
   the meteor's true colours, untouched.**
 - **`marked/meteors-<timestamp>-marked.jpg`** and its thumbnail in

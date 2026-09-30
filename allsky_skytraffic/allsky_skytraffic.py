@@ -844,12 +844,16 @@ def _stampTime(stamp):
 
 
 def _frameFor(frames, stamp):
-    """The stored frame the Meteor Detection module processed at `stamp` (it stamps
-    a streak with the time it ran on that frame; both modules run in the same flow)."""
+    """The stored frame a Meteor Detection `stamp` belongs to. From v1.0.0 it names a
+    streak like its image, by the exposure start; earlier versions used the time the
+    module ran on that frame (a few seconds later, both modules run in the same flow)."""
     try:
         t = _stampTime(stamp)
     except ValueError:
         return None
+    exact = min(frames, key=lambda f: abs(f["t0"] - t), default=None)
+    if exact is not None and abs(exact["t0"] - t) <= 1:
+        return exact
     best = min(frames, key=lambda f: abs(f["run"] - t), default=None)
     return best if best is not None and abs(best["run"] - t) <= 60 else None
 
