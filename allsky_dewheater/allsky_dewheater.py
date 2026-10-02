@@ -61,7 +61,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		"description": "Control a dew heater via a temperature and humidity sensor",
 		"docs": "docs/allsky_modules/extra/dew_heater.html",  
 		"module": "allsky_dewheater",
-		"version": "v2.0.0",
+		"version": "v2.0.1",
 		"events": [
 			"periodic",
 			"day",
@@ -1005,6 +1005,17 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 						"Complete refactor of all code to improve pwm"
 					]
 				}
+			],
+			"v2.0.1" : [
+				{
+					"author": "Benjamin Hartwich (Agent assisted)",
+					"authorurl": "https://github.com/benhartwich/",
+					"changes": [
+						"Use the temperature and humidity variables selected in the settings, e.g. from Open Weather Map",
+						"A sensor type from an older version (e.g. OpenWeather) gives a clear message instead of stopping the periodic flow",
+						"A failed GPIO switch is logged instead of stopping the periodic flow"
+					]
+				}
 			]                                             
 		}
 	}
@@ -1099,17 +1110,18 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		# TODO: Check this logic
 
 		environment_data = allsky_shared.load_extra_data_file('allskytemp.json')
-		temperature = allsky_shared.get_allsky_variable('AS_TEMP')
-		humidity = allsky_shared.get_allsky_variable('AS_HUMIDITY')
+		# The WebUI lets the user pick the variables, e.g. AS_OWTEMP from Open Weather Map.
+		temperature_variable = self._variable_name(self.get_param('temperature', 'AS_TEMP', str, True), 'AS_TEMP')
+		humidity_variable = self._variable_name(self.get_param('humidity', 'AS_HUMIDITY', str, True), 'AS_HUMIDITY')
+		temperature = allsky_shared.get_allsky_variable(temperature_variable)
+		humidity = allsky_shared.get_allsky_variable(humidity_variable)
 		dew_point = allsky_shared.get_allsky_variable('AS_DEW')
 		heat_index = allsky_shared.get_allsky_variable('AS_HEATINDEX')
 		pressure = allsky_shared.get_allsky_variable('AS_PRESSURE')
 		rel_humidity = allsky_shared.get_allsky_variable('AS_RELHUMIDITY')
 		altitude = allsky_shared.get_allsky_variable('AS_ALTITUDE')
-		if temperature is not None:
-			temperature = float(temperature)
-		if humidity is not None:
-			humidity = float(humidity)
+		temperature = self._variable_value(temperature)
+		humidity = self._variable_value(humidity)
 		if dew_point is not None:
 			dew_point = float(dew_point)
 		if heat_index is not None:
@@ -1122,9 +1134,25 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 			altitude = float(altitude)
 
 		if temperature is None:
-			self.log(0, f'ERROR failed to read the Allsky Core temperature. Is the Environment module installed and configured?')
+			self.log(0, f'ERROR failed to read the temperature from {temperature_variable}. Is the module that provides it installed and configured?')
     
 		return temperature, humidity, pressure, rel_humidity, altitude
+
+	def _variable_value(self, value):
+		"""A variable's value as a float. Values from extra data files can be {"value": ...}."""
+		if isinstance(value, dict):
+			value = value.get('value')
+		try:
+			return float(value) if value not in (None, '') else None
+		except (TypeError, ValueError):
+			return None
+
+	def _variable_name(self, value, default):
+		"""Return a single variable name from a variable field (may be "${AS_TEMP}" or a list)."""
+		name = str(value).split(',')[0].strip()
+		if name.startswith('${') and name.endswith('}'):
+			name = name[2:-1]
+		return name or default
 
 	def _percent_to_duty_cycle(self, percent):
 		"""Convert a 0-100 percentage into the 16-bit duty cycle used by the GPIO API."""
@@ -1327,7 +1355,11 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 
 	def _set_pwm_state(self, heater_pin, duty_cycle):
 		"""Send a PWM update to the Allsky GPIO API."""
-		result = allsky_shared.set_pwm(heater_pin, duty_cycle, "Dew")
+		try:
+			result = allsky_shared.set_pwm(heater_pin, duty_cycle, "Dew")
+		except Exception as e:
+			self.log(0, f'ERROR in {__file__}: Unable to set PWM on GPIO pin {heater_pin}: {e}')
+			result = False
 
 		return result
 
@@ -1336,7 +1368,12 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		if invert_gpio:
 			state = not state
 
-		result = allsky_shared.set_gpio_pin(heater_pin, state, "Dew")
+		try:
+			result = allsky_shared.set_gpio_pin(heater_pin, state, "Dew")
+		except Exception as e:
+			# e.g. the Allsky server can't open the GPIO chip; don't stop the rest of the flow
+			self.log(0, f'ERROR in {__file__}: Unable to switch GPIO pin {heater_pin}: {e}')
+			result = False
 
 		return result
 
@@ -1418,24 +1455,16 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		rel_humidity = None
 		altitude = None
 
-		if sensor_type == "SHT31":
-			temperature, humidity = self._read_sht31(sht31_heater, i2c_address)
-		elif sensor_type == "DHT22" or sensor_type == "DHT11" or sensor_type == "AM2302":
-			temperature, humidity = self._read_dht22(input_pin, dhtxx_retry_count, dhtxx_delay)
-		elif sensor_type == "BME280-I2C":
-			temperature, humidity, pressure, rel_humidity, altitude = self._read_bme280_i2c(i2c_address)
-		elif sensor_type == "HTU21":
-			temperature, humidity = self._read_htu21(i2c_address)
-		elif sensor_type == "AHTx0":
-			temperature, humidity = self._read_ahtx0(i2c_address)
-		elif sensor_type == "SOLO-Cloudwatcher":
-			temperature, humidity, pressure, the_dew_point = self._read_solo(solo_url)
-		elif sensor_type == 'OpenWeather':
-			temperature, humidity, pressure, the_dew_point = self._read_open_weather(params)
-		elif sensor_type == 'Allsky':
+		if sensor_type in ('Allsky', 'allsky-sensor'):
 			temperature, humidity, pressure, rel_humidity, altitude = self._read_allsky()
-		else:
+		elif sensor_type in ('', 'None'):
 			self.log(0, f'ERROR in {__file__}: No sensor type defined')
+		else:
+			# Sensor types of older versions (SHT31, BME280-I2C, OpenWeather, ...) are now
+			# read by the Environment or Open Weather Map module.
+			self.log(0, f'ERROR in {__file__}: Sensor type "{sensor_type}" is no longer supported. '
+				'Select "Allsky" and the temperature and humidity variables, '
+				'e.g. AS_TEMP/AS_HUMIDITY from the Environment module or AS_OWTEMP/AS_OWHUMIDITY from Open Weather Map.')
 
 		if temperature is not None and humidity is not None:
 			the_dew_point = dew_point(temperature, humidity).c

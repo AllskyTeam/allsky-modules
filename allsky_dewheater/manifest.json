@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "module": "allsky_dewheater",
-  "generated_utc": "2026-08-31T20:49:28Z",
+  "generated_utc": "2026-10-02T07:13:51Z",
   "hash_algorithm": "sha256",
   "files": {
     "allsky_dewheater.py": {
-      "sha256": "6af72275583813344031f8210de3067f0f68bf84788ee7e449658bb5262bc953",
-      "size": 61319,
+      "sha256": "5623aabb666c57318a38d3e2a7c09e167e4c00994288c383ba6bdb9882ab826c",
+      "size": 62682,
       "mode": "755"
     },
     "blocks/dew1.json": {
