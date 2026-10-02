@@ -39,7 +39,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		"description": "Obtain data for Solar System objects",
 		"docs": "docs/allsky_modules/extra/solar_system.html",  
 		"module": "allsky_solarsystem",
-		"version": "v1.1.3",
+		"version": "v1.1.4",
 		"testable": "true",
 		"centersettings": "false",
 		"group": "Data Capture",   
@@ -51,6 +51,74 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		"extradatafilename": "allsky_solarsystem.json",
 		"experimental": "false",	
   		"extradata": {
+			"schema_version": 2,
+			"migrations": [
+				{
+					"from_schema_version": 1,
+					"to_schema_version": 2,
+					"breaking": "true",
+					"title": "Satellite and planet variable names changed",
+					"message": "The overlay module of Allsky v2024 named the satellite and planet variables e.g. AS_25544VISIBLE, AS_25544ALT and AS_MARSAZ. They are now AS_25544_VISIBLE, AS_25544_ELE (ALT is now the satellite's height in km) and AS_MARS_AZIMUTH. RA and DEC of the planets are no longer available.",
+					"changes": {
+						"renamed": {
+							"AS_MERCURYALT": "AS_MERCURY_ELEVATION",
+							"MERCURYALT": "AS_MERCURY_ELEVATION",
+							"AS_MERCURYAZ": "AS_MERCURY_AZIMUTH",
+							"MERCURYAZ": "AS_MERCURY_AZIMUTH",
+							"AS_MERCURYVISIBLE": "AS_MERCURY_VISIBLE",
+							"MERCURYVISIBLE": "AS_MERCURY_VISIBLE",
+							"AS_VENUSALT": "AS_VENUS_ELEVATION",
+							"VENUSALT": "AS_VENUS_ELEVATION",
+							"AS_VENUSAZ": "AS_VENUS_AZIMUTH",
+							"VENUSAZ": "AS_VENUS_AZIMUTH",
+							"AS_VENUSVISIBLE": "AS_VENUS_VISIBLE",
+							"VENUSVISIBLE": "AS_VENUS_VISIBLE",
+							"AS_MARSALT": "AS_MARS_ELEVATION",
+							"MARSALT": "AS_MARS_ELEVATION",
+							"AS_MARSAZ": "AS_MARS_AZIMUTH",
+							"MARSAZ": "AS_MARS_AZIMUTH",
+							"AS_MARSVISIBLE": "AS_MARS_VISIBLE",
+							"MARSVISIBLE": "AS_MARS_VISIBLE",
+							"AS_JUPITERALT": "AS_JUPITER_ELEVATION",
+							"JUPITERALT": "AS_JUPITER_ELEVATION",
+							"AS_JUPITERAZ": "AS_JUPITER_AZIMUTH",
+							"JUPITERAZ": "AS_JUPITER_AZIMUTH",
+							"AS_JUPITERVISIBLE": "AS_JUPITER_VISIBLE",
+							"JUPITERVISIBLE": "AS_JUPITER_VISIBLE",
+							"AS_SATURNALT": "AS_SATURN_ELEVATION",
+							"SATURNALT": "AS_SATURN_ELEVATION",
+							"AS_SATURNAZ": "AS_SATURN_AZIMUTH",
+							"SATURNAZ": "AS_SATURN_AZIMUTH",
+							"AS_SATURNVISIBLE": "AS_SATURN_VISIBLE",
+							"SATURNVISIBLE": "AS_SATURN_VISIBLE",
+							"AS_URANUSALT": "AS_URANUS_ELEVATION",
+							"URANUSALT": "AS_URANUS_ELEVATION",
+							"AS_URANUSAZ": "AS_URANUS_AZIMUTH",
+							"URANUSAZ": "AS_URANUS_AZIMUTH",
+							"AS_URANUSVISIBLE": "AS_URANUS_VISIBLE",
+							"URANUSVISIBLE": "AS_URANUS_VISIBLE",
+							"AS_NEPTUNEALT": "AS_NEPTUNE_ELEVATION",
+							"NEPTUNEALT": "AS_NEPTUNE_ELEVATION",
+							"AS_NEPTUNEAZ": "AS_NEPTUNE_AZIMUTH",
+							"NEPTUNEAZ": "AS_NEPTUNE_AZIMUTH",
+							"AS_NEPTUNEVISIBLE": "AS_NEPTUNE_VISIBLE",
+							"NEPTUNEVISIBLE": "AS_NEPTUNE_VISIBLE",
+							"AS_PLUTOALT": "AS_PLUTO_ELEVATION",
+							"PLUTOALT": "AS_PLUTO_ELEVATION",
+							"AS_PLUTOAZ": "AS_PLUTO_AZIMUTH",
+							"PLUTOAZ": "AS_PLUTO_AZIMUTH",
+							"AS_PLUTOVISIBLE": "AS_PLUTO_VISIBLE",
+							"PLUTOVISIBLE": "AS_PLUTO_VISIBLE",
+							"AS_${COUNT}ALT": "AS_${COUNT}_ELE",
+							"${COUNT}ALT": "AS_${COUNT}_ELE",
+							"AS_${COUNT}AZ": "AS_${COUNT}_AZ",
+							"${COUNT}AZ": "AS_${COUNT}_AZ",
+							"AS_${COUNT}VISIBLE": "AS_${COUNT}_VISIBLE",
+							"${COUNT}VISIBLE": "AS_${COUNT}_VISIBLE"
+						}
+					}
+				}
+			],
 			"database": {
 				"enabled": "True",
 				"table": "allsky_solarsystem",
@@ -726,6 +794,13 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 							"Added CelesTrak TLE fallback",
 							"Removed legacy TLE format settings"
 						]
+					}
+				],
+				"v1.1.4" : [
+					{
+						"author": "Benjamin Hartwich (Agent assisted)",
+						"authorurl": "https://github.com/benhartwich/",
+						"changes": "Overlays from Allsky v2024 that use the old satellite and planet variable names (e.g. AS_25544VISIBLE, AS_MARSAZ) are updated to the new names"
 					}
 				]          
 			}
