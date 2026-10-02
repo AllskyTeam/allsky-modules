@@ -26,7 +26,7 @@ class ALLSKYALLSKYKAMERA(ALLSKYMODULEBASE):
 		"name": "Allsky Kamera",
 		"description": "Send mapped Allsky variable data to the Allsky Kamera API",
 		"module": "allsky_allskykamera",
-		"version": "v1.1.0",
+		"version": "v1.1.1",
 		"centersettings": "false",
 		"testable": "true",
 		"group": "Data Export",
@@ -76,6 +76,13 @@ class ALLSKYALLSKYKAMERA(ALLSKYMODULEBASE):
 						"Added API key fallback from AllSkyKamera installation",
 						"Added per-entry POST requests to the Allsky Kamera API"
 					]
+				}
+],
+			"v1.1.1": [
+				{
+					"author": "Benjamin Hartwich (Agent assisted)",
+					"authorurl": "https://github.com/benhartwich/",
+					"changes": "No network, a timeout or a busy server (429, 5xx) is a warning; only 3 failures in a row become a WebUI error. A wrong API key or request is still reported right away"
 				}
 			]
 		}
@@ -230,6 +237,25 @@ class ALLSKYALLSKYKAMERA(ALLSKYMODULEBASE):
 			"fields": fields_payload
 		}
 
+	def _network_failure(self, sensor, message, api_key):
+		"""
+		Report a failure that usually goes away by itself (no network, timeout, server
+		busy). Allsky versions with network_failure() log a warning and only show a
+		WebUI error when it fails 3 times in a row; older versions log an error, as before.
+		"""
+		network_failure = getattr(allsky_shared, "network_failure", None)
+		if network_failure is not None:
+			network_failure(f"allskykamera {sensor}", message, secrets=api_key)
+		else:
+			if api_key:
+				message = message.replace(api_key, allsky_shared.obfuscate_secret(api_key))
+			self.log(0, f"ERROR: {message}")
+
+	def _network_ok(self, sensor):
+		network_ok = getattr(allsky_shared, "network_ok", None)
+		if network_ok is not None:
+			network_ok(f"allskykamera {sensor}")
+
 	def _post_payload(self, api_key, payload):
 		headers = {
 			"X-API-Key": api_key,
@@ -240,13 +266,14 @@ class ALLSKYALLSKYKAMERA(ALLSKYMODULEBASE):
 		try:
 			response = requests.post(self.API_ENDPOINT, headers=headers, json=payload, timeout=30)
 		except requests.RequestException as error:
-			self.log(0, f"ERROR: Allsky Kamera request failed for '{payload['ext_sensor']}': {error}")
+			self._network_failure(payload['ext_sensor'], f"Allsky Kamera request failed for '{payload['ext_sensor']}': {error}", api_key)
 			return False
 
 		self.log(4, f"INFO: Allsky Kamera response for '{payload['ext_sensor']}': HTTP {response.status_code}")
 
 		if response.status_code in [200, 201]:
 			self.log(4, f"INFO: Allsky Kamera payload sent for '{payload['ext_sensor']}'.")
+			self._network_ok(payload['ext_sensor'])
 			return True
 
 		error_messages = {
@@ -258,7 +285,11 @@ class ALLSKYALLSKYKAMERA(ALLSKYMODULEBASE):
 		}
 		error_message = error_messages.get(response.status_code, f"Unexpected HTTP {response.status_code}")
 		response_text = response.text.strip()
-		if response_text != "":
+		if response.status_code in [429, 500, 502, 503, 504]:
+			# The server is busy or down for a while; that usually goes away by itself.
+			message = f"Allsky Kamera API returned {response.status_code} ({error_message}) for '{payload['ext_sensor']}'"
+			self._network_failure(payload['ext_sensor'], f"{message}: {response_text}" if response_text else f"{message}.", api_key)
+		elif response_text != "":
 			self.log(0, f"ERROR: Allsky Kamera API returned {response.status_code} ({error_message}) for '{payload['ext_sensor']}': {response_text}")
 		else:
 			self.log(0, f"ERROR: Allsky Kamera API returned {response.status_code} ({error_message}) for '{payload['ext_sensor']}'.")
