@@ -24,7 +24,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 		"description": "Provide aircraft data for display on images",
 		"docs": "docs/allsky_modules/extra/adsb.html",   
 		"module": "allsky_adsb",    
-		"version": "v2.0.1",
+		"version": "v2.0.2",
 		"group": "Data Capture",
 		"events": [
 			"periodic",
@@ -444,6 +444,13 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 					"authorurl": "https://github.com/allskyteam",
 					"changes": "Added ability to update aircraft database"
 				}
+			],
+			"v2.0.2" : [
+				{
+					"author": "Benjamin Hartwich (Agent assisted)",
+					"authorurl": "https://github.com/benhartwich/",
+					"changes": "A data source that can't be reached is a warning; only 3 failures in a row become a WebUI error. A wrong local URL is still reported right away. An unreachable local receiver no longer ends in \"adsb failed on line ...\""
+				}
 			]      
 		}
 	}
@@ -507,8 +514,13 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 				result = f'ERROR: Failed to retrieve data from "{local_adsb_url}". {response.status_code} - {response.text}'
 		except MissingSchema:
 			result = f'ERROR: The provided local adsb URL "{local_adsb_url}" is invalid'
+			self._config_error = True
 		except JSONDecodeError:
 			result = f'ERROR: The provided local adsb URL "{local_adsb_url}" is not returning JSON data'
+			self._config_error = True
+		except requests.exceptions.RequestException as e:
+			# The local receiver is off or unreachable.
+			result = f'ERROR: Failed to retrieve data from "{local_adsb_url}" - {e}'
 
 		return found_aircraft, result
 
@@ -929,6 +941,25 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 			
 		return route_data
 	
+	def _network_failure(self, data_source, message):
+		"""
+		Report a failed download from the data source. Allsky versions with
+		network_failure() log a warning and only show a WebUI error when it fails
+		3 times in a row; older versions log an error right away, as before.
+		"""
+		network_failure = getattr(allsky_shared, "network_failure", None)
+		if network_failure is not None:
+			# Only OpenSky has a secret; reading it otherwise logs "not found in env file".
+			secret = self.get_param('opensky_secret', None, str, True) if data_source == 'OpenSky' else None
+			network_failure(f"adsb {data_source}", message.removeprefix('ERROR: '), secrets=secret)
+		else:
+			self.log(0, message)
+
+	def _network_ok(self, data_source):
+		network_ok = getattr(allsky_shared, "network_ok", None)
+		if network_ok is not None:
+			network_ok(f"adsb {data_source}")
+
 	def run(self):
 		result = ''
 
@@ -955,6 +986,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 						observer_location = (lat, lon, observer_altitude)
 
 						extra_data = {}
+						self._config_error = False
 
 						if data_source == 'Local':
 							aircraft_list, result = self._local_adsb(local_adsb_url, observer_location, timeout)
@@ -1000,8 +1032,12 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 							allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'], event=self.event)
 							allsky_shared.setLastRun(module)
 							self.log(4,f'INFO: {result}')
-						else:
+							self._network_ok(data_source)
+						elif self._config_error:
+							# A wrong local URL won't go away by itself, so report it right away.
 							self.log(0, result)
+						else:
+							self._network_failure(data_source, result)
 					else:
 						result = f'The longitude in the main Allsky settings is invalid "{lon}"'
 						self.log(0, f'ERROR: {result}')
