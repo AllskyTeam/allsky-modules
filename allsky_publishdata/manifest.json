@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "module": "allsky_publishdata",
-  "generated_utc": "2026-08-31T20:49:29Z",
+  "generated_utc": "2026-10-02T15:16:54Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
@@ -10,8 +10,8 @@
       "mode": "644"
     },
     "allsky_publishdata.py": {
-      "sha256": "4138702b5ffcbfd223addbdad1e2d801b8289154100f69cbd39cfbf0002ef238",
-      "size": 26000,
+      "sha256": "823a70346696ed95cc33cfcee0a3f4cb141b8204b00e591b3c65dfe486ab5db0",
+      "size": 28183,
       "mode": "755"
     },
     "requirements.txt": {

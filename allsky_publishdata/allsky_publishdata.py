@@ -32,7 +32,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 		"description": "Publish Allsky data to Redis, MQTT, REST, or influxDB",
 		"docs": "docs/allsky_modules/extra/publish_data.html",     
 		"module": "allsky_publishdata",
-		"version": "v1.0.5",
+		"version": "v1.0.6",
 		"centersettings": "false",
 		"testable": "true",
 		"group": "Data Export",
@@ -385,6 +385,17 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 						"Fixed bugs"
 					]
 				}
+			],
+			"v1.0.6" : [
+				{
+					"author": "Benjamin Hartwich (Agent assisted)",
+					"authorurl": "https://github.com/benhartwich/",
+					"changes": [
+						"A server that can't be reached (InfluxDB, Redis, MQTT, POST) is a warning; only 3 failures in a row become a WebUI error, with passwords and tokens hidden",
+						"MQTT and POST failures were only debug messages before, so a broker that stayed down went unnoticed",
+						"The InfluxDB error no longer shows the port twice"
+					]
+				}
 			]   
 		}    
 	}
@@ -509,6 +520,23 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 
 		return messages
 
+	def _network_failure(self, target, message, secrets=None, old_level=0):
+		"""
+		Report a failed connection to a server. Allsky versions with network_failure()
+		log a warning and only show a WebUI error when it fails 3 times in a row,
+		with secrets hidden; older versions log at old_level, as before.
+		"""
+		network_failure = getattr(allsky_shared, "network_failure", None)
+		if network_failure is not None:
+			return network_failure(f"publishdata {target}", message, secrets=secrets)
+		self.log(old_level, f'ERROR in {__file__}: {message}')
+		return message
+
+	def _network_ok(self, target):
+		network_ok = getattr(allsky_shared, "network_ok", None)
+		if network_ok is not None:
+			network_ok(f"publishdata {target}")
+
 	def _send_to_influxdb(self):
 		result = ''
 		influx_host = self.get_param('influxhost', '', str)
@@ -546,6 +574,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 							self.log(4, f'Sending {variable} not found')
 					else:
 						self.log(4, f'{variable} is false!!!')
+				self._network_ok("influxdb")
 				if points:
 					write_api.write(bucket=influx_bucket, org=influx_org, record=points)
 					result = f'Data written to InfluxDB server at {influx_host}:{influx_port}'
@@ -555,12 +584,10 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 					self.log(4, f'WARNING: {result}')
         
 			else:
-				result = f'Failed to ping InfluxDB server at {influx_host}:{influx_port}'
-				self.log(0, f'ERROR in {__file__}: {result}')
+				result = self._network_failure("influxdb", f'Failed to ping InfluxDB server at {influx_host}', secrets=influx_token)
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			result = f'Module influxdb failed on line {eTraceback.tb_lineno} - {e}'
-			self.log(0, f'ERROR in {__file__}: {result}')
+			result = self._network_failure("influxdb", f'Module influxdb failed on line {eTraceback.tb_lineno} - {e}', secrets=influx_token)
    
 		return result
    
@@ -587,10 +614,10 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 						redis_object.set(redis_key, json.dumps(self._json_data))
 			
 					self.log(4, f'INFO: Published to Redis server at {redis_host}:{redis_port}, Database: {redis_database}, Key: {redis_key}')        
+					self._network_ok("redis")
 				except Exception as e:    
 					eType, eObject, eTraceback = sys.exc_info()
-					result = f'Failed to connect to the Redis server at {redis_host}:{redis_port} {eTraceback.tb_lineno} - {e}'
-					self.log(0, f'ERROR in {__file__}: {result}')
+					result = self._network_failure("redis", f'Failed to connect to the Redis server at {redis_host}:{redis_port} {eTraceback.tb_lineno} - {e}', secrets=redis_password)
 			else:
 				result = f'Please specify a topic for Redis to publish to'
 				self.log(0, f'ERROR in {__file__}: {result}')
@@ -670,6 +697,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 							self.log(4, f"Connected to {host}:{port}")
 					else:
 							self.log(4, f"Connecting to {host}:{port} failed rc = {rc}")
+							self._mqtt_error = f"The MQTT broker {host}:{port} refused the connection (rc = {rc})"
 					connect_evt.set()
 
 			def on_publish(cli, userdata, mid):
@@ -687,6 +715,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 					client.connect(host, port, keepalive)
 			except Exception as e:
 					self.log(4, f"Connecting to {host}:{port} failed: {e}")
+					self._mqtt_error = f"Connecting to {host}:{port} failed: {e}"
 					return False
 
 			client.loop_start()
@@ -694,6 +723,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			if not connect_evt.wait(timeout=connect_timeout):
 					client.loop_stop()
 					self.log(4, f"Connecting to {host}:{port} Timed out")
+					self._mqtt_error = f"Connecting to {host}:{port} timed out"
 					return False
 
 			# If broker refused (rc!=0), on_connect already logged it
@@ -711,6 +741,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 					except Exception as e:
 							client.loop_stop()
 							self.log(4, f"Publish call failed for {message_topic}: {e}")
+							self._mqtt_error = self._mqtt_error or f"Publishing to {host}:{port} failed: {e}"
 							return False
 
 					if not publish_evt.wait(timeout=publish_timeout):
@@ -718,6 +749,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 									if not info.is_published():
 											client.loop_stop()
 											self.log(4, f"Publish timeout for {message_topic}")
+											self._mqtt_error = self._mqtt_error or f"Publishing to {host}:{port} timed out"
 											return False
 							except Exception:
 									client.loop_stop()
@@ -747,6 +779,7 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			"retain": False
 		})
 
+		self._mqtt_error = ""
 		try:
 			result = self._publish_mqtt_messages_tls(
 					host=connection['host'],
@@ -766,7 +799,16 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 			L = eTraceback.tb_lineno
 			nextL = eTraceback.tb_next.tb_lineno
 			message = f"ERROR: Failed on line {nextL} {e}"
-   
+			self._mqtt_error = self._mqtt_error or message
+
+		if result:
+			self._network_ok("mqtt")
+		else:
+			# Before network_failure() existed these were only debug messages (level 4),
+			# so a broker that stays down went unnoticed.
+			self._network_failure("mqtt", self._mqtt_error or f"Unable to publish to the MQTT broker {connection['host']}:{connection['port']}",
+				secrets=connection['password'], old_level=4)
+
 		return result
 
 	def _send_to_post(self):
@@ -777,12 +819,13 @@ class ALLSKYPUBLISHDATA(ALLSKYMODULEBASE):
 				response = requests.post(post_url, headers=headers, json=self._json_data, timeout=5)
 				response.raise_for_status()  # raise HTTPError for bad responses
 				self.log(4, f'Data posted to {post_url}')
+				self._network_ok("post")
 		except requests.exceptions.Timeout:
-				self.log(4, f'ERROR in {__file__}: Request timed out acessing {post_url}')
+				self._network_failure("post", f'Request timed out accessing {post_url}', old_level=4)
 		except requests.exceptions.ConnectionError as e:
-				self.log(4, f'ERROR in {__file__}: Connection error {e} acessing {post_url}')    
+				self._network_failure("post", f'Connection error {e} accessing {post_url}', old_level=4)
 		except requests.exceptions.HTTPError as e:
-				self.log(4, f'ERROR in {__file__}: HTTP error {e} acessing {post_url}')    
+				self._network_failure("post", f'HTTP error {e} accessing {post_url}', old_level=4)
 		except Exception as e:
 				self.log(4, f'ERROR in {__file__}: Unexpected error{e} acessing {post_url}')    
            
