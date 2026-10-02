@@ -28,7 +28,7 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 		"description": "Retrieve space weather data from NOAA SWPC",
 		"docs": "docs/allsky_modules/extra/space_weather.html",    
 		"module": "allsky_spaceweather",
-		"version": "v1.0.5",
+		"version": "v1.0.6",
 		"centersettings": "false",
 		"testable": "true", 
 		"extradatafilename": "allsky_spaceweather.json",
@@ -187,6 +187,13 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 				"authorurl": "https://github.com/benhartwich/",
 				"changes": "Save the solar wind speed, density and temperature, Kp and Bz in the Allsky database, and add charts: Kp index, Bz, solar wind, and a Kp gauge"
 				}
+			],
+			"v1.0.6": [
+				{
+				"author": "Benjamin Hartwich (Agent assisted)",
+				"authorurl": "https://github.com/benhartwich/",
+				"changes": "A failed download (no network, timeout, NOAA unavailable) is a warning; only 3 failures in a row become a WebUI error. One failed endpoint no longer stops the others"
+				}
 			]
 		}
 	}
@@ -227,6 +234,18 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 			except (TypeError, ValueError):
 					return default
 
+	def _network_failure(self, label, message):
+			"""
+			Report a failed download. Allsky versions with network_failure() log a
+			warning and only show a WebUI error when it fails 3 times in a row;
+			older versions get the error right away, as before.
+			"""
+			network_failure = getattr(allsky_shared, "network_failure", None)
+			if network_failure is not None:
+					network_failure(f"spaceweather {label}", message)
+			else:
+					allsky_shared.log(0, f"ERROR: {message}")
+
 	def _fetch_json(self, url, label=""):
 			"""
 			Fetch JSON from a NOAA SWPC endpoint with HTTP status checking.
@@ -237,10 +256,17 @@ class ALLSKYSPACEWEATHER(ALLSKYMODULEBASE):
 			Returns:
 					Parsed JSON data (list or dict), or None on failure.
 			"""
-			response = requests.get(url, timeout=30)
-			if response.status_code != 200:
-					allsky_shared.log(0, f"ERROR: {label} API returned HTTP {response.status_code}")
+			try:
+					response = requests.get(url, timeout=30)
+			except requests.exceptions.RequestException as e:
+					self._network_failure(label, f"Unable to reach the {label} API: {e}")
 					return None
+			if response.status_code != 200:
+					self._network_failure(label, f"{label} API returned HTTP {response.status_code}")
+					return None
+			network_ok = getattr(allsky_shared, "network_ok", None)
+			if network_ok is not None:
+					network_ok(f"spaceweather {label}")
 			try:
 					data = json.loads(response.content)
 			except json.JSONDecodeError as e:
