@@ -19,7 +19,7 @@ class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
 		"name": "WeatherUnderground",
 		"description": "Obtain weather data from WeatherUnderground",
 		"module": "allsky_weatherunderground",
-		"version": "v1.0.1",   
+		"version": "v1.0.2",   
 		"events": [
 			"day",
 			"night",
@@ -110,6 +110,14 @@ class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
 					"group": "Environment",
 					"description": "WU Dew Point",
 					"type": "temperature"
+				},
+				"AS_WUHUMIDITY": {
+					"name": "${WUHUMIDITY}",
+					"format": "",
+					"sample": "",                
+					"group": "Environment",
+					"description": "WU Relative Humidity %",
+					"type": "number"
 				},
 				"AS_WUWINDDIR": {
 					"name": "${WUWINDDIR}",
@@ -223,6 +231,13 @@ class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
 					"authorurl": "https://github.com/allskyteam",
 					"changes": "Updates for new module system"
 				}
+			],
+			"v1.0.2": [
+				{
+					"author": "Benjamin Hartwich (Agent assisted)",
+					"authorurl": "https://github.com/benhartwich/",
+					"changes": "Added the relative humidity (AS_WUHUMIDITY), e.g. for the dew heater"
+				}
 			]     
 		}            
 	}
@@ -240,6 +255,7 @@ class ALLSKYWEATHERUNDERGROUND(ALLSKYMODULEBASE):
 		self._extra_data['AS_WUTEMP'] = data[units]['temp']
 		self._extra_data['AS_WUHEATINDEX'] = data[units]['heatIndex']
 		self._extra_data['AS_WUDEWPOINT'] = data[units]['dewpt']
+		self._extra_data['AS_WUHUMIDITY'] = data.get('humidity')
 		self._extra_data['AS_WUWINDCHILL'] = data[units]['windChill']
 		self._extra_data['AS_WUWINDGUST'] = data[units]['windGust']
 		self._extra_data['AS_WUWINDSPEED'] = data[units]['windSpeed']

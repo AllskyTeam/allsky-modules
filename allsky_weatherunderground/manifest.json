@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "module": "allsky_weatherunderground",
-  "generated_utc": "2026-08-31T20:49:29Z",
+  "generated_utc": "2026-10-02T10:50:45Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
@@ -10,8 +10,8 @@
       "mode": "644"
     },
     "allsky_weatherunderground.py": {
-      "sha256": "3663591d3c306df5dcc2b723a1003942651985e4f51874f76f9ae2e3ccdbb5c7",
-      "size": 9936,
+      "sha256": "a2d7769ac58774dc07c06381386bda9d33588506992e96c60b7b50399be11807",
+      "size": 10432,
       "mode": "755"
     },
     "requirements.txt": {
