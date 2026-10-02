@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "module": "allsky_allskykamera",
-  "generated_utc": "2026-08-31T20:49:28Z",
+  "generated_utc": "2026-10-02T15:18:02Z",
   "hash_algorithm": "sha256",
   "files": {
     "allsky_allskykamera.py": {
-      "sha256": "482449b085a3fa68ff9baef50f6f9579ca7e4c9b9ca075587366f5eaced7c81f",
-      "size": 9650,
+      "sha256": "266831280d8d0f41ed86a8c1b32e5a1ad5a37b6e555df2067cad118ddb10011f",
+      "size": 11209,
       "mode": "644"
     }
   },
