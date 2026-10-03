@@ -11,7 +11,7 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 	meta_data = {
 		"name": "Allsky Keogram",
 		"description": "Create a keogram.",
-		"version": "v0.0.1",
+		"version": "v0.0.2",
 		"pythonversion": "3.10.0",
 		"centersettings": "false",
 		"testable": "true",
@@ -344,7 +344,7 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 			remote_dir = "/keograms"
 			uselocalweb = allsky_shared.getSetting("uselocalwebsite")
 			useremoteweb = allsky_shared.getSetting("useremotewebsite")
-			useremoteserver = allsky_shared.getSetting("useremotewebserver")
+			useremoteserver = allsky_shared.getSetting("useremoteserver")
 
 			
 			# resize
@@ -397,10 +397,8 @@ class ALLSKYKEOGRAM(ALLSKYMODULEBASE):
 				target = "--remote-server"
 				remote_dir = allsky_shared.getSetting("remoteserverimagedir")+"/keograms"
 				
-				if allsky_shared.getSetting("remoteserverkeogramdestinationname")=="": 
-					target_file = keo_filename
-				else:
-					target_file = allsky_shared.getSetting("remoteserverkeogramdestinationname")
+				# Use the keogram's own name if no destination name is set.
+				target_file = allsky_shared.getSetting("remoteserverkeogramdestinationname") or keo_filename
 
 				#run upload script
 				upload_keo_rc, out, err = self.__execute_script(upload_script_path, target, keogram_fullpath, remote_dir, target_file)
