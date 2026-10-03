@@ -39,14 +39,12 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		"description": "Obtain data for Solar System objects",
 		"docs": "docs/allsky_modules/extra/solar_system.html",  
 		"module": "allsky_solarsystem",
-		"version": "v1.1.4",
+		"version": "v1.2.0",
 		"testable": "true",
 		"centersettings": "false",
 		"group": "Data Capture",   
 		"events": [
-			"periodic",
-			"day",
-			"night"
+			"periodic"
 		],
 		"extradatafilename": "allsky_solarsystem.json",
 		"experimental": "false",	
@@ -801,6 +799,13 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 						"author": "Benjamin Hartwich (Agent assisted)",
 						"authorurl": "https://github.com/benhartwich/",
 						"changes": "Overlays from Allsky v2024 that use the old satellite and planet variable names (e.g. AS_25544VISIBLE, AS_MARSAZ) are updated to the new names"
+					}
+				],
+				"v1.2.0" : [
+					{
+						"author": "Benjamin Hartwich (Agent assisted)",
+						"authorurl": "https://github.com/benhartwich/",
+						"changes": "Runs only in the Periodic flow. Running it for every image as well did the same work several times; set the Periodic flow's interval for how often the values are updated"
 					}
 				]          
 			}
