@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "module": "allsky_keogram",
-  "generated_utc": "2026-08-31T20:49:28Z",
+  "generated_utc": "2026-10-03T05:24:29Z",
   "hash_algorithm": "sha256",
   "files": {
     "allsky_keogram.py": {
-      "sha256": "04e9171acf8991bff8818ec0f6b282b2ecc587a8063465734a064c10d7e710e2",
-      "size": 14591,
+      "sha256": "88cc94c4607f182d2761c289b80a1d243f5b7a8e375ceab6c550a53a4116ceca",
+      "size": 14549,
       "mode": "644"
     }
   },
