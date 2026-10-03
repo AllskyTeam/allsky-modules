@@ -27,7 +27,7 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 		"description": "Obtain weather data from the Open Weather Map service",
 		"docs": "docs/allsky_modules/extra/owm.html",  
 		"module": "allsky_openweathermap",
-		"version": "v1.0.3",
+		"version": "v1.0.4",
 		"centersettings": "false",
 		"testable": "true",
 		"extradatafilename": "allsky_openweathermap.json",
@@ -108,8 +108,8 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 					"format": "",
 					"sample": "",
 					"group": "Environment",
-					"description": "OW Pressue",
-					"type": "number"
+					"description": "OW Pressure",
+					"type": "pressure"
 				},
 				"AS_OWHUMIDITY": {
 					"name": "${OWHUMIDITY}",
@@ -273,6 +273,13 @@ class ALLSKYOPENWEATHERMAP(ALLSKYMODULEBASE):
 						"A failed download because of the network (no connection, DNS, timeout) is logged as a warning; only 3 failures in a row become a WebUI error message, once until the next successful download",
 						"The API key is hidden in error messages; the network errors contained the full URL with the key"
 					]
+				}
+			],
+			"v1.0.4" : [
+				{
+					"author": "Benjamin Hartwich (Agent assisted)",
+					"authorurl": "https://github.com/benhartwich/",
+					"changes": "AS_OWPRESSURE has the type pressure, so the Overlay Editor offers the pressure formats (hPa, inHg, mmHg)"
 				}
 			]
 		}            
