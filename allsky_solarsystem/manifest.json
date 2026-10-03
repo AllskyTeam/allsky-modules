@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "module": "allsky_solarsystem",
-  "generated_utc": "2026-10-03T10:35:38Z",
+  "generated_utc": "2026-10-03T16:53:13Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
@@ -10,8 +10,8 @@
       "mode": "644"
     },
     "allsky_solarsystem.py": {
-      "sha256": "6cd4ff22a321383d3442936ec1964248d6525b9f8b60efc7193725e79c8a40b1",
-      "size": 52342,
+      "sha256": "8ce5130fdc3aa8577e868c54d15f16b50498deee18e2c206f8fd4f58b0b6876c",
+      "size": 52942,
       "mode": "755"
     },
     "blocks/iss.json": {

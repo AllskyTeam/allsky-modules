@@ -39,7 +39,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		"description": "Obtain data for Solar System objects",
 		"docs": "docs/allsky_modules/extra/solar_system.html",  
 		"module": "allsky_solarsystem",
-		"version": "v1.2.0",
+		"version": "v1.2.1",
 		"testable": "true",
 		"centersettings": "false",
 		"group": "Data Capture",   
@@ -198,6 +198,12 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 					"format": "{timeformat}",     
 					"type": "date",
 					"description": "The next full moon timestamp"
+				},
+				"AS_SOLARSYSTEM_LASTRUN": {
+					"group": "Solar System",
+					"format": "{timeformat}",
+					"type": "date",
+					"description": "When the Solar System values were last calculated"
 				},
 				"AS_SUN_DAWN": {
 					"group": "Solar System",
@@ -807,7 +813,14 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 						"authorurl": "https://github.com/benhartwich/",
 						"changes": "Runs only in the Periodic flow. Running it for every image as well did the same work several times; set the Periodic flow's interval for how often the values are updated"
 					}
-				]          
+				],
+				"v1.2.1" : [
+					{
+						"author": "Benjamin Hartwich (Agent assisted)",
+						"authorurl": "https://github.com/benhartwich/",
+						"changes": "New variable ${SOLARSYSTEM_LASTRUN}: when the values were last calculated"
+					}
+				]
 			}
 		}
     
@@ -1684,6 +1697,10 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		self._calculate_planets()
 		
 		self._calcSatellites()
+
+		# When these values were calculated: the module runs in the Periodic flow,
+		# so they can be older than the image.
+		self._extra_data['AS_SOLARSYSTEM_LASTRUN'] = time.time()
 
 		self._saveExtraData()
 
