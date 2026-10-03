@@ -34,7 +34,7 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 		"name": "Allsky Keolapse/Timelapse Module",
 		"description": "Creates Timelapse video with additional keolapse overlays.  Also caters for 'generate for day' functions.",
 		"module": "allsky_keolapse", 
-		"version": "v1.0.0",   
+		"version": "v1.1.0",   
 		"centersettings": "false",
 		"testable": "true",
 		"group": "Allsky Core",
@@ -89,7 +89,6 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 			"keolapse_save_as" : "Allsky Timelapse",
 
 			"timelapse_upload" : "true",	
-			"timelapse_up_dir" : "keolapses",
 			"timelapse_up_thumb" : "true",
 
 			"timelapse_fps": "30",
@@ -202,24 +201,6 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 				},
 				"type": {
 					"fieldtype": "checkbox"
-				}
-			},
-			"timelapse_up_dir" : {
-				"required": "false",
-				"description": "Remote Directory",
-				"help": "Subdirectory under the website/server image directory to upload keolapse videos into (e.g. 'keolapses').<br>Keeps keolapse videos separate from the regular timelapse videos directory. The uploaded file will be named (keolapse-YYYYMMDD.mp4). For remote (sftp/scp/ftp) uploads this directory must already exist on the server.",
-				"tab": "Video Settings",
-				"layout" : {
-					"row": "upload_settings",
-					"title": "Upload",
-					"width": 5
-				},				
-				"filters": {
-					"filter": "keolapse_save_as",
-					"filtertype": "show",
-					"values": [
-						"Separate Video File"
-					]
 				}
 			},
 
@@ -1050,13 +1031,13 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 		source_fullpath = source_fullpath
 		uselocalweb = allsky_shared.get_setting("uselocalwebsite")
 		useremoteweb = allsky_shared.get_setting("useremotewebsite")
-		useremoteserver = allsky_shared.get_setting("useremotewebserver")
+		useremoteserver = allsky_shared.get_setting("useremoteserver")
 		result =""
 		
 		up_thumb = self.get_param("timelapse_up_thumb", False, bool)
 		#up_thumb = False
 
-		def call_upload_script(target, source_fullpath, remote_dir, target_file):
+		def call_upload_script(target, source_fullpath, remote_dir, target_file, what="Keolapse"):
 			source_fullpath=source_fullpath
 			upload_script_path = os.path.join(ALLSKY_HOME, "scripts", "upload.sh")
 			target_clean = target.replace("--", "")
@@ -1064,20 +1045,20 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 			#run upload script
 			upload_rc, out, err = self.__run_script(upload_script_path, target, source_fullpath, remote_dir, target_file)
 			if upload_rc == 0:
-				allsky_shared.log(1, f"INFO: {type} uploaded successfully to {target_clean}: {target_file}")
+				allsky_shared.log(1, f"INFO: {what} uploaded successfully to {target_clean}: {target_file}")
 			else:
-				allsky_shared.log(0, f"ERROR: Failed to upload {type} to {target_clean} (rc={upload_rc}). See stderr:\n{err}")
+				allsky_shared.log(0, f"ERROR: Failed to upload {what} to {target_clean} (rc={upload_rc}). See stderr:\n{err}")
 
+		remoteserver_destination_name = filename
 		if self.get_param("keolapse_save_as","allsky timelapse", str).lower() != "allsky timelapse":
-			# keolapse was saved as a separate file so use designated remote directory
-			out_subdir = self.get_param("timelapse_up_dir", "keolapses", str)
+			# Keolapse was saved as a separate file.  The Allsky WebUI and Websites show
+			# these from "keolapses/", so always use that.
+			out_subdir = "keolapses"
 		else:
 			# Keolapse = Allsky Timelapse
 			out_subdir = "videos"
-			if allsky_shared.get_setting("remoteserverimageuploadoriginalname"):
-				remoteserver_destination_name=filename
-			else:
-				remoteserver_destination_name=allsky_shared.get_setting("remoteservertimelapsedestinationname")
+			if not allsky_shared.get_setting("remoteserverimageuploadoriginalname"):
+				remoteserver_destination_name = allsky_shared.get_setting("remoteservervideodestinationname") or filename
 
 		if up_thumb and thumbname and source_thumbpath:
 			out_thumb_dir = f"{out_subdir}/thumbnails"
@@ -1098,7 +1079,7 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 				allsky_shared.check_and_create_directory(remote_thumb_dir)
 				if self.debugmode:
 					self.__set_permissions_to_allskyowner(remote_thumb_dir, "dir")
-				upthumb = call_upload_script(target, source_thumbpath, remote_thumb_dir, thumbname)
+				upthumb = call_upload_script(target, source_thumbpath, remote_thumb_dir, thumbname, "Keolapse thumbnail")
 
 		if useremoteweb:
 			target = "--remote-web"
@@ -1108,7 +1089,7 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 
 			if up_thumb:
 				remote_thumb_dir = allsky_shared.get_setting("remotewebsiteimagedir")+"/"+out_thumb_dir
-				upthumb = call_upload_script(target, source_thumbpath, remote_thumb_dir, thumbname)
+				upthumb = call_upload_script(target, source_thumbpath, remote_thumb_dir, thumbname, "Keolapse thumbnail")
 
 		if useremoteserver:
 			target = "--remote-server"
@@ -1119,7 +1100,7 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 			
 			if up_thumb:
 				remote_thumb_dir = allsky_shared.get_setting("remoteserverimagedir")+"/"+out_thumb_dir
-				upthumb = call_upload_script(target, source_thumbpath, remote_thumb_dir, thumbname)
+				upthumb = call_upload_script(target, source_thumbpath, remote_thumb_dir, thumbname, "Keolapse thumbnail")
 	
 		# delete temp file if it was created
 		if os.path.exists(tmp_image_path):
