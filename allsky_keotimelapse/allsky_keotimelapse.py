@@ -452,6 +452,19 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 				}
 			},
 
+			"keolapse_keogram_notice" : {
+				"tab": "Keolapse Animation",
+				"message": "The video is made from the day's images, not from Allsky's timelapse. The keogram ring uses the keogram Allsky creates at the end of the night, so keep <b>Keograms &rarr; Generate</b> on in the Allsky Settings. Allsky's own timelapse isn't needed.",
+				"type": {
+					"fieldtype": "text",
+					"style": {
+						"width": "full",
+						"alert": {
+							"class": "info"
+						}
+					}
+				}
+			},
 			"keolapse_overlay" : {
 				"required": "false",
 				"description": "Overlay on Timelapse",
@@ -890,7 +903,7 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 				{
 					"author": "Benjamin Hartwich (Agent assisted)",
 					"authorurl": "https://github.com/benhartwich/",
-					"changes": "Remote Server File Name (default keolapse.mp4), like Allsky's Remote Video File Name; in Allsky Timelapse mode the remote server always uses Allsky's Remote Video File Name"
+					"changes": "Remote Server File Name (default keolapse.mp4), like Allsky's Remote Video File Name; in Allsky Timelapse mode the remote server always uses Allsky's Remote Video File Name. The settings explain that the keogram ring needs Allsky's keogram, and a WebUI warning says so when Keograms Generate is off"
 				}
 			]
 		}
@@ -1888,6 +1901,12 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 				keogram_path = self.get_keogram_path()
 				if not keogram_path:
 					self.debug_log("WARNING: No keogram found", level=1)
+					if not allsky_shared.get_setting("keogramgenerate"):
+						# Most likely cause, and easy to miss: tell the user in the WebUI.
+						allsky_shared.add_message(
+							"Keolapse: no keolapse was created because there's no keogram. "
+							"Turn on <b>Keograms &rarr; Generate</b> in the Allsky Settings, "
+							"or turn off <b>Overlay on Timelapse</b> in the Keolapse module.", "warning")
 					return False
 
 				keogram_data = generator.prepare_keogram(keogram_path)
