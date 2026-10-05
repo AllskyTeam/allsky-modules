@@ -34,7 +34,7 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 		"name": "Allsky Keolapse/Timelapse Module",
 		"description": "Creates Timelapse video with additional keolapse overlays.  Also caters for 'generate for day' functions.",
 		"module": "allsky_keolapse", 
-		"version": "v1.1.0",   
+		"version": "v1.2.0",   
 		"centersettings": "false",
 		"testable": "true",
 		"group": "Allsky Core",
@@ -90,6 +90,7 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 
 			"timelapse_upload" : "true",	
 			"timelapse_up_thumb" : "true",
+			"timelapse_server_name" : "keolapse.mp4",
 
 			"timelapse_fps": "30",
 			"timelapse_bitrate": "2000",
@@ -201,6 +202,25 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 				},
 				"type": {
 					"fieldtype": "checkbox"
+				}
+			},
+
+			"timelapse_server_name" : {
+				"required": "false",
+				"description": "Remote Server File Name",
+				"help": "Name of the keolapse video on a remote server, like Allsky's <i>Remote Video File Name</i>, so the server always finds the newest one under the same name. The thumbnail gets the same name ending in .jpg. Leave empty to keep the dated name (keolapse-YYYYMMDD.mp4). Only used for a remote server, not for Allsky Websites.",
+				"tab": "Video Settings",
+				"layout" : {
+					"row": "upload_settings",
+					"title": "Upload",
+					"width": 5
+				},
+				"filters": {
+					"filter": "keolapse_save_as",
+					"filtertype": "show",
+					"values": [
+						"Separate Video File"
+					]
 				}
 			},
 
@@ -432,6 +452,19 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 				}
 			},
 
+			"keolapse_keogram_notice" : {
+				"tab": "Keolapse Animation",
+				"message": "The video is made from the day's images, not from Allsky's timelapse. The keogram ring uses the keogram Allsky creates at the end of the night, so keep <b>Keograms &rarr; Generate</b> on in the Allsky Settings. Allsky's own timelapse isn't needed.",
+				"type": {
+					"fieldtype": "text",
+					"style": {
+						"width": "full",
+						"alert": {
+							"class": "info"
+						}
+					}
+				}
+			},
 			"keolapse_overlay" : {
 				"required": "false",
 				"description": "Overlay on Timelapse",
@@ -865,6 +898,13 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 						"Incorporated ideas developed by Andy Felong, https://github.com/AndyOfLinux such as options to 'save-as' vs 'in-lieu of' standard timelapse, generating overlay variables"
 					]
 				}
+			],
+			"v1.2.0" : [
+				{
+					"author": "Benjamin Hartwich (Agent assisted)",
+					"authorurl": "https://github.com/benhartwich/",
+					"changes": "Remote Server File Name (default keolapse.mp4), like Allsky's Remote Video File Name; in Allsky Timelapse mode the remote server always uses Allsky's Remote Video File Name. The settings explain that the keogram ring needs Allsky's keogram, and a WebUI warning says so when Keograms Generate is off"
+				}
 			]
 		}
 	}
@@ -1049,16 +1089,24 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 			else:
 				allsky_shared.log(0, f"ERROR: Failed to upload {what} to {target_clean} (rc={upload_rc}). See stderr:\n{err}")
 
-		remoteserver_destination_name = filename
+		# Like Allsky's own timelapse, keogram and startrails, a remote server can get a fixed
+		# file name (e.g., "keolapse.mp4"), so it doesn't have to work out the dated name.
 		if self.get_param("keolapse_save_as","allsky timelapse", str).lower() != "allsky timelapse":
 			# Keolapse was saved as a separate file.  The Allsky WebUI and Websites show
 			# these from "keolapses/", so always use that.
 			out_subdir = "keolapses"
+			remoteserver_destination_name = self.get_param("timelapse_server_name", "", str).strip() or filename
 		else:
-			# Keolapse = Allsky Timelapse
+			# Keolapse = Allsky Timelapse: the same name as Allsky's timelapse.
 			out_subdir = "videos"
-			if not allsky_shared.get_setting("remoteserverimageuploadoriginalname"):
-				remoteserver_destination_name = allsky_shared.get_setting("remoteservervideodestinationname") or filename
+			remoteserver_destination_name = allsky_shared.get_setting("remoteservervideodestinationname") or filename
+		if os.path.basename(remoteserver_destination_name) != remoteserver_destination_name:
+			allsky_shared.log(0, f"ERROR: Remote server file name '{remoteserver_destination_name}' must not contain a folder; using '{filename}'.")
+			remoteserver_destination_name = filename
+		# The thumbnail has the video's name, ending in .jpg, as Allsky does.
+		remoteserver_thumb_name = thumbname
+		if thumbname and remoteserver_destination_name != filename:
+			remoteserver_thumb_name = os.path.splitext(remoteserver_destination_name)[0] + os.path.splitext(thumbname)[1]
 
 		if up_thumb and thumbname and source_thumbpath:
 			out_thumb_dir = f"{out_subdir}/thumbnails"
@@ -1100,7 +1148,7 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 			
 			if up_thumb:
 				remote_thumb_dir = allsky_shared.get_setting("remoteserverimagedir")+"/"+out_thumb_dir
-				upthumb = call_upload_script(target, source_thumbpath, remote_thumb_dir, thumbname, "Keolapse thumbnail")
+				upthumb = call_upload_script(target, source_thumbpath, remote_thumb_dir, remoteserver_thumb_name, "Keolapse thumbnail")
 	
 		# delete temp file if it was created
 		if os.path.exists(tmp_image_path):
@@ -1853,6 +1901,12 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 				keogram_path = self.get_keogram_path()
 				if not keogram_path:
 					self.debug_log("WARNING: No keogram found", level=1)
+					if not allsky_shared.get_setting("keogramgenerate"):
+						# Most likely cause, and easy to miss: tell the user in the WebUI.
+						allsky_shared.add_message(
+							"Keolapse: no keolapse was created because there's no keogram. "
+							"Turn on <b>Keograms &rarr; Generate</b> in the Allsky Settings, "
+							"or turn off <b>Overlay on Timelapse</b> in the Keolapse module.", "warning")
 					return False
 
 				keogram_data = generator.prepare_keogram(keogram_path)

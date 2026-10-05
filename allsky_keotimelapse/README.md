@@ -31,6 +31,7 @@ There are several settings that allow for customisation of the keolapse includin
 | Save Video As                     | Allsky Timelapse or Separate Video File. |Allsky Timelapse|
 | Upload Video                      | Upload generated video using configured destinations. |Yes|
 | Upload Thumbnail                  | Upload video thumbnail with the video upload. |Yes|
+| Remote Server File Name           | (Separate Video File only) Name of the video on a remote server, like Allsky's *Remote Video File Name*; the thumbnail gets the same name ending in .jpg. Empty keeps keolapse-YYYYMMDD.mp4. |keolapse.mp4|
 | **Video Parameters**|||
 | Source                            | Use Module Settings or existing Allsky Settings Page values. |Module Settings|
 | Output Resolution                 | 720p / 1080p / 4k / Custom / No Resizing. |720p|
@@ -71,7 +72,7 @@ There are several settings that allow for customisation of the keolapse includin
 
 ### Notes:
  - If creating the keolapse as your main timelapse video, disable 'Generate' for timelapse in the main Allsky settings to avoid duplicate processing (eg creating a timelapse, then creating it again).
- - When **Save Video As** is set to **Separate Video File**, the video (`keolapse-YYYYMMDD.mp4`) and its thumbnail are uploaded to `keolapses/` and `keolapses/thumbnails/`, where the Allsky WebUI and Websites look for them. On a remote server these folders must already exist.
+ - When **Save Video As** is set to **Separate Video File**, the video (`keolapse-YYYYMMDD.mp4`) and its thumbnail are uploaded to `keolapses/` and `keolapses/thumbnails/`, where the Allsky WebUI and Websites look for them. On a remote server these folders must already exist. A remote server gets the *Remote Server File Name* (default `keolapse.mp4`), so it always finds the newest keolapse under the same name, as Allsky does for its timelapse, keogram and startrails.
  - Quick Setup Test uses temporary test data and writes outputs to an `images/test` folder for fast validation.
  - Test modes that generate/upload can overwrite existing destination files for that date.
  - The module can publish these extra-data variables:  `${KEOLAPSE_VIDEO}`, `${KEOLAPSE_DATE}`, `${KEOLAPSE_FRAMES}`, `${KEOLAPSE_DURATION}`.
