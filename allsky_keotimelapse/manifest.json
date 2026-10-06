@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
   "module": "allsky_keotimelapse",
-  "generated_utc": "2026-10-05T13:49:19Z",
+  "generated_utc": "2026-10-06T16:23:30Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
-      "sha256": "e2a7fea8074659ab33beea626a65d2dd6163e9a324cf930a62b8b1356a99bc42",
-      "size": 6157,
+      "sha256": "63acda7e81948a624a58f95a2e68badb125d8eabd56c6d865800d3e5d1a98e71",
+      "size": 6739,
       "mode": "644"
     },
     "allsky_keotimelapse.py": {
-      "sha256": "e69b2bfc570628955d1da937d916b2fdd6fa076f8405de7c84a6f3ea992c6d70",
-      "size": 78606,
+      "sha256": "03ebd037705ba68f2db5076d289aa3be2c356f3548a9e10f43b17e3d7a409273",
+      "size": 80847,
       "mode": "644"
     }
   },
