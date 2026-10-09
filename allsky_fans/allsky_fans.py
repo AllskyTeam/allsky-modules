@@ -36,7 +36,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		"extradatafilename": "allsky_fans.json",
 		"group": "Environment Control",
 		"extradata": {
-			"schema_version": 2,
+			"schema_version": 3,
 			"database": {
 				"enabled": "True",
 				"table": "allsky_fans",
@@ -84,6 +84,19 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 							"OTH_ALTITUDE",
 							"OTH_HUMIDITY",
 							"OTH_rel_humidity"
+						]
+					}
+				},
+				{
+					"from_schema_version": 2,
+					"to_schema_version": 3,
+					"breaking": "false",
+					"title": "Fan tacho speed added",
+					"message": "Fan tachometer RPM fields were added.",
+					"changes": {
+						"added": [
+							"AS_FANS_RPM1",
+							"AS_FANS_RPM2"
 						]
 					}
 				}
@@ -153,6 +166,14 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					"description": "Fan 1 PWM Duty Cycle %",
 					"type": "number"
 				},
+				"AS_FANS_RPM1": {
+					"name": "${AS_FANS_RPM1}",
+					"format": "{dp=0}",
+					"sample": "",
+					"group": "Fan",
+					"description": "Fan 1 tachometer speed in RPM",
+					"type": "number"
+				},
 				"AS_FANS_ENABLE2": {
 					"name": "${FANS_ENABLE2}",
 					"format": "{yesno}",
@@ -216,6 +237,14 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					"group": "Fan",
 					"description": "Fan 2 PWM Duty Cycle %",
 					"type": "number"
+				},
+				"AS_FANS_RPM2": {
+					"name": "${AS_FANS_RPM2}",
+					"format": "{dp=0}",
+					"sample": "",
+					"group": "Fan",
+					"description": "Fan 2 tachometer speed in RPM",
+					"type": "number"
 				}
 			}
 		},
@@ -226,6 +255,9 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			"fanpin1": "18",
 			"invertrelay1": "False",
 			"usepwm1": "false",
+			"usetacho1": "false",
+			"tachpin1": "",
+			"tachppr1": 2,
 			"pwmmin1": 0,
 			"pwmmax1": 100,
 			"limitInternal1": 60,
@@ -237,6 +269,9 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 			"fanpin2": "18",
 			"invertrelay2": "False",
 			"usepwm2": "false",
+			"usetacho2": "false",
+			"tachpin2": "",
+			"tachppr2": 2,
 			"pwmmin2": 0,
 			"pwmmax2": 100,
 			"limitInternal2": 60,
@@ -378,6 +413,50 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					]
 				}
 			},
+			"usetacho1" : {
+				"required": "false",
+				"description": "Use Tacho",
+				"help": "Read the fan tachometer speed using a GPIO input with the internal pull-up enabled.",
+				"tab": "Fan 1",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"tachpin1": {
+				"required": "false",
+				"description": "Tacho Input Pin",
+				"help": "The GPIO pin connected to the fan tachometer signal.",
+				"tab": "Fan 1",
+				"filters": {
+					"filter": "usetacho1",
+					"filtertype": "show",
+					"values": [
+						"usetacho1"
+					]
+				},
+				"type": {
+					"fieldtype": "gpio"
+				}
+			},
+			"tachppr1" : {
+				"required": "false",
+				"description": "Tacho Pulses/Rev",
+				"help": "The number of tachometer pulses per fan revolution. Most PC fans use 2.",
+				"tab": "Fan 1",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 1,
+					"max": 8,
+					"step": 1
+				},
+				"filters": {
+					"filter": "usetacho1",
+					"filtertype": "show",
+					"values": [
+						"usetacho1"
+					]
+				}
+			},
 
 			"enable2" : {
 				"required": "false",
@@ -511,6 +590,50 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 					]
 				}
 			},
+			"usetacho2" : {
+				"required": "false",
+				"description": "Use Tacho",
+				"help": "Read the fan tachometer speed using a GPIO input with the internal pull-up enabled.",
+				"tab": "Fan 2",
+				"type": {
+					"fieldtype": "checkbox"
+				}
+			},
+			"tachpin2": {
+				"required": "false",
+				"description": "Tacho Input Pin",
+				"help": "The GPIO pin connected to the fan tachometer signal.",
+				"tab": "Fan 2",
+				"filters": {
+					"filter": "usetacho2",
+					"filtertype": "show",
+					"values": [
+						"usetacho2"
+					]
+				},
+				"type": {
+					"fieldtype": "gpio"
+				}
+			},
+			"tachppr2" : {
+				"required": "false",
+				"description": "Tacho Pulses/Rev",
+				"help": "The number of tachometer pulses per fan revolution. Most PC fans use 2.",
+				"tab": "Fan 2",
+				"type": {
+					"fieldtype": "spinner",
+					"min": 1,
+					"max": 8,
+					"step": 1
+				},
+				"filters": {
+					"filter": "usetacho2",
+					"filtertype": "show",
+					"values": [
+						"usetacho2"
+					]
+				}
+			},
 			"enabledataage" : {
 				"required": "false",
 				"description": "Custom Data Expiry",
@@ -640,6 +763,35 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 	def _display_status(self, value):
 		return 'On' if value else 'Off'
 
+	def _get_tacho_speed(self, fan_number, tacho_enabled, tacho_pin, tacho_ppr):
+		tacho_id = f'{self.meta_data["module"]}-{fan_number}'
+
+		try:
+			if tacho_enabled and tacho_pin is not None:
+				return allsky_shared.get_tacho_speed(
+					tacho_id,
+					tacho_pin,
+					pulses_per_revolution=tacho_ppr,
+					name=f'Fan {fan_number} Tacho'
+				)
+
+			allsky_shared.stop_tacho(tacho_id)
+
+		except requests.exceptions.ConnectionError:
+			result = f'Fan {fan_number} - Unable to connect to the Allsky server to read tacho speed. Is it running?'
+			self.log(0, f'ERROR in {__file__}: {result}')
+
+		except requests.exceptions.HTTPError as e:
+			result = f'Fan {fan_number} - Tacho speed request failed: {e}'
+			self.log(0, f'ERROR in {__file__}: {result}')
+
+		except Exception as e:
+			exception_type, exception_object, exception_traceback = sys.exc_info()
+			result = f'Fan {fan_number} - Module _get_tacho_speed - {exception_traceback.tb_lineno} - {e}'
+			self.log(0, f'ERROR in {__file__}: {result}')
+
+		return 0
+
 	def _use_bool_fan_control(self, fan_number):
 		error = False
 		state = False
@@ -743,9 +895,13 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				self._fan_pin = self.get_param(f'fanpin{fan_number}', None, int)
 				self._invert_relay = self.get_param(f'invertrelay{fan_number}', False, bool)
 				use_pwm = self.get_param(f'usepwm{fan_number}', False, bool)
+				use_tacho = self.get_param(f'usetacho{fan_number}', False, bool)
+				tacho_pin = self.get_param(f'tachpin{fan_number}', None, int)
+				tacho_ppr = self.get_param(f'tachppr{fan_number}', 2, int)
 				self._fan_number = fan_number
 				self._temperature = None
 				fan_status = False
+				fan_rpm = 0
 				error = False
 				module = self.meta_data['module']
 				run_code = f'{module}-{fan_number}'
@@ -766,10 +922,12 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 									result, error, fan_status = self._use_bool_fan_control(fan_number)
 
 								if not error:
+									fan_rpm = self._get_tacho_speed(fan_number, use_tacho, tacho_pin, tacho_ppr)
 									extra_data[f'AS_FANS_FAN_STATE{fan_number}'] = fan_status
 									extra_data[f'AS_FANS_TEMP_LIMIT{fan_number}'] = self._temperature_limit
 									extra_data[f'AS_FANS_TEMPERATURE{fan_number}'] = self._temperature
 									extra_data[f'AS_FANS_USE_PWM{fan_number}'] = True if use_pwm else False
+									extra_data[f'AS_FANS_RPM{fan_number}'] = fan_rpm
 									if use_pwm:
 										extra_data[f'AS_FANS_PWM_ENABLED{fan_number}'] = True if pwm_enabled == 1 else False
 										extra_data[f'AS_FANS_PWM_DUTY_CYCLE{fan_number}'] = pwm_duty_cycle
@@ -795,6 +953,10 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 				if not error:
 					self.log(4, f'INFO: {result}')
 			else:
+				try:
+					allsky_shared.stop_tacho(f'{self.meta_data["module"]}-{fan_number}')
+				except Exception:
+					pass
 				self.log(4, f'INFO: FAN {fan_number} skipped as its disabled')
 
 		if extra_data:
