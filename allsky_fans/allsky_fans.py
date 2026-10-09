@@ -23,7 +23,7 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 		"description": "Control a Pi fan based on CPU or external sensor temperature",
 		"docs": "docs/allsky_modules/extra/fans.html",    
 		"module": "allsky_fans",
-		"version": "v1.0.3",
+		"version": "v1.0.4",
 		"testable": "true",
 		"centersettings": "false",
 		"events": [
@@ -710,7 +710,16 @@ class ALLSKYFANS(ALLSKYMODULEBASE):
 						"Removed all external sensors - Use allsky_temp module to read sensors"
 					]
 				}
-			]
+			],
+			"v1.0.4" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": [
+						"Added ability to read a tachometer input from a fan and report the RPM in the extradata"
+					]
+				}
+			]   
 		}
 	}
 
