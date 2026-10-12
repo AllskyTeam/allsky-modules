@@ -29,7 +29,6 @@ process_dir = ""
 debug_logging_timelapse = False
 timelapse_use_AS_settings = False
 timelapse_debug_test = False
-debug = False
 
 class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 
@@ -915,8 +914,7 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 					"authorurl": "https://github.com/benhartwich/",
 					"changes": "Command line: create and/or upload the keolapse for a given day with the Night to Day flow's settings (used by generateForDay.sh --keolapse). The thumbnail is only uploaded when the video upload worked, so one problem gives one error. Removed an unused thumbnail function"
 				}
-			]
-		}
+			],
 			"v1.2.2" : [
 				{
 					"author": "Eric Claeys",
@@ -1153,8 +1151,9 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 
 		if useremoteweb:
 			target = "--remote-web"
-			i = allsky_shared.get_setting("remotewebsiteimagedir")
-			if i != "":
+			# No directory (lftp already starts in the right one) means no leading "/".
+			i = allsky_shared.get_setting("remotewebsiteimagedir") or ""
+			if i != "" and not i.endswith("/"):
 				i = i + "/"
 			remote_dir = i + out_subdir
 			
@@ -1167,8 +1166,8 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 
 		if useremoteserver:
 			target = "--remote-server"
-			i = allsky_shared.get_setting("remoteserverimagedir")
-			if i != "":
+			i = allsky_shared.get_setting("remoteserverimagedir") or ""
+			if i != "" and not i.endswith("/"):
 				i = i + "/"
 			remote_dir = i + out_subdir
 			target_file = remoteserver_destination_name
@@ -2408,12 +2407,13 @@ def keotimelapse_cli(argv=None):
 		what = "Upload Only"
 	elif args.upload:
 		what = "Generate and Upload"
-	elif args.debug:
-		debug = True
 	else:
 		what = "Generate"
 	params = dict(saved)
 	params.update({"ALLSKYTESTMODE": True, "timelapse_test": what, "process_date": args.day})
+	if args.debug:
+		# The module's own "Debug Logging" setting, so its debug messages are output.
+		params["debug_logging_timelapse"] = "true"
 
 	result = keotimelapse(params, "nightday")
 	print(result or "Nothing was done.")
