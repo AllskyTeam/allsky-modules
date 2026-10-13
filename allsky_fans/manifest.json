@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "module": "allsky_fans",
-  "generated_utc": "2026-08-31T20:49:28Z",
+  "generated_utc": "2026-10-09T20:32:41Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
@@ -10,8 +10,8 @@
       "mode": "644"
     },
     "allsky_fans.py": {
-      "sha256": "dcb315d9449e02786f26df48b2d48f2b509f959bdf68c14862fea995299e100a",
-      "size": 22529,
+      "sha256": "19cdc2b0fd3a88d3bfd48047b8705496574cffaf7eef0c55bcaea420140c1d41",
+      "size": 27067,
       "mode": "755"
     },
     "blocks/fan1.json": {
