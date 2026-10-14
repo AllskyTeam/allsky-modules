@@ -39,7 +39,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		"description": "Obtain data for Solar System objects",
 		"docs": "docs/allsky_modules/extra/solar_system.html",  
 		"module": "allsky_solarsystem",
-		"version": "v1.2.1",
+		"version": "v1.2.2",
 		"testable": "true",
 		"centersettings": "false",
 		"group": "Data Capture",   
@@ -820,7 +820,14 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 						"authorurl": "https://github.com/benhartwich/",
 						"changes": "New variable ${SOLARSYSTEM_LASTRUN}: when the values were last calculated"
 					}
-				]
+				],
+				"v1.2.1" : [
+					{
+						"author": "Alex Greenland",
+						"authorurl": "https://github.com/benhartwich/",
+						"changes": "Add new duration variables for ISS passes"
+					}
+				]    
 			}
 		}
     
@@ -1568,7 +1575,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			
 					if norad_id == 25544:
 						self._custom_fields[f'AS_{prefix}{norad_id}_VISIBLE_PASSES'] = {
-							'value': 'None Found',
+							'value': 0,
 							'group': 'Solar System',
 							'type': 'string',
 							'description': f'Text flag for no passes available'
@@ -1580,7 +1587,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 									1 for p in data['passes'] if p.get('pass_visible_any', False)
 							)
 
-							self._custom_fields[f'AS_{prefix}{norad_id}_VISIBLE_PASSES']['value'] = 'None Found' if visible_count == 0 else ''
+							self._custom_fields[f'AS_{prefix}{norad_id}_VISIBLE_PASSES']['value'] = 0 if visible_count == 0 else ''
 
 							for index, sat_pass in enumerate(data['passes'], start=1):
 									rise = sat_pass['rise']
@@ -1619,6 +1626,17 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 										'description': f'ISS Pass {index} Duration in seconds'
 									}
 
+									duration_s = int(round(sat_pass['duration_s']))
+									minutes, seconds = divmod(duration_s, 60)
+									duration_str = f'{minutes}m {seconds:02d}s' if minutes else f'{seconds}s'
+									self._custom_fields[f'AS_{prefix}{norad_id}_PASS{index}_DURATION_MS'] = {
+										'value': duration_str,
+										'group': 'Solar System',
+										'format': '',
+										'type': 'string',
+										'description': f'ISS Pass {index} Duration in minutes and seconds'
+									}
+         
 									self._custom_fields[f'AS_{prefix}{norad_id}_PASS{index}_MAX_ELE'] = {
 										'value': culm['max_alt_deg'],
 										'group': 'Solar System',
