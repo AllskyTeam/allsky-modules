@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "module": "allsky_adsb",
-  "generated_utc": "2026-10-15T20:04:20Z",
+  "generated_utc": "2026-10-15T16:12:52Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
@@ -10,8 +10,8 @@
       "mode": "644"
     },
     "allsky_adsb.py": {
-      "sha256": "05c8b79a4c257316f57f6c3efa711a2b619ebc914e97f65d5d2f7276afd00c5b",
-      "size": 38099,
+      "sha256": "ef54338aa518e7e672574331ae40e9fd333c88f0a84aabac38216988ba9edf03",
+      "size": 37904,
       "mode": "755"
     },
     "allsky_adsb/adsb_data/.readme": {
