@@ -24,7 +24,7 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 		"description": "Provide aircraft data for display on images",
 		"docs": "docs/allsky_modules/extra/adsb.html",   
 		"module": "allsky_adsb",    
-		"version": "v2.0.2",
+		"version": "v2.0.3",
 		"group": "Data Capture",
 		"events": [
 			"periodic",
@@ -451,7 +451,14 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 					"authorurl": "https://github.com/benhartwich/",
 					"changes": "A data source that can't be reached is a warning; only 3 failures in a row become a WebUI error. A wrong local URL is still reported right away. An unreachable local receiver no longer ends in \"adsb failed on line ...\""
 				}
-			]      
+			],
+			"v2.0.3" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": "Fix issue where not baro_alt is returned crashing the module"
+				}
+			]    
 		}
 	}
 
