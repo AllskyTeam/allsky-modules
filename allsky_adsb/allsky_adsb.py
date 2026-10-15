@@ -484,9 +484,16 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 									if 'speed' in aircraft:
 										aircraft['ias'] = aircraft['speed']
 
-					if 'alt_baro' not in aircraft:
-							if 'altitude' in aircraft:
-									aircraft['alt_baro'] = aircraft['altitude']
+					if aircraft.get('alt_baro') is None:
+						aircraft['alt_baro'] = aircraft.get('altitude')
+
+					code = (aircraft.get('flight') or aircraft.get('hex') or 'Unknown').rstrip()
+					if aircraft['alt_baro'] is None:
+						self.__add_warning('altitude', code)
+						continue
+					if aircraft['alt_baro'] == 'ground':
+						self.__add_warning('ground', code)
+						continue
 
 					if 'ias' in aircraft:
 						if 'lat' in aircraft:
@@ -551,12 +558,11 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 									if 'speed' in aircraft:
 										aircraft['ias'] = aircraft['speed']
 
-					if 'alt_baro' not in aircraft:
-							if 'altitude' in aircraft:
-									aircraft['alt_baro'] = aircraft['altitude']
+					if aircraft.get('alt_baro') is None:
+						aircraft['alt_baro'] = aircraft.get('altitude')
 								
 					if 'lat' in aircraft:
-						if 'alt_baro' in aircraft:
+						if aircraft['alt_baro'] is not None:
 							if aircraft['alt_baro'] != 'ground':
 
 								aircraft_pos = (float(aircraft['lat']), float(aircraft['lon']), int(self._feet_to_meters(aircraft['alt_baro'])))
@@ -712,13 +718,13 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 									if 'speed' in aircraft:
 										aircraft['ias'] = aircraft['speed']
 
-					if 'alt_baro' not in aircraft:
-							if 'altitude' in aircraft:
-									aircraft['alt_baro'] = aircraft['altitude']
+					if aircraft.get('alt_baro') is None:
+						aircraft['alt_baro'] = aircraft.get('altitude')
 							
-					flight = aircraft['flight'] if 'flight' in aircraft else 'Unknown'                    
+					flight = aircraft['flight'] if 'flight' in aircraft else 'Unknown'
+					code = (aircraft.get('flight') or aircraft.get('hex') or 'Unknown').rstrip()
 					if 'lat' in aircraft:
-						if 'alt_baro' in aircraft:
+						if aircraft['alt_baro'] is not None:
 							if aircraft['alt_baro'] != 'ground':
 
 								aircraft_pos = (float(aircraft['lat']), float(aircraft['lon']), int(self._feet_to_meters(aircraft['alt_baro'])))
@@ -740,11 +746,11 @@ class ALLSKYADSB(ALLSKYMODULEBASE):
 									'elevation': aircraft_elevation   
 								}
 							else:
-								self.__add_warning('ground', aircraft['flight'].rstrip())
+								self.__add_warning('ground', code)
 						else:
-							self.__add_warning('altitude', aircraft['flight'].rstrip())
+							self.__add_warning('altitude', code)
 					else:
-						self.__add_warning('location', aircraft['flight'].rstrip())
+						self.__add_warning('location', code)
 			else:
 				if response.status_code == 429:
 					result = 'ERROR: You are making too many requests to adsb.fi. increase the time between runs'
