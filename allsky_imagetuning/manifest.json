@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "module": "allsky_imagetuning",
+  "generated_utc": "2026-10-16T20:52:28Z",
+  "hash_algorithm": "sha256",
+  "files": {
+    "README.md": {
+      "sha256": "5990adedb22f190013fb9b8db25af29b78c17e0481c86dfd1422e2f33c70476c",
+      "size": 4942,
+      "mode": "644"
+    },
+    "allsky_imagetuning.py": {
+      "sha256": "2313df870d759f2a79882ac5038898444b733d3a0f514f8994881880fafecec3",
+      "size": 13299,
+      "mode": "644"
+    }
+  },
+  "file_count": 2
+}
