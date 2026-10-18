@@ -33,7 +33,7 @@ timelapse_debug_test = False
 class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 
 	meta_data = {
-		"name": "Allsky Keolapse/Timelapse Module",
+		"name": "Allsky Keolapse/Timelapse",
 		"description": "Creates Timelapse video with additional keolapse overlays.  Also caters for 'generate for day' functions.",
 		"module": "allsky_keolapse", 
 		"version": "v1.2.2",   
@@ -920,6 +920,13 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 					"author": "Eric Claeys",
 					"authorurl": "https://github.com/AllskyTeam",
 					"changes": "Handle cases where no remote directory is specified.  Add --debug to command-line.  Other minor bug fixes."
+				}
+			],
+			"v1.2.3" : [
+				{
+					"author": "Eric Claeys",
+					"authorurl": "https://github.com/AllskyTeam",
+					"changes": "Removed 'Module' from the name of the module."
 				}
 			]
 		}
