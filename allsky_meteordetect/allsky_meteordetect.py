@@ -31,7 +31,7 @@ import numpy as np
 metaData = {
     "name": "Meteor Detection (temporal)",
     "description": "Detects meteors via frame differencing and separates them from satellites/aircraft",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "events": [
         "night"
     ],
@@ -61,7 +61,7 @@ metaData = {
         }
     },
     "arguments": {
-        "mask": "meteor_mask.png",
+        "mask": "",
         "min_length": "50",
         "diff_thr": "22",
         "min_elong": "5.0",
@@ -388,6 +388,16 @@ metaData = {
                     "Values in the Allsky database with charts, and in the Overlay Editor (AS_METEOR*)"
                 ]
             }
+        ],
+        "v1.0.1": [
+            {
+                "author": "Alex Greenland",
+                "authorurl": "https://github.com/allskyteam",
+                "changes": [
+                    "Remove default for mask",
+                    "Use the allsky shared mask loader"
+                ]
+            }
         ]
     }
 }
@@ -671,8 +681,7 @@ def _loadMask(maskName, feather, shape):
         return _maskCache["soft"], _maskCache["hard"]
     hard = None
     if maskName:
-        p = os.path.join(s.ALLSKY_OVERLAY, "images", maskName)
-        hard = cv2.imread(p, cv2.IMREAD_GRAYSCALE)
+        hard = s.load_mask(maskName)
     if hard is None:
         hard = np.full(shape, 255, np.uint8)
     if hard.shape != shape:
