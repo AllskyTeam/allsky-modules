@@ -1,4 +1,4 @@
-# AllSky Keolapse Timelapse Module
+# Allsky Keolapse Timelapse Module
 
 |||
 | ------------  | ------------   |
