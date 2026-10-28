@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "module": "allsky_alpacatelescope",
+  "generated_utc": "2026-10-28T21:53:43Z",
+  "hash_algorithm": "sha256",
+  "files": {
+    "README.md": {
+      "sha256": "5f80ce8fc4556c443eaba63efd808d08c1575e807f0c2047f74a8b83ee61f57c",
+      "size": 781,
+      "mode": "644"
+    },
+    "allsky_alpacatelescope.py": {
+      "sha256": "5133a4178e1b9106803e8f3084b3aed51f803e6cb96271684da3510a63d52048",
+      "size": 8979,
+      "mode": "644"
+    },
+    "requirements.txt": {
+      "sha256": "e09f656c130b9c08b2c5ab7187c891295e449ed77febea2a6ceee9cc98ccb0fc",
+      "size": 6,
+      "mode": "644"
+    }
+  },
+  "file_count": 3
+}
