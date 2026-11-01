@@ -39,14 +39,12 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		"description": "Obtain data for Solar System objects",
 		"docs": "docs/allsky_modules/extra/solar_system.html",  
 		"module": "allsky_solarsystem",
-		"version": "v1.1.4",
+		"version": "v1.2.2",
 		"testable": "true",
 		"centersettings": "false",
 		"group": "Data Capture",   
 		"events": [
-			"periodic",
-			"day",
-			"night"
+			"periodic"
 		],
 		"extradatafilename": "allsky_solarsystem.json",
 		"experimental": "false",	
@@ -200,6 +198,12 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 					"format": "{timeformat}",     
 					"type": "date",
 					"description": "The next full moon timestamp"
+				},
+				"AS_SOLARSYSTEM_LASTRUN": {
+					"group": "Solar System",
+					"format": "{timeformat}",
+					"type": "date",
+					"description": "When the Solar System values were last calculated"
 				},
 				"AS_SUN_DAWN": {
 					"group": "Solar System",
@@ -802,7 +806,28 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 						"authorurl": "https://github.com/benhartwich/",
 						"changes": "Overlays from Allsky v2024 that use the old satellite and planet variable names (e.g. AS_25544VISIBLE, AS_MARSAZ) are updated to the new names"
 					}
-				]          
+				],
+				"v1.2.0" : [
+					{
+						"author": "Benjamin Hartwich (Agent assisted)",
+						"authorurl": "https://github.com/benhartwich/",
+						"changes": "Runs only in the Periodic flow. Running it for every image as well did the same work several times; set the Periodic flow's interval for how often the values are updated"
+					}
+				],
+				"v1.2.1" : [
+					{
+						"author": "Benjamin Hartwich (Agent assisted)",
+						"authorurl": "https://github.com/benhartwich/",
+						"changes": "New variable ${SOLARSYSTEM_LASTRUN}: when the values were last calculated"
+					}
+				],
+				"v1.2.1" : [
+					{
+						"author": "Alex Greenland",
+						"authorurl": "https://github.com/benhartwich/",
+						"changes": "Add new duration variables for ISS passes"
+					}
+				]    
 			}
 		}
     
@@ -1550,7 +1575,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 			
 					if norad_id == 25544:
 						self._custom_fields[f'AS_{prefix}{norad_id}_VISIBLE_PASSES'] = {
-							'value': 'None Found',
+							'value': 0,
 							'group': 'Solar System',
 							'type': 'string',
 							'description': f'Text flag for no passes available'
@@ -1562,7 +1587,7 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 									1 for p in data['passes'] if p.get('pass_visible_any', False)
 							)
 
-							self._custom_fields[f'AS_{prefix}{norad_id}_VISIBLE_PASSES']['value'] = 'None Found' if visible_count == 0 else ''
+							self._custom_fields[f'AS_{prefix}{norad_id}_VISIBLE_PASSES']['value'] = 0 if visible_count == 0 else ''
 
 							for index, sat_pass in enumerate(data['passes'], start=1):
 									rise = sat_pass['rise']
@@ -1601,6 +1626,17 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 										'description': f'ISS Pass {index} Duration in seconds'
 									}
 
+									duration_s = int(round(sat_pass['duration_s']))
+									minutes, seconds = divmod(duration_s, 60)
+									duration_str = f'{minutes}m {seconds:02d}s' if minutes else f'{seconds}s'
+									self._custom_fields[f'AS_{prefix}{norad_id}_PASS{index}_DURATION_MS'] = {
+										'value': duration_str,
+										'group': 'Solar System',
+										'format': '',
+										'type': 'string',
+										'description': f'ISS Pass {index} Duration in minutes and seconds'
+									}
+         
 									self._custom_fields[f'AS_{prefix}{norad_id}_PASS{index}_MAX_ELE'] = {
 										'value': culm['max_alt_deg'],
 										'group': 'Solar System',
@@ -1679,6 +1715,10 @@ class ALLSKYSOLARSYSTEM(ALLSKYMODULEBASE):
 		self._calculate_planets()
 		
 		self._calcSatellites()
+
+		# When these values were calculated: the module runs in the Periodic flow,
+		# so they can be older than the image.
+		self._extra_data['AS_SOLARSYSTEM_LASTRUN'] = time.time()
 
 		self._saveExtraData()
 

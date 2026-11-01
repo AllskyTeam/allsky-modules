@@ -1,4 +1,4 @@
-# AllSky Keolapse Timelapse Module
+# Allsky Keolapse Timelapse Module
 
 |||
 | ------------  | ------------   |
@@ -31,6 +31,7 @@ There are several settings that allow for customisation of the keolapse includin
 | Save Video As                     | Allsky Timelapse or Separate Video File. |Allsky Timelapse|
 | Upload Video                      | Upload generated video using configured destinations. |Yes|
 | Upload Thumbnail                  | Upload video thumbnail with the video upload. |Yes|
+| Remote Server File Name           | (Separate Video File only) Name of the video on a remote server, like Allsky's *Remote Video File Name*; the thumbnail gets the same name ending in .jpg. Empty keeps keolapse-YYYYMMDD.mp4. |keolapse.mp4|
 | **Video Parameters**|||
 | Source                            | Use Module Settings or existing Allsky Settings Page values. |Module Settings|
 | Output Resolution                 | 720p / 1080p / 4k / Custom / No Resizing. |720p|
@@ -71,7 +72,10 @@ There are several settings that allow for customisation of the keolapse includin
 
 ### Notes:
  - If creating the keolapse as your main timelapse video, disable 'Generate' for timelapse in the main Allsky settings to avoid duplicate processing (eg creating a timelapse, then creating it again).
- - When **Save Video As** is set to **Separate Video File**, the video (`keolapse-YYYYMMDD.mp4`) and its thumbnail are uploaded to `keolapses/` and `keolapses/thumbnails/`, where the Allsky WebUI and Websites look for them. On a remote server these folders must already exist.
+ - When **Save Video As** is set to **Separate Video File**, the video (`keolapse-YYYYMMDD.mp4`) and its thumbnail are uploaded to `keolapses/` and `keolapses/thumbnails/`, where the Allsky WebUI and Websites look for them. On a remote server these folders must already exist. A remote server gets the *Remote Server File Name* (default `keolapse.mp4`), so it always finds the newest keolapse under the same name, as Allsky does for its timelapse, keogram and startrails.
+ - **Command line:** create and/or upload the keolapse for any day, with the settings of the Night to Day flow (the module must be in that flow):
+   `generateForDay.sh --keolapse YYYYMMDD` creates it, `generateForDay.sh --upload --keolapse YYYYMMDD` uploads an existing one. The module can also be run directly, e.g. `allsky_keotimelapse.py 20261005 --upload` (create and upload) or `--upload-only`; it needs Allsky's environment, which `generateForDay.sh` sets up.
+ - The thumbnail is only uploaded when the video was uploaded, so a missing remote folder gives one error, not two.
  - Quick Setup Test uses temporary test data and writes outputs to an `images/test` folder for fast validation.
  - Test modes that generate/upload can overwrite existing destination files for that date.
  - The module can publish these extra-data variables:  `${KEOLAPSE_VIDEO}`, `${KEOLAPSE_DATE}`, `${KEOLAPSE_FRAMES}`, `${KEOLAPSE_DURATION}`.

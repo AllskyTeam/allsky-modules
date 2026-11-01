@@ -34,7 +34,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		"description": "Obtain environment data (temperature/humidity) from external sensors",
 		"docs": "docs/allsky_modules/extra/environment.html",    
 		"module": "allsky_temp",
-		"version": "v1.0.4",
+		"version": "v1.0.5",
 		"events": [
 			"periodic",
 			"day",
@@ -151,7 +151,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					"sample": "",                 
 					"group": "Environment",
 					"description": "Pressure from ${AS_TEMPSENSORNAME${COUNT}}",
-					"type": "number",
+					"type": "pressure",
 					"source": "sensor"     
 				},
 				"AS_RELHUMIDITY${COUNT}": {
@@ -2688,6 +2688,13 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"Added offsets for temp, humidity and pressure",
       			"Added option to power DHTxx from GPIO pin"
 					]
+				}
+			],
+			"v1.0.5" : [
+				{
+					"author": "Benjamin Hartwich (Agent assisted)",
+					"authorurl": "https://github.com/benhartwich/",
+					"changes": "The pressure variables have the type pressure, so the Overlay Editor offers the pressure formats (hPa, inHg, mmHg)"
 				}
 			]                                                               
 		}

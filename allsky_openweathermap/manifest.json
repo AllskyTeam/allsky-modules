@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "module": "allsky_openweathermap",
-  "generated_utc": "2026-09-27T05:30:35Z",
+  "generated_utc": "2026-10-03T15:56:38Z",
   "hash_algorithm": "sha256",
   "files": {
     "README.md": {
@@ -10,8 +10,8 @@
       "mode": "755"
     },
     "allsky_openweathermap.py": {
-      "sha256": "718e28dc99b285c7af4283f75deb5881f4c1f6373e64ebeb914e257dfb43345b",
-      "size": 15128,
+      "sha256": "2884f4625510303b532fe63cf3e934b85dcb5051aed6a358b7a94cc08e3687d6",
+      "size": 15394,
       "mode": "755"
     },
     "requirements.txt": {

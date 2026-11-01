@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "module": "allsky_temp",
-  "generated_utc": "2026-08-31T20:49:29Z",
+  "generated_utc": "2026-10-03T15:56:38Z",
   "hash_algorithm": "sha256",
   "files": {
     "allsky_temp.py": {
-      "sha256": "9a91b22b86703cc9d9c8504ea900b150c6f9ecfbb5794431e599b39055dd74f9",
-      "size": 93824,
+      "sha256": "bacac4609e37e1246e51e11d2c8e924bca4c9c07d5a78bf8b0e3d799a306c05f",
+      "size": 94099,
       "mode": "755"
     },
     "blocks/allskyenv.json": {

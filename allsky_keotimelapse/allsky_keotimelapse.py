@@ -14,13 +14,15 @@ import shutil
 import numpy as np
 
 # GLOBALS
-ALLSKY_HOME = allsky_shared.getEnvironmentVariable("ALLSKY_HOME")
+ALLSKY_SCRIPTS = allsky_shared.getEnvironmentVariable("ALLSKY_SCRIPTS")
+ALLSKY_WEBSITE = allsky_shared.getEnvironmentVariable("ALLSKY_WEBSITE")
 ALLSKY_IMAGES = allsky_shared.getEnvironmentVariable("ALLSKY_IMAGES", fatal=True)
 base_dir = allsky_shared.get_setting("imagepath") or ALLSKY_IMAGES
 ALLSKY_CONFIG = allsky_shared.getEnvironmentVariable("ALLSKY_CONFIG", fatal=True)
 ALLSKY_TMP = allsky_shared.ALLSKY_TMP
 EXT = allsky_shared.get_environment_variable("ALLSKY_EXTENSION", fatal=True)
 
+RESULT_OK = "Daily Timelapse process complete"
 default_date = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y%m%d")	# today minus one
 process_date = ""
 process_dir = ""
@@ -31,10 +33,10 @@ timelapse_debug_test = False
 class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 
 	meta_data = {
-		"name": "Allsky Keolapse/Timelapse Module",
+		"name": "Allsky Keolapse/Timelapse",
 		"description": "Creates Timelapse video with additional keolapse overlays.  Also caters for 'generate for day' functions.",
 		"module": "allsky_keolapse", 
-		"version": "v1.1.0",   
+		"version": "v1.2.2",   
 		"centersettings": "false",
 		"testable": "true",
 		"group": "Allsky Core",
@@ -90,6 +92,7 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 
 			"timelapse_upload" : "true",	
 			"timelapse_up_thumb" : "true",
+			"timelapse_server_name" : "keolapse.mp4",
 
 			"timelapse_fps": "30",
 			"timelapse_bitrate": "2000",
@@ -201,6 +204,25 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 				},
 				"type": {
 					"fieldtype": "checkbox"
+				}
+			},
+
+			"timelapse_server_name" : {
+				"required": "false",
+				"description": "Remote Server File Name",
+				"help": "Name of the keolapse video on a remote server, like Allsky's <i>Remote Video File Name</i>, so the server always finds the newest one under the same name. The thumbnail gets the same name ending in .jpg. Leave empty to keep the dated name (keolapse-YYYYMMDD.mp4). Only used for a remote server, not for Allsky Websites.",
+				"tab": "Video Settings",
+				"layout" : {
+					"row": "upload_settings",
+					"title": "Upload",
+					"width": 5
+				},
+				"filters": {
+					"filter": "keolapse_save_as",
+					"filtertype": "show",
+					"values": [
+						"Separate Video File"
+					]
 				}
 			},
 
@@ -432,6 +454,19 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 				}
 			},
 
+			"keolapse_keogram_notice" : {
+				"tab": "Keolapse Animation",
+				"message": "The video is made from the day's images, not from Allsky's timelapse. The keogram ring uses the keogram Allsky creates at the end of the night, so keep <b>Keograms &rarr; Generate</b> on in the Allsky Settings. Allsky's own timelapse isn't needed.",
+				"type": {
+					"fieldtype": "text",
+					"style": {
+						"width": "full",
+						"alert": {
+							"class": "info"
+						}
+					}
+				}
+			},
 			"keolapse_overlay" : {
 				"required": "false",
 				"description": "Overlay on Timelapse",
@@ -865,6 +900,34 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 						"Incorporated ideas developed by Andy Felong, https://github.com/AndyOfLinux such as options to 'save-as' vs 'in-lieu of' standard timelapse, generating overlay variables"
 					]
 				}
+			],
+			"v1.2.0" : [
+				{
+					"author": "Benjamin Hartwich (Agent assisted)",
+					"authorurl": "https://github.com/benhartwich/",
+					"changes": "Remote Server File Name (default keolapse.mp4), like Allsky's Remote Video File Name; in Allsky Timelapse mode the remote server always uses Allsky's Remote Video File Name. The settings explain that the keogram ring needs Allsky's keogram, and a WebUI warning says so when Keograms Generate is off"
+				}
+			],
+			"v1.2.1" : [
+				{
+					"author": "Benjamin Hartwich (Agent assisted)",
+					"authorurl": "https://github.com/benhartwich/",
+					"changes": "Command line: create and/or upload the keolapse for a given day with the Night to Day flow's settings (used by generateForDay.sh --keolapse). The thumbnail is only uploaded when the video upload worked, so one problem gives one error. Removed an unused thumbnail function"
+				}
+			],
+			"v1.2.2" : [
+				{
+					"author": "Eric Claeys",
+					"authorurl": "https://github.com/AllskyTeam",
+					"changes": "Handle cases where no remote directory is specified.  Add --debug to command-line.  Other minor bug fixes."
+				}
+			],
+			"v1.2.3" : [
+				{
+					"author": "Eric Claeys",
+					"authorurl": "https://github.com/AllskyTeam",
+					"changes": "Removed 'Module' from the name of the module."
+				}
 			]
 		}
 	}
@@ -969,7 +1032,8 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 			cmd = ["bash", script_str, *args]		# Fallback to bash if not executable
 
 		# Avoid sudo permission issues in debug runs by executing as ALLSKY_OWNER when available.
-		if self.debugmode:
+		# Only root can switch users; from the command line we already are the owner.
+		if self.debugmode and os.geteuid() == 0:
 			username = allsky_shared.get_environment_variable("ALLSKY_OWNER")
 			if username:
 				cmd = ["runuser", "-u", username, "--", script_str, *args]
@@ -986,7 +1050,7 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 			if script_result.returncode == 0:
 				allsky_shared.log(3, f"INFO: Successful: {script_str}")
 			else:
-				allsky_shared.log(0, f"ERROR: {script_str} - rc={script_result.returncode}\nSTDERR:\n{script_result.stderr}")
+				allsky_shared.log(0, f"ERROR: {script_str} - rc={script_result.returncode}:\n{script_result.stderr}")
 			return script_result.returncode, script_result.stdout, script_result.stderr
 		
 		except Exception as e:
@@ -1032,14 +1096,14 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 		uselocalweb = allsky_shared.get_setting("uselocalwebsite")
 		useremoteweb = allsky_shared.get_setting("useremotewebsite")
 		useremoteserver = allsky_shared.get_setting("useremoteserver")
-		result =""
 		
 		up_thumb = self.get_param("timelapse_up_thumb", False, bool)
 		#up_thumb = False
 
+		failed = []
 		def call_upload_script(target, source_fullpath, remote_dir, target_file, what="Keolapse"):
 			source_fullpath=source_fullpath
-			upload_script_path = os.path.join(ALLSKY_HOME, "scripts", "upload.sh")
+			upload_script_path = os.path.join(ALLSKY_SCRIPTS, "upload.sh")
 			target_clean = target.replace("--", "")
 			target_clean = target_clean.replace("-", " ")
 			#run upload script
@@ -1047,18 +1111,28 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 			if upload_rc == 0:
 				allsky_shared.log(1, f"INFO: {what} uploaded successfully to {target_clean}: {target_file}")
 			else:
-				allsky_shared.log(0, f"ERROR: Failed to upload {what} to {target_clean} (rc={upload_rc}). See stderr:\n{err}")
+				allsky_shared.log(0, f"ERROR: Failed to upload {what} to {target_clean} (rc={upload_rc}):\n{err}")
+				failed.append(f"{what} to {target_clean}")
+			return upload_rc == 0
 
-		remoteserver_destination_name = filename
+		# Like Allsky's own timelapse, keogram and startrails, a remote server can get a fixed
+		# file name (e.g., "keolapse.mp4"), so it doesn't have to work out the dated name.
 		if self.get_param("keolapse_save_as","allsky timelapse", str).lower() != "allsky timelapse":
 			# Keolapse was saved as a separate file.  The Allsky WebUI and Websites show
 			# these from "keolapses/", so always use that.
 			out_subdir = "keolapses"
+			remoteserver_destination_name = self.get_param("timelapse_server_name", "", str).strip() or filename
 		else:
-			# Keolapse = Allsky Timelapse
+			# Keolapse = Allsky Timelapse: the same name as Allsky's timelapse.
 			out_subdir = "videos"
-			if not allsky_shared.get_setting("remoteserverimageuploadoriginalname"):
-				remoteserver_destination_name = allsky_shared.get_setting("remoteservervideodestinationname") or filename
+			remoteserver_destination_name = allsky_shared.get_setting("remoteservervideodestinationname") or filename
+		if os.path.basename(remoteserver_destination_name) != remoteserver_destination_name:
+			allsky_shared.log(0, f"ERROR: Remote server file name '{remoteserver_destination_name}' must not contain a folder; using '{filename}'.")
+			remoteserver_destination_name = filename
+		# The thumbnail has the video's name, ending in .jpg, as Allsky does.
+		remoteserver_thumb_name = thumbname
+		if thumbname and remoteserver_destination_name != filename:
+			remoteserver_thumb_name = os.path.splitext(remoteserver_destination_name)[0] + os.path.splitext(thumbname)[1]
 
 		if up_thumb and thumbname and source_thumbpath:
 			out_thumb_dir = f"{out_subdir}/thumbnails"
@@ -1068,14 +1142,15 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 		# local website
 		if uselocalweb:
 			target = "--local-web"
-			remote_dir = os.path.join(ALLSKY_HOME, "html","allsky", out_subdir)
+			remote_dir = os.path.join(ALLSKY_WEBSITE, out_subdir)
 			allsky_shared.check_and_create_directory(remote_dir)
 			if self.debugmode:
 				self.__set_permissions_to_allskyowner(remote_dir, "dir")
 
 			upfile = call_upload_script(target, source_fullpath, remote_dir, target_file)
-			if up_thumb:
-				remote_thumb_dir = os.path.join(ALLSKY_HOME, "html", "allsky", out_thumb_dir)
+			# Only upload the thumbnail if the video got there, so one problem gives one error.
+			if up_thumb and upfile:
+				remote_thumb_dir = os.path.join(ALLSKY_WEBSITE, out_thumb_dir)
 				allsky_shared.check_and_create_directory(remote_thumb_dir)
 				if self.debugmode:
 					self.__set_permissions_to_allskyowner(remote_thumb_dir, "dir")
@@ -1083,30 +1158,39 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 
 		if useremoteweb:
 			target = "--remote-web"
-			remote_dir = allsky_shared.get_setting("remotewebsiteimagedir")+"/"+out_subdir
+			# No directory (lftp already starts in the right one) means no leading "/".
+			i = allsky_shared.get_setting("remotewebsiteimagedir") or ""
+			if i != "" and not i.endswith("/"):
+				i = i + "/"
+			remote_dir = i + out_subdir
 			
 			upfile=call_upload_script(target, source_fullpath, remote_dir, target_file)
 
-			if up_thumb:
-				remote_thumb_dir = allsky_shared.get_setting("remotewebsiteimagedir")+"/"+out_thumb_dir
+			# Only upload the thumbnail if the video got there, so one problem gives one error.
+			if up_thumb and upfile:
+				remote_thumb_dir = i + out_thumb_dir
 				upthumb = call_upload_script(target, source_thumbpath, remote_thumb_dir, thumbname, "Keolapse thumbnail")
 
 		if useremoteserver:
 			target = "--remote-server"
-			remote_dir = allsky_shared.get_setting("remoteserverimagedir")+"/"+out_subdir
+			i = allsky_shared.get_setting("remoteserverimagedir") or ""
+			if i != "" and not i.endswith("/"):
+				i = i + "/"
+			remote_dir = i + out_subdir
 			target_file = remoteserver_destination_name
 
 			upfile=call_upload_script(target, source_fullpath, remote_dir, target_file)
 			
-			if up_thumb:
-				remote_thumb_dir = allsky_shared.get_setting("remoteserverimagedir")+"/"+out_thumb_dir
-				upthumb = call_upload_script(target, source_thumbpath, remote_thumb_dir, thumbname, "Keolapse thumbnail")
+			# Only upload the thumbnail if the video got there, so one problem gives one error.
+			if up_thumb and upfile:
+				remote_thumb_dir = i + out_thumb_dir
+				upthumb = call_upload_script(target, source_thumbpath, remote_thumb_dir, remoteserver_thumb_name, "Keolapse thumbnail")
 	
 		# delete temp file if it was created
 		if os.path.exists(tmp_image_path):
 			os.remove(tmp_image_path)
 
-		return result
+		return failed
 
 	def __make_imageprocessinglist(self,type, process_date, process_dir,output_file):
 		'''
@@ -1234,39 +1318,6 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 			allsky_shared.log(3, f"INFO: No matching files in {dir_path}")
 			return False	
 
-	def __create_thumbnail(self,original_image):
-
-		thumb_w = allsky_shared.get_setting("thumbnailsizex")
-		thumb_h = allsky_shared.get_setting("thumbnailsizey")
-
-		img = cv2.imread(original_image)
-
-		# Check if the image was loaded successfully
-		if img is not None:
-			thumbnail_size = (thumb_w, thumb_h)
-			thumbnail = cv2.resize(img, thumbnail_size, interpolation=cv2.INTER_AREA)
-
-			if thumbnail is not None:
-				return thumbnail
-			else:
-				return 
-		else:
-			#error reading file. not sure what to do?
-			return
-
-
-			# Step 3: Save the thumbnail
-			output_thumbnail_path = 'thumbnail_image.jpg'  # Path to save the thumbnail
-			success = cv2.imwrite(output_thumbnail_path, thumbnail)
-
-			# Check if the thumbnail was saved successfully
-			if success:
-				print(f"Thumbnail saved successfully at {output_thumbnail_path}")
-				return True
-			else:
-				print("Error saving the thumbnail.")
-				return False
-					
 	def get_timelapse_settings(self):
 		"""Load Timelapse Settings from Allsky settings page."""
 		try:
@@ -1853,6 +1904,12 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 				keogram_path = self.get_keogram_path()
 				if not keogram_path:
 					self.debug_log("WARNING: No keogram found", level=1)
+					if not allsky_shared.get_setting("keogramgenerate"):
+						# Most likely cause, and easy to miss: tell the user in the WebUI.
+						allsky_shared.add_message(
+							"Keolapse: no keolapse was created because there's no keogram. "
+							"Turn on <b>Keograms &rarr; Generate</b> in the Allsky Settings, "
+							"or turn off <b>Overlay on Timelapse</b> in the Keolapse module.", "warning")
 					return False
 
 				keogram_data = generator.prepare_keogram(keogram_path)
@@ -2189,7 +2246,7 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 					
 					self.__save_extra_data(output_path, total_frames, fps)
 					
-					result = "Daily Timelapse process complete"
+					result = RESULT_OK
 
 					if self.debugmode:
 						# set permissions to ALLSKY_OWNER for output files and directories when in debug mode
@@ -2239,10 +2296,14 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 					tl_thumb_filename = None
 					tl_thumb_fullpath = None
 
-				self.__do_upload(timelapse_filename, timelapse_fullpath, tl_thumb_filename, tl_thumb_fullpath)
+				failed = self.__do_upload(timelapse_filename, timelapse_fullpath, tl_thumb_filename, tl_thumb_fullpath)
+				if failed:
+					return "Upload failed: " + ", ".join(failed)
+				if not generate:
+					result = RESULT_OK
 
 			if not result:
-				result = "Daily Timelapse process complete"
+				result = RESULT_OK
 
 			return result
 		except Exception as ex:
@@ -2293,17 +2354,78 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 	
 		if do_timelapse:
 			# build parameters, run timelapse script, upload if required
-			timelapse_result = self.__do_timelapse()
-		
-		#result = "made it to end"
-				
-		return 
+			return self.__do_timelapse()
+
+		return None
 
 def keotimelapse(params, event):
 	allsky_keotimelapse = ALLSKYKEOTIMELAPSE(params, event)
 	result = allsky_keotimelapse.run()
 
 	return result 
+
+def keotimelapse_cli(argv=None):
+	"""Create and/or upload the keolapse of one day from the command line.
+
+	Uses the module's settings from the Night-to-Day flow, so the result is the same as the
+	nightly run. Called by generateForDay.sh, which sets up the environment and PYTHONPATH.
+	"""
+	import argparse
+	import json
+
+	parser = argparse.ArgumentParser(
+		prog="allsky_keotimelapse.py",
+		description="Create and/or upload the keolapse for one day.")
+	parser.add_argument("day", help="day to process: YYYYMMDD, or the full path of an images folder")
+	parser.add_argument("--debug", action="store_true", help="output debugging messages")
+	action = parser.add_mutually_exclusive_group()
+	action.add_argument("--upload", action="store_true", help="create the keolapse, then upload it")
+	action.add_argument("--upload-only", action="store_true", help="upload an existing keolapse")
+	args = parser.parse_args(argv)
+
+	if args.day.startswith("/"):
+		if not os.path.isdir(args.day):
+			print(f"ERROR: '{args.day}' is not a folder.")
+			return 2
+	else:
+		try:
+			datetime.datetime.strptime(args.day, "%Y%m%d")
+		except ValueError:
+			print(f"ERROR: '{args.day}' is not a date in YYYYMMDD format.")
+			return 2
+
+	flow_file = os.path.join(allsky_shared.getEnvironmentVariable("ALLSKY_MODULES", fatal=True), "postprocessing_nightday.json")
+	saved = None
+	try:
+		with open(flow_file, "r", encoding="utf-8") as f:
+			flow = json.load(f)
+		for step in flow.values():
+			if step.get("module") == "allsky_keotimelapse.py":
+				saved = step.get("metadata", {}).get("arguments", {})
+				break
+	except (OSError, ValueError, AttributeError) as ex:
+		print(f"ERROR: Cannot read {flow_file}: {ex}")
+		return 1
+	if saved is None:
+		print("ERROR: The keolapse module is not in the Night to Day flow. Add and configure it in the Module Manager first.")
+		return 1
+
+	if args.upload_only:
+		what = "Upload Only"
+	elif args.upload:
+		what = "Generate and Upload"
+	else:
+		what = "Generate"
+	params = dict(saved)
+	params.update({"ALLSKYTESTMODE": True, "timelapse_test": what, "process_date": args.day})
+	if args.debug:
+		# The module's own "Debug Logging" setting, so its debug messages are output.
+		params["debug_logging_timelapse"] = "true"
+
+	result = keotimelapse(params, "nightday")
+	print(result or "Nothing was done.")
+	return 0 if result == RESULT_OK else 1
+
 
 def keotimelapse_cleanup():
 	moduleData = {
@@ -2316,3 +2438,8 @@ def keotimelapse_cleanup():
 		}
 	}
 	allsky_shared.cleanupModule(moduleData)
+
+
+if __name__ == "__main__":
+	import sys
+	sys.exit(keotimelapse_cli())
