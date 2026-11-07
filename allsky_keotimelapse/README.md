@@ -40,7 +40,7 @@ There are several settings that allow for customisation of the keolapse includin
 | Bitrate (kbps)                    | Output video bitrate. |2000|
 | Max Length (seconds)              | Module can increase FPS to keep duration under this limit. |60|
 | *Advanced Video Settings*         | *Rarely changed*       ||
-| Extra Parameters                  | Optional ffmpeg extra parameters. | |
+| Extra Parameters                  | Optional ffmpeg extra parameters. With **Video Parameters** set to **Allsky Settings Page**, the Extra Parameters of Allsky's Timelapse settings are used instead. | |
 | Encoder Preset                    | compression/speed preset. Slower settings take more time to encode but yield smaller output files. |medium|
 | VCODEC                            | Video codec setting. |libx264|
 | Pixel Format                      | Output pixel format. |yuv420p|
