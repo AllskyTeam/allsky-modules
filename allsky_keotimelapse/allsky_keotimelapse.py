@@ -36,7 +36,7 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 		"name": "Allsky Keolapse/Timelapse",
 		"description": "Creates Timelapse video with additional keolapse overlays.  Also caters for 'generate for day' functions.",
 		"module": "allsky_keolapse", 
-		"version": "v1.2.2",   
+		"version": "v1.2.4",   
 		"centersettings": "false",
 		"testable": "true",
 		"group": "Allsky Core",
@@ -928,6 +928,13 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 					"authorurl": "https://github.com/AllskyTeam",
 					"changes": "Removed 'Module' from the name of the module."
 				}
+			],
+			"v1.2.4" : [
+				{
+					"author": "Benjamin Hartwich (Agent assisted)",
+					"authorurl": "https://github.com/benhartwich",
+					"changes": "With Video Parameters set to 'Allsky Settings Page', the Extra Parameters from Allsky's Timelapse settings are used too (#430)."
+				}
 			]
 		}
 	}
@@ -1328,7 +1335,8 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 				"fps": allsky_shared.get_setting("timelapsefps"),
 				"vcodec": allsky_shared.get_setting("timelapsevcodec"),
 				"pixfmt": allsky_shared.get_setting("timelapsepixfmt"),
-				"fflog": allsky_shared.get_setting("timelapsefflog")
+				"fflog": allsky_shared.get_setting("timelapsefflog"),
+				"extraparams": str(allsky_shared.get_setting("timelapseextraparameters") or "").strip()
 			}
 			self.debug_log(f"INFO: Loaded Allsky's Timelapse Settings: {timelapse_settings}", level=4)
 			return timelapse_settings
@@ -2031,20 +2039,31 @@ class ALLSKYKEOTIMELAPSE(ALLSKYMODULEBASE):
 					"-movflags", "+faststart"
 				]
 
+				self.debug_log(f"INFO: Module settings ffmpeg scale set to {scale_w}x{scale_h}; preset={ffmpeg_preset}", level=4)
+
+			# Extra Parameters: from this module's settings, or from Allsky's Timelapse settings
+			# (like scripts/timelapse.sh does) when "Allsky Settings Page" is chosen.
+			use_allsky_extra = bool(timelapse_use_AS_settings and timelapse_settings)
+			if use_allsky_extra:
+				extra_params = timelapse_settings.get("extraparams", "")
+			else:
 				extra_params = str(params.get("timelapse_extraparams", "")).strip()
-				if extra_params:
-					blocked_flags = {
-						"-f", "-pix_fmt", "-s", "-r", "-i", "-c:v", "-vf", "-preset", "-crf", "-b:v",
-						"-maxrate", "-bufsize", "-an", "-movflags", "-y"
-					}
-					try:
-						extra_args = self.__check_extra_params(extra_params, blocked_flags, "Timelapse")
-						ffmpeg_cmd.extend(extra_args)
-					except ValueError as ex:
+			if extra_params:
+				blocked_flags = {
+					"-f", "-pix_fmt", "-s", "-r", "-i", "-c:v", "-vf", "-preset", "-crf", "-b:v",
+					"-maxrate", "-bufsize", "-an", "-movflags", "-y"
+				}
+				try:
+					extra_args = self.__check_extra_params(extra_params, blocked_flags, "Timelapse")
+					ffmpeg_cmd.extend(extra_args)
+					self.debug_log(f"INFO: Using Timelapse extra parameters: {' '.join(extra_args)}", level=4)
+				except ValueError as ex:
+					if not use_allsky_extra:
 						self.debug_log(f"ERROR: {str(ex)}", level=0)
 						return False
-
-				self.debug_log(f"INFO: Module settings ffmpeg scale set to {scale_w}x{scale_h}; preset={ffmpeg_preset}", level=4)
+					# Allsky's own timelapse may use options this module sets itself:
+					# make the video anyway, without them.
+					self.debug_log(f"WARNING: {str(ex)} Ignoring Allsky's Timelapse Extra Parameters for this video.", level=1)
 
 			ffmpeg_cmd.append(output_tmp_path)
 			self.debug_log("INFO: Starting ffmpeg encoding...", level=4)
