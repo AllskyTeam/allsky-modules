@@ -12,6 +12,7 @@ import json
 import requests
 import board
 import glob
+import math
 from pathlib import Path
 
 from meteocalc import dew_point, Temp
@@ -34,7 +35,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		"description": "Obtain environment data (temperature/humidity) from external sensors",
 		"docs": "docs/allsky_modules/extra/environment.html",    
 		"module": "allsky_temp",
-		"version": "v1.0.5",
+		"version": "v1.0.6",
 		"events": [
 			"periodic",
 			"day",
@@ -160,7 +161,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					"sample": "",                
 					"group": "Environment",
 					"description": "Relative Humidity from ${AS_TEMPSENSORNAME${COUNT}}",
-					"type": "temperature"
+				"type": "number",
+				"source": "sensor"
 				},
 				"AS_ALTITUDE${COUNT}": {
 					"name": "${ALTITUDE${COUNT}}",
@@ -208,7 +210,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		},
 		"arguments":{
 			"frequency": "0",
-			"extradatafilename": "allskytemp.json",
+			"extradatafilename": "allsky_temp.json",
 			"units": "metric",
 
 			"type": "None",
@@ -218,12 +220,13 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"ds18b20address": "",
 			"dhtxxretrycount": "2",
 			"dhtxxdelay" : "500",
+			"dhtxxpower": "",
 			"sht31heater": "False",
 			"sht41mode": "0xE0",
 			"owapikey": "",        
 			"owfilename": "",        
 			"owperiod": "",        
-			"owunits": "",        
+			"owunits": "metric",
 			"owexpire": "",
 			"ecowittapplication": "",
 			"ecowittapikey": "",
@@ -235,7 +238,16 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"hasstemp": "",
 			"hasshumidity": "",
 			"hasspressure": "",
-			"deadband": "0",   
+			"hasspressureunit": "hPa",
+			"deadband": "0",
+			"temp": "",
+			"gpio": "",
+			"gpioon": "On",
+			"gpiooff": "Off",
+			"invertgpio": "False",
+			"temp_offset": "0",
+			"pressure_offset": "0",
+			"humidity_offset": "0",
 
 			"type1": "None",
 			"name1": "",
@@ -246,7 +258,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"dhtxxdelay1" : "500",
 			"dhtxxpower1" : "",   
 			"sht31heater1": "False",
-			"sht41mode": "0xE0",
+			"sht41mode1": "0xE0",
 			"temp1": "",
 			"gpio1": "",
 			"gpioon1": "On",
@@ -255,12 +267,13 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"owapikey1": "",        
 			"owfilename1": "",        
 			"owperiod1": "",        
-			"owunits1": "",        
+			"owunits1": "metric",
 			"owexpire1": "",  
 			"ecowittapplication1": "",
 			"ecowittapikey1": "",
 			"ecowittmac1": "",
 			"ecowittlocalurl1": "",
+			"hasspressureunit1": "hPa",
 			"deadband1": "0",
 			"temp_offset1": "0",
    		"pressure_offset1": "0",
@@ -275,7 +288,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"dhtxxdelay2" : "500",
 			"dhtxxpower2" : "",   
 			"sht31heater2": "False",
-			"sht41mode": "0xE0",     
+			"sht41mode2": "0xE0",
 			"temp2": "",
 			"gpio2": "",
 			"gpioon2": "On",
@@ -284,12 +297,13 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"owapikey2": "",        
 			"owfilename2": "",        
 			"owperiod2": "",        
-			"owunits2": "",        
+			"owunits2": "metric",
 			"owexpire2": "",  
 			"ecowittapplication2": "",
 			"ecowittapikey2": "",
 			"ecowittmac2": "",
 			"ecowittlocalurl2": "",
+			"hasspressureunit2": "hPa",
 			"deadband2": "0",
 			"temp_offset2": "0",
    		"pressure_offset2": "0",
@@ -304,7 +318,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"dhtxxdelay3" : "500",
 			"dhtxxpower3" : "",
 			"sht31heater3": "False",
-			"sht41mode": "0xE0",     
+			"sht41mode3": "0xE0",
 			"temp3": "",
 			"gpio3": "",
 			"gpioon3": "On",
@@ -313,12 +327,13 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			"owapikey3": "",
 			"owfilename3": "",
 			"owperiod3": "",
-			"owunits3": "",
+			"owunits3": "metric",
 			"owexpire3": "",
 			"ecowittapplication3": "",
 			"ecowittapikey3": "",
 			"ecowittmac3": "",
-			"ecowittlocalur3": "",
+			"ecowittlocalurl3": "",
+			"hasspressureunit3": "hPa",
 			"deadband3": "0",
 			"temp_offset3": "0",
    		"pressure_offset3": "0",
@@ -356,12 +371,12 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"description": "Extra Data Filename",
 				"tab": "Home",
 				"disabled": "true",
-				"help": "The name of the file to create with the dew heater data for the Overlay Manager."
+				"help": "The name of the file created with environment data for the Overlay Manager."
 			},
 			"units" : {
 				"required": "false",
 				"description": "Units",
-				"help": "Units of measurement: standard, metric, or imperial.",
+				"help": "Legacy setting. Set units on each OpenWeather sensor instead.",
 				"tab": "Home",            
 				"type": {
 					"fieldtype": "select",
@@ -375,7 +390,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Core",
 				"type": {
 					"fieldtype": "select",
-					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather,Ecowitt,Ecowitt Local,Homeassistant,Allsky Sensor",
+					"values": "None,SHT31,SHT4x,DHT22,DHT11,AM2302,BME280-I2C,HTU21,AHTx0,DS18B20,SCD30,BME680,OpenWeather,Ecowitt,Ecowitt Local,Homeassistant",
 					"default": "None"
 				}
 			},
@@ -383,8 +398,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Name Of Sensor",
 				"tab": "Core",
-				"help": "The name of the sensor, will be added as a variable.",
-				"disabled": "true"            
+				"help": "The name of the sensor, will be added as a variable."
 			},
 			"deadband" : {
 					"required": "false",
@@ -400,22 +414,6 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			},
 
 
-			"allskysensor": {
-				"required": "false",
-				"description": "Allsky Sensor",
-				"help": "The Allsky Sensor to use.",
-				"tab": "Core",
-				"type": {
-					"fieldtype": "allskysensor"
-				},
-				"filters": {
-					"filter": "type",
-					"filtertype": "show",
-					"values": [
-						"Allsky Sensor"
-					]
-				}            
-			},
    
      
           
@@ -519,6 +517,18 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}             
 			},
+			"dhtxxpower": {
+				"required": "false",
+				"description": "DHT Power Pin",
+				"help": "GPIO pin used to power the DHT sensor during a reading.",
+				"tab": "Core",
+				"type": {"fieldtype": "gpio"},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": ["DHT22", "DHT11", "AM2302"]
+				}
+			},
 			"sht31heater" : {
 				"required": "false",
 				"description": "Enable SHT31 Heater",
@@ -619,6 +629,22 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}                       
 			},       
+			"owunits": {
+				"required": "false",
+				"description": "OpenWeather Units",
+				"help": "Units requested from OpenWeather for this sensor.",
+				"tab": "Core",
+				"type": {
+					"fieldtype": "select",
+					"values": "metric,imperial,standard",
+					"default": "metric"
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": ["OpenWeather"]
+				}
+			},
 			"owexpire" : {
 				"required": "false",
 				"description": "Expiry Time",
@@ -678,7 +704,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				}    				
 			},
 			"ecowittlocalurltext": {
-				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. The URL will look like http://192.168.1.25/get_livedata_info?. See the documentation on how to obtain this URL.",
+				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. Enter the gateway base URL, for example http://192.168.1.25. The module adds the data endpoint. See the documentation on how to obtain this URL.",
 				"tab": "Core",
 				"type": {
 					"fieldtype": "text",
@@ -701,7 +727,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Local URL",
 				"tab": "Core",            
-				"help": "The local URL of the Ecowitt Hub.",
+				"help": "Base URL of the Ecowitt gateway, for example http://192.168.1.25.",
 				"filters": {
 					"filter": "type",
 					"filtertype": "show",
@@ -817,9 +843,209 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}    				
 			},           
+			"hasspressureunit": {
+				"required": "false",
+				"description": "Pressure Unit",
+				"tab": "Core",
+				"help": "Units reported by the Home Assistant pressure sensor; converted to hPa for overlays.",
+				"type": {
+					"fieldtype": "select",
+					"values": "hPa,mbar,inHg,mmHg,kPa,Pa",
+					"default": "hPa"
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": ["Homeassistant"]
+				}
+			},
+			"offset": {
+				"description": "Sensor Offsets",
+				"tab": "Core",
+				"temp": {
+					"id": "temp_offset"
+				},
+				"pressure": {
+					"id": "pressure_offset"
+				},
+				"humidity": {
+					"id": "humidity_offset"
+				},
+				"type": {
+					"fieldtype": "offset"
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather",
+						"SCD30",
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
+					]
+				}
+			},
+			"temp" : {
+				"required": "false",
+				"description": "Max Temp",
+				"help": "Above this temperature trigger the gpio pin.",
+				"tab": "Core",
+				"type": {
+					"fieldtype": "spinner",
+					"min": -100,
+					"max": 120,
+					"step": 1
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather",
+						"SCD30",
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
+					]
+				}
+			},
+			"gpio": {
+				"required": "false",
+				"description": "GPIO Pin",
+				"help": "The GPIO pin to set high when the temp is above the Max Temp.",
+				"type": {
+					"fieldtype": "gpio"
+				},
+				"tab": "Core",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather",
+						"SCD30",
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
+					]
+				}
+			},
+			"invertgpio" : {
+				"required": "false",
+				"description": "Invert GPIO",
+				"help": "Select this option if the device is wired to activate on the GPIO pin going Low",
+				"tab": "Core",
+				"type": {
+					"fieldtype": "checkbox"
+				},
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather",
+						"SCD30",
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
+					]
+				}
+			},
+			"gpioon": {
+				"required": "false",
+				"description": "GPIO On",
+				"help": "Label used when GPIO control is enabled.",
+				"tab": "Core",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather",
+						"SCD30",
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
+					]
+				}
+			},
+			"gpiooff": {
+				"required": "false",
+				"description": "GPIO Off",
+				"help": "Label used when GPIO control is disabled.",
+				"tab": "Core",
+				"filters": {
+					"filter": "type",
+					"filtertype": "show",
+					"values": [
+						"SHT31",
+						"SHT4x",
+						"DHT22",
+						"DHT11",
+						"AM2302",
+						"BME280-I2C",
+						"HTU21",
+						"AHTx0",
+						"DS18B20",
+						"OpenWeather",
+						"SCD30",
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
+					]
+				}
+			},
 			"noticecore" : {
 				"tab": "Core",      
-				"message": "This sensor is used by Allksy for basic temperature information. The following Variables will be created<br>AS_TEMP, AS_HUMIDITY, AS_DEWPOINT, AS_PRESSURE, AS_ALTITUDE",
+				"message": "This sensor is used by Allsky for basic temperature information. The following variables will be created<br>AS_TEMP, AS_HUMIDITY, AS_DEW, AS_PRESSURE, AS_ALTITUDE",
 				"type": {
 					"fieldtype": "text",
 					"style": {
@@ -1064,6 +1290,22 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}                       
 			},       
+			"owunits1": {
+				"required": "false",
+				"description": "OpenWeather Units",
+				"help": "Units requested from OpenWeather for this sensor.",
+				"tab": "Sensor 1",
+				"type": {
+					"fieldtype": "select",
+					"values": "metric,imperial,standard",
+					"default": "metric"
+				},
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": ["OpenWeather"]
+				}
+			},
 			"owexpire1" : {
 				"required": "false",
 				"description": "Expiry Time",
@@ -1123,7 +1365,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				}    				
 			},
 			"ecowittlocalurltext1": {
-				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. The URL will look like http://192.168.1.25/get_livedata_info?. See the documentation on howto obtain this URL.",
+				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. Enter the gateway base URL, for example http://192.168.1.25. The module adds the data endpoint. See the documentation on how to obtain this URL.",
 				"tab": "Sensor 1",
 				"type": {
 					"fieldtype": "text",
@@ -1146,7 +1388,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Local URL",
 				"tab": "Sensor 1",            
-				"help": "The local URL of the Ecowitt Hub.",
+				"help": "Base URL of the Ecowitt gateway, for example http://192.168.1.25.",
 				"filters": {
 					"filter": "type1",
 					"filtertype": "show",
@@ -1292,9 +1534,28 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"OpenWeather",
 						"SCD30",
-						"BME680"
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}    
+			},
+			"hasspressureunit1": {
+				"required": "false",
+				"description": "Pressure Unit",
+				"tab": "Sensor 1",
+				"help": "Units reported by the Home Assistant pressure sensor; converted to hPa for overlays.",
+				"type": {
+					"fieldtype": "select",
+					"values": "hPa,mbar,inHg,mmHg,kPa,Pa",
+					"default": "hPa"
+				},
+				"filters": {
+					"filter": "type1",
+					"filtertype": "show",
+					"values": ["Homeassistant"]
+				}
 			},
 			"temp1" : {
 				"required": "false",
@@ -1303,7 +1564,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Sensor 1",
 				"type": {
 					"fieldtype": "spinner",
-					"min": 0,
+					"min": -100,
 					"max": 120,
 					"step": 1
 				},
@@ -1322,7 +1583,10 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"OpenWeather",
 						"SCD30",
-						"BME680"
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}             
 			},        
@@ -1349,7 +1613,10 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"OpenWeather",
 						"SCD30",
-						"BME680"
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}                      
 			},
@@ -1376,14 +1643,17 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"OpenWeather",
 						"SCD30",
-						"BME680"
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}    
 			},   
 			"gpioon1": {
 				"required": "false",
 				"description": "GPIO On",
-				"help": "The Label to use when the GPIO pin is high.",
+				"help": "Label used when GPIO control is enabled.",
 				"tab": "Sensor 1",
 				"filters": {
 					"filter": "type1",
@@ -1400,14 +1670,17 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"OpenWeather",
 						"SCD30",
-						"BME680"
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}                      
 			},
 			"gpiooff1": {
 				"required": "false",
 				"description": "GPIO Off",
-				"help": "The Label to use when the GPIO pin is low.",
+				"help": "Label used when GPIO control is disabled.",
 				"tab": "Sensor 1",
 				"filters": {
 					"filter": "type1",
@@ -1424,7 +1697,10 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"OpenWeather",
 						"SCD30",
-						"BME680"
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}                    
 			},                    			
@@ -1662,6 +1938,22 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}                       
 			},       
+			"owunits2": {
+				"required": "false",
+				"description": "OpenWeather Units",
+				"help": "Units requested from OpenWeather for this sensor.",
+				"tab": "Sensor 2",
+				"type": {
+					"fieldtype": "select",
+					"values": "metric,imperial,standard",
+					"default": "metric"
+				},
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": ["OpenWeather"]
+				}
+			},
 			"owexpire2" : {
 				"required": "false",
 				"description": "Expiry Time",
@@ -1801,6 +2093,22 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}    				
 			},
+			"hasspressureunit2": {
+				"required": "false",
+				"description": "Pressure Unit",
+				"tab": "Sensor 2",
+				"help": "Units reported by the Home Assistant pressure sensor; converted to hPa for overlays.",
+				"type": {
+					"fieldtype": "select",
+					"values": "hPa,mbar,inHg,mmHg,kPa,Pa",
+					"default": "hPa"
+				},
+				"filters": {
+					"filter": "type2",
+					"filtertype": "show",
+					"values": ["Homeassistant"]
+				}
+			},
 			"ecowittapikey2": {
 				"required": "false",
 				"description": "API Key",
@@ -1828,7 +2136,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				}    				
 			},
 			"ecowittlocalurltext2": {
-				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. The URL will look like http://192.168.1.25/get_livedata_info?. See the documentation on how to obtain this URL.",
+				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. Enter the gateway base URL, for example http://192.168.1.25. The module adds the data endpoint. See the documentation on how to obtain this URL.",
 				"tab": "Sensor 2",
 				"type": {
 					"fieldtype": "text",
@@ -1851,7 +2159,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Local URL",
 				"tab": "Sensor 2",            
-				"help": "The local URL of the Ecowitt Hub.",
+				"help": "Base URL of the Ecowitt gateway, for example http://192.168.1.25.",
 				"filters": {
 					"filter": "type2",
 					"filtertype": "show",
@@ -1890,7 +2198,10 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"OpenWeather",
 						"SCD30",
-						"BME680"
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}     
 			},          
@@ -1901,7 +2212,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Sensor 2",
 				"type": {
 					"fieldtype": "spinner",
-					"min": 0,
+					"min": -100,
 					"max": 120,
 					"step": 1
 				},
@@ -1920,7 +2231,10 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"OpenWeather",
 						"SCD30",
-						"BME680"
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}            
 			},        
@@ -1947,7 +2261,10 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"OpenWeather",
 						"SCD30",
-						"BME680"
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}                     
 			},
@@ -1974,14 +2291,17 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"OpenWeather",
 						"SCD30",
-						"BME680"
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}    
 			},    
 			"gpioon2": {
 				"required": "false",
 				"description": "GPIO On",
-				"help": "The Label to use when the GPIO pin is high.",
+				"help": "Label used when GPIO control is enabled.",
 				"tab": "Sensor 2",
 				"filters": {
 					"filter": "type2",
@@ -1998,14 +2318,17 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"OpenWeather",
 						"SCD30",
-						"BME680"
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}                     
 			},
 			"gpiooff2": {
 				"required": "false",
 				"description": "GPIO Off",
-				"help": "The Label to use when the GPIO pin is low.",
+				"help": "Label used when GPIO control is disabled.",
 				"tab": "Sensor 2",
 				"filters": {
 					"filter": "type2",
@@ -2022,7 +2345,10 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"OpenWeather",
 						"SCD30",
-						"BME680"
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}                    
 			}, 
@@ -2260,6 +2586,22 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					]
 				}                       
 			},       
+			"owunits3": {
+				"required": "false",
+				"description": "OpenWeather Units",
+				"help": "Units requested from OpenWeather for this sensor.",
+				"tab": "Sensor 3",
+				"type": {
+					"fieldtype": "select",
+					"values": "metric,imperial,standard",
+					"default": "metric"
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": ["OpenWeather"]
+				}
+			},
 			"owexpire3" : {
 				"required": "false",
 				"description": "Expiry Time",
@@ -2319,7 +2661,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				}    				
 			},   
 			"ecowittlocalurltext3": {
-				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. The URL will look like http://192.168.1.25/get_livedata_info?. See the documentation on how to obtain this URL.",
+				"message": "To use this sensor you will require an Ecowitt Gateway such as the GW2000. Enter the gateway base URL, for example http://192.168.1.25. The module adds the data endpoint. See the documentation on how to obtain this URL.",
 				"tab": "Sensor 3",
 				"type": {
 					"fieldtype": "text",
@@ -2342,7 +2684,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"required": "false",
 				"description": "Local URL",
 				"tab": "Sensor 3",            
-				"help": "The local URL of the Ecowitt Hub.",
+				"help": "Base URL of the Ecowitt gateway, for example http://192.168.1.25.",
 				"filters": {
 					"filter": "type3",
 					"filtertype": "show",
@@ -2488,10 +2830,29 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"OpenWeather",
 						"SCD30",
-						"BME680"
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}     
 			},            
+			"hasspressureunit3": {
+				"required": "false",
+				"description": "Pressure Unit",
+				"tab": "Sensor 3",
+				"help": "Units reported by the Home Assistant pressure sensor; converted to hPa for overlays.",
+				"type": {
+					"fieldtype": "select",
+					"values": "hPa,mbar,inHg,mmHg,kPa,Pa",
+					"default": "hPa"
+				},
+				"filters": {
+					"filter": "type3",
+					"filtertype": "show",
+					"values": ["Homeassistant"]
+				}
+			},
 			"temp3" : {
 				"required": "false",
 				"description": "Max Temp",
@@ -2499,7 +2860,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				"tab": "Sensor 3",
 				"type": {
 					"fieldtype": "spinner",
-					"min": 0,
+					"min": -100,
 					"max": 120,
 					"step": 1
 				},
@@ -2518,7 +2879,10 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"OpenWeather",
 						"SCD30",
-						"BME680"
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}            
 			},        
@@ -2545,7 +2909,10 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"OpenWeather",
 						"SCD30",
-						"BME680"
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}                    
 			},
@@ -2572,14 +2939,17 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"OpenWeather",
 						"SCD30",
-						"BME680"
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}    
 			},    
 			"gpioon3": {
 				"required": "false",
 				"description": "GPIO On",
-				"help": "The Label to use when the GPIO pin is high.",
+				"help": "Label used when GPIO control is enabled.",
 				"tab": "Sensor 3",
 				"filters": {
 					"filter": "type3",
@@ -2596,14 +2966,17 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"OpenWeather",
 						"SCD30",
-						"BME680"
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}                     
 			},
 			"gpiooff3": {
 				"required": "false",
 				"description": "GPIO Off",
-				"help": "The Label to use when the GPIO pin is low.",
+				"help": "Label used when GPIO control is disabled.",
 				"tab": "Sensor 3",
 				"filters": {
 					"filter": "type3",
@@ -2620,7 +2993,10 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 						"DS18B20",
 						"OpenWeather",
 						"SCD30",
-						"BME680"
+						"BME680",
+						"Ecowitt",
+						"Ecowitt Local",
+						"Homeassistant"
 					]
 				}                      
 			},                                   
@@ -2696,7 +3072,32 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					"authorurl": "https://github.com/benhartwich/",
 					"changes": "The pressure variables have the type pressure, so the Overlay Editor offers the pressure formats (hPa, inHg, mmHg)"
 				}
-			]                                                               
+			],
+			"v1.0.6" : [
+				{
+					"author": "Alex Greenland",
+					"authorurl": "https://github.com/allskyteam",
+					"changes": [
+						"Lots of minor bug fixes detailed below",
+						"Add missing Core sensor controls, DHT power pin, and per-sensor OpenWeather unit settings",
+						"Remove the unsupported Allsky Sensor selection from Core sensor settings",
+						"Correct setting filters and defaults for Core and Sensors 1-3, including negative Max Temp thresholds",
+						"Correct extra data metadata, including the relative humidity field type",
+						"Correct the default extra data filename to allsky_temp.json",
+						"Fix OpenWeather unit selection, API and cache handling, dew point calculation, and API key redaction in errors",
+						"Use separate OpenWeather polling and cache data for each sensor, and read rain fields using the current API keys",
+						"Record module runs correctly for frequency scheduling",
+						"Handle missing DS18B20 devices and failed reads; use the DHT11 driver for DHT11 sensors and release DHT devices after reading",
+						"Correct BME280 relative humidity output and handle missing Ecowitt data or URL endpoint suffixes",
+						"Allow partial Home Assistant sensor configuration and convert pressure to hPa with a per-sensor unit setting",
+						"Reject non-finite sensor readings and invalid dew point inputs before publishing data",
+						"Apply offsets consistently, including relative humidity and recalculated dew point",
+						"Correct Core and additional sensor GPIO state, labels, deadband reporting, and output when only non-temperature readings are available",
+						"Clear stale extra data when no sensors return readings",
+						"Refresh the README to show current settings and extra data keys"
+					]
+				}
+			]
 		}
 	}
 
@@ -2708,6 +3109,29 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			cardinal = 'N/A'
 
 		return cardinal
+
+	def _finite_number(self, value, name):
+		if value is None:
+			return None
+		try:
+			number = float(value)
+		except (TypeError, ValueError, OverflowError):
+			self.log(3, f'WARNING: Ignoring non-numeric {name}: {value}')
+			return None
+		if not math.isfinite(number):
+			self.log(3, f'WARNING: Ignoring non-finite {name}: {value}')
+			return None
+		return number
+
+	def _calculate_dew_point(self, temperature, humidity):
+		try:
+			if not 1 <= humidity <= 100:
+				self.log(3, f'WARNING: Cannot calculate dew point with humidity {humidity}; expected 1-100%')
+				return None
+			return dew_point(temperature, humidity)
+		except (TypeError, ValueError, OverflowError, ZeroDivisionError) as error:
+			self.log(3, f'WARNING: Cannot calculate dew point: {error}')
+			return None
 
 	def _process_ow_result(self, data, expires, units):
 		extra_data = {}
@@ -2729,25 +3153,25 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 		self._set_extra_value('clouds.all', data, 'OWCLOUDS', expires, extra_data)
 
-		self._set_extra_value('rain.1hr', data, 'OWRAIN1HR', expires, extra_data)
-		self._set_extra_value('rain.3hr', data, 'OWRAIN3HR', expires, extra_data)
+		self._set_extra_value('rain.1h', data, 'OWRAIN1HR', expires, extra_data)
+		self._set_extra_value('rain.3h', data, 'OWRAIN3HR', expires, extra_data)
 
 		self._set_extra_value('sys.sunrise', data, 'OWSUNRISE', expires, extra_data)
 		self._set_extra_value('sys.sunset', data, 'OWSUNSET', expires, extra_data)
+		extra_data['AS_OWUNITS'] = units
 
-		temperature = float(self._get_value('main.temp', data))
-		humidity = float(self._get_value('main.humidity', data))
-		if units == 'imperial':
-			t = Temp(temperature, 'f')
-			the_dew_point = dew_point(t, humidity).f
-
-		if units == 'metric':
-			t = Temp(temperature, 'c')        
-			the_dew_point = dew_point(temperature, humidity).c
-
-		if units == 'standard':
-			t = Temp(temperature, 'k')        
-			the_dew_point = dew_point(temperature, humidity).k
+		the_dew_point = None
+		temperature = self._finite_number(self._get_value('main.temp', data), 'OpenWeather temperature')
+		humidity = self._finite_number(self._get_value('main.humidity', data), 'OpenWeather humidity')
+		if temperature is not None and humidity is not None:
+			try:
+				unit_code = {'imperial': 'f', 'standard': 'k'}.get(units, 'c')
+				t = Temp(float(temperature), unit_code)
+				point = self._calculate_dew_point(t, humidity)
+				if point is not None:
+					the_dew_point = self._finite_number(getattr(point, unit_code), 'OpenWeather dew point')
+			except (TypeError, ValueError) as error:
+				self.log(3, f'WARNING: Cannot calculate OpenWeather dew point: {error}')
 
 		degress = self._get_value('wind.deg', data)
 		cardinal = self._create_cardinal(degress)
@@ -2762,21 +3186,24 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			'expires': expires
 		}
 
-		extra_data['AS_OWDEWPOINT'] = {
-			'name': '${' + 'OWDEWPOINT' + '}',
-			'format': '',
-			'sample': '',
-			'group': 'Environment',
-			'value': round(the_dew_point,1),
-			'source': 'allsky_temp',         
-			'expires': expires
-		}
+		if the_dew_point is not None:
+			extra_data['AS_OWDEWPOINT'] = {
+				'name': '${' + 'OWDEWPOINT' + '}',
+				'format': '',
+				'sample': '',
+				'group': 'Environment',
+				'value': round(the_dew_point,1),
+				'source': 'allsky_temp',
+				'expires': expires
+			}
 
 		
 		return extra_data
 
 	def _set_extra_value(self, path, data, extra_key, expires, extra_data):
 		value = self._get_value(path, data)
+		if isinstance(value, (int, float)) and self._finite_number(value, f'OpenWeather {path}') is None:
+			return
 		if value is not None:
 			extra_data["AS_" + extra_key] = {
 				"name": "${" + extra_key + "}",
@@ -2793,29 +3220,36 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		humidity = None
 		pressure = None
 		the_dew_point = None
+		cached_units = None
 
 		extra_path = allsky_shared.get_extra_dir(True)
 		extra_data_fileName = os.path.join(extra_path, file_name)
 
-		if os.path.isfile(extra_data_fileName):
-			file_modified_time = int(os.path.getmtime(extra_data_fileName))
-			with open(extra_data_fileName, 'r', encoding='utf-8') as file:
-				json_data = json.load(file)
-				temperature = self._get_ow_Value('AS_OWTEMP', json_data, file_modified_time)
-				humidity = self._get_ow_Value('AS_OWHUMIDITY', json_data, file_modified_time)
-				pressure = self._get_ow_Value('AS_OWPRESSURE', json_data, file_modified_time)
-				the_dew_point = self._get_ow_Value('AS_OWDEWPOINT', json_data, file_modified_time)
+		try:
+			if os.path.isfile(extra_data_fileName):
+				file_modified_time = int(os.path.getmtime(extra_data_fileName))
+				with open(extra_data_fileName, 'r', encoding='utf-8') as file:
+					json_data = json.load(file)
+					cached_units = json_data.get('AS_OWUNITS')
+					if cached_units in ('metric', 'imperial', 'standard'):
+						temperature = self._get_ow_Value('AS_OWTEMP', json_data, file_modified_time)
+						humidity = self._get_ow_Value('AS_OWHUMIDITY', json_data, file_modified_time)
+						pressure = self._get_ow_Value('AS_OWPRESSURE', json_data, file_modified_time)
+						the_dew_point = self._get_ow_Value('AS_OWDEWPOINT', json_data, file_modified_time)
+		except (OSError, ValueError, TypeError, AttributeError) as error:
+			self.log(3, f'WARNING: Invalid OpenWeather cache {file_name}: {error}')
+			return None, None, None, None, None
 
-		return temperature, humidity, pressure, the_dew_point
+		return temperature, humidity, pressure, the_dew_point, cached_units
 
 	def _get_ow_Value(self, field, json_data, file_modified_time):
-		result = False    
+		entry = json_data.get(field)
+		if entry is None:
+			return None
 
-		if field in json_data:
-			result = json_data[field]['value']
-
-		if 'expires' in json_data[field]:
-			max_age = json_data[field]['expires']
+		result = entry.get('value')
+		if 'expires' in entry:
+			max_age = entry['expires']
 			age = int(time.time()) - file_modified_time
 			if age > max_age:
 				self.log(4, f'WARNING: field {field} has expired - age is {age}')
@@ -2829,12 +3263,11 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		if keys[0] in data:
 			sub_data = data[keys[0]]
 			
-			if isinstance(sub_data, list):        
-				if keys[1] in sub_data[0]:
-					result = sub_data[0][keys[1]]
-			else:
-				if keys[1] in sub_data:
-					result = sub_data[keys[1]]
+			if isinstance(sub_data, list):
+				if sub_data and isinstance(sub_data[0], dict):
+					result = sub_data[0].get(keys[1])
+			elif isinstance(sub_data, dict):
+				result = sub_data.get(keys[1])
 
 		return result
 
@@ -2842,9 +3275,12 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		expire = self.get_param('owexpire' + sensor_number, 600, int)
 		period = self.get_param('owperiod' + sensor_number, 60, int)
 		api_key = self.get_param('owapikey' + sensor_number, '', str)
-		file_name = self.get_param('owfilename' + sensor_number, 'allsky_owdata.json', str, True)
-		units = self.get_param('units' + sensor_number, '', str)
-		module = self.meta_data['module']
+		file_name = self.get_param('owfilename' + sensor_number, f'allsky_owdata{sensor_number}.json', str, True)
+		units = self.get_param('owunits' + sensor_number, 'metric', str) or 'metric'
+		if units not in ('metric', 'imperial', 'standard'):
+			self.log(3, f'WARNING: Invalid OpenWeather units {units}; using metric')
+			units = 'metric'
+		module = f"{self.meta_data['module']}_ow_{sensor_number or 'core'}"
 
 		temperature = None
 		humidity = None
@@ -2852,8 +3288,9 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		the_dew_point = None
 
 		try:
+			_, _, _, _, cached_units = self._get_ow_values(file_name)
 			should_run, diff = allsky_shared.shouldRun(module, period)
-			if should_run or self.debug_mode:
+			if should_run or self.debug_mode or cached_units not in ('metric', 'imperial', 'standard'):
 				if api_key != '':
 					if file_name != '':
 						lat = allsky_shared.getSetting('latitude')
@@ -2864,12 +3301,13 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 								lon = allsky_shared.convertLatLon(lon)
 								try:
 									ow_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units={units}&appid={api_key}"
-									self.log(4, f"INFO: Reading Openweather API from - {ow_url}")
-									response = requests.get(ow_url)
+									self.log(4, f"INFO: Reading OpenWeather API at {lat}, {lon} with {units} units")
+									response = requests.get(ow_url, timeout=10)
 									if response.status_code == 200:
 										raw_data = response.json()
 										extra_data = self._process_ow_result(raw_data, expire, units)
 										allsky_shared.saveExtraData(file_name, extra_data, 'internal')
+										allsky_shared.setLastRun(module)
 										result = f'Data acquired and written to extra data file {file_name}'
 										self.log(4, f'INFO: {result}')
 									else:
@@ -2877,9 +3315,8 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 										self.log(0, f'ERROR in {__file__}: {result}')
 								except Exception as e:
 									eType, eObject, eTraceback = sys.exc_info()            
-									result = str(e)
-									self.log(0, f'ERROR in {__file__}: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}')
-								allsky_shared.setLastRun(module)                            
+									result = str(e).replace(api_key, '[redacted]')
+									self.log(0, f'ERROR in {__file__}: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {result}')
 							else:
 								result = 'Invalid Longitude. Check the Allsky configuration'
 								self.log(0, f'ERROR in {__file__}: {result}')
@@ -2895,49 +3332,50 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 			else:
 				self.log(4, f'INFO: Using Cached Openweather API data')
 
-			temperature, humidity, pressure, the_dew_point = self._get_ow_values(file_name)
+			temperature, humidity, pressure, the_dew_point, cached_units = self._get_ow_values(file_name)
+			if temperature is not None:
+				if cached_units == 'imperial':
+					temperature = (temperature - 32) * 5 / 9
+				elif cached_units == 'standard':
+					temperature -= 273.15
+			if the_dew_point is not None:
+				if cached_units == 'imperial':
+					the_dew_point = (the_dew_point - 32) * 5 / 9
+				elif cached_units == 'standard':
+					the_dew_point -= 273.15
 
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
-			self.log(0, f'ERROR in {__file__}: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {e}')
+			safe_error = str(e).replace(api_key, '[redacted]') if api_key else str(e)
+			self.log(0, f'ERROR in {__file__}: Module readOpenWeather failed on line {eTraceback.tb_lineno} - {safe_error}')
 
 		return temperature, humidity, pressure, the_dew_point	
 
-	def _read_ds18B20(self, sensor_number=None, retries=3):
-			"""
-			Read DS18x20 temperature in Celsius.
-			Returns float or raises RuntimeError.
-			"""
-			humidity = None
-			temperature = None
-			
-			device_id = self.get_param('ds18b20address' + sensor_number, '', str)    
+	def _read_ds18B20(self, sensor_number="", retries=3):
+		"""Read a DS18B20 temperature in Celsius."""
+		device_id = self.get_param('ds18b20address' + sensor_number, '', str)
+		base_path = "/sys/bus/w1/devices"
+		devices = ([f"{base_path}/{device_id}/w1_slave"] if device_id
+			else glob.glob(f"{base_path}/28-*/w1_slave"))
 
-			W1_BASE = "/sys/bus/w1/devices"
+		if not devices:
+			self.log(0, f'ERROR in {__file__}: No DS18B20 device found. Check /sys/bus/w1/devices')
+			return None, None
 
-			if device_id:
-					devices = [f"{W1_BASE}/{device_id}/w1_slave"]
-			else:
-					devices = glob.glob(f"{W1_BASE}/28-*/w1_slave")
+		for _ in range(retries):
+			try:
+				with open(devices[0], "r", encoding="utf-8") as sensor_file:
+					lines = sensor_file.read().splitlines()
+				if len(lines) >= 2 and lines[0].strip().endswith("YES") and "t=" in lines[1]:
+					temp_milli = int(lines[1].split("t=", 1)[1])
+					return round(temp_milli / 1000.0, 2), None
+			except (OSError, ValueError) as error:
+				self.log(0, f'ERROR in {__file__}: Failed to read DS18B20: {error}')
+				return None, None
+			time.sleep(0.2)
 
-			if not devices:
-					self.log(0, f'ERROR in {__file__}: (readDS18B20) - "{device_id}" is not a valid DS18B20 address. Please check /sys/bus/w1/devices')     
-
-			path = devices[0]
-
-			for _ in range(retries):
-					with open(path, "r") as f:
-							lines = f.read().splitlines()
-
-					# CRC check
-					if lines[0].strip().endswith("YES"):
-							temp_milli = int(lines[1].split("t=")[1])
-							temperature = round(temp_milli / 1000.0, 2)
-							return temperature, humidity
-
-					time.sleep(0.2)
-
-			self.log(0,"ERROR in {__file__}: Module _read_ds18B20, DS18B20 CRC check failed")
+		self.log(0, f'ERROR in {__file__}: DS18B20 CRC check failed')
+		return None, None
   
 	def _read_htu21(self, sensor_number):
 		temperature = None
@@ -2986,32 +3424,40 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 				sensor = adafruit_ahtx0.AHTx0(i2c)
 			temperature = sensor.temperature
 			humidity = sensor.relative_humidity
-		except ValueError as e:
+		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			self.log(0, f"ERROR in {__file__}: Module read_ahtx0 failed on line {eTraceback.tb_lineno} - {e}")
 
 		return temperature, humidity
 
-	def _do_dhtxx_read(self, input_pin):
+	def _do_dhtxx_read(self, input_pin, sensor_type='DHT22'):
 		temperature = None
 		humidity = None
+		dht_device = None
 
 		try:
 			pin = allsky_shared.getGPIOPin(input_pin)
-			dhtDevice = adafruit_dht.DHT22(pin, use_pulseio=False)
+			device_class = adafruit_dht.DHT11 if sensor_type == 'DHT11' else adafruit_dht.DHT22
+			dht_device = device_class(pin, use_pulseio=False)
 			try:
-				temperature = dhtDevice.temperature
-				humidity = dhtDevice.humidity
+				temperature = dht_device.temperature
+				humidity = dht_device.humidity
 			except RuntimeError as e:
 				eType, eObject, eTraceback = sys.exc_info()
 				self.log(3, f'ERROR in {__file__}: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			self.log(3, f'WARNING: Module doDHTXXRead failed on line {eTraceback.tb_lineno} - {e}')
+		finally:
+			if dht_device is not None:
+				try:
+					dht_device.exit()
+				except Exception as e:
+					self.log(3, f'WARNING: Failed to release DHT sensor: {e}')
 
 		return temperature, humidity
 
-	def _read_dht22(self, sensor_number):
+	def _read_dht22(self, sensor_number, sensor_type='DHT22'):
 		temperature = None
 		humidity = None
 		count = 0
@@ -3028,7 +3474,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					time.sleep(1)
 
 		while reading:
-			temperature, humidity = self._do_dhtxx_read(input_pin)
+			temperature, humidity = self._do_dhtxx_read(input_pin, sensor_type)
 			if temperature is None and humidity is None:
 				self.log(3, f'WARNING: Failed to read DHTXX on attempt {count+1}')
 				count = count + 1
@@ -3083,7 +3529,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		temperature = None
 		humidity = None
 		pressure = None
-		relHumidity = None
+		rel_humidity = None
 		altitude = None
 
 		i2c_address = self.get_param('i2caddress' + sensor_number, '', str)	
@@ -3103,14 +3549,14 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 			temperature =  bme280.temperature
 			humidity = bme280.humidity
-			relHumidity = bme280.relative_humidity
+			rel_humidity = bme280.relative_humidity
 			altitude = bme280.altitude
 			pressure = bme280.pressure
 		except Exception as e:
 			eType, eObject, eTraceback = sys.exc_info()
 			self.log(0, f'ERROR in {__file__}: Module read_bme280_i2c failed on line {eTraceback.tb_lineno} - {e}')
 
-		return temperature, humidity, pressure, altitude
+		return temperature, humidity, pressure, rel_humidity, altitude
 
 	def _read_sht31(self, sensor_number):
 		temperature = None
@@ -3222,11 +3668,16 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		mac_address = self.get_param('ecowittmac' + sensor_number, '', str)
 
 		data = allsky_shared.get_ecowitt_data(api_key, app_key, mac_address)
+		if not isinstance(data, dict):
+			self.log(0, f'ERROR in {__file__}: Ecowitt data unavailable: {data}')
+			return None, None, None, None
 
-		temperature = data['outdoor']['temperature']
-		humidity = data['outdoor']['humidity']
-		pressure = data['pressure']['relative']
-		the_dew_point = data['outdoor']['dew_point']
+		outdoor = data.get('outdoor') or {}
+		pressure_data = data.get('pressure') or {}
+		temperature = outdoor.get('temperature')
+		humidity = outdoor.get('humidity')
+		pressure = pressure_data.get('relative')
+		the_dew_point = outdoor.get('dew_point')
   
 		return temperature, humidity, pressure, the_dew_point	
     
@@ -3237,15 +3688,27 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		pressure = None
 		the_dew_point = None
   
-		LOCAL_URL = self.get_param('ecowittlocalurl' + sensor_number, '', str)
+		local_url = self.get_param('ecowittlocalurl' + sensor_number, '', str).strip()
+		for endpoint in ('/get_livedata_info?', '/get_livedata_info'):
+			if local_url.endswith(endpoint):
+				local_url = local_url[:-len(endpoint)]
+				break
+		local_url = local_url.rstrip('/')
+		if not local_url:
+			self.log(0, f'ERROR in {__file__}: Local Ecowitt base URL is required')
+			return None, None, None, None
 
-		data = allsky_shared.get_ecowitt_local_data(LOCAL_URL)
-   
+		data = allsky_shared.get_ecowitt_local_data(local_url)
+		if not isinstance(data, dict):
+			self.log(0, f'ERROR in {__file__}: Local Ecowitt data unavailable: {data}')
+			return None, None, None, None
 
-		temperature = data['outdoor']['temperature']
-		humidity = data['outdoor']['humidity']
-		pressure = data['pressure']['relative']
-		the_dew_point = data['outdoor']['dew_point']
+		outdoor = data.get('outdoor') or {}
+		pressure_data = data.get('pressure') or {}
+		temperature = outdoor.get('temperature')
+		humidity = outdoor.get('humidity')
+		pressure = pressure_data.get('relative')
+		the_dew_point = outdoor.get('dew_point')
   
 		return temperature, humidity, pressure, the_dew_point	
 
@@ -3257,22 +3720,43 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		hass_url = self.get_param('hassurl' + sensor_number, '', str)
 		hass_ltt = self.get_param('hassltt' + sensor_number, '', str)
 		hass_unit = self.get_param('hassunit' + sensor_number, '', str)
+		hass_pressure_unit = self.get_param('hasspressureunit' + sensor_number, 'hPa', str)
 		hass_temperature = self.get_param('hasstemp' + sensor_number, '', str)
 		hass_humidity = self.get_param('hasshumidity' + sensor_number, '', str)
 		hass_pressure = self.get_param('hasspressure' + sensor_number, '', str)
 
-		required_vars = ['hass_url', 'hass_ltt', 'hass_unit', 'hass_temperature', 'hass_humidity', 'hass_pressure']
-		missing_variables = [name for name in required_vars if locals().get(name) == '']
+		if not hass_url or not hass_ltt:
+			self.log(0, f'ERROR in {__file__}: Home Assistant URL and token are required')
+			return None, None, None
+		if not any((hass_temperature, hass_humidity, hass_pressure)):
+			self.log(0, f'ERROR in {__file__}: Configure at least one Home Assistant sensor')
+			return None, None, None
 
-		if missing_variables:
-			self.log(0, f"ERROR in {__file__}: The following variables are not set: {', '.join(missing_variables)}")
-		else:
+		if hass_temperature:
 			temperature = allsky_shared.get_hass_sensor_value(hass_url, hass_ltt, hass_temperature)
+		if hass_humidity:
 			humidity = allsky_shared.get_hass_sensor_value(hass_url, hass_ltt, hass_humidity)
+		if hass_pressure:
 			pressure = allsky_shared.get_hass_sensor_value(hass_url, hass_ltt, hass_pressure)
+			pressure = self._finite_number(pressure, 'Home Assistant pressure')
+			if pressure is not None:
+				pressure_factors = {
+					'hpa': 1.0,
+					'mbar': 1.0,
+					'inhg': 1 / 0.0295299830714,
+					'mmhg': 1 / 0.750061683,
+					'kpa': 10.0,
+					'pa': 0.01,
+				}
+				factor = pressure_factors.get(hass_pressure_unit.strip().lower())
+				if factor is None:
+					self.log(0, f'ERROR in {__file__}: Unsupported Home Assistant pressure unit {hass_pressure_unit}')
+					pressure = None
+				else:
+					pressure = self._finite_number(pressure * factor, 'converted Home Assistant pressure')
 
-			if hass_unit == 'Imperial' and temperature is not None:
-				temperature = (temperature - 32) * 5 / 9
+		if hass_unit == 'Imperial' and temperature is not None:
+			temperature = (temperature - 32) * 5 / 9
 			
 		return temperature, humidity, pressure
      
@@ -3290,9 +3774,9 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		elif sensor_type == 'SHT4x':
 			temperature, humidity = self._read_sht4x(sensor_number)   
 		elif sensor_type == 'DHT22' or sensor_type == 'DHT11' or sensor_type == 'AM2302':
-			temperature, humidity = self._read_dht22(sensor_number)
+			temperature, humidity = self._read_dht22(sensor_number, sensor_type)
 		elif sensor_type == 'BME280-I2C':
-			temperature, humidity, pressure, altitude = self._read_bme280_i2c(sensor_number)
+			temperature, humidity, pressure, rel_humidity, altitude = self._read_bme280_i2c(sensor_number)
 		elif sensor_type == 'HTU21':
 			temperature, humidity = self._read_htu21(sensor_number)
 		elif sensor_type == 'AHTx0':
@@ -3314,22 +3798,29 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 		else:
 			self.log(0, f'ERROR in {__file__}: No sensor type defined')
 
+		temperature = self._finite_number(temperature, f'{sensor_type} temperature')
+		humidity = self._finite_number(humidity, f'{sensor_type} humidity')
+		the_dew_point = self._finite_number(the_dew_point, f'{sensor_type} dew point')
+		pressure = self._finite_number(pressure, f'{sensor_type} pressure')
+		rel_humidity = self._finite_number(rel_humidity, f'{sensor_type} relative humidity')
+		altitude = self._finite_number(altitude, f'{sensor_type} altitude')
+		co2 = self._finite_number(co2, f'{sensor_type} CO2')
+
 		temp_units = allsky_shared.getSetting('temptype')
 		if temperature is not None and humidity is not None:
-			the_dew_point = dew_point(temperature, humidity).c
-			if temp_units == 'F':
-				temperature = (temperature * (9/5)) + 32
-				the_dew_point = (the_dew_point * (9/5)) + 32
-				self.log(4, 'INFO: Converted temperature to F')
-
-			temperature = round(temperature, 2)
-			humidity = round(humidity, 2)
-			the_dew_point = round(the_dew_point, 2)
-		else:
+			point = self._calculate_dew_point(temperature, humidity)
+			the_dew_point = point.c if point is not None else None
+		if temp_units == 'F':
 			if temperature is not None:
-				if temp_units == 'F':
-					temperature = (temperature * (9/5)) + 32
-					self.log(4, 'INFO: Converted temperature ONLY to F')
+				temperature = (temperature * (9/5)) + 32
+			if the_dew_point is not None:
+				the_dew_point = (the_dew_point * (9/5)) + 32
+		if temperature is not None:
+			temperature = round(temperature, 2)
+		if humidity is not None:
+			humidity = round(humidity, 2)
+		if the_dew_point is not None:
+			the_dew_point = round(the_dew_point, 2)
 					
 		return temperature, humidity, the_dew_point, pressure, rel_humidity, altitude, co2
 
@@ -3348,8 +3839,7 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 
 
 		if should_run or self.debug_mode:
-			now = int(time.time())
-			allsky_shared.dbUpdate('allskytemp', now)
+			allsky_shared.setLastRun('allskytemp')
 			for sensor_number_itr in range(1,5):
 				if sensor_number_itr == 1:
 					sensor_number = ""
@@ -3364,81 +3854,102 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 					invert_gpio = self.get_param('invertgpio' + sensor_number, False, bool)
 					dead_band = self.get_param('deadband' + sensor_number, 0, int)
      
-					temp_offset = self.get_param('temp_offset' + sensor_number, 0, int)
+					temp_offset = self._finite_number(self.get_param('temp_offset' + sensor_number, 0.0, float), 'temperature offset')
+					if temp_offset is None:
+						temp_offset = 0.0
 					pressure_offset = self.get_param('pressure_offset' + sensor_number, 0, int)
 					humidity_offset = self.get_param('humidity_offset' + sensor_number, 0, int)
           
 					control_state = "Unknown"
      
 					max_temp_key = "temp" + sensor_number
-					max_temp = self.get_param(max_temp_key, -1, float)       
+					max_temp = self._finite_number(self.get_param(max_temp_key, None, float), 'Max Temp')
 					
 					gpio_key =  'gpio' + sensor_number
 					gpio_pin = self.get_param(gpio_key, -1, int)          
+					gpio_on_label = self.get_param('gpioon' + sensor_number, 'On', str)
+					gpio_off_label = self.get_param('gpiooff' + sensor_number, 'Off', str)
 			
-					temperature = 0
-					humidity = 0
-					the_dew_point = 0
-					co2 = 0
-
 					temperature, humidity, the_dew_point, pressure, rel_humidity, altitude, co2 = self._get_sensor_reading(sensor_type, sensor_number)
 					if temperature is not None:
-						temperature = temperature + temp_offset
-						temperature = round(temperature, 2)
+						temperature = self._finite_number(temperature + temp_offset, 'adjusted temperature')
+						if temperature is not None:
+							temperature = round(temperature, 2)
 					if humidity is not None:
-						humidity = humidity + humidity_offset	
-						humidity = round(humidity, 2)
+						humidity = self._finite_number(humidity + humidity_offset, 'adjusted humidity')
+						if humidity is not None:
+							humidity = round(humidity, 2)
+					if temperature is not None and humidity is not None and (temp_offset or humidity_offset):
+						temp_units = allsky_shared.getSetting('temptype')
+						temperature_c = (temperature - 32) * 5 / 9 if temp_units == 'F' else temperature
+						point = self._calculate_dew_point(temperature_c, humidity)
+						the_dew_point = point.c if point is not None else None
+						if temp_units == 'F' and the_dew_point is not None:
+							the_dew_point = (the_dew_point * 9 / 5) + 32
 					if the_dew_point is not None:
-						the_dew_point = round(the_dew_point, 2)
+						the_dew_point = self._finite_number(the_dew_point, 'adjusted dew point')
+						if the_dew_point is not None:
+							the_dew_point = round(the_dew_point, 2)
 					if pressure is not None:
-						pressure = pressure + pressure_offset
-						pressure = round(pressure, 0)
+						pressure = self._finite_number(pressure + pressure_offset, 'adjusted pressure')
+						if pressure is not None:
+							pressure = round(pressure, 0)
 					if rel_humidity is not None:
-						rel_humidity = round(rel_humidity, 2)
+						rel_humidity = self._finite_number(rel_humidity + humidity_offset, 'adjusted relative humidity')
+						if rel_humidity is not None:
+							rel_humidity = round(rel_humidity, 2)
 					if altitude is not None:
-						altitude = round(altitude, 0)
+						altitude = self._finite_number(altitude, 'altitude')
+						if altitude is not None:
+							altitude = round(altitude, 0)
 					if co2 is not None:
-						co2 = round(co2, 0)      
+						co2 = self._finite_number(co2, 'CO2')
+						if co2 is not None:
+							co2 = round(co2, 0)
 					self._debug_output(sensor_type, temperature, humidity, the_dew_point, pressure, rel_humidity, altitude, co2, temp_offset, humidity_offset, pressure_offset)
 
-					if sensor_number != '':
-						gpio_value = False
-						if temperature is not None: 
-							if max_temp != -1 and gpio_pin != -1:
-								try:
-									if temperature >= (max_temp + dead_band):
-										gpio_value = 'off' if invert_gpio else 'on'
-										allsky_shared.set_gpio_pin(gpio_pin, gpio_value, f"Temp {sensor_number}")
-										control_state = f"Temperature {temperature} is greater than {max_temp} plus deadband {dead_band} so enabling GPIO {gpio_pin}."
-										self.log(4, f'INFO: Temperature {temperature} is greater than {max_temp} plus deadband {dead_band} so enabling GPIO {gpio_pin}.')
-									elif temperature <= (max_temp - dead_band):
-										gpio_value = 'on' if invert_gpio else 'off'
-										allsky_shared.set_gpio_pin(gpio_pin, gpio_value, f"Temp {sensor_number}")
-										control_state = f"Temperature {temperature} is less than {max_temp} plus deadband {dead_band} so disabling GPIO {gpio_pin}."
-										self.log(4, f'INFO: Temperature {temperature} is less than {max_temp} plus deadband {dead_band} so disabling GPIO {gpio_pin}.')
-									else:
-										control_state = f"Temperature {temperature} is within the deadband range of {max_temp} so leaving GPIO {gpio_pin} as is."
-										self.log(4, f'INFO: Temperature {temperature} is within the deadband range of {max_temp} so leaving GPIO {gpio_pin} as is.')
-								except Exception as e:    
-									eType, eObject, eTraceback = sys.exc_info()
-									result = f'ERROR in {__file__}: Failed to set Digital IO to output {eTraceback.tb_lineno} - {e}'
-									self.log(0, result)
-							else:
-									control_state = f"GPIO not enabled for sensor {sensor_number}."
-									self.log(4, f'INFO: GPIO not enabled for sensor {sensor_number}.')
-						else:
-							control_state = f"Temperature reading failed so leaving GPIO {gpio_pin} as is."
-							self.log(4, f'INFO: Temperature reading failed so leaving GPIO {gpio_pin} as is.')
-								
+					gpio_state = 'N/A'
 					if temperature is not None:
-						if sensor_number != '':
-							extra_data['AS_GPIOSTATE' + sensor_number] = gpio_value
+						if max_temp is not None and gpio_pin != -1:
+							try:
+								if temperature >= (max_temp + dead_band):
+									pin_state = 'off' if invert_gpio else 'on'
+									allsky_shared.set_gpio_pin(gpio_pin, pin_state, f"Temp {sensor_number or 'Core'}")
+									gpio_state = gpio_on_label
+									control_state = f"Temperature {temperature} is above the threshold, so GPIO {gpio_pin} is enabled."
+								elif temperature <= (max_temp - dead_band):
+									pin_state = 'on' if invert_gpio else 'off'
+									allsky_shared.set_gpio_pin(gpio_pin, pin_state, f"Temp {sensor_number or 'Core'}")
+									gpio_state = gpio_off_label
+									control_state = f"Temperature {temperature} is below the threshold, so GPIO {gpio_pin} is disabled."
+								else:
+									pin_is_on = allsky_shared.get_gpio_pin(gpio_pin)
+									gpio_state = gpio_on_label if pin_is_on != invert_gpio else gpio_off_label
+									control_state = f"Temperature {temperature} is within the deadband, so GPIO {gpio_pin} is unchanged."
+								self.log(4, f'INFO: {control_state}')
+							except Exception as e:
+								eType, eObject, eTraceback = sys.exc_info()
+								result = f'ERROR in {__file__}: Failed to access GPIO {gpio_pin} on line {eTraceback.tb_lineno} - {e}'
+								self.log(0, result)
+						else:
+							control_state = f"GPIO not enabled for sensor {sensor_number or 'Core'}."
+							self.log(4, f'INFO: {control_state}')
+					else:
+						control_state = f"Temperature reading failed so leaving GPIO {gpio_pin} as is."
+						self.log(4, f'INFO: {control_state}')
+								
+					if any(value is not None for value in (temperature, humidity, the_dew_point, pressure, rel_humidity, altitude, co2)):
+						extra_data['AS_GPIOSTATE' + sensor_number] = gpio_state
 						extra_data['AS_TEMPSENSOR' + sensor_number] = str(sensor_type)
 						extra_data['AS_TEMPSENSORNAME' + sensor_number] = name
-						extra_data['AS_TEMP' + sensor_number] = temperature
-						extra_data['AS_DEW' + sensor_number] = the_dew_point
-						extra_data['AS_HUMIDITY' + sensor_number] = humidity
-						extra_data['AS_MAXTEMP' + sensor_number] = max_temp
+						if temperature is not None:
+							extra_data['AS_TEMP' + sensor_number] = temperature
+						if the_dew_point is not None:
+							extra_data['AS_DEW' + sensor_number] = the_dew_point
+						if humidity is not None:
+							extra_data['AS_HUMIDITY' + sensor_number] = humidity
+						if max_temp is not None:
+							extra_data['AS_MAXTEMP' + sensor_number] = max_temp
 						extra_data['AS_DEADBAND' + sensor_number] = dead_band
 						extra_data['AS_CONTROLSTATE' + sensor_number] = control_state
 						if pressure is not None:
@@ -3451,11 +3962,13 @@ class ALLSKYTEMP(ALLSKYMODULEBASE):
 							extra_data["AS_CO2" + sensor_number] = co2
 					else:
 						if sensor_number == "":
-							self.log(4, 'INFO: Code sensor returned no temperature')
+							self.log(4, 'INFO: Core sensor returned no data')
 						else:
-							self.log(4, f'INFO: Sensor {sensor_number} returned no temperature')
+							self.log(4, f'INFO: Sensor {sensor_number} returned no data')
 			if extra_data:
 				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], extra_data, self.meta_data['module'], self.meta_data['extradata'])
+			else:
+				allsky_shared.saveExtraData(self.meta_data['extradatafilename'], {}, self.meta_data['module'])
 
 		else:
 			result = 'Will run in {:.2f} seconds'.format(self._run_interval - diff)

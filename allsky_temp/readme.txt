@@ -4,17 +4,17 @@ Status: Stable
 Level: Experienced
 Runs In: Periodic
 
-This module allows you to read upto 3 different temperature sensors and optionally control a gpio pin. The data from the module is also available for use in the Overlay Editor.
+This module reads one Core sensor and up to three additional temperature sensors. Each sensor can optionally control a GPIO pin. The data is also available for use in the Overlay Editor.
 
 Settings
 --------
 
 Delay - This defines in seconds how frequently the data is read. Setting this to zero will read the sensors every time the module is run from a flow.
 Extra Data Filename - This is the name of the file the sensor data will be written to. There is normally no need to change this.
-Units - This is NOT USED. Please use the temperature units settings in the main Allsky settings.
+Units - Legacy setting. Use the OpenWeather Units setting for an OpenWeather sensor and the temperature unit setting in the main Allsky settings for output.
 
 
-For each of the three sensors the following fields are available:
+For the Core sensor and each of the three additional sensors the following fields are available:
 
 Sensor Type - Select the sensor type.
 Name Of Sensor - (REQUIRED) This is used as a prefix for the sensor data, this allows you to use the data as fields in the Overlay Manager.
@@ -23,38 +23,36 @@ i2c address - This can be used to override the default addresses for i2c devices
 DS18B20 Address - Required for DS18B20 devices, see notes below on these devices.
 Retry Count - The number of times to retry a DHTXX sensor if a reading fails.
 Delay - The delay, in milliseconds between each retry for the DHTXX sensors.
+DHT Power Pin - (OPTIONAL) GPIO pin used to power a DHT sensor during a reading.
 Enable SHT31 Heater - Most users will not need to enable this. Typically only required in very high humidity areas. Refer to the device datasheet for more details and to see if you may need it.
+Sensor Offsets - Adjust the reported temperature, humidity and pressure readings. Temperature offsets support half-degree steps.
+OpenWeather Units - Select metric, imperial or standard units for this sensor's OpenWeather request.
 Max Temp - (OPTIONAL) Above this temperature the selected GPIO pin will be enabled.
+Deadband Range - Range around Max Temp where the GPIO pin keeps its current state.
 GPIO Pin - (OPTIONAl) The GPIO pin to control based upon the temperature.
-GPIO On - The Human Readable value to use when the GPIO pin is enabled. This value is written to the overlay variable AS_GPIOSTATEX i.e. (AS_GPIOSTATE1 for the first sensor).
-GPIO Off - The Human Readable value to use when the GPIO pin is disabled. This value is written to the overlay variable AS_GPIOSTATEX i.e. (AS_GPIOSTATE1 for the first sensor).
+Invert GPIO - Use when the connected device activates when the GPIO pin goes low.
+GPIO On - Label written to AS_GPIOSTATE (Core) or AS_GPIOSTATE1/2/3 when GPIO control is enabled.
+GPIO Off - Label written to AS_GPIOSTATE (Core) or AS_GPIOSTATE1/2/3 when GPIO control is disabled.
 
 
 NOTE: If No GPIO pin is selected or the Max temp is not entered then the values for GPIOState will be N/A.
 
-Example Extra Data File
------------------------
+Example Extra Data Values
+-------------------------
+
+The extra-data file stores each available field with a value and metadata. This
+abbreviated example shows the values for three configured sensors:
 
 {
-    "AS_GPIOSTATE1": "Off",                   <-- GPIO state of the first sensor
-    "AS_TEMPSENSOR1": "DS18B20",              <-- Sensor 1 Type
-    "AS_TEMPSENSORNAME1": "DS1",              <-- Sensor 1 Name
-    "AS_TEMPAMBIENT1": "21.875",              <-- Sensor 1 Temperature
-    "AS_TEMPDEW1": "None",                    <-- Sensor 1 Dew Point (Since this is a DS18B20 there is no Dew Point value)
-    "AS_TEMPHUMIDITY1": "None",               <-- Sensor 1 Humidity (Since this is a DS18B20 there is no Humidity value)
-    "AS_GPIOSTATE2": "N/A",                   <-- GPIO state of the second sensor (This is N/A as no GPIO pin is defined)
-    "AS_TEMPSENSOR2": "DS18B20",              <-- Sensor 2 Type
-    "AS_TEMPSENSORNAME2": "DS2",              <-- Sensor 2 Name
-    "AS_TEMPAMBIENT2": "22.25",               <-- Sensor 2 Temperature
-    "AS_TEMPDEW2": "None",                    <-- Sensor 2 Dew Point (Since this is a DS18B20 there is no Dew Point value)
-    "AS_TEMPHUMIDITY2": "None",               <-- Sensor 2 Humidity (Since this is a DS18B20 there is no Humidity value)
-    "AS_GPIOSTATE3": "N/A",                   <-- GPIO state of the third sensor (This is N/A as no GPIO pin is defined)
-    "AS_TEMPSENSOR3": "SHT31",                <-- Sensor 3 Type
-    "AS_TEMPSENSORNAME3": "bme",              <-- Sensor 3 Name
-    "AS_TEMPAMBIENT3": "24.56",               <-- Sensor 3 Temperature
-    "AS_TEMPDEW3": "19.22",                   <-- Sensor 3 Dew Point
-    "AS_TEMPHUMIDITY3": "72.21"               <-- Sensor 3 Humidity
+    "AS_TEMP1": {"value": 21.88},
+    "AS_TEMP2": {"value": 22.25},
+    "AS_TEMP3": {"value": 24.56},
+    "AS_DEW3": {"value": 19.22},
+    "AS_HUMIDITY3": {"value": 72.21}
 }
+
+DS18B20 sensors report temperature only. Their dew point and humidity fields
+are omitted. Core sensor keys use the same names without a numeric suffix.
 
 DS18B20 devices
 ---------------
