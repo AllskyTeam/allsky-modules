@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "module": "allsky_hddtemp",
-  "generated_utc": "2026-08-31T20:49:28Z",
+  "generated_utc": "2026-11-22T17:13:38Z",
   "hash_algorithm": "sha256",
   "files": {
     "allsky_hddtemp.py": {
-      "sha256": "26714c1fa4616a691943d78bce86e57eec093fb4641f9721d1a741f6249ac2b8",
-      "size": 10555,
+      "sha256": "215549719f5e64839a2343375253d6edc872812754cd2e2149d63aa65c5ffe42",
+      "size": 11356,
       "mode": "755"
     },
     "db/db_data.json": {
@@ -20,8 +20,8 @@
       "mode": "644"
     },
     "readme.txt": {
-      "sha256": "6c9a7c2615233ae39e97838847ac2d5e214c695184c526ad2aa36a125a47f3ab",
-      "size": 746,
+      "sha256": "5fc2d00c1532092bebd172a5905f673fbe8cba53f256071b5b6b784c4b0f27b8",
+      "size": 875,
       "mode": "644"
     },
     "requirements.txt": {
