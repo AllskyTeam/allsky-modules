@@ -48,7 +48,7 @@ class ALLSKYSKYTRAFFIC(ALLSKYMODULEBASE):
     meta_data = {
         "name": "Sky Traffic",
         "description": "Names the satellites and aircraft crossing the image and lists the next bright passes",
-        "version": "v1.0.0",
+        "version": "v1.0.1",
         "module": "allsky_skytraffic",
         "events": [
             "night",
@@ -447,6 +447,15 @@ class ALLSKYSKYTRAFFIC(ALLSKYMODULEBASE):
             }
         },
         "changelog": {
+            "v1.0.1": [
+                {
+                    "author": "Benjamin Hartwich",
+                    "authorurl": "https://astronomy.garden",
+                    "changes": [
+                        "A decayed satellite in the orbital elements no longer stops the module every image with \"cannot compute the body's position\"; it is skipped"
+                    ]
+                }
+            ],
             "v1.0.0": [
                 {
                     "author": "Benjamin Hartwich",
@@ -687,11 +696,13 @@ def _satelliteTracks(sats, lat, lon, t0, exp, lens, min_alt):
     tracks, up = [], 0
     for norad, (name, body) in sats.items():
         obs.date = _edate(t0 + exp / 2)
+        # PyEphem computes a satellite only when a value is read: a decayed one fails
+        # on body.alt ("cannot compute the body's position"), not in compute().
         try:
             body.compute(obs)
+            if body.alt < gate:
+                continue
         except Exception:
-            continue
-        if body.alt < gate:
             continue
         pts, lit, alts = [], [], []
         try:
@@ -1110,15 +1121,22 @@ def _passes(params, lat, lon, now):
                 break
             if max_alt >= min_alt:
                 obs.date = max_t
-                body.compute(obs)
-                sun.compute(obs)
-                if not body.eclipsed and sun.alt < math.radians(-6):
+                try:
+                    body.compute(obs)
+                    sun.compute(obs)
+                    visible = not body.eclipsed and sun.alt < math.radians(-6)
+                except Exception:
+                    break
+                if visible:
                     passes.append({"name": name, "rise": _unix(rise_t), "max": _unix(max_t),
                                    "set": _unix(set_t), "max_alt": round(math.degrees(max_alt)),
                                    "from": _compass(math.degrees(rise_az)),
                                    "to": _compass(math.degrees(set_az))})
             if _truthy(params["transits"]) and name in STATIONS:
-                tr = _closest(obs, body, sun, moon, rise_t, set_t)
+                try:
+                    tr = _closest(obs, body, sun, moon, rise_t, set_t)
+                except Exception:
+                    break
                 if tr:
                     transits.append(dict(tr, name=name))
             obs.date = set_t + ephem.minute
