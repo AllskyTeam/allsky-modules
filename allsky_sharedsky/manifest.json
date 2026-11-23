@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "module": "allsky_sharedsky",
+  "generated_utc": "2026-11-23T09:23:47Z",
+  "hash_algorithm": "sha256",
+  "files": {
+    "README.md": {
+      "sha256": "b3e06359d82524c3a91cdc29db550fdbc781cb1af022adea71530f1ead70e627",
+      "size": 3955,
+      "mode": "644"
+    },
+    "allsky_sharedsky.py": {
+      "sha256": "691590361db2a07437e1e3094db9a7dc2f10cf4da246feee95e32e16a0445e5d",
+      "size": 24874,
+      "mode": "644"
+    }
+  },
+  "file_count": 2
+}
