@@ -17,7 +17,7 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 		"description": "Output Disk Drive Temperature for use in overlays.",
 		"docs": "docs/allsky_modules/extra/hddtemp.html",     
 		"module": "allsky_hddtemp",
-		"version": "v1.0.1",
+		"version": "v1.0.2",
 		"events": [
 			"night",
 			"day",
@@ -252,6 +252,20 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 					"group": "Environment",
 					"description": "Maximum temperature of sdc in C",
 					"type": "temperature"
+				},
+				"AS_HDDNVME0TEMP": {
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "Current temperature of nvme0 in C",
+					"type": "temperature"
+				},
+				"AS_HDDNVME1TEMP": {
+					"format": "",
+					"sample": "",
+					"group": "Environment",
+					"description": "Current temperature of nvme1 in C",
+					"type": "temperature"
 				}
 			}
 		},
@@ -335,6 +349,16 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 						"Converted to new format"
 					]
 				}
+			],
+			"v1.0.2": [
+				{
+					"author": "Kumar Challa",
+					"authorurl": "https://github.com/chvvkumar",
+					"changes": [
+						"Add NVMe drive support",
+						"Fix value in max temperature log message"
+					]
+				}
 			]
 		}
 	}
@@ -373,7 +397,12 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 					if temp_data is not None:
 						temp = temp_data.raw_int
 						temp_max = temp_data.worst
+					else:
+						# NVMe drives have no S.M.A.R.T 194 and report no maximum temperature
+						temp = dev.temperature
+						temp_max = None
 
+					if temp_data is not None or temp is not None:
 						if temp is not None:
 							hdd_name = f'AS_HDD{name}TEMP'
 							if self._use_colour:
@@ -401,8 +430,8 @@ class ALLSKYHDDTEMP(ALLSKYMODULEBASE):
 								self.log(4, f'INFO: Max temperature of {name} is {temp_max}C, using colour ({colour}), max is {self._ok_temp}C')
 							else:
 								extra_data[hdd_name] = float(temp_max)
-								self.log(4, f'INFO: Max temperature of {name} is {temp}')
-						else:
+								self.log(4, f'INFO: Max temperature of {name} is {temp_max}')
+						elif temp_data is not None:
 							result1 = f'No max temperature data available for {name}'
 							self.log(4, f"ERROR: {result1}")
 
