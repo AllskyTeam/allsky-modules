@@ -25,7 +25,7 @@ import subprocess
 import time
 from collections.abc import Callable, Iterator
 from pathlib import Path
-from typing import Any, ClassVar
+from typing import Any
 
 import allsky_shared as allsky_shared
 from allsky_base import ALLSKYMODULEBASE
@@ -291,11 +291,14 @@ class Hub:
 
 
 class ALLSKYSHAREDSKY(ALLSKYMODULEBASE):
-    meta_data: ClassVar[dict[str, Any]] = {
+    # Allsky's installer reads this block as JSON without running the module: no
+    # trailing commas, no Python names, no annotation.
+    # fmt: off
+    meta_data = {
         "name": "SharedSky",
         "description": "Send images and meteors to SharedSky, measured with other cameras",
         "module": "allsky_sharedsky",
-        "version": "v1.0.0",
+        "version": "v1.0.1",
         "centersettings": "false",
         "testable": "true",
         "group": "Data Export",
@@ -310,79 +313,87 @@ class ALLSKYSHAREDSKY(ALLSKYMODULEBASE):
             "interval": "60",
             "meteors": "true",
             "meteorfolder": "",
-            "hub": HUB,
+            "hub": "https://allskyhub.org"
         },
         "argumentdetails": {
             "stationid": {
                 "required": "true",
                 "description": "Station ID",
                 "help": "The 26 characters shown when you connected the camera at https://allskyhub.org (Kamera verbinden).",
-                "tab": "SharedSky",
+                "tab": "SharedSky"
             },
             "secret": {
                 "required": "true",
                 "description": "Secret",
                 "help": "The 64 characters shown once with the station ID. A new one can be made on the station's page.",
                 "tab": "SharedSky",
-                "secret": "true",
+                "secret": "true"
             },
             "name": {
                 "required": "false",
                 "description": "Name",
                 "help": "The station's name in the network. Empty: Allsky's location.",
-                "tab": "SharedSky",
+                "tab": "SharedSky"
             },
             "elevation": {
                 "required": "false",
                 "description": "Elevation (m)",
                 "help": "The camera's height above sea level, for measuring meteor heights.",
                 "tab": "SharedSky",
-                "type": {"fieldtype": "spinner", "min": -500, "max": 9000, "step": 1},
+                "type": {"fieldtype": "spinner", "min": -500, "max": 9000, "step": 1}
             },
             "focal": {
                 "required": "false",
                 "description": "Lens focal length (mm)",
                 "help": "Optional. The hub works out the lens from the stars itself.",
-                "tab": "SharedSky",
+                "tab": "SharedSky"
             },
             "interval": {
                 "required": "false",
                 "description": "Image every (s)",
                 "help": "How often a small image is sent. The hub keeps one every 5 minutes.",
                 "tab": "SharedSky",
-                "type": {"fieldtype": "spinner", "min": 30, "max": 600, "step": 10},
+                "type": {"fieldtype": "spinner", "min": 30, "max": 600, "step": 10}
             },
             "meteors": {
                 "required": "false",
                 "description": "Send meteors",
                 "help": "Send the meteors the Meteor Detection (temporal) module saved, with their track. Put this module after it in the night flow.",
                 "tab": "Meteors",
-                "type": {"fieldtype": "checkbox"},
+                "type": {"fieldtype": "checkbox"}
             },
             "meteorfolder": {
                 "required": "false",
                 "description": "Meteor folder",
                 "help": "Where the meteor module saves its images. Empty: its default, the website's meteors folder.",
-                "tab": "Meteors",
+                "tab": "Meteors"
             },
             "hub": {
                 "required": "false",
                 "description": "Hub",
                 "help": "Leave as it is.",
-                "tab": "Advanced",
-            },
+                "tab": "Advanced"
+            }
         },
         "enabled": "false",
         "changelog": {
+            "v1.0.1": [
+                {
+                    "author": "Benjamin Hartwich (Agent assisted)",
+                    "authorurl": "https://github.com/benhartwich/",
+                    "changes": "Metadata readable by the module installer"
+                }
+            ],
             "v1.0.0": [
                 {
                     "author": "Benjamin Hartwich (Agent assisted)",
                     "authorurl": "https://github.com/benhartwich/",
-                    "changes": "Initial release",
+                    "changes": "Initial release"
                 }
             ]
-        },
+        }
     }
+    # fmt: on
 
     transport: Transport = staticmethod(requests_transport)
     encode: Callable[[Any, int | None, int], bytes | None] = staticmethod(encode_jpeg)
