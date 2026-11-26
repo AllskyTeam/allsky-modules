@@ -61,7 +61,7 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 		"description": "Control a dew heater via a temperature and humidity sensor",
 		"docs": "docs/allsky_modules/extra/dew_heater.html",  
 		"module": "allsky_dewheater",
-		"version": "v2.0.1",
+		"version": "v2.0.2",
 		"events": [
 			"periodic",
 			"day",
@@ -1016,6 +1016,15 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 						"A failed GPIO switch is logged instead of stopping the periodic flow"
 					]
 				}
+			],
+			"v2.0.2" : [
+				{
+					"author": "Benjamin Hartwich (Agent assisted)",
+					"authorurl": "https://github.com/benhartwich/",
+					"changes": [
+						"Disabled during the day: turn the heater off on its pin instead of a pin named True (\"Unable to switch GPIO pin True\")"
+					]
+				}
 			]                                             
 		}
 	}
@@ -1900,10 +1909,8 @@ class ALLSKYDEWHEATER(ALLSKYMODULEBASE):
 				self.log(4, f'INFO: Will run in {format(frequency - diff)} seconds')
 		else:
 			if heater_pin != 0:
-				heater_pin = allsky_shared.get_gpio_pin(heater_pin)
 				self._turn_heater_off(heater_pin, invert_gpio, False, use_pwm)
 			if extra_pin != 0:
-				extra_pin = allsky_shared.get_gpio_pin(extra_pin)
 				self._turn_heater_off(extra_pin, invert_extra_pin, True, extra_use_pwm)
 
 			extra_data = {}
