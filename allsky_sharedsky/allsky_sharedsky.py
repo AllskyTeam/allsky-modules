@@ -298,7 +298,7 @@ class ALLSKYSHAREDSKY(ALLSKYMODULEBASE):
         "name": "SharedSky",
         "description": "Send images and meteors to SharedSky, measured with other cameras",
         "module": "allsky_sharedsky",
-        "version": "v1.0.1",
+        "version": "v1.0.2",
         "centersettings": "false",
         "testable": "true",
         "group": "Data Export",
@@ -377,6 +377,13 @@ class ALLSKYSHAREDSKY(ALLSKYMODULEBASE):
         },
         "enabled": "false",
         "changelog": {
+            "v1.0.2": [
+                {
+                    "author": "Benjamin Hartwich (Agent assisted)",
+                    "authorurl": "https://github.com/benhartwich/",
+                    "changes": "After a refused full frame, send small images again instead of the full frame with every image"
+                }
+            ],
             "v1.0.1": [
                 {
                     "author": "Benjamin Hartwich (Agent assisted)",
@@ -568,6 +575,8 @@ class ALLSKYSHAREDSKY(ALLSKYMODULEBASE):
             jpeg = self.encode(
                 image, None if full else THUMB_SIDE, FRAME_MAX if full else THUMB_MAX
             )
+            if jpeg is None and full:
+                state["full"] = False  # too big even at the lowest quality: small images again
             if jpeg is not None:
                 meta = frame_metadata(
                     start=start,
@@ -581,6 +590,9 @@ class ALLSKYSHAREDSKY(ALLSKYMODULEBASE):
                 if self._ok("full frame" if full else "image", status, answer, secret):
                     state.update(frame_at=now, full=bool(answer.get("want_full_frame")))
                     done.append("full frame" if full else "image")
+                elif full and status in (400, 413):
+                    # Refused: back to small images, the hub asks again when it needs one.
+                    state["full"] = False
 
         if self.get_param("meteors", True, bool):
             sent = {k: v for k, v in (state.get("sent") or {}).items() if now - v < KEEP_SENT}
